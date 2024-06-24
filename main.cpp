@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include <C:\projects\privat\simple_game\Game.cpp>
+#include "Game.cpp"
 
 // Top part is heaven, bot part is hell. arrows control both.
 // add function to switch places at certain points. AND OR invert colors to avoid obsticals / fly over or 

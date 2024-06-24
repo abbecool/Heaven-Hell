@@ -1,7 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <SDL2/SDL.h>
-#include <C:\projects\privat\simple_game\classes\CComponents.h>
+#include "CComponents.h"
 
 #ifndef ENTITY_H
 #define ENTITY_H 

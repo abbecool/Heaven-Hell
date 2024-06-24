@@ -7,9 +7,8 @@
 #include <thread>
 
 #include <SDL2/SDL.h>
-
-#include <C:\projects\privat\simple_game\TextureManager.cpp>
-#include <C:\projects\privat\simple_game\Game.h>
+#include "TextureManager.cpp"
+#include "headers/Game.h"
 
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();

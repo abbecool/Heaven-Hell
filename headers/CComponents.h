@@ -1,7 +1,7 @@
 #include <iostream>
-#include <C:\projects\privat\simple_game\classes\Vec2.h>
 #include <SDL2/SDL.h>
-#include <C:\projects\privat\simple_game\TextureManager.cpp>
+#include "Vec2.h"
+#include "../TextureManager.cpp"
 
 class CInputs
 {

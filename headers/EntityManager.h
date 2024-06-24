@@ -1,7 +1,6 @@
 #include <map>
-// #include <ranges>
 #include <vector>
-#include <C:\projects\privat\simple_game\classes\Entity.h>
+#include "Entity.h"
 
 typedef std::vector<std::shared_ptr<Entity>> EntityVec;
 typedef std::map   <std::string, EntityVec> EntityMap;

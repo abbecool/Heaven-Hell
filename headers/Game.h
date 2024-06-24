@@ -1,4 +1,4 @@
-#include <C:\projects\privat\simple_game\classes\EntityManager.h>
+#include "EntityManager.h"
 
 struct PlayerConfig { int SR, CR;};
 struct EnemyConfig { int SR, CR;};

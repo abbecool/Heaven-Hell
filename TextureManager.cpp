@@ -1,6 +1,6 @@
-#include <C:\projects\privat\simple_game\TextureManager.h>
 #include <SDL2/SDL.h>
-#include <C:\projects\privat\simple_game\src\include\SDL2\SDL_image.h>
+#include "headers/TextureManager.h"
+#include "src\include\SDL2\SDL_image.h"
 
 #ifndef TEXTURE_MANAGER_CPP
 #define TEXTURE_MANAGER_CPP
