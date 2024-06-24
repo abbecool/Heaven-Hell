@@ -3,12 +3,12 @@
 #include <algorithm>
 #include <chrono>
 #include <ctime>
-#include <iostream>
 #include <thread>
 
 #include <SDL2/SDL.h>
-#include "TextureManager.cpp"
+
 #include "headers/Game.h"
+#include "headers/TextureManager.h"
 
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();

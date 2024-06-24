@@ -1,7 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include "Vec2.h"
-#include "../TextureManager.cpp"
+#include "TextureManager.h"
 
 class CInputs
 {
