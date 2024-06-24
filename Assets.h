@@ -10,4 +10,5 @@ public:
     Assets(){}
     void addTexture(const std::string name, const char* path){}
     SDL_Texture& getTexture(const std::string name){}
+    
 };
