@@ -28,7 +28,7 @@ class Scene
     public:
 
     Scene();
-    Scene(Game* gameEngine);
+    Scene(Game* game);
     virtual ~Scene();
 
     virtual void update() = 0;

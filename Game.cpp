@@ -8,23 +8,31 @@
 #include <SDL2/SDL.h>
 
 #include "headers/Game.h"
+#include "headers/Scene_Menu.h"
 #include "headers/TextureManager.h"
 
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
 
-Game::Game(const std::string & config, SDL_Renderer * renderer)
+Game::Game(const std::string & config)
 {
-    m_renderer = renderer;
     init(config);
 }
 
 void Game::init(const std::string & path)
 {
+
+    SDL_Init(SDL_INIT_EVERYTHING);
+    m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED);
+    if ( NULL == m_window )
+    {
+        std::cout << "Could not create window: " << SDL_GetError( ) << std::endl;
+    }
+    m_renderer = SDL_CreateRenderer( m_window, -1 , 0);
+    SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
+
     // m_assets.loadFromFile(path);
-    // m_window.create(sf::VideoMode(1280, 768), "Definitely Not Mario");
-    // m_window.setFramerateLimit(60);
-    // changeScene("MENU", std::make_shared<Scene_Menu>(this));
+    changeScene("MENU", std::make_shared<Scene_Menu>(this));
 
     // Load texture  
     m_texture = TextureManager::LoadTexture("assets/images/Textures-16.png", m_renderer);
@@ -69,6 +77,63 @@ void Game::init(const std::string & path)
     // Unlock keys for players
     spawnKey(Vec2 {200,400}, Vec2 {48,48}, "Devil", false);
 }
+
+std::shared_ptr<Scene> Game::currentScene() {
+    return m_sceneMap[m_currentScene];
+}
+
+bool Game::isRunning() {
+    return m_running;
+}
+
+void Game::run()
+{
+    auto next_frame = std::chrono::steady_clock::now();
+
+    while (m_running)
+    {
+        // FPS cap
+        next_frame += std::chrono::milliseconds(1000 / m_framerate); // 60Hz
+        // 
+
+        m_entities.update();
+
+        sUserInput();
+        sMovement();
+        sCollisions();
+        sRender();
+        m_currentFrame++;
+
+        std::this_thread::sleep_until(next_frame);
+    }
+    SDL_DestroyWindow( m_window );
+    SDL_Quit();
+}   
+
+void Game::changeScene(
+    const std::string& sceneName,
+    std::shared_ptr<Scene> scene,
+    bool endCurrentScene
+) {
+    m_currentScene = sceneName;
+    m_sceneMap[sceneName] = scene;
+}
+
+void Game::quit() {
+    m_running = false;
+    // m_window.close();
+}
+
+void Game::update() {
+    currentScene()->update();
+}
+
+SDL_Renderer* Game::renderer(){
+    return m_renderer;
+}
+
+
+// -------------------------------------------------------------------------
 
 void Game::spawnPlayer(const Vec2 pos, const std::string name, bool movable)
 {
@@ -145,28 +210,6 @@ void Game::spawnKey(const Vec2 pos, const Vec2 size, const std::string playerToU
     entity->cTexture = std::make_shared<CTexture>(Vec2 {3*16, 11*16}, Vec2 {1*16, 1*16});
 }
 
-void Game::run()
-{
-    using clock = std::chrono::steady_clock;
-    auto next_frame = clock::now();
-
-    while (m_running)
-    {
-        // FPS cap
-        next_frame += std::chrono::milliseconds(1000 / m_framerate); // 60Hz
-        // 
-
-        m_entities.update();
-
-        sUserInput();
-        sMovement();
-        sCollisions();
-        sRender();
-        m_currentFrame++;
-
-        std::this_thread::sleep_until(next_frame);
-    }
-}   
 
 
 void Game::sUserInput()
@@ -451,7 +494,3 @@ void Game::setPaused(bool paused)
 {
     m_paused = paused;
 }
-
-// void Game::update() {
-//     currentScene()->update();
-// }

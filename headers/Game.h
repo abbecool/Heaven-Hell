@@ -1,18 +1,23 @@
 #pragma once
 #include "EntityManager.h"
-// #include "Scene.h"
+#include "Scene.h"
 // #include "Assets.h"
 
-// class Scene;
-// typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
+class Scene;
+typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
 
 class Game
-{    
+{   
+protected:
+    const int HEIGHT = 1080; 
+    const int WIDTH = 1920; 
+
+    SDL_Window *m_window;
     SDL_Renderer *m_renderer;
-    // SceneMap m_scenes;
     // Assets m_assets;
-    std::string currentScene;
-    // size_t m_simulationSpeed = 1;
+    std::string m_currentScene;
+    SceneMap m_sceneMap;
+    size_t m_simulationSpeed = 1;
     bool m_running = true;
 
     int m_currentFrame;
@@ -33,6 +38,7 @@ class Game
     void init(const std::string & config);
     void update();
     void setPaused(bool paused);
+    std::shared_ptr<Scene> currentScene();
 
     void sMovement();
     void sUserInput();
@@ -49,6 +55,13 @@ class Game
     void spawnGoal(const Vec2 pos, const Vec2 size, bool movable);
     void spawnKey(const Vec2 pos, const Vec2 size, const std::string, bool movable);
 public:
-    Game(const std::string & config, SDL_Renderer * renderer);
+    Game(const std::string & config);
+    void changeScene(
+        const std::string& sceneName,
+        std::shared_ptr<Scene> scene,
+        bool endCurrentScene=false);
+    void quit();
     void run();
+    bool isRunning();
+    SDL_Renderer* renderer(); 
 };

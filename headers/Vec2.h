@@ -1,5 +1,4 @@
-#ifndef VEC2_H
-#define VEC2_H
+#pragma once
 #include <cmath>
 
 class Vec2
@@ -113,5 +112,3 @@ Vec2 Vec2::abs_elem()
 {
     return Vec2 { abs(x), abs(y) };
 }
-
-#endif // VEC2_H

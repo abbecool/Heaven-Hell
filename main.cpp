@@ -16,23 +16,9 @@
 
 int main( int argc, char *argv[] )
 {   
-    const int HEIGHT = 1080; 
-    const int WIDTH = 1920; 
-    SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_Window *window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED);
-    if ( NULL == window )
-    {
-        std::cout << "Could not create window: " << SDL_GetError( ) << std::endl;
-    }
-    SDL_Renderer *renderer = SDL_CreateRenderer( window, -1 , 0);
-    SDL_SetRenderDrawBlendMode( renderer, SDL_BLENDMODE_BLEND );
 
-    Game g("config.txt", renderer);
+    Game g("config.txt");
     g.run();
-        
-    SDL_DestroyWindow( window );
-    SDL_Quit();
 
     return EXIT_SUCCESS;
-
 }

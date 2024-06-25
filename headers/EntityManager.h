@@ -2,6 +2,7 @@
 
 #include <map>
 #include <vector>
+#include <algorithm>
 #include "Entity.h"
 
 typedef std::vector<std::shared_ptr<Entity>> EntityVec;
