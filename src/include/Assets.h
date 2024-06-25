@@ -2,7 +2,7 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include "../src\include\SDL2\SDL_image.h"
-#include "TextureManager.h"
+#include "src/TextureManager.h"
 
 class Assets
 {

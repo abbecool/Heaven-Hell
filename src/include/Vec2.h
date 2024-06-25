@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cmath>
 
 class Vec2
@@ -79,7 +80,7 @@ void Vec2::operator-= (const Vec2 & rhs)
 
 float Vec2::isnull () const
 {
-    if (abs(x)+abs(y) == 0)
+    if (std::fabs(x)+std::fabs(y) == 0)
     {
         return true;
     }
@@ -110,5 +111,5 @@ Vec2 Vec2::norm (const float val)
 
 Vec2 Vec2::abs_elem()
 {
-    return Vec2 { abs(x), abs(y) };
+    return Vec2 { std::fabs(x), std::fabs(y) };
 }

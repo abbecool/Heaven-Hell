@@ -7,9 +7,9 @@
 
 #include <SDL2/SDL.h>
 
-#include "headers/Game.h"
-#include "headers/Scene_Menu.h"
-#include "headers/TextureManager.h"
+#include "Scene_Menu.cpp"
+#include "src/include/Game.h"
+#include "src/include/TextureManager.h"
 
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
@@ -32,7 +32,7 @@ void Game::init(const std::string & path)
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
 
     // m_assets.loadFromFile(path);
-    changeScene("MENU", std::make_shared<Scene_Menu>(this));
+    // changeScene("MENU", std::make_shared<Scene_Menu>(this));
 
     // Load texture  
     m_texture = TextureManager::LoadTexture("assets/images/Textures-16.png", m_renderer);
@@ -78,9 +78,9 @@ void Game::init(const std::string & path)
     spawnKey(Vec2 {200,400}, Vec2 {48,48}, "Devil", false);
 }
 
-std::shared_ptr<Scene> Game::currentScene() {
-    return m_sceneMap[m_currentScene];
-}
+// std::shared_ptr<Scene> Game::currentScene() {
+//     return m_sceneMap[m_currentScene];
+// }
 
 bool Game::isRunning() {
     return m_running;
@@ -110,26 +110,40 @@ void Game::run()
     SDL_Quit();
 }   
 
-void Game::changeScene(
-    const std::string& sceneName,
-    std::shared_ptr<Scene> scene,
-    bool endCurrentScene
-) {
-    m_currentScene = sceneName;
-    m_sceneMap[sceneName] = scene;
-}
+// void Game::changeScene(
+//     const std::string& sceneName,
+//     std::shared_ptr<Scene> scene,
+//     bool endCurrentScene
+// ) {
+//     m_currentScene = sceneName;
+//     m_sceneMap[sceneName] = scene;
+// }
 
 void Game::quit() {
     m_running = false;
     // m_window.close();
 }
 
-void Game::update() {
-    currentScene()->update();
-}
+// void Game::update() {
+//     currentScene()->update();
+// }
 
 SDL_Renderer* Game::renderer(){
     return m_renderer;
+}
+
+SDL_Window* Game::window(){
+    return m_window;
+}
+
+int Game::getWidth()
+{
+    return WIDTH;
+}
+
+int Game::getHeight()
+{
+    return HEIGHT;
 }
 
 

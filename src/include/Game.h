@@ -1,4 +1,5 @@
 #pragma once
+
 #include "EntityManager.h"
 #include "Scene.h"
 // #include "Assets.h"
@@ -16,7 +17,7 @@ protected:
     SDL_Renderer *m_renderer;
     // Assets m_assets;
     std::string m_currentScene;
-    SceneMap m_sceneMap;
+    // SceneMap m_sceneMap;
     size_t m_simulationSpeed = 1;
     bool m_running = true;
 
@@ -36,9 +37,9 @@ protected:
     SDL_Texture *m_texture_outofbound;
     
     void init(const std::string & config);
-    void update();
+    // void update();
     void setPaused(bool paused);
-    std::shared_ptr<Scene> currentScene();
+    // std::shared_ptr<Scene> currentScene();
 
     void sMovement();
     void sUserInput();
@@ -56,12 +57,15 @@ protected:
     void spawnKey(const Vec2 pos, const Vec2 size, const std::string, bool movable);
 public:
     Game(const std::string & config);
-    void changeScene(
-        const std::string& sceneName,
-        std::shared_ptr<Scene> scene,
-        bool endCurrentScene=false);
+    // void changeScene(
+    //     const std::string& sceneName,
+    //     std::shared_ptr<Scene> scene,
+    //     bool endCurrentScene=false);
     void quit();
     void run();
     bool isRunning();
     SDL_Renderer* renderer(); 
+    SDL_Window* window(); 
+    int getWidth();
+    int getHeight();
 };

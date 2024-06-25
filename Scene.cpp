@@ -1,10 +1,12 @@
-#include "Scene.h"
+// #pragma once
+
+#include "src/include/Scene.h"
 // #include "SFML/Graphics/PrimitiveType.hpp"
 
 Scene::Scene() {}
 
-Scene::Scene(Game* gameEngine)
-: m_game(gameEngine) {}
+Scene::Scene(Game* game)
+: m_game(game) {}
 
 Scene::~Scene() {}
 
@@ -18,13 +20,13 @@ void Scene::registerAction(int inputKey, const std::string& actionName) {
     m_actionMap[inputKey] = actionName;
 }
 
-// size_t Scene::width() const {
-//     return m_game->window().getSize().x;
-// }
+size_t Scene::width() const {
+    return m_game->getWidth();
+}
 
-// size_t Scene::height() const {
-//     return m_game->window().getSize().y;
-// }
+size_t Scene::height() const {
+    return m_game->getHeight();
+}
 
 size_t Scene::currentFrame() const {
     return m_currentFrame;

@@ -27,3 +27,4 @@ class Scene_Menu : public Scene
     Scene_Menu(Game* Game = nullptr);
     void sRender();
 };
+

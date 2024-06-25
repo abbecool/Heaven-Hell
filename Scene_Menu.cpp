@@ -1,5 +1,7 @@
-#include "headers/Scene_Menu.h"
-#include "headers/Scene_Play.h"
+// #pragma once
+
+#include "src/include/Scene_Menu.h"
+// #include "headers/Scene_Play.h"
 // #include "SFML/Graphics/Text.hpp"
 
 void Scene_Menu::init() {

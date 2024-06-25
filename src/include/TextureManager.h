@@ -1,9 +1,6 @@
 #pragma once
 #include <SDL2/SDL.h>
-#include "../src\include\SDL2\SDL_image.h"
-
-#ifndef TEXTURE_MANAGER_H
-#define TEXTURE_MANAGER_H 
+#include "SDL2/SDL_image.h"
 
 class TextureManager
 {
@@ -18,5 +15,3 @@ SDL_Texture* TextureManager::LoadTexture(const char* texture, SDL_Renderer* ren)
     SDL_FreeSurface(tempSurface);
     return tex;
 }
-
-#endif // TEXTURE_MANAGER_H
