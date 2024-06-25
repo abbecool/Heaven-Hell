@@ -78,7 +78,7 @@ public:
     Vec2 size;
     SDL_Rect rect;
 
-    SDL_Texture * texture;// = TextureManager::LoadTexture(e->cTexture->charTexture, m_renderer);
+    SDL_Texture * texture;
 
     CTexture() {}
     CTexture(const Vec2 p, const Vec2 sz) 

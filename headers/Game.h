@@ -1,24 +1,23 @@
+#pragma once
+#include "Scene.h"
 #include "EntityManager.h"
+// #include "Assets.h"
 
-struct PlayerConfig { int SR, CR;};
-struct EnemyConfig { int SR, CR;};
 
 class Game
 {    
     SDL_Renderer *m_renderer;
-    // SDL_Window *window;
-    EntityManager m_entities;
-    PlayerConfig m_playerConfig;
-    EnemyConfig m_enemyConfig;
-    std::shared_ptr<Entity> m_player;
-    int m_score;
-    int m_speed = 400;
+    // std::map<std::string, Scene> m_scenes;
+    // Assets m_assets;
+    std::string currentScene;
+    bool m_running = true;
+
     int m_currentFrame;
     bool m_paused;
-    bool m_running = true;
-    int m_height;
-    int m_width;
+    std::shared_ptr<Entity> m_player;
+    int m_speed = 400;
     int m_framerate = 60;
+    EntityManager m_entities;
     SDL_Texture *m_texture;
     SDL_Texture *m_texture_field;
     SDL_Texture *m_texture_releif;
@@ -30,8 +29,6 @@ class Game
     
     void init(const std::string & config);
     void setPaused(bool paused);
-    void getHeight();
-    int getWidth();
 
     void sMovement();
     void sUserInput();
@@ -48,6 +45,6 @@ class Game
     void spawnGoal(const Vec2 pos, const Vec2 size, bool movable);
     void spawnKey(const Vec2 pos, const Vec2 size, const std::string, bool movable);
 public:
-    Game(const std::string & config, SDL_Renderer * renderer, const int H, const int W);
+    Game(const std::string & config, SDL_Renderer * renderer);
     void run();
 };

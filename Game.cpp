@@ -13,25 +13,23 @@
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
 
-Game::Game(const std::string & config, SDL_Renderer * renderer, int H, int W)
+Game::Game(const std::string & config, SDL_Renderer * renderer)
 {
     m_renderer = renderer;
     init(config);
-    m_height = H;
-    m_width = W;
 }
 
 void Game::init(const std::string & path)
 {
     // Load texture  
-    m_texture = TextureManager::LoadTexture("C:/projects/privat/simple_game/assets/Textures-16.png", m_renderer);
-    m_texture_field = TextureManager::LoadTexture("C:/projects/privat/simple_game/assets/gräs_blomma.png", m_renderer);
-    m_texture_releif = TextureManager::LoadTexture("C:/projects/privat/simple_game/assets/seven_heaven.png", m_renderer);
-    m_texture_angel = TextureManager::LoadTexture("C:/projects/privat/simple_game/assets/idas_angel_4.png", m_renderer);
-    m_texture_devil = TextureManager::LoadTexture("C:/projects/privat/simple_game/assets/idas_djavul.png", m_renderer);
-    m_texture_key = TextureManager::LoadTexture("C:/projects/privat/simple_game/assets/idas_nyckel.png", m_renderer);
-    m_texture_boulder_small = TextureManager::LoadTexture("C:/projects/privat/simple_game/assets/liten_sten.png", m_renderer);
-    m_texture_outofbound = TextureManager::LoadTexture("C:/projects/privat/simple_game/assets/moln.png", m_renderer);
+    m_texture = TextureManager::LoadTexture("assets/images/Textures-16.png", m_renderer);
+    m_texture_field = TextureManager::LoadTexture("assets/images/gräs_blomma.png", m_renderer);
+    m_texture_releif = TextureManager::LoadTexture("assets/images/seven_heaven.png", m_renderer);
+    m_texture_angel = TextureManager::LoadTexture("assets/images/idas_angel_4.png", m_renderer);
+    m_texture_devil = TextureManager::LoadTexture("assets/images/idas_djavul.png", m_renderer);
+    m_texture_key = TextureManager::LoadTexture("assets/images/idas_nyckel.png", m_renderer);
+    m_texture_boulder_small = TextureManager::LoadTexture("assets/images/liten_sten.png", m_renderer);
+    m_texture_outofbound = TextureManager::LoadTexture("assets/images/moln.png", m_renderer);
     
     // Background
     spawnBackground(Vec2 {0,0}, Vec2 {1200,1050}, false);
@@ -438,16 +436,6 @@ Vec2 Game::Overlap(std::shared_ptr<Entity> p, std::shared_ptr<Entity> o)
     }
 
     return move;
-}
-
-void Game::getHeight()
-{
-    // return m_height;
-}
-
-int Game::getWidth()
-{
-    return m_width;
 }
 
 void Game::setPaused(bool paused)
