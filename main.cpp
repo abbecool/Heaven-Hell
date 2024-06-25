@@ -16,10 +16,10 @@
 
 int main( int argc, char *argv[] )
 {   
-    const int HEIGHT = 1200; 
-    const int WIDTH = 1050; 
+    const int HEIGHT = 1080; 
+    const int WIDTH = 1920; 
     SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_Window *window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, HEIGHT, WIDTH, SDL_RENDERER_ACCELERATED);
+    SDL_Window *window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED);
     if ( NULL == window )
     {
         std::cout << "Could not create window: " << SDL_GetError( ) << std::endl;

@@ -1,15 +1,18 @@
 #pragma once
-#include "Scene.h"
 #include "EntityManager.h"
+// #include "Scene.h"
 // #include "Assets.h"
 
+// class Scene;
+// typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
 
 class Game
 {    
     SDL_Renderer *m_renderer;
-    // std::map<std::string, Scene> m_scenes;
+    // SceneMap m_scenes;
     // Assets m_assets;
     std::string currentScene;
+    // size_t m_simulationSpeed = 1;
     bool m_running = true;
 
     int m_currentFrame;

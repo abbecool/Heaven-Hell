@@ -32,19 +32,19 @@ void Game::init(const std::string & path)
     m_texture_outofbound = TextureManager::LoadTexture("assets/images/moln.png", m_renderer);
     
     // Background
-    spawnBackground(Vec2 {0,0}, Vec2 {1200,1050}, false);
-    // spawnBackground(Vec2 {0,550}, Vec2 {1200,500}, false);
+    spawnBackground(Vec2 {0,0}, Vec2 {1920,1080}, false);
+    // spawnBackground(Vec2 {0,550}, Vec2 {1920,500}, false);
     // Goals
-    spawnGoal(Vec2 {1200-75,200}, Vec2 {75,100}, false);
-    spawnGoal(Vec2 {1200-75,200+550}, Vec2 {75,100}, false);
+    spawnGoal(Vec2 {1920-75,200}, Vec2 {75,100}, false);
+    spawnGoal(Vec2 {1920-75,200+550}, Vec2 {75,100}, false);
     // Players
     spawnPlayer(Vec2{0,250}, "God", true);
     spawnPlayer(Vec2{0,800}, "Devil", false);
     // Outer bound walls
-    spawnWorldBorder(Vec2 {0,-5}, Vec2 {1200, 5}, false);
-    spawnWorldBorder(Vec2 {-5,0}, Vec2 {5, 1050}, false);
-    spawnWorldBorder(Vec2 {1200,0}, Vec2 {5,1050}, false);
-    spawnWorldBorder(Vec2 {0,1050}, Vec2 {1200,5}, false);
+    spawnWorldBorder(Vec2 {0,-5}, Vec2 {1920, 5}, false);
+    spawnWorldBorder(Vec2 {-5,0}, Vec2 {5, 1080}, false);
+    spawnWorldBorder(Vec2 {1920,0}, Vec2 {5,1080}, false);
+    spawnWorldBorder(Vec2 {0,1080}, Vec2 {1920,5}, false);
     // World divider
     spawnOutofboundBorder(Vec2 {0,500}, Vec2 {200,64}, false);
     spawnOutofboundBorder(Vec2 {200,500}, Vec2 {200,64}, false);
@@ -52,6 +52,10 @@ void Game::init(const std::string & path)
     spawnOutofboundBorder(Vec2 {600,500}, Vec2 {200,64}, false);
     spawnOutofboundBorder(Vec2 {800,500}, Vec2 {200,64}, false);
     spawnOutofboundBorder(Vec2 {1000,500}, Vec2 {200,64}, false);
+    spawnOutofboundBorder(Vec2 {1200,500}, Vec2 {200,64}, false);
+    spawnOutofboundBorder(Vec2 {1400,500}, Vec2 {200,64}, false);
+    spawnOutofboundBorder(Vec2 {1600,500}, Vec2 {200,64}, false);
+    spawnOutofboundBorder(Vec2 {1800,500}, Vec2 {200,64}, false);
     // Standard obsticles
     spawnObstacle(Vec2 {300,0}, Vec2 {64,200}, false);
     spawnObstacle(Vec2 {300,300}, Vec2 {64,200}, false);
