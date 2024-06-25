@@ -21,6 +21,11 @@ Game::Game(const std::string & config, SDL_Renderer * renderer)
 
 void Game::init(const std::string & path)
 {
+    // m_assets.loadFromFile(path);
+    // m_window.create(sf::VideoMode(1280, 768), "Definitely Not Mario");
+    // m_window.setFramerateLimit(60);
+    // changeScene("MENU", std::make_shared<Scene_Menu>(this));
+
     // Load texture  
     m_texture = TextureManager::LoadTexture("assets/images/Textures-16.png", m_renderer);
     m_texture_field = TextureManager::LoadTexture("assets/images/gräs_blomma.png", m_renderer);
@@ -446,3 +451,7 @@ void Game::setPaused(bool paused)
 {
     m_paused = paused;
 }
+
+// void Game::update() {
+//     currentScene()->update();
+// }

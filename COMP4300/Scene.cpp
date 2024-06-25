@@ -1,67 +1,48 @@
 #include "Scene.h"
+// #include "SFML/Graphics/PrimitiveType.hpp"
 
-Scene::Scene()
-{
+Scene::Scene() {}
+
+Scene::Scene(Game* gameEngine)
+: m_game(gameEngine) {}
+
+Scene::~Scene() {}
+
+// void Scene::doAction(const Action& action) {
+//     sDoAction(action);
+// }
+
+void Scene::simulate(const size_t frames) {}
+
+void Scene::registerAction(int inputKey, const std::string& actionName) {
+    m_actionMap[inputKey] = actionName;
 }
 
-Scene::Scene(GameEngine* gameEngine)
-{
+// size_t Scene::width() const {
+//     return m_game->window().getSize().x;
+// }
+
+// size_t Scene::height() const {
+//     return m_game->window().getSize().y;
+// }
+
+size_t Scene::currentFrame() const {
+    return m_currentFrame;
 }
 
-Scene::~Scene()
-{
+bool Scene::hasEnded() const {
+    return m_hasEnded;
 }
 
-void Scene::doAction(const Action& action)
-{
+ActionMap& Scene::getActionMap() {
+    return m_actionMap;
 }
 
-void Scene::simulate(const size_t frames)
-{
-}
+// void Scene::drawLine(const Vec2& p1, const Vec2& p2) {
+//     sf::Vertex line[] = {
+//         sf::Vertex(sf::Vector2f(p1.x, p1.y)),
+//         sf::Vertex(sf::Vector2f(p2.x, p2.y))
+//     };
 
-
-size_t Scene::width() const
-{
-	return 0;
-}
-
-size_t Scene::height() const
-{
-	return 0;
-}
-
-size_t Scene::currentFrame() const
-{
-	return 0;
-}
-
-bool Scene::hasEnded() const
-{
-	return false;
-}
-
-
-void Scene::drawLine(const Vec2& p1, const Vec2& p2)
-{
-
-}
-
-void Scene::setPaused(bool paused)
-{
-
-}
-
-
-/* handle actions */
-
-
-void Scene::registerAction(int inputKey, const std::string& actionName)
-{
-	m_actionMap[inputKey] = actionName;
-}
-
-ActionMap& Scene::getActionMap()
-{
-	return m_actionMap;
-}
+//     m_game->window().draw(line, 2, sf::Lines);
+// }

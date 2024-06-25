@@ -7,7 +7,7 @@
 // #include <cstddef>
 #include <map>
 
-class GameEngine;
+class Game;
 
 typedef std::map<int, std::string> ActionMap;
 
@@ -15,7 +15,7 @@ class Scene
 {
     protected:
 
-    GameEngine* m_game = nullptr;  
+    Game* m_game = nullptr;  
     EntityManager m_entityManager;
     ActionMap m_actionMap;
     bool m_pause = false;
@@ -28,7 +28,7 @@ class Scene
     public:
 
     Scene();
-    Scene(GameEngine* gameEngine);
+    Scene(Game* gameEngine);
     virtual ~Scene();
 
     virtual void update() = 0;

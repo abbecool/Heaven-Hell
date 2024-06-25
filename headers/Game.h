@@ -31,6 +31,7 @@ class Game
     SDL_Texture *m_texture_outofbound;
     
     void init(const std::string & config);
+    void update();
     void setPaused(bool paused);
 
     void sMovement();
