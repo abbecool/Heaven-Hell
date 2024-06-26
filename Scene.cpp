@@ -1,4 +1,4 @@
-// #pragma once
+#pragma once
 
 #include "src/include/Scene.h"
 // #include "SFML/Graphics/PrimitiveType.hpp"

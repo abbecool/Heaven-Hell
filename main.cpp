@@ -17,11 +17,7 @@
 int main( int argc, char *argv[] )
 {   
 
-<<<<<<< HEAD
-    Game g("config.txt");
-=======
-    Game g("assets.txt", renderer);
->>>>>>> main
+    Game g("assets.txt");
     g.run();
 
     return EXIT_SUCCESS;

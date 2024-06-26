@@ -6,17 +6,13 @@
 #include <map>
 #include <string>
 #include <SDL2/SDL.h>
-<<<<<<< HEAD:src/include/Assets.h
-#include "../src\include\SDL2\SDL_image.h"
-#include "src/TextureManager.h"
-=======
+#include "SDL2\SDL_image.h"
 
 
 // typedef std::map<std::string, SDL_Texture*> TextureMap;
 // typedef std::map<std::string, Animation>   AnimationMap;
 // typedef std::map<std::string, sf::Font>    FontMap;
 
->>>>>>> main:headers/Assets.h
 
 class Assets
 {
