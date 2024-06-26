@@ -124,7 +124,7 @@ void Game::spawnBackground(const Vec2 pos, const Vec2 size, bool movable)
             entity->cTransform = std::make_shared<CTransform>(Vec2{float(i_x*tex_size), float(i_y*tex_size)}+pos, Vec2 {0, 0}, movable);
             entity->cShape = std::make_shared<CShape>(Vec2{float(i_x*tex_size), float(i_y*tex_size)}+pos, Vec2 {float(tex_size), float(tex_size)}, 255, 255, 255, 255);
             entity->cName = std::make_shared<CName>("Background " + i_x+i_y);
-            entity->cTexture = std::make_shared<CTexture>(Vec2 {48, 0}, Vec2 {32, 32}, m_assets.getTexture("m_texture_field"));
+            entity->cTexture = std::make_shared<CTexture>(Vec2 {48, 0}, Vec2 {32, 32}, m_assets.getTexture("m_texture_background"));
             entity->cTexture->setPtrTexture(m_assets.getTexture("m_texture_background"));
         }   
     }
@@ -136,7 +136,7 @@ void Game::spawnGoal(const Vec2 pos, const Vec2 size, bool movable)
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 20, 200, 20, 10);
     entity->cName = std::make_shared<CName>("Goal");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {11*16, 10*16}, Vec2 {1*16, 1*16}, m_assets.getTexture("m_texture_releif"));
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {11*16, 10*16}, Vec2 {1*16, 1*16}, m_assets.getTexture("m_texture_goal"));
     entity->cTexture->setPtrTexture(m_assets.getTexture("m_texture_goal"));
 }
 
