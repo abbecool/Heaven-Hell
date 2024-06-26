@@ -51,7 +51,6 @@ void EntityManager::removeDeadEntities(EntityVec & vec)
     for (auto e : vec)
     {
         vec.erase(std::remove_if(vec.begin(), vec.end(), [] (std::shared_ptr<Entity> e) { return !( e->isAlive() ); } ), vec.end()); 
-        // vec.erase(std::ranges::begin(std::ranges::remove_if(vec, [](const auto &e){ return !e->is_alive(); })), std::end(vec));
         vec.erase(std::remove_if(vec.begin(), vec.end(), [](const auto& e) {return !e->isAlive();}), vec.end());    
     }
 }
