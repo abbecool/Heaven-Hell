@@ -1,6 +1,7 @@
 // #pragma once
 
 #include "src/include/Scene_Menu.h"
+#include "Scene.cpp"
 // #include "headers/Scene_Play.h"
 // #include "SFML/Graphics/Text.hpp"
 

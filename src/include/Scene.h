@@ -13,7 +13,7 @@ typedef std::map<int, std::string> ActionMap;
 
 class Scene
 {
-    protected:
+protected:
 
     Game* m_game = nullptr;  
     EntityManager m_entityManager;
@@ -25,7 +25,7 @@ class Scene
     virtual void onEnd() = 0;
     void setPaused(bool paused);
 
-    public:
+public:
 
     Scene();
     Scene(Game* game);
