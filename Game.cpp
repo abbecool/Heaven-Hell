@@ -7,9 +7,15 @@
 
 #include <SDL2/SDL.h>
 
+<<<<<<< HEAD
 #include "Scene_Menu.cpp"
 #include "src/include/Game.h"
 #include "src/include/TextureManager.h"
+=======
+#include "Assets.cpp"
+#include "headers/Game.h"
+// #include "TextureManager.cpp"
+>>>>>>> main
 
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
@@ -35,15 +41,9 @@ void Game::init(const std::string & path)
     // changeScene("MENU", std::make_shared<Scene_Menu>(this));
 
     // Load texture  
-    m_texture = TextureManager::LoadTexture("assets/images/Textures-16.png", m_renderer);
-    m_texture_field = TextureManager::LoadTexture("assets/images/gräs_blomma.png", m_renderer);
-    m_texture_releif = TextureManager::LoadTexture("assets/images/seven_heaven.png", m_renderer);
-    m_texture_angel = TextureManager::LoadTexture("assets/images/idas_angel_4.png", m_renderer);
-    m_texture_devil = TextureManager::LoadTexture("assets/images/idas_djavul.png", m_renderer);
-    m_texture_key = TextureManager::LoadTexture("assets/images/idas_nyckel.png", m_renderer);
-    m_texture_boulder_small = TextureManager::LoadTexture("assets/images/liten_sten.png", m_renderer);
-    m_texture_outofbound = TextureManager::LoadTexture("assets/images/moln.png", m_renderer);
-    
+    m_assets.loadFromFile(path, m_renderer);
+    // m_assets.loadLevel();
+
     // Background
     spawnBackground(Vec2 {0,0}, Vec2 {1920,1080}, false);
     // spawnBackground(Vec2 {0,550}, Vec2 {1920,500}, false);
@@ -75,7 +75,7 @@ void Game::init(const std::string & path)
     spawnObstacle(Vec2 {400,0+550}, Vec2 {64,350}, false);
     spawnObstacle(Vec2 {400,400+550}, Vec2 {64,100}, false);
     // Unlock keys for players
-    spawnKey(Vec2 {200,400}, Vec2 {48,48}, "Devil", false);
+    spawnKey(Vec2 {200,400}, Vec2 {64,64}, "Devil", false);
 }
 
 // std::shared_ptr<Scene> Game::currentScene() {
@@ -151,12 +151,23 @@ int Game::getHeight()
 
 void Game::spawnPlayer(const Vec2 pos, const std::string name, bool movable)
 {
+    std::string tex;
+    if (name == "God")
+    {
+        tex = "m_texture_angel";
+    }
+    else
+    {
+        tex = "m_texture_devil";
+    }
+
     auto entity = m_entities.addEntity("Player");
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, Vec2{48, 48}, 255, 0, 0, 255);
+    entity->cShape = std::make_shared<CShape>(pos, Vec2{64, 64}, 255, 0, 0, 255);
     entity->cInputs = std::make_shared<CInputs>();
     entity->cName = std::make_shared<CName>(name);
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {10*16, 23*16}, Vec2 {1*16, 1*16});
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {10*16, 23*16}, Vec2 {1*16, 1*16}, m_assets.getTexture(tex));
+    entity->cTexture->setPtrTexture(m_assets.getTexture(tex));
     m_player = entity;
 }
 
@@ -166,7 +177,8 @@ void Game::spawnObstacle(const Vec2 pos, const Vec2 size, bool movable)
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, Vec2{64, 64}, 100, 100, 0, 255);
     entity->cName = std::make_shared<CName>("Obstacle");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {16, 48});
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {16, 48}, m_assets.getTexture("m_texture_boulder_small"));
+    entity->cTexture->setPtrTexture(m_assets.getTexture("m_texture_boulder_small"));
 }
 
 void Game::spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable)
@@ -183,7 +195,8 @@ void Game::spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool movable)
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
     entity->cName = std::make_shared<CName>("Outofbound");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {16, 48});
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {16, 48}, m_assets.getTexture("m_texture_outofbound"));
+    entity->cTexture->setPtrTexture(m_assets.getTexture("m_texture_outofbound"));
 }
 
 void Game::spawnBackground(const Vec2 pos, const Vec2 size, bool movable)
@@ -200,7 +213,8 @@ void Game::spawnBackground(const Vec2 pos, const Vec2 size, bool movable)
             entity->cTransform = std::make_shared<CTransform>(Vec2{float(i_x*tex_size), float(i_y*tex_size)}+pos, Vec2 {0, 0}, movable);
             entity->cShape = std::make_shared<CShape>(Vec2{float(i_x*tex_size), float(i_y*tex_size)}+pos, Vec2 {float(tex_size), float(tex_size)}, 255, 255, 255, 255);
             entity->cName = std::make_shared<CName>("Background " + i_x+i_y);
-            entity->cTexture = std::make_shared<CTexture>(Vec2 {48, 0}, Vec2 {32, 32});
+            entity->cTexture = std::make_shared<CTexture>(Vec2 {48, 0}, Vec2 {32, 32}, m_assets.getTexture("m_texture_background"));
+            entity->cTexture->setPtrTexture(m_assets.getTexture("m_texture_background"));
         }   
     }
 }
@@ -211,7 +225,8 @@ void Game::spawnGoal(const Vec2 pos, const Vec2 size, bool movable)
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 20, 200, 20, 10);
     entity->cName = std::make_shared<CName>("Goal");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {11*16, 10*16}, Vec2 {1*16, 1*16});
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {11*16, 10*16}, Vec2 {1*16, 1*16}, m_assets.getTexture("m_texture_goal"));
+    entity->cTexture->setPtrTexture(m_assets.getTexture("m_texture_goal"));
 }
 
 void Game::spawnKey(const Vec2 pos, const Vec2 size, const std::string playerToUnlock, bool movable)
@@ -221,7 +236,8 @@ void Game::spawnKey(const Vec2 pos, const Vec2 size, const std::string playerToU
     entity->cShape = std::make_shared<CShape>(pos, size, 120, 120, 20, 200);
     entity->cName = std::make_shared<CName>("Key");
     entity->cKey = std::make_shared<CKey>(playerToUnlock);
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {3*16, 11*16}, Vec2 {1*16, 1*16});
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {3*16, 11*16}, Vec2 {1*16, 1*16}, m_assets.getTexture("m_texture_key"));
+    entity->cTexture->setPtrTexture(m_assets.getTexture("m_texture_key"));
 }
 
 
@@ -353,46 +369,10 @@ void Game::sRender()
         
     for (auto e : m_entities.getEntities())
     {
-        if ( e->cTransform && e->cShape )
+        if ( e->cTransform && e->cShape && e->cTexture)
         {
             e->cShape->setPosition( e->cTransform->pos );
-            // SDL_SetRenderDrawColor( m_renderer, e->cShape->r_val, e->cShape->g_val, e->cShape->b_val, e->cShape->a_val );
-            // SDL_RenderFillRect( m_renderer, &e->cShape->rect );
-            if ( e->cTexture )
-            {   
-                if ( e->tag() == "Background" )
-                {
-                    SDL_RenderCopy(m_renderer, m_texture_field, nullptr, e->cShape->getPtrRect());
-                }
-                else if ( e->tag() == "Obstacle" )
-                {
-                    SDL_RenderCopy(m_renderer, m_texture_boulder_small, nullptr, e->cShape->getPtrRect());
-                }
-                else if ( e->tag() == "Outofbound" )
-                {
-                    SDL_RenderCopy(m_renderer, m_texture_outofbound, nullptr, e->cShape->getPtrRect());
-                }
-                else if ( e->cName->name == "Devil" )
-                {
-                    SDL_RenderCopy(m_renderer, m_texture_devil, nullptr, e->cShape->getPtrRect());
-                }
-                else if ( e->cName->name == "God" )
-                {
-                    SDL_RenderCopy(m_renderer, m_texture_angel, nullptr, e->cShape->getPtrRect());
-                }
-                else if ( e->tag() == "Key" )
-                {
-                    SDL_RenderCopy(m_renderer, m_texture_key, nullptr, e->cShape->getPtrRect());
-                }
-                else if ( e->tag() == "Goal" )
-                {
-                    SDL_RenderCopy(m_renderer, m_texture_releif, nullptr, e->cShape->getPtrRect());
-                }
-                else
-                {
-                    SDL_RenderCopy(m_renderer, m_texture, e->cTexture->getPtrRect(), e->cShape->getPtrRect());
-                }
-            }
+            SDL_RenderCopy(m_renderer, e->cTexture->getPtrTexture(), nullptr, e->cShape->getPtrRect());
         }
     }
     SDL_RenderPresent( m_renderer );
@@ -429,7 +409,6 @@ void Game::sCollisions()
             {
                 k->kill();
                 m_entities.getEntities("Player")[1]->cTransform->isMovable = true;
-
             }
         }
     }
