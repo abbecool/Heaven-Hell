@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include "src\include\SDL2\SDL_image.h"
 
+Assets::Assets(){}
 
 void Assets::addTexture(const std::string& name, const char* path, SDL_Renderer * ren)
 {

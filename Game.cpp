@@ -7,6 +7,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "Assets.cpp"
 #include "headers/Game.h"
 #include "TextureManager.cpp"
 
@@ -62,14 +63,14 @@ void Game::init(const std::string & path)
     spawnObstacle(Vec2 {400,0+550}, Vec2 {64,350}, false);
     spawnObstacle(Vec2 {400,400+550}, Vec2 {64,100}, false);
     // Unlock keys for players
-    spawnKey(Vec2 {200,400}, Vec2 {48,48}, "Devil", false);
+    spawnKey(Vec2 {200,400}, Vec2 {64,64}, "Devil", false);
 }
 
 void Game::spawnPlayer(const Vec2 pos, const std::string name, bool movable)
 {
     auto entity = m_entities.addEntity("Player");
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, Vec2{48, 48}, 255, 0, 0, 255);
+    entity->cShape = std::make_shared<CShape>(pos, Vec2{64, 64}, 255, 0, 0, 255);
     entity->cInputs = std::make_shared<CInputs>();
     entity->cName = std::make_shared<CName>(name);
     entity->cTexture = std::make_shared<CTexture>(Vec2 {10*16, 23*16}, Vec2 {1*16, 1*16});
