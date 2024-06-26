@@ -1,7 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include "Vec2.h"
-#include "TextureManager.h"
+// #include "TextureManager.h"
 
 class CInputs
 {
@@ -14,7 +14,7 @@ public:
     bool ctrl = false;
     CInputs() {};
 };
-                                
+
 class CTransform
 {
 public:
@@ -81,8 +81,8 @@ public:
     SDL_Texture * texture;
 
     CTexture() {}
-    CTexture(const Vec2 p, const Vec2 sz) 
-        : pos(p), size(sz)
+    CTexture(const Vec2 p, const Vec2 sz, SDL_Texture* tex) 
+        : pos(p), size(sz), texture(tex)
         {
             rect.x = pos.x;
             rect.y = pos.y;
@@ -91,6 +91,7 @@ public:
         }
     SDL_Rect* getPtrRect();
     SDL_Texture* getPtrTexture();
+    void setPtrTexture(SDL_Texture * tex);
     
     void setPosition(Vec2 pos) 
     {
@@ -107,6 +108,11 @@ SDL_Rect* CTexture::getPtrRect()
 SDL_Texture* CTexture::getPtrTexture()
 {
     return texture;
+}
+
+void CTexture::setPtrTexture(SDL_Texture * tex)
+{
+    texture = tex;
 }
 
 class CName

@@ -27,7 +27,7 @@ int main( int argc, char *argv[] )
     SDL_Renderer *renderer = SDL_CreateRenderer( window, -1 , 0);
     SDL_SetRenderDrawBlendMode( renderer, SDL_BLENDMODE_BLEND );
 
-    Game g("config.txt", renderer);
+    Game g("assets.txt", renderer);
     g.run();
         
     SDL_DestroyWindow( window );
