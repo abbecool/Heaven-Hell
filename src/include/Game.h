@@ -28,14 +28,14 @@ protected:
     int m_speed = 400;
     int m_framerate = 60;
     EntityManager m_entities;
-    SDL_Texture *m_texture;
-    SDL_Texture *m_texture_field;
-    SDL_Texture *m_texture_releif;
-    SDL_Texture *m_texture_angel;
-    SDL_Texture *m_texture_devil;
-    SDL_Texture *m_texture_key;
-    SDL_Texture *m_texture_boulder_small;
-    SDL_Texture *m_texture_outofbound;
+    // SDL_Texture *m_texture;
+    // SDL_Texture *m_texture_field;
+    // SDL_Texture *m_texture_releif;
+    // SDL_Texture *m_texture_angel;
+    // SDL_Texture *m_texture_devil;
+    // SDL_Texture *m_texture_key;
+    // SDL_Texture *m_texture_boulder_small;
+    // SDL_Texture *m_texture_outofbound;
     
     void init(const std::string & config);
     // void update();
@@ -46,11 +46,13 @@ protected:
     void sUserInput();
     void sRender();
     void sCollisions();
+    // void sAnimation();
 
     bool isCollided(std::shared_ptr<Entity>, std::shared_ptr<Entity>);
     Vec2 Overlap(std::shared_ptr<Entity>, std::shared_ptr<Entity>);
     void spawnPlayer(const Vec2 pos, const std::string name, bool movable);
     void spawnObstacle(const Vec2 pos, const Vec2 size, bool movable );
+    void spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std::string &ani);
     void spawnBackground(const Vec2 pos, const Vec2 size, bool movable);
     void spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable);
     void spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool movable);

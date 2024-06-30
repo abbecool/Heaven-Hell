@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/include/Assets.h"
+#include "Animation.cpp"
 #include <fstream>
 #include <iostream>
 
@@ -26,6 +27,14 @@ SDL_Texture * Assets::getTexture(std::string name) const
     return m_textures.at(name);
 }
 
+void Assets::addAnimation(const std::string& name, Animation animation) {
+    m_animations[name] = animation;
+}
+
+const Animation& Assets::getAnimation(const std::string& name) const {
+    return m_animations.at(name);
+}
+
 void Assets::loadFromFile(const std::string & path, SDL_Renderer * ren) {
     std::ifstream file(path);
     if (!file) {
@@ -46,17 +55,18 @@ void Assets::loadFromFile(const std::string & path, SDL_Renderer * ren) {
         //     file >> font_name >> font_path;
         //     addFont(font_name, font_path);
         // }
-        // else if (head == "Animation") {
-        //     std::string aniName;
-        //     std::string texName;
-        //     int frames, speed;
-        //     file >> aniName >> texName >> frames >> speed;
-        //     const sf::Texture& tex = getTexture(texName);
-        //     addAnimation(
-        //         aniName, 
-        //         Animation(aniName, tex, frames, speed)
-        //     );
-        // }
+        else if (head == "Animation") {
+            std::string aniName;
+            std::string texName;
+            int frames, speed;
+            file >> aniName >> texName >> frames >> speed;
+            SDL_Texture* tex = getTexture(texName);
+            addAnimation(
+                aniName, 
+                Animation(aniName, tex, frames, speed)
+            );
+            
+        }
         else {
             std::cerr << "head to " << head << "\n";
             std::cerr << "The config file format is incorrect!\n";

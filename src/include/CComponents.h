@@ -3,7 +3,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include "Vec2.h"
-// #include "TextureManager.h"
+#include "Animation.h"
 
 class CInputs
 {
@@ -65,6 +65,11 @@ public:
     {
         rect.x = pos.x;
         rect.y = pos.y;
+    }
+    void setSize(Vec2 size) 
+    {
+        rect.w = size.x;
+        rect.h = size.y;
     }
 };
 
@@ -132,4 +137,14 @@ public:
     CKey() {}
     CKey(const std::string & unlcks)
         : unlocks(unlcks) {}
+};
+
+class CAnimation
+{
+public:
+    Animation animation;
+    bool repeat = false;
+    CAnimation() {}
+    CAnimation(const Animation& animation, bool r)
+    : animation(animation), repeat(r) {}
 };

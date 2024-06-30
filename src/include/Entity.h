@@ -18,6 +18,7 @@ public:
     std::shared_ptr<CInputs> cInputs;
     std::shared_ptr<CKey> cKey;
     std::shared_ptr<CTexture> cTexture;
+    std::shared_ptr<CAnimation> cAnimation;
     Entity(const std::string& tag, const size_t id)
         : m_tag(tag)
         , m_id(id)
