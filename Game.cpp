@@ -48,13 +48,36 @@ void Game::init(const std::string & path)
 
 std::vector<bool> Game::neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
     std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
-
-    neighbors[0] = (y > 0 && pixelMatrix[y - 1][x] == pixel);
-    neighbors[2] = (y < height - 1 && pixelMatrix[y + 1][x] == pixel);
-    neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pixel);
-    neighbors[1] = (x < width - 1 && pixelMatrix[y][x + 1] == pixel);
-
+    neighbors[0] = (y > 0 && pixelMatrix[y - 1][x] == pixel);           // top
+    neighbors[1] = (x < width - 1 && pixelMatrix[y][x + 1] == pixel);   // right
+    neighbors[2] = (y < height - 1 && pixelMatrix[y + 1][x] == pixel);  // bottom
+    neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pixel);           // left
     return neighbors;
+}
+
+int Game::getObstacleTextureIndex(const std::vector<bool>& neighbors) {
+    int numObstacles = std::count(neighbors.begin(), neighbors.end(), true);
+    if (numObstacles == 1) {
+        if (neighbors[0]) return 12;    // Top
+        if (neighbors[1]) return 1;     // Right
+        if (neighbors[2]) return 4;     // Bottom
+        if (neighbors[3]) return 3;     // Left
+    } else if (numObstacles == 2) {
+        if (!neighbors[0] && !neighbors[1]) return 7;  // Top & Right
+        if (!neighbors[1] && !neighbors[2]) return 15; // Right & Bottom
+        if (!neighbors[2] && !neighbors[3]) return 13; // Bottom & Left
+        if (!neighbors[3] && !neighbors[0]) return 5;  // Left & Top
+        if (!neighbors[0] && !neighbors[2]) return 2;  // Top & Bottom
+        if (!neighbors[1] && !neighbors[3]) return 8; // Right & Left
+    } else if (numObstacles == 3) {
+        if (!neighbors[0]) return 6;    // Top is not an obstacle
+        if (!neighbors[1]) return 11;   // Right is not an obstacle
+        if (!neighbors[2]) return 14;   // Bottom is not an obstacle
+        if (!neighbors[3]) return 9;    // Left is not an obstacle
+    } else if (numObstacles == 4) {
+        return 10; // All neighbors are obstacles
+    }
+    return 0; // No neighbors are obstacles
 }
 
 void Game::levelLoader(SDL_Texture* level_texture)
@@ -82,10 +105,6 @@ void Game::levelLoader(SDL_Texture* level_texture)
     
     // std::map<std::string, Vec2> Gridvec;
     // neighborCheck(pixels, x, y);
-    // pixel_top = pixels[(y-1) * loadedSurface->w + x];
-    // pixel_down = pixels[(y+1) * loadedSurface->w + x];
-    // pixel_left = pixels[y * loadedSurface->w + x-1];
-    // pixel_right = pixels[y * loadedSurface->w + x+1];
 
     std::vector<std::vector<std::string>> pixelMatrix = createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
 
@@ -93,81 +112,13 @@ void Game::levelLoader(SDL_Texture* level_texture)
     for (int y = 0; y < HEIGHT_PIX; ++y) {
         for (int x = 0; x < WIDTH_PIX; ++x) {
             const std::string& pixel = pixelMatrix[y][x];
-            std::vector<bool> neighbors = neighborCheck(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX); // {top, bottom, left, right}
+            std::vector<bool> neighbors = neighborCheck(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
+            int textureIndex = getObstacleTextureIndex(neighbors);
 
             if (pixel == "obstacle") {
-                // Check neighboring pixels
-                if (std::count(neighbors.begin(), neighbors.end(), true) == 4) { // all
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 15);
-                }
-                else if (std::count(neighbors.begin(), neighbors.end(), true) == 3) // all but one
-                {
-                    if (!neighbors[0])
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 11);
-                    }
-                    else if (!neighbors[1])
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 12);
-                    }
-                    else if (!neighbors[2])
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 13);
-                    }else //if (!neighbors[3])
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 14);
-                    }
-                }
-                else if (std::count(neighbors.begin(), neighbors.end(), true) == 2) // all but two
-                {
-                    if (!neighbors[0] && !neighbors[1]) // top & right
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 5);
-                    }
-                    else if (!neighbors[1] && !neighbors[2])
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 6);
-                    }
-                    else if (!neighbors[2] && !neighbors[3])
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 7);
-                    }
-                    else if (!neighbors[3] && !neighbors[0])
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 8);
-                    }
-                    else if (!neighbors[0] && !neighbors[2])
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 9);
-                    }
-                    else //if (!neighbors[1] && !neighbors[3])
-                    {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 10);
-                    }
-                }
-                else if (neighbors[0])
-                {
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 1);
-                }
-                else if (neighbors[1])
-                {
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 2);
-                }
-                else if (neighbors[2])
-                {
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 3);
-                }
-                else if (neighbors[3])
-                {
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 4);
-                }
-                else
-                {
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 0);
-                }
+                spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, Vec2 {64, 64}, false, textureIndex);
             }
-            else
-            {
+            else{
                 spawnBackground(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false);
                 if (pixel == "player_God") {
                     spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "God", true);
@@ -184,9 +135,9 @@ void Game::levelLoader(SDL_Texture* level_texture)
                 } else if (pixel == "lava") {
                     spawnLava(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64});
                 } else if (pixel == "water") {
-                    spawnWater(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64});
+                    spawnWater(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64}, textureIndex);
                 } else if (pixel == "bridge") {
-                    spawnBridge(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64});
+                    spawnBridge(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64}, textureIndex);
                 }
                 else{
 
@@ -239,7 +190,6 @@ std::vector<std::vector<std::string>> Game::createPixelMatrix(Uint32* pixels, SD
             }
         }
     }
-
     return pixelMatrix;
 }
 
@@ -345,7 +295,8 @@ void Game::spawnObstacle(const Vec2 pos, const Vec2 size, bool movable, const in
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
     entity->cName = std::make_shared<CName>("Obstacle");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {(float)frame*32,0}, Vec2 {32, 32}, m_assets.getTexture("rock_wall"));
+    // std::cout << frame << " " << (float)(frame%4) << " " << (float)(int)(frame/4) << std::endl;
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_assets.getTexture("rock_wall"));
     entity->cTexture->setPtrTexture(m_assets.getTexture("rock_wall"));
 }
 void Game::spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std::string &ani) 
@@ -440,26 +391,26 @@ void Game::spawnLava(const Vec2 pos, const Vec2 size)
     entity->cAnimation = std::make_shared<CAnimation> (m_assets.getAnimation(ani), true);
 }
 
-void Game::spawnWater(const Vec2 pos, const Vec2 size)
+void Game::spawnWater(const Vec2 pos, const Vec2 size, const int frame)
 {
     auto entity = m_entities.addEntity("Water", (size_t)8);
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, false);
     entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
     entity->cName = std::make_shared<CName>("Water");
-    // entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_assets.getTexture("water"));
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_assets.getTexture("water"));
     // entity->cTexture->setPtrTexture(m_assets.getTexture("water"));
-    const std::string & ani = "water_ani";
-    entity->cAnimation = std::make_shared<CAnimation> (m_assets.getAnimation(ani), true);
+    // const std::string & ani = "water_ani";
+    // entity->cAnimation = std::make_shared<CAnimation> (m_assets.getAnimation(ani), true);
 
 }
 
-void Game::spawnBridge(const Vec2 pos, const Vec2 size)
+void Game::spawnBridge(const Vec2 pos, const Vec2 size, const int frame)
 {
     auto entity = m_entities.addEntity("Bridge", (size_t)8);
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, false);
     entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
     entity->cName = std::make_shared<CName>("Bridge");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_assets.getTexture("bridge"));
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_assets.getTexture("bridge"));
     entity->cTexture->setPtrTexture(m_assets.getTexture("bridge"));
 }
 

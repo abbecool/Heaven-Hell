@@ -52,11 +52,12 @@ class Game
     void spawnGoal(const Vec2 pos, const Vec2 size, bool movable);
     void spawnKey(const Vec2 pos, const Vec2 size, const std::string, bool movable);
     void spawnLava(const Vec2 pos, const Vec2 size);
-    void spawnWater(const Vec2 pos, const Vec2 size);
-    void spawnBridge(const Vec2 pos, const Vec2 size);
+    void spawnWater(const Vec2 pos, const Vec2 size, const int frame );
+    void spawnBridge(const Vec2 pos, const Vec2 size, const int frame );
     void levelLoader(SDL_Texture * level_tex);
     std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
     std::vector<bool> neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
+    int getObstacleTextureIndex(const std::vector<bool>& neighbors);
 
 public:
     Game(const std::string & config);

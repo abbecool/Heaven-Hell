@@ -7,7 +7,8 @@ Texture     m_texture_devil             assets/images/idas_djavul.png
 Texture     m_texture_key               assets/images/idas_nyckel.png
 Texture     m_texture_boulder_small     assets/images/liten_sten.png
 Texture     lava                        assets/images/lava.png
-Texture     water                       assets/images/water.png
+Texture     water_old                   assets/images/water.png
+Texture     water                       assets/images/water_sheet.png
 Texture     bridge                      assets/images/bridge.png
 Texture     rock_wall                   assets/images/bergvagg.png
 Texture     m_texture_outofbound        assets/images/moln.png
@@ -16,4 +17,4 @@ Texture     waking_dragon               assets/images/waking_dragon.png
 Animation   snoring_dragon              sleeping_dragon 4 60
 Animation   waking_dragon               waking_dragon 7 15
 Animation   lava_ani                    lava 3 50
-Animation   water_ani                   water 3 30
+Animation   water_ani                   water_old 3 30
