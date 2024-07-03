@@ -50,9 +50,9 @@ std::vector<bool> Game::neighborCheck(const std::vector<std::vector<std::string>
     std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
 
     neighbors[0] = (y > 0 && pixelMatrix[y - 1][x] == pixel);
-    neighbors[1] = (y < height - 1 && pixelMatrix[y + 1][x] == pixel);
-    neighbors[2] = (x > 0 && pixelMatrix[y][x - 1] == pixel);
-    neighbors[3] = (x < width - 1 && pixelMatrix[y][x + 1] == pixel);
+    neighbors[2] = (y < height - 1 && pixelMatrix[y + 1][x] == pixel);
+    neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pixel);
+    neighbors[1] = (x < width - 1 && pixelMatrix[y][x + 1] == pixel);
 
     return neighbors;
 }
@@ -98,41 +98,68 @@ void Game::levelLoader(SDL_Texture* level_texture)
             if (pixel == "obstacle") {
                 // Check neighboring pixels
                 if (std::count(neighbors.begin(), neighbors.end(), true) == 4) { // all
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 4);
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 15);
                 }
                 else if (std::count(neighbors.begin(), neighbors.end(), true) == 3) // all but one
                 {
-                    // if (!neighbors[0])
-                    // {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 3);
-                    // }
+                    if (!neighbors[0])
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 11);
+                    }
+                    else if (!neighbors[1])
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 12);
+                    }
+                    else if (!neighbors[2])
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 13);
+                    }else //if (!neighbors[3])
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 14);
+                    }
                 }
                 else if (std::count(neighbors.begin(), neighbors.end(), true) == 2) // all but two
                 {
-                    if (!neighbors[1] && !neighbors[3]) // top & left
+                    if (!neighbors[0] && !neighbors[1]) // top & right
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 5);
+                    }
+                    else if (!neighbors[1] && !neighbors[2])
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 6);
+                    }
+                    else if (!neighbors[2] && !neighbors[3])
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 7);
+                    }
+                    else if (!neighbors[3] && !neighbors[0])
                     {
                         spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 8);
                     }
-                    else //if (!neighbors[0] && !neighbors[1])
+                    else if (!neighbors[0] && !neighbors[2])
                     {
-                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 3);
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 9);
+                    }
+                    else //if (!neighbors[1] && !neighbors[3])
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 10);
                     }
                 }
                 else if (neighbors[0])
                 {
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 5);
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 1);
                 }
                 else if (neighbors[1])
                 {
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 5);
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 2);
                 }
                 else if (neighbors[2])
                 {
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 2);
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 3);
                 }
                 else if (neighbors[3])
                 {
-                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 1);
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 4);
                 }
                 else
                 {
@@ -160,6 +187,9 @@ void Game::levelLoader(SDL_Texture* level_texture)
                     spawnWater(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64});
                 } else if (pixel == "bridge") {
                     spawnBridge(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64});
+                }
+                else{
+
                 }
             }
         }
