@@ -72,6 +72,10 @@ void Animation::setTextureRect(const int x, const int y, const int w, const int 
     m_rect.h = h;
 }
 
+void Animation::setTexture(SDL_Texture *tex) {
+    m_texture = tex;
+}
+
 SDL_Point Animation::getTextureSize(SDL_Texture *texture)
 {
     SDL_Point size;

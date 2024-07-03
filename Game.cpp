@@ -38,48 +38,180 @@ void Game::init(const std::string & path)
 
     // Load texture  
     m_assets.loadFromFile(path, m_renderer);
-    // m_assets.loadLevel();
-
-    // Background
-    spawnBackground(Vec2 {0,0}, Vec2 {1920,1080}, false);
-    // spawnBackground(Vec2 {0,550}, Vec2 {1920,500}, false);
-    // Goals
-    spawnGoal(Vec2 {1920-75,200}, Vec2 {75,100}, false);
-    spawnGoal(Vec2 {1920-75,200+550}, Vec2 {75,100}, false);
-    // Players
-    spawnPlayer(Vec2{0,250}, "God", true);
-    spawnPlayer(Vec2{0,800}, "Devil", false);
-    // Outer bound walls
-    spawnWorldBorder(Vec2 {0,-5}, Vec2 {1920, 5}, false);
-    spawnWorldBorder(Vec2 {-5,0}, Vec2 {5, 1080}, false);
-    spawnWorldBorder(Vec2 {1920,0}, Vec2 {5,1080}, false);
-    spawnWorldBorder(Vec2 {0,1080}, Vec2 {1920,5}, false);
-    // World divider
-    spawnOutofboundBorder(Vec2 {0,500}, Vec2 {200,64}, false);
-    spawnOutofboundBorder(Vec2 {200,500}, Vec2 {200,64}, false);
-    spawnOutofboundBorder(Vec2 {400,500}, Vec2 {200,64}, false);
-    spawnOutofboundBorder(Vec2 {600,500}, Vec2 {200,64}, false);
-    spawnOutofboundBorder(Vec2 {800,500}, Vec2 {200,64}, false);
-    spawnOutofboundBorder(Vec2 {1000,500}, Vec2 {200,64}, false);
-    spawnOutofboundBorder(Vec2 {1200,500}, Vec2 {200,64}, false);
-    spawnOutofboundBorder(Vec2 {1400,500}, Vec2 {200,64}, false);
-    spawnOutofboundBorder(Vec2 {1600,500}, Vec2 {200,64}, false);
-    spawnOutofboundBorder(Vec2 {1800,500}, Vec2 {200,64}, false);
-    // Standard obsticles
-    spawnObstacle(Vec2 {300,0}, Vec2 {64,64}, false);
-    spawnObstacle(Vec2 {300,300}, Vec2 {64,64}, false);
-    spawnObstacle(Vec2 {400,0+550}, Vec2 {64,64}, false);
-    spawnObstacle(Vec2 {400,400+550}, Vec2 {64,64}, false);
-    const std::string & dragon = "snoring_dragon";
-    spawnDragon(Vec2 {800,100}, Vec2 {256,256}, false, dragon);
-    spawnDragon(Vec2 {900,650}, Vec2 {512,256}, false, dragon);
-    // Unlock keys for players
-    spawnKey(Vec2 {200,400}, Vec2 {64,64}, "Devil", false);
+    SDL_Texture* level = m_assets.getTexture("level2");
+    levelLoader(level);
 }
 
 // std::shared_ptr<Scene> Game::currentScene() {
 //     return m_sceneMap[m_currentScene];
 // }
+
+std::vector<bool> Game::neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
+    std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
+
+    neighbors[0] = (y > 0 && pixelMatrix[y - 1][x] == pixel);
+    neighbors[1] = (y < height - 1 && pixelMatrix[y + 1][x] == pixel);
+    neighbors[2] = (x > 0 && pixelMatrix[y][x - 1] == pixel);
+    neighbors[3] = (x < width - 1 && pixelMatrix[y][x + 1] == pixel);
+
+    return neighbors;
+}
+
+void Game::levelLoader(SDL_Texture* level_texture)
+{
+
+    const char* path = "assets/images/level2.png";
+    SDL_Surface* loadedSurface = IMG_Load(path);
+    if (loadedSurface == nullptr) {
+        std::cerr << "Unable to load image " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
+    }
+
+    // Create a texture from the surface
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(m_renderer, loadedSurface);
+    if (texture == nullptr) {
+        std::cerr << "Unable to create texture from " << path << "! SDL Error: " << SDL_GetError() << std::endl;
+        SDL_FreeSurface(loadedSurface);
+    }
+
+    // Lock the surface to access the pixels
+    SDL_LockSurface(loadedSurface);
+    Uint32* pixels = (Uint32*)loadedSurface->pixels;
+
+    const int HEIGHT_PIX = 17;
+    const int WIDTH_PIX = 30;
+    
+    // std::map<std::string, Vec2> Gridvec;
+    // neighborCheck(pixels, x, y);
+    // pixel_top = pixels[(y-1) * loadedSurface->w + x];
+    // pixel_down = pixels[(y+1) * loadedSurface->w + x];
+    // pixel_left = pixels[y * loadedSurface->w + x-1];
+    // pixel_right = pixels[y * loadedSurface->w + x+1];
+
+    std::vector<std::vector<std::string>> pixelMatrix = createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
+
+    // Process the pixels
+    for (int y = 0; y < HEIGHT_PIX; ++y) {
+        for (int x = 0; x < WIDTH_PIX; ++x) {
+            const std::string& pixel = pixelMatrix[y][x];
+            std::vector<bool> neighbors = neighborCheck(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX); // {top, bottom, left, right}
+
+            if (pixel == "obstacle") {
+                // Check neighboring pixels
+                if (std::count(neighbors.begin(), neighbors.end(), true) == 4) { // all
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 4);
+                }
+                else if (std::count(neighbors.begin(), neighbors.end(), true) == 3) // all but one
+                {
+                    // if (!neighbors[0])
+                    // {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 3);
+                    // }
+                }
+                else if (std::count(neighbors.begin(), neighbors.end(), true) == 2) // all but two
+                {
+                    if (!neighbors[1] && !neighbors[3]) // top & left
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 8);
+                    }
+                    else //if (!neighbors[0] && !neighbors[1])
+                    {
+                        spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 3);
+                    }
+                }
+                else if (neighbors[0])
+                {
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 5);
+                }
+                else if (neighbors[1])
+                {
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 5);
+                }
+                else if (neighbors[2])
+                {
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 2);
+                }
+                else if (neighbors[3])
+                {
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 1);
+                }
+                else
+                {
+                    spawnObstacle(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, 0);
+                }
+            }
+            else
+            {
+                spawnBackground(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false);
+                if (pixel == "player_God") {
+                    spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "God", true);
+                } else if (pixel == "player_Devil") {
+                    spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "Devil", false);
+                } else if (pixel == "key") {
+                    spawnKey(Vec2 {64*(float)x,64*(float)(y-1)}, Vec2 {64,64}, "Devil", false);
+                } else if (pixel == "goal") {
+                    spawnGoal(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false);
+                } else if (pixel == "out_of_bound_border") {
+                    spawnOutofboundBorder(Vec2 {64*(float)x,64*(float)y}, Vec2 {200,64}, false);
+                } else if (pixel == "dragon") {
+                    spawnDragon(Vec2 {64*(float)x,64*(float)y}, Vec2{128,128}, true, "snoring_dragon");
+                } else if (pixel == "lava") {
+                    spawnLava(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64});
+                } else if (pixel == "water") {
+                    spawnWater(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64});
+                } else if (pixel == "bridge") {
+                    spawnBridge(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64});
+                }
+            }
+        }
+    }
+    // Unlock and free the surface
+    SDL_UnlockSurface(loadedSurface);
+    SDL_FreeSurface(loadedSurface);
+    SDL_DestroyTexture(texture);
+
+    m_entities.update();
+    m_entities.sort();
+}
+
+std::vector<std::vector<std::string>> Game::createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height) {
+    std::vector<std::vector<std::string>> pixelMatrix(height, std::vector<std::string>(width, ""));
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            Uint32 pixel = pixels[y * width + x];
+
+            Uint8 r, g, b, a;
+            SDL_GetRGBA(pixel, format, &r, &g, &b, &a);
+
+            if ((int)r == 192 && (int)g == 192 && (int)b == 192) {
+                pixelMatrix[y][x] = "obstacle";
+            } else if ((int)r == 203 && (int)g == 129 && (int)b == 56) {
+                pixelMatrix[y][x] = "background";
+            } else if ((int)r == 255 && (int)g == 255 && (int)b == 255) {
+                pixelMatrix[y][x] = "player_God";
+            } else if ((int)r == 0 && (int)g == 0 && (int)b == 0) {
+                pixelMatrix[y][x] = "player_Devil";
+            } else if ((int)r == 255 && (int)g == 0 && (int)b == 255) {
+                pixelMatrix[y][x] = "key";
+            } else if ((int)r == 255 && (int)g == 255 && (int)b == 0) {
+                pixelMatrix[y][x] = "goal";
+            } else if ((int)r == 0 && (int)g == 255 && (int)b == 255) {
+                pixelMatrix[y][x] = "out_of_bound_border";
+            } else if ((int)r == 9 && (int)g == 88 && (int)b == 9) {
+                pixelMatrix[y][x] = "dragon";
+            } else if ((int)r == 255 && (int)g == 0 && (int)b == 0) {
+                pixelMatrix[y][x] = "lava";
+            } else if ((int)r == 0 && (int)g == 0 && (int)b == 255) {
+                pixelMatrix[y][x] = "water";
+            } else if ((int)r == 179 && (int)g == 0 && (int)b == 255) {
+                pixelMatrix[y][x] = "bridge";
+            } else {
+                pixelMatrix[y][x] = "unknown";
+            }
+        }
+    }
+
+    return pixelMatrix;
+}
 
 bool Game::isRunning() {
     return m_running;
@@ -96,9 +228,13 @@ void Game::run()
         // 
 
         m_entities.update();
-        for ( auto d : m_entities.getEntities("Dragon") )
+        for ( auto e : m_entities.getEntities() )
         {
-            d->cAnimation->animation.update();
+            if (e->cAnimation)
+            {
+                e->cAnimation->animation.update();
+            }
+            
         }
         sUserInput();
         sMovement();
@@ -163,7 +299,7 @@ void Game::spawnPlayer(const Vec2 pos, const std::string name, bool movable)
         tex = "m_texture_devil";
     }
 
-    auto entity = m_entities.addEntity("Player");
+    auto entity = m_entities.addEntity("Player", (size_t)2);
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, Vec2{64, 64}, 255, 0, 0, 255);
     entity->cInputs = std::make_shared<CInputs>();
@@ -173,25 +309,25 @@ void Game::spawnPlayer(const Vec2 pos, const std::string name, bool movable)
     m_player = entity;
 }
 
-void Game::spawnObstacle(const Vec2 pos, const Vec2 size, bool movable)
+void Game::spawnObstacle(const Vec2 pos, const Vec2 size, bool movable, const int frame)
 {
-    auto entity = m_entities.addEntity("Obstacle");
+    auto entity = m_entities.addEntity("Obstacle", (size_t)9);
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
     entity->cName = std::make_shared<CName>("Obstacle");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {32, 32}, m_assets.getTexture("rock_wall"));
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {(float)frame*32,0}, Vec2 {32, 32}, m_assets.getTexture("rock_wall"));
     entity->cTexture->setPtrTexture(m_assets.getTexture("rock_wall"));
 }
 void Game::spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std::string &ani) 
 {
-    auto entity = m_entities.addEntity("Dragon");
+    auto entity = m_entities.addEntity("Dragon", (size_t)3);
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
     entity->cName = std::make_shared<CName>("Dragon");
     entity->cAnimation = std::make_shared<CAnimation> (m_assets.getAnimation(ani), true);
 
 
-    // auto coin = m_entities.addEntity("coinspin");
+    // auto coin = m_entities.addEntity("coinspin", (size_t)10);
     // coin->addComponent<CAnimation>(
     //     m_game->assets().getAnimation("CoinSpin"),
     //     false
@@ -211,7 +347,7 @@ void Game::spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std:
 
 void Game::spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable)
 {
-    auto entity = m_entities.addEntity("Border");
+    auto entity = m_entities.addEntity("Border", (size_t)9);
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
     entity->cName = std::make_shared<CName>("Border");
@@ -219,7 +355,7 @@ void Game::spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable)
 
 void Game::spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool movable)
 {
-    auto entity = m_entities.addEntity("Outofbound");
+    auto entity = m_entities.addEntity("Outofbound", (size_t)9);
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
     entity->cName = std::make_shared<CName>("Outofbound");
@@ -229,36 +365,21 @@ void Game::spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool movable)
 
 void Game::spawnBackground(const Vec2 pos, const Vec2 size, bool movable)
 {
-    int tex_size = 64;
-    int num_x = size.x/tex_size+1;
-    int num_y = size.y/tex_size+1;
+    auto entity = m_entities.addEntity("Background", (size_t)10);
+    entity->cTransform = std::make_shared<CTransform>(pos, Vec2 {0, 0}, movable);
+    entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
+    entity->cName = std::make_shared<CName>("Background ");
 
-    std::vector<int> ranArray = generateRandomArray(num_x*num_y, 1337, 0, 15);
-
-    for (int i_x = 0; i_x < num_x; i_x++)       
-    {
-        for (int i_y = 0; i_y < num_y; i_y++)
-        {
-            auto entity = m_entities.addEntity("Background"+std::to_string(i_x)+std::to_string(i_y));
-            entity->cTransform = std::make_shared<CTransform>(Vec2{float(i_x*tex_size), float(i_y*tex_size)}+pos, Vec2 {0, 0}, movable);
-            entity->cShape = std::make_shared<CShape>(Vec2{float(i_x*tex_size), float(i_y*tex_size)}+pos, Vec2 {float(tex_size), float(tex_size)}, 255, 255, 255, 255);
-            entity->cName = std::make_shared<CName>("Background " + i_x+i_y);
-            if (ranArray[num_y*i_x+i_y] == 1)
-            {
-                entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {64, 64}, m_assets.getTexture("m_texture_background"));
-            }
-            else
-            {
-                entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {4, 4}, m_assets.getTexture("m_texture_background"));
-            }
-            entity->cTexture->setPtrTexture(m_assets.getTexture("m_texture_background"));
-        }   
-    }
+    std::vector<int> ranArray = generateRandomArray(1, m_entities.getTotalEntities(), 0, 12);
+    if (ranArray[0] == 0)
+        entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {64, 64}, m_assets.getTexture("m_texture_background"));
+    else
+        entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {2, 2}, m_assets.getTexture("m_texture_background"));
 }
 
 void Game::spawnGoal(const Vec2 pos, const Vec2 size, bool movable)
 {
-    auto entity = m_entities.addEntity("Goal");
+    auto entity = m_entities.addEntity("Goal", (size_t)4);
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 20, 200, 20, 10);
     entity->cName = std::make_shared<CName>("Goal");
@@ -268,13 +389,48 @@ void Game::spawnGoal(const Vec2 pos, const Vec2 size, bool movable)
 
 void Game::spawnKey(const Vec2 pos, const Vec2 size, const std::string playerToUnlock, bool movable)
 {
-    auto entity = m_entities.addEntity("Key");
+    auto entity = m_entities.addEntity("Key", (size_t)4);
     entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
     entity->cShape = std::make_shared<CShape>(pos, size, 120, 120, 20, 200);
     entity->cName = std::make_shared<CName>("Key");
     entity->cKey = std::make_shared<CKey>(playerToUnlock);
     entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {225, 225}, m_assets.getTexture("m_texture_key"));
     entity->cTexture->setPtrTexture(m_assets.getTexture("m_texture_key"));
+}
+
+void Game::spawnLava(const Vec2 pos, const Vec2 size)
+{
+    auto entity = m_entities.addEntity("Lava", (size_t)8);
+    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, false);
+    entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
+    entity->cName = std::make_shared<CName>("Lava");
+    // entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_assets.getTexture("lava"));
+    // entity->cTexture->setPtrTexture(m_assets.getTexture("lava"));
+    const std::string & ani = "lava_ani";
+    entity->cAnimation = std::make_shared<CAnimation> (m_assets.getAnimation(ani), true);
+}
+
+void Game::spawnWater(const Vec2 pos, const Vec2 size)
+{
+    auto entity = m_entities.addEntity("Water", (size_t)8);
+    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, false);
+    entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
+    entity->cName = std::make_shared<CName>("Water");
+    // entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_assets.getTexture("water"));
+    // entity->cTexture->setPtrTexture(m_assets.getTexture("water"));
+    const std::string & ani = "water_ani";
+    entity->cAnimation = std::make_shared<CAnimation> (m_assets.getAnimation(ani), true);
+
+}
+
+void Game::spawnBridge(const Vec2 pos, const Vec2 size)
+{
+    auto entity = m_entities.addEntity("Bridge", (size_t)8);
+    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, false);
+    entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
+    entity->cName = std::make_shared<CName>("Bridge");
+    entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_assets.getTexture("bridge"));
+    entity->cTexture->setPtrTexture(m_assets.getTexture("bridge"));
 }
 
 
@@ -398,6 +554,20 @@ void Game::sMovement()
             p->cTransform->pos += p->cTransform->vel.norm(p->cTransform->speed/m_framerate);
         }
     }
+    for (auto d : m_entities.getEntities("Dragon"))
+    {
+
+        if (!(d->cTransform->vel.isnull()) && d->cTransform->isMovable )
+        {
+            d->cTransform->pos += d->cTransform->vel.norm(d->cTransform->speed/m_framerate);
+        }
+        if (d->cTransform->pos != d->cTransform->prevPos)
+        {
+            d->cTransform->isMovable = false;
+        }
+        d->cTransform->prevPos = d->cTransform->pos;
+        
+    }
 }
 
 void Game::sRender()
@@ -406,6 +576,11 @@ void Game::sRender()
         
     for (auto e : m_entities.getEntities())
     {
+        // if (e->cAnimation->animation.hasEnded() && e->tag() == "Dragon")
+        // {
+        //     e->cAnimation->animation.setTexture(m_assets.getTexture("sleeping_dragon"));
+        // }
+        
         if ( e->cTransform && e->cShape)
         {
             e->cShape->setPosition( e->cTransform->pos );
@@ -446,9 +621,8 @@ void Game::sCollisions()
             {
                 p->movePosition(Overlap(p,d));
                 d->cAnimation = std::make_shared<CAnimation> (m_assets.getAnimation("waking_dragon"), false);
-                // d->cTransform->isMovable = true;
-                d->cTransform->pos = Vec2(800-128, 100);
-                d->cShape->setSize(Vec2(512, 256));
+                d->cTransform->vel = Vec2{ -64*4, 0 };
+                d->cShape->setSize(Vec2(384, 192));
             }
         }
         for ( auto b : m_entities.getEntities("Border") )
@@ -460,22 +634,36 @@ void Game::sCollisions()
         }
         for ( auto k : m_entities.getEntities("Key") )
         {
-            if (isCollided(p,k))
+            if (isStandingIn(p,k))
             {
                 k->kill();
                 m_entities.getEntities("Player")[1]->cTransform->isMovable = true;
+            }
+        }
+        for ( auto w : m_entities.getEntities("Water") )
+        {
+            if (isStandingIn(p,w))
+            {
+                p->cTransform->isMovable = false;
+            }
+        }
+        for ( auto l : m_entities.getEntities("Lava") )
+        {
+            if (isStandingIn(p,l))
+            {
+                p->cTransform->isMovable = false;
             }
         }
     }
 
     for ( auto g : m_entities.getEntities("Goal") ) 
     {
-        if ( isCollided(m_entities.getEntities("Player")[0],g) )
+        if ( isStandingIn(m_entities.getEntities("Player")[0],g) )
         {
             g->setColor(0, 255, 0, 255);
             m_entities.getEntities("Player")[0]->cTransform->isMovable = false;
         }
-        else if ( isCollided(m_entities.getEntities("Player")[1],g) )
+        else if ( isStandingIn(m_entities.getEntities("Player")[1],g) )
         {
             g->setColor(0, 255, 0, 255);
             m_entities.getEntities("Player")[1]->cTransform->isMovable = false;
@@ -490,10 +678,27 @@ bool Game::isCollided(std::shared_ptr<Entity> entity1, std::shared_ptr<Entity> e
         return false;
     }
 
-    bool x_overlap = (entity1->cTransform->pos.x + entity1->cShape->size.x > entity2->cTransform->pos.x) && (entity2->cTransform->pos.x + entity2->cShape->size.x > entity1->cTransform->pos.x);
-    bool y_overlap = (entity1->cTransform->pos.y + entity1->cShape->size.y > entity2->cTransform->pos.y) && (entity2->cTransform->pos.y + entity2->cShape->size.y > entity1->cTransform->pos.y);
+    bool x_overlap =    (entity1->cTransform->pos.x + entity1->cShape->size.x > entity2->cTransform->pos.x) && 
+                        (entity2->cTransform->pos.x + entity2->cShape->size.x > entity1->cTransform->pos.x);
+    bool y_overlap =    (entity1->cTransform->pos.y + entity1->cShape->size.y > entity2->cTransform->pos.y) && 
+                        (entity2->cTransform->pos.y + entity2->cShape->size.y > entity1->cTransform->pos.y);
 
     return (x_overlap && y_overlap);
+}
+
+bool Game::isStandingIn(std::shared_ptr<Entity> entity1, std::shared_ptr<Entity> entity2)
+{
+    if (entity1->getId() == entity2->getId())
+    {
+        return false;
+    }
+
+    bool x_center_overlap = (entity1->cTransform->pos.x + entity1->cShape->size.x/2 > entity2->cTransform->pos.x) && 
+                            (entity2->cTransform->pos.x + entity2->cShape->size.x/2 > entity1->cTransform->pos.x);
+    bool y_overlap =    (entity1->cTransform->pos.y + entity1->cShape->size.y <= entity2->cTransform->pos.y + entity2->cShape->size.y) &&
+                        (entity1->cTransform->pos.y + entity1->cShape->size.y > entity2->cTransform->pos.y);
+
+    return (x_center_overlap && y_overlap);
 }
 
 Vec2 Game::Overlap(std::shared_ptr<Entity> p, std::shared_ptr<Entity> o)

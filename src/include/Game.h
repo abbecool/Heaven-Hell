@@ -9,7 +9,7 @@ typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
 
 class Game
 {   
-protected:
+// protected:
     const int HEIGHT = 1080; 
     const int WIDTH = 1920; 
 
@@ -28,14 +28,6 @@ protected:
     int m_speed = 400;
     int m_framerate = 60;
     EntityManager m_entities;
-    // SDL_Texture *m_texture;
-    // SDL_Texture *m_texture_field;
-    // SDL_Texture *m_texture_releif;
-    // SDL_Texture *m_texture_angel;
-    // SDL_Texture *m_texture_devil;
-    // SDL_Texture *m_texture_key;
-    // SDL_Texture *m_texture_boulder_small;
-    // SDL_Texture *m_texture_outofbound;
     
     void init(const std::string & config);
     // void update();
@@ -49,15 +41,23 @@ protected:
     // void sAnimation();
 
     bool isCollided(std::shared_ptr<Entity>, std::shared_ptr<Entity>);
+    bool isStandingIn(std::shared_ptr<Entity>, std::shared_ptr<Entity>);
     Vec2 Overlap(std::shared_ptr<Entity>, std::shared_ptr<Entity>);
     void spawnPlayer(const Vec2 pos, const std::string name, bool movable);
-    void spawnObstacle(const Vec2 pos, const Vec2 size, bool movable );
+    void spawnObstacle(const Vec2 pos, const Vec2 size, bool movable, const int frame );
     void spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std::string &ani);
     void spawnBackground(const Vec2 pos, const Vec2 size, bool movable);
     void spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable);
     void spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool movable);
     void spawnGoal(const Vec2 pos, const Vec2 size, bool movable);
     void spawnKey(const Vec2 pos, const Vec2 size, const std::string, bool movable);
+    void spawnLava(const Vec2 pos, const Vec2 size);
+    void spawnWater(const Vec2 pos, const Vec2 size);
+    void spawnBridge(const Vec2 pos, const Vec2 size);
+    void levelLoader(SDL_Texture * level_tex);
+    std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
+    std::vector<bool> neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
+
 public:
     Game(const std::string & config);
     // void changeScene(

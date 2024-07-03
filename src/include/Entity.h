@@ -9,6 +9,7 @@
 class Entity
 {
     const size_t        m_id    = 0;
+    const size_t        m_layer    = 0;
     const std::string   m_tag   = "Default";
     bool                m_alive = true;
 public:
@@ -19,14 +20,16 @@ public:
     std::shared_ptr<CKey> cKey;
     std::shared_ptr<CTexture> cTexture;
     std::shared_ptr<CAnimation> cAnimation;
-    Entity(const std::string& tag, const size_t id)
+    Entity(const std::string& tag, const size_t id, const size_t layer)
         : m_tag(tag)
         , m_id(id)
+        , m_layer(layer)
         {
 
         }
     size_t getId();
     const std::string tag();
+    const size_t layer();
     bool isAlive();
     void kill();
     void movePosition(Vec2);
@@ -41,6 +44,11 @@ size_t Entity::getId()
 const std::string Entity::tag()
 {
     return m_tag;
+}
+
+const size_t Entity::layer()
+{
+    return m_layer;
 }
 
 bool Entity::isAlive()

@@ -17,16 +17,17 @@ class EntityManager
 public:
     EntityManager() {}
     void update();
-    std::shared_ptr<Entity> addEntity(const std::string & tag);
+    void sort();
+    std::shared_ptr<Entity> addEntity(const std::string & tag, const size_t &layer);
     void removeDeadEntities(EntityVec & vec);
     EntityVec getEntities();
     EntityVec getEntities(std::string tag);
     size_t getTotalEntities();
 };
 
-std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag)
+std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag, const size_t &layer)
 {   
-    auto e = std::make_shared<Entity>(tag, m_TotalEntities++);
+    auto e = std::make_shared<Entity>(tag, m_TotalEntities++, layer);
     m_toAdd.push_back(e);
     return e;
 }
@@ -35,8 +36,16 @@ void EntityManager::update()
 {
     for (auto e : m_toAdd)
     {
-        m_entities.push_back(e);
-        m_entityMap[e->tag()].push_back(e);
+        // if (e->tag() == "Obsticle" || e->tag() == "Background" )
+        // {
+            // m_entities.insert(m_entities.begin(), e);
+            // m_entityMap[e->tag()].insert(m_entityMap[e->tag()].begin(),e);
+        // }
+        // else
+        // {
+            m_entities.push_back(e);
+            m_entityMap[e->tag()].push_back(e);
+        // }
     }
     m_toAdd.clear();
 
@@ -45,6 +54,15 @@ void EntityManager::update()
     {
         removeDeadEntities(entityVec);
     }
+}
+
+void EntityManager::sort()
+{
+    std::sort(m_entities.begin(), m_entities.end(), [](const std::shared_ptr<Entity> &a, const std::shared_ptr<Entity> &b) {
+        // std::cout << a->tag() << ": " << a->layer() << ". " << b->tag() << ": "<< b->layer() << std::endl;
+        return a->layer() > b->layer();
+    });
+
 }
 
 void EntityManager::removeDeadEntities(EntityVec & vec)

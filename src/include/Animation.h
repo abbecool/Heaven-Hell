@@ -35,5 +35,6 @@ class Animation
     SDL_Rect getRect();
     SDL_Rect* getPtrRect();
     void setTextureRect(const int x, const int y, const int w, const int h);
+    void setTexture(SDL_Texture *tex);
     SDL_Point getTextureSize(SDL_Texture *texture);
 };
