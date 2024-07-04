@@ -1,9 +1,7 @@
 #pragma once
 
-#include <iostream>
-#include <SDL2/SDL.h>
-#include "Vec2.h"
 #include "Animation.h"
+#include <memory>
 
 class CInputs
 {
@@ -20,20 +18,20 @@ public:
 class CTransform
 {
 public:
-    Vec2 pos     = {0,0};
-    Vec2 prevPos = {0,0};
-    Vec2 vel     = {0,0};
+    Vec2 pos;    
+    Vec2 prevPos;
+    Vec2 vel;    
     bool isMovable = true;
     int speed = 400;
     CTransform() {}
-    CTransform(const Vec2 & p, const Vec2 & v, bool mbl) 
-        : pos(p), prevPos(p), vel(v), isMovable(mbl){}
+    CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
+        : pos(p), prevPos(p), vel(v), isMovable(mvbl){}
 };
 
 class CSize
 {
 public:
-    Vec2 size = {25,25};
+    Vec2 size = {64,64};
     CSize() {}
     CSize(const Vec2 & sz)
         : size(sz) {}
@@ -49,78 +47,36 @@ public:
     int b_val;
     int a_val;
     std::string color;
-    SDL_Rect rect;
+    // SDL_Rect *rect;
     CShape() {}
     CShape(const Vec2 p, const Vec2 sz, int r, int g, int b, int a) 
         : pos(p), size(sz), r_val(r), g_val(g), b_val(b), a_val(a)
         {
-            rect.x = pos.x;
-            rect.x = pos.y;
-            rect.w = size.x;
-            rect.h = size.y;
+            // rect->x = pos.x;
+            // rect->y = pos.y;
+            // rect->w = size.x;
+            // rect->h = size.y;
         }
-    SDL_Rect* getPtrRect();
-    
-    void setPosition(Vec2 pos) 
-    {
-        rect.x = pos.x;
-        rect.y = pos.y;
-    }
-    void setSize(Vec2 size) 
-    {
-        rect.w = size.x;
-        rect.h = size.y;
-    }
 };
-
-SDL_Rect* CShape::getPtrRect()
-{
-    return &rect;
-}
 
 class CTexture
 {
 public:
     Vec2 pos;
     Vec2 size;
-    SDL_Rect rect;
-
+    // SDL_Rect *rect;
     SDL_Texture * texture;
 
     CTexture() {}
     CTexture(const Vec2 p, const Vec2 sz, SDL_Texture* tex) 
         : pos(p), size(sz), texture(tex)
         {
-            rect.x = pos.x;
-            rect.y = pos.y;
-            rect.w = size.x;
-            rect.h = size.y;
+            // rect->x = pos.x;
+            // rect->y = pos.y;
+            // rect->w = size.x;
+            // rect->h = size.y;
         }
-    SDL_Rect* getPtrRect();
-    SDL_Texture* getPtrTexture();
-    void setPtrTexture(SDL_Texture * tex);
-    
-    void setPosition(Vec2 pos) 
-    {
-        rect.x = pos.x;
-        rect.y = pos.y;
-    }
 };
-
-SDL_Rect* CTexture::getPtrRect()
-{
-    return &rect;
-}
-
-SDL_Texture* CTexture::getPtrTexture()
-{
-    return texture;
-}
-
-void CTexture::setPtrTexture(SDL_Texture * tex)
-{
-    texture = tex;
-}
 
 class CName
 {

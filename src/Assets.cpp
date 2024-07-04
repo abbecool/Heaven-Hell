@@ -1,12 +1,12 @@
-#pragma once
+// #pragma once
 
-#include "src/include/Assets.h"
-#include "Animation.cpp"
+#include "Assets.h"
+// #include "Animation.cpp"
 #include <fstream>
 #include <iostream>
 
 #include <SDL2/SDL.h>
-#include "src\include\SDL2\SDL_image.h"
+#include "SDL2/SDL_image.h"
 
 Assets::Assets(){}
 

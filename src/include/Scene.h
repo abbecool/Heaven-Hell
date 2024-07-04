@@ -1,6 +1,6 @@
 #pragma once
 
-// #include "Action.h"
+#include "Action.h"
 #include "EntityManager.h"
 #include "Game.h"
 
@@ -13,10 +13,10 @@ typedef std::map<int, std::string> ActionMap;
 
 class Scene
 {
-protected:
+    protected:
 
     Game* m_game = nullptr;  
-    EntityManager m_entityManager;
+    EntityManager m_entities;
     ActionMap m_actionMap;
     bool m_pause = false;
     bool m_hasEnded = false;
@@ -25,17 +25,17 @@ protected:
     virtual void onEnd() = 0;
     void setPaused(bool paused);
 
-public:
+    public:
 
     Scene();
     Scene(Game* game);
     virtual ~Scene();
 
     virtual void update() = 0;
-    // virtual void sDoAction(const Action& action) = 0;
+    virtual void sDoAction(const Action& action) = 0;
     virtual void sRender() = 0;
 
-    // virtual void doAction(const Action& action);
+    virtual void doAction(const Action& action);
     void simulate(const size_t frames);
     void registerAction(int inputKey, const std::string& actionName);
 

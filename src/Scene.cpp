@@ -1,7 +1,4 @@
-#pragma once
-
-#include "src/include/Scene.h"
-// #include "SFML/Graphics/PrimitiveType.hpp"
+#include "Scene.h"
 
 Scene::Scene() {}
 
@@ -10,9 +7,9 @@ Scene::Scene(Game* game)
 
 Scene::~Scene() {}
 
-// void Scene::doAction(const Action& action) {
-//     sDoAction(action);
-// }
+void Scene::doAction(const Action& action) {
+    sDoAction(action);
+}
 
 void Scene::simulate(const size_t frames) {}
 

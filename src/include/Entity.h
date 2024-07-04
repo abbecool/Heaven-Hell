@@ -1,16 +1,17 @@
-#include <iostream>
-#include <memory>
-#include <SDL2/SDL.h>
-#include "CComponents.h"
+#pragma once
 
-#ifndef ENTITY_H
-#define ENTITY_H 
+// #include <iostream>
+#include <memory>
+// #include <SDL2/SDL.h>
+#include "Components.h"
+#include <tuple>
+#include <string>
 
 class Entity
 {
+    const std::string   m_tag   = "Default";
     const size_t        m_id    = 0;
     const size_t        m_layer    = 0;
-    const std::string   m_tag   = "Default";
     bool                m_alive = true;
 public:
     std::shared_ptr<CTransform> cTransform;
@@ -20,13 +21,7 @@ public:
     std::shared_ptr<CKey> cKey;
     std::shared_ptr<CTexture> cTexture;
     std::shared_ptr<CAnimation> cAnimation;
-    Entity(const std::string& tag, const size_t id, const size_t layer)
-        : m_tag(tag)
-        , m_id(id)
-        , m_layer(layer)
-        {
-
-        }
+    Entity(const std::string& tag, const size_t id, const size_t layer);
     size_t getId();
     const std::string tag();
     const size_t layer();
@@ -35,44 +30,3 @@ public:
     void movePosition(Vec2);
     void setColor(const int r, const int g, const int b, const int a);
 };
-
-size_t Entity::getId()
-{
-    return m_id;
-}
-
-const std::string Entity::tag()
-{
-    return m_tag;
-}
-
-const size_t Entity::layer()
-{
-    return m_layer;
-}
-
-bool Entity::isAlive()
-{
-    return m_alive;
-}
-
-void Entity::kill()
-{
-    m_alive = false;
-}
-
-void Entity::movePosition(Vec2 move)
-{
-    cTransform->pos.x += move.x;
-    cTransform->pos.y += move.y;
-}
-
-void Entity::setColor(const int r, const int g, const int b, const int a)
-{
-    cShape->r_val = r;
-    cShape->g_val = g;
-    cShape->b_val = b;
-    cShape->a_val = a;
-}
-
-#endif // ENTITY_H

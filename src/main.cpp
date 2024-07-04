@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include "Game.cpp"
+#include "Game.h"
 
 // Top part is heaven, bot part is hell. arrows control both.
 // add function to switch places at certain points. AND OR invert colors to avoid obsticals / fly over or 
@@ -14,9 +14,7 @@
 // Different elemental types like, ice, fire, earth, air etc. each with special damage multipliers and resistances on enemies.
 // Different weapons have differant elemental effects and damage types... very original
 
-int main( int argc, char *argv[] )
-{   
-
+int main(int argc, char* argv[]){   
     Game g("assets.txt");
     g.run();
 
