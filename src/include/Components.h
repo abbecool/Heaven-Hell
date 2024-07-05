@@ -3,7 +3,13 @@
 #include "Animation.h"
 #include <memory>
 
-class CInputs
+class Component
+{
+    public:
+        bool has = false;
+};
+
+class CInputs : public Component
 {
 public:
     bool up = false;
@@ -15,7 +21,7 @@ public:
     CInputs() {};
 };
 
-class CTransform
+class CTransform : public Component
 {
 public:
     Vec2 pos;    
@@ -28,7 +34,7 @@ public:
         : pos(p), prevPos(p), vel(v), isMovable(mvbl){}
 };
 
-class CSize
+class CSize : public Component
 {
 public:
     Vec2 size = {64,64};
@@ -37,7 +43,7 @@ public:
         : size(sz) {}
 };
 
-class CShape
+class CShape : public Component
 {
 public:
     Vec2 pos;
@@ -59,7 +65,7 @@ public:
         }
 };
 
-class CTexture
+class CTexture : public Component
 {
 public:
     Vec2 pos;
@@ -78,7 +84,7 @@ public:
         }
 };
 
-class CName
+class CName: public Component
 {
 public:
     std::string name;
@@ -86,7 +92,7 @@ public:
     CName(const std::string & nm)
         : name(nm) {}
 };
-class CKey
+class CKey: public Component
 {
 public:
     std::string unlocks;
@@ -95,7 +101,7 @@ public:
         : unlocks(unlcks) {}
 };
 
-class CAnimation
+class CAnimation: public Component
 {
 public:
     Animation animation;

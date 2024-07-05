@@ -36,7 +36,6 @@ void EntityManager::update()
 void EntityManager::sort()
 {
     std::sort(m_entities.begin(), m_entities.end(), [](const std::shared_ptr<Entity> &a, const std::shared_ptr<Entity> &b) {
-        // std::cout << a->tag() << ": " << a->layer() << ". " << b->tag() << ": "<< b->layer() << std::endl;
         return a->layer() > b->layer();
     });
 

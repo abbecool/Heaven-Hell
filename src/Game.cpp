@@ -48,7 +48,6 @@ void Game::changeScene(
     std::shared_ptr<Scene> scene,
     bool endCurrentScene
 ) {
-    std::cout << "3" << std::endl;
     m_currentScene = sceneName;
     m_sceneMap[sceneName] = scene;
 }
@@ -74,7 +73,7 @@ void Game::run()
         SDL_RenderClear( m_renderer );
 
         update();
-        // sUserInput();
+        sUserInput();
         SDL_RenderPresent( m_renderer );
         m_currentFrame++;
 
@@ -90,7 +89,6 @@ void Game::quit() {
 }
 
 void Game::update() {
-    // m_scene->update();
     currentScene()->update();
 }
 
@@ -130,6 +128,12 @@ void Game::sUserInput()
                 == currentScene()->getActionMap().end()) {
                 continue;
             }
+            // determine start or end action by whether it was key press or release
+            const std::string actionType = (event.type == SDL_KEYDOWN) ? "START" : "END";
+
+            // std::cout << actionType << std::endl;
+            // look up the action and send the action to the scene
+            currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.keysym.sym), actionType));
         }
         // for (auto p : m_entities.getEntities("Player"))
         // {
@@ -301,7 +305,7 @@ void Game::sUserInput()
 
 // bool Game::isCollided(std::shared_ptr<Entity> entity1, std::shared_ptr<Entity> entity2)
 // {
-//     if (entity1->getId() == entity2->getId())
+//     if (entity1->id() == entity2->id())
 //     {
 //         return false;
 //     }
@@ -316,7 +320,7 @@ void Game::sUserInput()
 
 // bool Game::isStandingIn(std::shared_ptr<Entity> entity1, std::shared_ptr<Entity> entity2)
 // {
-//     if (entity1->getId() == entity2->getId())
+//     if (entity1->id() == entity2->id())
 //     {
 //         return false;
 //     }

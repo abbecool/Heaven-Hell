@@ -1,10 +1,7 @@
-// #include "Scene.cpp"
-// #include "Scene_Menu.h"
 #include "Scene_Play.h"
+// #include "Scene_Play1.h"
 #include "Assets.h"
 #include "Game.h"
-// #include "Physics.h"
-// #include "Physics.cpp"
 #include "Components.h"
 #include "Action.h"
 
@@ -23,15 +20,33 @@ Scene_Play::Scene_Play(Game* game)
 }
 
 void Scene_Play::init(const std::string& levelPath) {
+    registerAction(SDLK_w, "UP");
+    registerAction(SDLK_s, "DOWN");
+    registerAction(SDLK_a, "LEFT");
+    registerAction(SDLK_d, "RIGHT");
+    registerAction(SDLK_LSHIFT, "SHIFT");
+    registerAction(SDLK_LCTRL, "CTRL");
+    registerAction(SDLK_ESCAPE, "QUIT");
+    registerAction(SDLK_r, "RESET");
+    registerAction(SDLK_p, "PAUSE");
     loadLevel();
 }
 
 std::vector<bool> Scene_Play::neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
+    std::vector<std::string> friendlyPixels(1, "");
     std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
-    neighbors[0] = (y > 0 && pixelMatrix[y - 1][x] == pixel);           // top
-    neighbors[1] = (x < width - 1 && pixelMatrix[y][x + 1] == pixel);   // right
-    neighbors[2] = (y < height - 1 && pixelMatrix[y + 1][x] == pixel);  // bottom
-    neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pixel);           // left
+    if ( pixel == "grass" || pixel == "dirt"){
+        friendlyPixels = {"grass", "dirt", "key", "goal", "player_God", "player_Devil", "dragon", "water"};
+    }
+    else{
+        friendlyPixels = {pixel};
+    }
+    for ( auto pix : friendlyPixels){
+        if(!neighbors[0]){neighbors[0] = (y > 0 && pixelMatrix[y - 1][x] == pix);}           // top
+        if(!neighbors[1]){neighbors[1] = (x < width - 1 && pixelMatrix[y][x + 1] == pix);}   // right
+        if(!neighbors[2]){neighbors[2] = (y < height - 1 && pixelMatrix[y + 1][x] == pix);}  // bottom
+        if(!neighbors[3]){neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pix);}           // left
+    }
     return neighbors;
 }
 
@@ -71,8 +86,12 @@ std::vector<std::vector<std::string>> Scene_Play::createPixelMatrix(Uint32* pixe
 
             if ((int)r == 192 && (int)g == 192 && (int)b == 192) {
                 pixelMatrix[y][x] = "obstacle";
+            } else if ((int)r == 200 && (int)g == 240 && (int)b == 255) {
+                pixelMatrix[y][x] = "cloud";
             } else if ((int)r == 203 && (int)g == 129 && (int)b == 56) {
-                pixelMatrix[y][x] = "background";
+                pixelMatrix[y][x] = "dirt";
+            } else if ((int)r == 0 && (int)g == 255 && (int)b == 0) {
+                pixelMatrix[y][x] = "grass";
             } else if ((int)r == 255 && (int)g == 255 && (int)b == 255) {
                 pixelMatrix[y][x] = "player_God";
             } else if ((int)r == 0 && (int)g == 0 && (int)b == 0) {
@@ -92,6 +111,9 @@ std::vector<std::vector<std::string>> Scene_Play::createPixelMatrix(Uint32* pixe
             } else if ((int)r == 179 && (int)g == 0 && (int)b == 255) {
                 pixelMatrix[y][x] = "bridge";
             } else {
+                if (x ==2 && y == 3){
+                    std::cout << (int)r << (int)g << (int)b << std::endl;
+                }
                 pixelMatrix[y][x] = "unknown";
             }
         }
@@ -101,7 +123,7 @@ std::vector<std::vector<std::string>> Scene_Play::createPixelMatrix(Uint32* pixe
 
 void Scene_Play::loadLevel(){
 
-    const char* path = "assets/images/level2.png";
+    const char* path = "assets/images/level3.png";
     SDL_Surface* loadedSurface = IMG_Load(path);
     if (loadedSurface == nullptr) {
         std::cerr << "Unable to load image " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
@@ -120,7 +142,7 @@ void Scene_Play::loadLevel(){
 
     const int HEIGHT_PIX = 17;
     const int WIDTH_PIX = 30;
-        
+    
     std::vector<std::vector<std::string>> pixelMatrix = createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
 
     // Process the pixels
@@ -134,13 +156,20 @@ void Scene_Play::loadLevel(){
                 spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, Vec2 {64, 64}, false, textureIndex);
             }
             else{
-                spawnBackground(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false);
-                if (pixel == "player_God") {
+
+                if (pixel == "grass" || pixel == "dirt") {
+                    spawnBackground(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, textureIndex);
+                } else {
+                    spawnBackground(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false, getObstacleTextureIndex(neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                }
+                if (pixel == "cloud") {
+                    spawnCloud(Vec2 {64*(float)x, 64*(float)y}, Vec2 {64, 64}, false, textureIndex);
+                } else if (pixel == "player_God") {
                     spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "God", true);
                 } else if (pixel == "player_Devil") {
                     spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "Devil", false);
                 } else if (pixel == "key") {
-                    spawnKey(Vec2 {64*(float)x,64*(float)(y-1)}, Vec2 {64,64}, "Devil", false);
+                    spawnKey(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, "Devil", false);
                 } else if (pixel == "goal") {
                     spawnGoal(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false);
                 } else if (pixel == "out_of_bound_border") {
@@ -181,121 +210,127 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     }
 
     auto entity = m_entities.addEntity("Player", (size_t)2);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, Vec2{64, 64}, 255, 0, 0, 255);
-    entity->cInputs = std::make_shared<CInputs>();
-    entity->cName = std::make_shared<CName>(name);
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {210, 270}, m_game->assets().getTexture(tex));
-    entity->cTexture->texture = m_game->assets().getTexture(tex);
+    entity->addComponent<CTransform>(pos, Vec2{0,0}, movable);
+    entity->addComponent<CShape>(pos, Vec2{48, 48}, 255, 0, 0, 255);
+    entity->addComponent<CInputs>();
+    entity->addComponent<CName>(name);
+    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {210, 270}, m_game->assets().getTexture(tex));
     m_player = entity;
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, const Vec2 size, bool movable, const int frame){
     auto entity = m_entities.addEntity("Obstacle", (size_t)9);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
-    // std::cout << entity->cShape->rect->w << std::endl;
-    entity->cName = std::make_shared<CName>("Obstacle");
-    std::cout << size.x << std::endl;
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("rock_wall"));
-    entity->cTexture->texture = m_game->assets().getTexture("rock_wall");
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
+    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CName>("Obstacle");
+    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("rock_wall"));
+}
+
+void Scene_Play::spawnCloud(const Vec2 pos, const Vec2 size, bool movable, const int frame){
+    auto entity = m_entities.addEntity("Obstacle", (size_t)9);
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
+    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CName>("Obstacle");
+    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("cloud_sheet"));
 }
 
 void Scene_Play::spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std::string &ani) {
     auto entity = m_entities.addEntity("Dragon", (size_t)3);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
-    entity->cName = std::make_shared<CName>("Dragon");
-    entity->cAnimation = std::make_shared<CAnimation> (m_game->assets().getAnimation(ani), true);
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
+    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CName>("Dragon");
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation(ani), true);
 }
 
 
 void Scene_Play::spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable)
 {
     auto entity = m_entities.addEntity("Border", (size_t)9);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
-    entity->cName = std::make_shared<CName>("Border");
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
+    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CName>("Border");
 }
 
 void Scene_Play::spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool movable)
 {
     auto entity = m_entities.addEntity("Outofbound", (size_t)9);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, size, 100, 100, 0, 255);
-    entity->cName = std::make_shared<CName>("Outofbound");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {200,64}, m_game->assets().getTexture("m_texture_outofbound"));
-    entity->cTexture->texture = m_game->assets().getTexture("m_texture_outofbound");
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
+    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CName>("Outofbound");
+    entity->addComponent<CTexture>(Vec2 {0, 0}, Vec2 {200,64}, m_game->assets().getTexture("m_texture_outofbound"));
 }
 
-void Scene_Play::spawnBackground(const Vec2 pos, const Vec2 size, bool movable)
+void Scene_Play::spawnBackground(const Vec2 pos, const Vec2 size, bool movable, const int frame)
 {
     auto entity = m_entities.addEntity("Background", (size_t)10);
-    entity->cTransform = std::make_shared<CTransform>(pos, Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
-    entity->cName = std::make_shared<CName>("Background ");
+    entity->addComponent<CTransform>(pos, Vec2 {0, 0}, movable);
+    entity->addComponent<CShape>(pos, size, 255, 255, 255, 255);
+    entity->addComponent<CName>("Background ");
 
-    std::vector<int> ranArray = generateRandomArray(1, m_entities.getTotalEntities(), 0, 12);
-    if (ranArray[0] == 0)
-        entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {64, 64}, m_game->assets().getTexture("m_texture_background"));
-    else
-        entity->cTexture = std::make_shared<CTexture>(Vec2 {0, 0}, Vec2 {2, 2}, m_game->assets().getTexture("m_texture_background"));
+    if (pos.y >= 1080/2){
+        entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("dirt_sheet"));
+    }
+    else{
+        std::vector<int> ranArray = generateRandomArray(1, m_entities.getTotalEntities(), 0, 15);
+        if (ranArray[0] == 0){
+            entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("flower_sheet"));
+        }
+        else{
+            entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("gras_sheet"));
+        }
+    }
 }
 
 void Scene_Play::spawnGoal(const Vec2 pos, const Vec2 size, bool movable)
 {
     auto entity = m_entities.addEntity("Goal", (size_t)4);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, size, 20, 200, 20, 10);
-    entity->cName = std::make_shared<CName>("Goal");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {64,64}, m_game->assets().getTexture("m_texture_goal"));
-    entity->cTexture->texture = m_game->assets().getTexture("m_texture_goal");
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
+    entity->addComponent<CShape>(pos, size, 20, 200, 20, 10);
+    entity->addComponent<CName>("Goal");
+    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64,64}, m_game->assets().getTexture("m_texture_goal"));
 }
 
 void Scene_Play::spawnKey(const Vec2 pos, const Vec2 size, const std::string playerToUnlock, bool movable)
 {
     auto entity = m_entities.addEntity("Key", (size_t)4);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->cShape = std::make_shared<CShape>(pos, size, 120, 120, 20, 200);
-    entity->cName = std::make_shared<CName>("Key");
-    entity->cKey = std::make_shared<CKey>(playerToUnlock);
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {225, 225}, m_game->assets().getTexture("m_texture_key"));
-    entity->cTexture->texture = m_game->assets().getTexture("m_texture_key");
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
+    entity->addComponent<CShape>(pos, size, 120, 120, 20, 200);
+    entity->addComponent<CName>("Key");
+    // entity->cKey = std::make_shared<CKey>(playerToUnlock);
+    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {225, 225}, m_game->assets().getTexture("m_texture_key"));
 }
 
 void Scene_Play::spawnLava(const Vec2 pos, const Vec2 size)
 {
     auto entity = m_entities.addEntity("Lava", (size_t)8);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, false);
-    entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
-    entity->cName = std::make_shared<CName>("Lava");
-    // entity->cTexture = std::make_shared<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture("lava"));
-    // entity->cTexture->texture = m_game->assets().getTexture("lava");
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity->addComponent<CShape>(pos, size, 255, 255, 255, 255);
+    entity->addComponent<CName>("Lava");
     const std::string & ani = "lava_ani";
-    entity->cAnimation = std::make_shared<CAnimation> (m_game->assets().getAnimation(ani), true);
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation(ani), true);
+    // entity->getComponent<CAnimation>().animation.setCurrentFrame(entity->id()*17); // attempt to randomize animation update
 }
 
 void Scene_Play::spawnWater(const Vec2 pos, const Vec2 size, const int frame)
 {
     auto entity = m_entities.addEntity("Water", (size_t)8);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, false);
-    entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
-    entity->cName = std::make_shared<CName>("Water");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("water"));
-    // entity->cTexture->texture = m_game->assets().getTexture("water");
-    // const std::string & ani = "water_ani";
-    // entity->cAnimation = std::make_shared<CAnimation> (m_game->assets().getAnimation(ani), true);
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity->addComponent<CShape>(pos, size, 255, 255, 255, 255);
+    entity->addComponent<CName>("Water");
+    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("water"));
+    const std::string & ani = "water_ani";
+    // entity->addComponent<CAnimation> (m_game->assets().getAnimation(ani), true);
 
 }
 
 void Scene_Play::spawnBridge(const Vec2 pos, const Vec2 size, const int frame)
 {
     auto entity = m_entities.addEntity("Bridge", (size_t)8);
-    entity->cTransform = std::make_shared<CTransform>(pos,Vec2 {0, 0}, false);
-    entity->cShape = std::make_shared<CShape>(pos, size, 255, 255, 255, 255);
-    entity->cName = std::make_shared<CName>("Bridge");
-    entity->cTexture = std::make_shared<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("bridge"));
-    entity->cTexture->texture = m_game->assets().getTexture("bridge");
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity->addComponent<CShape>(pos, size, 255, 255, 255, 255);
+    entity->addComponent<CName>("Bridge");
+    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("bridge"));
+    // entity->cTexture->texture = m_game->assets().getTexture("bridge");
 }
 
 
@@ -313,58 +348,58 @@ void Scene_Play::update() {
 void Scene_Play::sMovement() {
     for (auto p : m_entities.getEntities("Player"))
     {    
-        p->cTransform->vel = { 0,0 };
+        p->getComponent<CTransform>().vel = { 0,0 };
 
-        if (p->cInputs->up)
+        if (p->getComponent<CInputs>().up)
         {
-            p->cTransform->vel.y = -1;
+            p->getComponent<CTransform>().vel.y = -1;
         }
-        if (p->cInputs->down)
+        if (p->getComponent<CInputs>().down)
         {
-            p->cTransform->vel.y = 1;
+            p->getComponent<CTransform>().vel.y = 1;
         }
-        if (p->cInputs->left)
+        if (p->getComponent<CInputs>().left)
         {
-            p->cTransform->vel.x = -1;
+            p->getComponent<CTransform>().vel.x = -1;
         }
-        if (p->cInputs->right)
+        if (p->getComponent<CInputs>().right)
         {
-            p->cTransform->vel.x = 1;
+            p->getComponent<CTransform>().vel.x = 1;
         }
 
-        if (p->cInputs->shift)
+        if (p->getComponent<CInputs>().shift)
         {
-            p->cTransform->speed = 0.5*m_speed;
+            p->getComponent<CTransform>().speed = 0.5*m_speed;
         }
-        else if (p->cInputs->ctrl)
+        else if (p->getComponent<CInputs>().ctrl)
         {
-            p->cTransform->speed = 2*m_speed;
+            p->getComponent<CTransform>().speed = 2*m_speed;
         }
         else
         {
-            p->cTransform->speed = m_speed;
+            p->getComponent<CTransform>().speed = m_speed;
         }
         
         
-        p->cTransform->prevPos = p->cTransform->pos;
+        p->getComponent<CTransform>().prevPos = p->getComponent<CTransform>().pos;
 
-        if (!(p->cTransform->vel.isnull()) && p->cTransform->isMovable )
+        if (!(p->getComponent<CTransform>().vel.isnull()) && p->getComponent<CTransform>().isMovable )
         {
-            p->cTransform->pos += p->cTransform->vel.norm(p->cTransform->speed/m_game->framerate());
+            p->getComponent<CTransform>().pos += p->getComponent<CTransform>().vel.norm(p->getComponent<CTransform>().speed/m_game->framerate());
         }
     }
     for (auto d : m_entities.getEntities("Dragon"))
     {
 
-        if (!(d->cTransform->vel.isnull()) && d->cTransform->isMovable )
+        if (!(d->getComponent<CTransform>().vel.isnull()) && d->getComponent<CTransform>().isMovable )
         {
-            d->cTransform->pos += d->cTransform->vel.norm(d->cTransform->speed/m_game->framerate());
+            d->getComponent<CTransform>().pos += d->getComponent<CTransform>().vel.norm(d->getComponent<CTransform>().speed/m_game->framerate());
         }
-        if (d->cTransform->pos != d->cTransform->prevPos)
+        if (d->getComponent<CTransform>().pos != d->getComponent<CTransform>().prevPos)
         {
-            d->cTransform->isMovable = false;
+            d->getComponent<CTransform>().isMovable = false;
         }
-        d->cTransform->prevPos = d->cTransform->pos;
+        d->getComponent<CTransform>().prevPos = d->getComponent<CTransform>().pos;
         
     }
 }
@@ -391,8 +426,8 @@ void Scene_Play::sCollision() {
             if (m_physics.isCollided(p,d))
             {
                 p->movePosition(m_physics.Overlap(p,d));
-                d->cAnimation = std::make_shared<CAnimation> (m_game->assets().getAnimation("waking_dragon"), false);
-                d->cTransform->vel = Vec2{ -64*4, 0 };
+                d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
+                d->getComponent<CTransform>().vel = Vec2{ -64*4, 0 };
                 // d->cShape->setSize(Vec2(384, 192));
             }
         }
@@ -405,24 +440,24 @@ void Scene_Play::sCollision() {
         }
         for ( auto k : m_entities.getEntities("Key") )
         {
-            if (m_physics.isStandingIn(p,k))
+            if (m_physics.isCollided(p,k))
             {
                 k->kill();
-                m_entities.getEntities("Player")[1]->cTransform->isMovable = true;
+                m_entities.getEntities("Player")[1]->getComponent<CTransform>().isMovable = true;
             }
         }
         for ( auto w : m_entities.getEntities("Water") )
         {
             if (m_physics.isStandingIn(p,w))
             {
-                p->cTransform->isMovable = false;
+                p->getComponent<CTransform>().isMovable = false;
             }
         }
         for ( auto l : m_entities.getEntities("Lava") )
         {
             if (m_physics.isStandingIn(p,l))
             {
-                p->cTransform->isMovable = false;
+                p->getComponent<CTransform>().isMovable = false;
             }
         }
     }
@@ -431,82 +466,93 @@ void Scene_Play::sCollision() {
     {
         if ( m_physics.isStandingIn(m_entities.getEntities("Player")[0],g) )
         {
-            g->setColor(0, 255, 0, 255);
-            m_entities.getEntities("Player")[0]->cTransform->isMovable = false;
+            m_entities.getEntities("Player")[0]->getComponent<CTransform>().isMovable = false;
         }
         else if ( m_physics.isStandingIn(m_entities.getEntities("Player")[1],g) )
         {
-            g->setColor(0, 255, 0, 255);
-            m_entities.getEntities("Player")[1]->cTransform->isMovable = false;
+            m_entities.getEntities("Player")[1]->getComponent<CTransform>().isMovable = false;
         }
     }
 }
 
 void Scene_Play::sDoAction(const Action& action) {
-    // if (action.type() == "START") {
-    //     if (action.name() == "TOGGLE_TEXTURE") {
-    //         m_drawTextures = !m_drawTextures; 
-    //     }
-    //     else if (action.name() == "TOGGLE_COLLISION") { 
-    //         m_drawCollision = !m_drawCollision; 
-    //     }
-    //     else if (action.name() == "TOGGLE_GRID") { 
-    //         m_drawDrawGrid = !m_drawDrawGrid; 
-    //     }
-    //     else if (action.name() == "PAUSE") { 
-    //         setPaused(!m_pause);
-    //     }
-    //     else if (action.name() == "QUIT") { 
-    //         onEnd();
-    //     }
-    //     else if (action.name() == "JUMP") {
-    //         if (m_player->getComponent<CInput>().canJump) {
-    //             m_player->getComponent<CInput>().up = true;
-    //         }
-    //     }
-    //     else if (action.name() == "DOWN") {
-    //         m_player->getComponent<CInput>().down = true;
-    //     }
-    //     else if (action.name() == "LEFT") {
-    //         m_player->getComponent<CInput>().left = true;
-    //     }
-    //     else if (action.name() == "RIGHT") {
-    //         m_player->getComponent<CInput>().right = true;
-    //     }
-    //     else if (action.name() == "SHOOT") {
-    //         if (m_player->getComponent<CInput>().canShoot) {
-    //             m_player->getComponent<CInput>().shoot = true;
-    //         }
-    //     }
-    // }
-    // else if (action.type() == "END") {
-    //     if (action.name() == "JUMP") {
-    //         m_player->getComponent<CInput>().up = false;
-    //     }
-    //     else if (action.name() == "DOWN") {
-    //         m_player->getComponent<CInput>().down = false;
-    //     }
-    //     else if (action.name() == "LEFT") {
-    //         m_player->getComponent<CInput>().left = false;
-    //     }
-    //     else if (action.name() == "RIGHT") {
-    //         m_player->getComponent<CInput>().right = false;
-    //     }
-    //     else if (action.name() == "SHOOT") {
-    //         m_player->getComponent<CInput>().shoot = false;
-    //     }
-    // }
+    if (action.name() == "TOGGLE_TEXTURE") {
+        m_drawTextures = !m_drawTextures; 
+    }
+    else if (action.name() == "TOGGLE_COLLISION") { 
+        m_drawCollision = !m_drawCollision; 
+    }
+    else if (action.name() == "TOGGLE_GRID") { 
+        m_drawDrawGrid = !m_drawDrawGrid; 
+    }
+    else if (action.name() == "PAUSE") { 
+        setPaused(!m_pause);
+    }
+    else if (action.name() == "QUIT") { 
+        onEnd();
+    }else if (action.name() == "RESET") { 
+        m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game));
+    }
+    for (auto p : m_entities.getEntities("Player")){
+        if (action.type() == "START") {
+            if (action.name() == "UP") {
+                p->getComponent<CInputs>().up = true;
+            }
+            else if (action.name() == "DOWN") {
+                p->getComponent<CInputs>().down = true;
+            }
+            else if (action.name() == "LEFT") {
+                p->getComponent<CInputs>().left = true;
+            }
+            else if (action.name() == "RIGHT") {
+                p->getComponent<CInputs>().right = true;
+            }
+            else if (action.name() == "SHIFT") {
+                p->getComponent<CInputs>().shift = true;
+            }
+            else if (action.name() == "CTRL") {
+                p->getComponent<CInputs>().ctrl = true;
+            }
+            // else if (action.name() == "SHOOT") {
+            //     if (p->getComponent<CInputs>().canShoot) {
+            //         p->getComponent<CInputs>().shoot = true;
+            //     }
+            // }
+        }
+        else if (action.type() == "END") {
+            if (action.name() == "UP") {
+                p->getComponent<CInputs>().up = false;
+            }
+            if (action.name() == "DOWN") {
+                p->getComponent<CInputs>().down = false;
+            }
+            else if (action.name() == "LEFT") {
+                p->getComponent<CInputs>().left = false;
+            }
+            else if (action.name() == "RIGHT") {
+                p->getComponent<CInputs>().right = false;
+            }
+            else if (action.name() == "SHIFT") {
+                p->getComponent<CInputs>().shift = false;
+            }
+            else if (action.name() == "CTRL") {
+                p->getComponent<CInputs>().ctrl = false;
+            }
+            // else if (action.name() == "SHOOT") {
+            //     p->getComponent<CInputs>().shoot = false;
+            // }
+        }
+    }
 }
 
 void Scene_Play::sAnimation() {
-    for ( auto e : m_entities.getEntities() )
+    for ( auto e : m_entities.getEntities() ){
+        if (e->hasComponent<CAnimation>())
         {
-            if (e->cAnimation)
-            {
-                e->cAnimation->animation.update();
-            }
-            
+            e->getComponent<CAnimation>().animation.update();
         }
+        
+    }
     // if(m_player->getComponent<CTransform>().velocity.y != 0) {
     //     m_player->getComponent<CInput>().canJump = false;
     //     if (m_player->getComponent<CInput>().shoot) {
@@ -578,8 +624,6 @@ void Scene_Play::sAnimation() {
 }
 
 void Scene_Play::onEnd() {
-    // todo: when the scene ends, change back to the MENU scene
-    // use m_game->changeScene(correct params);
     // m_game->changeScene( "MENU", std::make_shared<Scene_Menu>(m_game));
     m_game->quit();
 }
@@ -587,22 +631,29 @@ void Scene_Play::onEnd() {
 void Scene_Play::sRender() {
     for (auto e : m_entities.getEntities())
     {        
-        if ( e->cTransform && e->cShape)
+        if ( e->hasComponent<CTransform>() && e->hasComponent<CShape>())
         {
-            e->cShape->pos = e->cTransform->pos;
-            SDL_Rect* shape;
-            shape->x = e->cShape->pos.x;
-            shape->y = e->cShape->pos.y;
-            shape->w = e->cShape->size.x;
-            shape->h = e->cShape->size.y;
+            e->getComponent<CShape>().pos = e->getComponent<CTransform>().pos;
 
-            if (e->cTexture)
+            SDL_Rect* shape;
+            shape->x = e->getComponent<CShape>().pos.x;
+            shape->y = e->getComponent<CShape>().pos.y;
+            shape->w = e->getComponent<CShape>().size.x;
+            shape->h = e->getComponent<CShape>().size.y;
+
+            SDL_Rect* shape1;
+            shape1->x = e->getComponent<CTexture>().pos.x;
+            shape1->y = e->getComponent<CTexture>().pos.y;
+            shape1->w = e->getComponent<CTexture>().size.x;
+            shape1->h = e->getComponent<CTexture>().size.y;
+
+            if (e->hasComponent<CTexture>())
             {
-                SDL_RenderCopy(m_game->renderer(), e->cTexture->texture, nullptr, shape);
+                SDL_RenderCopy(m_game->renderer(), e->getComponent<CTexture>().texture, shape1, shape);
             }
-            if (e->cAnimation)
+            if (e->hasComponent<CAnimation>())
             {
-                SDL_RenderCopy(m_game->renderer(), e->cAnimation->animation.getTexture(), e->cAnimation->animation.getPtrRect(), shape);
+                SDL_RenderCopy(m_game->renderer(), e->getComponent<CAnimation>().animation.getTexture(), e->getComponent<CAnimation>().animation.getPtrRect(), shape);
             }            
         }
     }

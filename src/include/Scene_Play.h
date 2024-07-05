@@ -30,8 +30,9 @@ class Scene_Play : public Scene
     void loadLevel();
     void spawnPlayer(const Vec2 pos, const std::string name, bool movable);
     void spawnObstacle(const Vec2 pos, const Vec2 size, bool movable, const int frame );
+    void spawnCloud(const Vec2 pos, const Vec2 size, bool movable, const int frame);
     void spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std::string &ani);
-    void spawnBackground(const Vec2 pos, const Vec2 size, bool movable);
+    void spawnBackground(const Vec2 pos, const Vec2 size, bool movable, const int frame);
     void spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable);
     void spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool movable);
     void spawnGoal(const Vec2 pos, const Vec2 size, bool movable);

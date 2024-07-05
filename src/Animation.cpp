@@ -82,3 +82,7 @@ SDL_Point Animation::getTextureSize(SDL_Texture *texture)
     SDL_QueryTexture(texture, NULL, NULL, &size.x, &size.y);
     return size;
 }
+
+void Animation::setCurrentFrame(size_t frame){
+    m_currentFrame = frame;
+}

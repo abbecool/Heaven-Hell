@@ -1,5 +1,9 @@
 Texture     level1                      assets/images/level1.png
 Texture     level2                      assets/images/level2.png
+Texture     gras_sheet                  assets/images/gras_sheet.png
+Texture     flower_sheet                assets/images/flower_sheet.png
+Texture     dirt_sheet                  assets/images/dirt_sheet.png
+Texture     cloud_sheet                 assets/images/cloud_sheet.png
 Texture     m_texture_background        assets/images/gras_blomma.png
 Texture     m_texture_goal              assets/images/seven_heaven.png
 Texture     m_texture_angel             assets/images/idas_angel_4.png
@@ -15,6 +19,9 @@ Texture     m_texture_outofbound        assets/images/moln.png
 Texture     sleeping_dragon             assets/images/sleeping_dragon.png
 Texture     waking_dragon               assets/images/waking_dragon.png
 Animation   snoring_dragon              sleeping_dragon 4 60
-Animation   waking_dragon               waking_dragon 7 15
+Animation   waking_dragon               waking_dragon 7 5
 Animation   lava_ani                    lava 3 50
 Animation   water_ani                   water_old 3 30
+Animation   gras_sheet                  gras_sheet 1 100
+Animation   flower_sheet                flower_sheet 1 100
+Animation   dirt_sheet                  dirt_sheet 1 100
