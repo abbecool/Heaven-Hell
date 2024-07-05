@@ -3,6 +3,20 @@
 #include "Animation.h"
 #include <memory>
 
+// set a flag: flag |= (int)PlayerState
+// unset a flag: flag &= ~(int)PlayerState
+// flipping a flag: flag ^= (int)PlayerState
+// checking if a flag set: return (flag & (int)PlayerState) == (int)PlayerState
+// checking multiple flags set: return (flag &(int)PlayerState) != 0
+enum struct PlayerState {
+    STAND = 1 << 0,
+    STANDSHOOT = 1 << 1,
+    AIR = 1 << 2,
+    AIRSHOOT = 1 << 3,
+    RUN = 1 << 4,
+    RUNSHOOT = 1 << 5
+};
+
 class Component
 {
     public:
@@ -43,6 +57,16 @@ public:
         : size(sz) {}
 };
 
+class CBoundingBox : public Component
+{
+    public:
+        Vec2 size;
+        Vec2 halfSize;
+        CBoundingBox() {}
+        CBoundingBox(const Vec2& s) 
+            : size(s), halfSize(s.x / 2.0, s.y / 2.0) {}
+};
+
 class CShape : public Component
 {
 public:
@@ -55,8 +79,8 @@ public:
     std::string color;
     // SDL_Rect *rect;
     CShape() {}
-    CShape(const Vec2 p, const Vec2 sz, int r, int g, int b, int a) 
-        : pos(p), size(sz), r_val(r), g_val(g), b_val(b), a_val(a)
+    CShape(const Vec2 p, const Vec2 sz) 
+        : pos(p), size(sz)
         {
             // rect->x = pos.x;
             // rect->y = pos.y;

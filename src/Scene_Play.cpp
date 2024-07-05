@@ -169,7 +169,7 @@ void Scene_Play::loadLevel(){
                 } else if (pixel == "player_Devil") {
                     spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "Devil", false);
                 } else if (pixel == "key") {
-                    spawnKey(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, "Devil", false);
+                    spawnKey(Vec2 {64*(float)x,64*(float)y}, Vec2 {32,32}, "Devil", false);
                 } else if (pixel == "goal") {
                     spawnGoal(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false);
                 } else if (pixel == "out_of_bound_border") {
@@ -211,7 +211,7 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
 
     auto entity = m_entities.addEntity("Player", (size_t)2);
     entity->addComponent<CTransform>(pos, Vec2{0,0}, movable);
-    entity->addComponent<CShape>(pos, Vec2{48, 48}, 255, 0, 0, 255);
+    entity->addComponent<CShape>(pos, Vec2{48, 48});
     entity->addComponent<CInputs>();
     entity->addComponent<CName>(name);
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {210, 270}, m_game->assets().getTexture(tex));
@@ -221,7 +221,7 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
 void Scene_Play::spawnObstacle(const Vec2 pos, const Vec2 size, bool movable, const int frame){
     auto entity = m_entities.addEntity("Obstacle", (size_t)9);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Obstacle");
     entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("rock_wall"));
 }
@@ -229,7 +229,7 @@ void Scene_Play::spawnObstacle(const Vec2 pos, const Vec2 size, bool movable, co
 void Scene_Play::spawnCloud(const Vec2 pos, const Vec2 size, bool movable, const int frame){
     auto entity = m_entities.addEntity("Obstacle", (size_t)9);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Obstacle");
     entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("cloud_sheet"));
 }
@@ -237,7 +237,7 @@ void Scene_Play::spawnCloud(const Vec2 pos, const Vec2 size, bool movable, const
 void Scene_Play::spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std::string &ani) {
     auto entity = m_entities.addEntity("Dragon", (size_t)3);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Dragon");
     entity->addComponent<CAnimation> (m_game->assets().getAnimation(ani), true);
 }
@@ -247,7 +247,7 @@ void Scene_Play::spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable)
 {
     auto entity = m_entities.addEntity("Border", (size_t)9);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Border");
 }
 
@@ -255,7 +255,7 @@ void Scene_Play::spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool mov
 {
     auto entity = m_entities.addEntity("Outofbound", (size_t)9);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->addComponent<CShape>(pos, size, 100, 100, 0, 255);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Outofbound");
     entity->addComponent<CTexture>(Vec2 {0, 0}, Vec2 {200,64}, m_game->assets().getTexture("m_texture_outofbound"));
 }
@@ -264,7 +264,7 @@ void Scene_Play::spawnBackground(const Vec2 pos, const Vec2 size, bool movable, 
 {
     auto entity = m_entities.addEntity("Background", (size_t)10);
     entity->addComponent<CTransform>(pos, Vec2 {0, 0}, movable);
-    entity->addComponent<CShape>(pos, size, 255, 255, 255, 255);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Background ");
 
     if (pos.y >= 1080/2){
@@ -285,7 +285,7 @@ void Scene_Play::spawnGoal(const Vec2 pos, const Vec2 size, bool movable)
 {
     auto entity = m_entities.addEntity("Goal", (size_t)4);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->addComponent<CShape>(pos, size, 20, 200, 20, 10);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Goal");
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64,64}, m_game->assets().getTexture("m_texture_goal"));
 }
@@ -294,7 +294,7 @@ void Scene_Play::spawnKey(const Vec2 pos, const Vec2 size, const std::string pla
 {
     auto entity = m_entities.addEntity("Key", (size_t)4);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, movable);
-    entity->addComponent<CShape>(pos, size, 120, 120, 20, 200);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Key");
     // entity->cKey = std::make_shared<CKey>(playerToUnlock);
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {225, 225}, m_game->assets().getTexture("m_texture_key"));
@@ -304,7 +304,7 @@ void Scene_Play::spawnLava(const Vec2 pos, const Vec2 size)
 {
     auto entity = m_entities.addEntity("Lava", (size_t)8);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    entity->addComponent<CShape>(pos, size, 255, 255, 255, 255);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Lava");
     const std::string & ani = "lava_ani";
     entity->addComponent<CAnimation> (m_game->assets().getAnimation(ani), true);
@@ -315,7 +315,7 @@ void Scene_Play::spawnWater(const Vec2 pos, const Vec2 size, const int frame)
 {
     auto entity = m_entities.addEntity("Water", (size_t)8);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    entity->addComponent<CShape>(pos, size, 255, 255, 255, 255);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Water");
     entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("water"));
     const std::string & ani = "water_ani";
@@ -327,12 +327,11 @@ void Scene_Play::spawnBridge(const Vec2 pos, const Vec2 size, const int frame)
 {
     auto entity = m_entities.addEntity("Bridge", (size_t)8);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    entity->addComponent<CShape>(pos, size, 255, 255, 255, 255);
+    entity->addComponent<CShape>(pos, size);
     entity->addComponent<CName>("Bridge");
     entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("bridge"));
     // entity->cTexture->texture = m_game->assets().getTexture("bridge");
 }
-
 
 void Scene_Play::update() {
     m_entities.update();
@@ -427,7 +426,7 @@ void Scene_Play::sCollision() {
             {
                 p->movePosition(m_physics.Overlap(p,d));
                 d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
-                d->getComponent<CTransform>().vel = Vec2{ -64*4, 0 };
+                // d->getComponent<CTransform>().vel = Vec2{ -64*4, 0 };
                 // d->cShape->setSize(Vec2(384, 192));
             }
         }
