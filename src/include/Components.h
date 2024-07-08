@@ -1,5 +1,6 @@
 #pragma once
 
+// #include "Sprite.h"
 #include "Animation.h"
 #include <memory>
 
@@ -41,20 +42,15 @@ public:
     Vec2 pos;    
     Vec2 prevPos;
     Vec2 vel;    
+    Vec2 scale = {0.5, 0.5};    
+    float angle = 0;
     bool isMovable = true;
     int speed = 400;
     CTransform() {}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
         : pos(p), prevPos(p), vel(v), isMovable(mvbl){}
-};
-
-class CSize : public Component
-{
-public:
-    Vec2 size = {64,64};
-    CSize() {}
-    CSize(const Vec2 & sz)
-        : size(sz) {}
+    CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, bool mvbl) 
+    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), isMovable(mvbl){}
 };
 
 class CBoundingBox : public Component
@@ -72,12 +68,6 @@ class CShape : public Component
 public:
     Vec2 pos;
     Vec2 size;
-    int r_val;
-    int g_val;
-    int b_val;
-    int a_val;
-    std::string color;
-    // SDL_Rect *rect;
     CShape() {}
     CShape(const Vec2 p, const Vec2 sz) 
         : pos(p), size(sz)
@@ -128,9 +118,10 @@ public:
 class CAnimation: public Component
 {
 public:
+    // SDL_Sprite sprite;
     Animation animation;
     bool repeat = false;
     CAnimation() {}
     CAnimation(const Animation& animation, bool r)
-    : animation(animation), repeat(r) {}
-};
+                : animation(animation), repeat(r){}
+};  

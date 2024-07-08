@@ -61,11 +61,7 @@ void Assets::loadFromFile(const std::string & path, SDL_Renderer * ren) {
             int frames, speed;
             file >> aniName >> texName >> frames >> speed;
             SDL_Texture* tex = getTexture(texName);
-            addAnimation(
-                aniName, 
-                Animation(aniName, tex, frames, speed)
-            );
-            
+            addAnimation( aniName, Animation( aniName, tex, frames, speed ) );            
         }
         else {
             std::cerr << "head to " << head << "\n";

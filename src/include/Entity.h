@@ -6,14 +6,13 @@
 #include <string>
 
 typedef std::tuple<
-    CInputs,
     CTransform,
-    CSize,
-    CShape,
+    CInputs,
+    CBoundingBox,
+    CAnimation,
     CTexture,
-    CName,
-    CKey,
-    CAnimation
+    CShape,
+    CKey
 > ComponentTuple;
 class Entity
 {

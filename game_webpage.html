@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>theabbecool - Personal Website</title>
+    <style>
+        /* Global styles for the entire page */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        /* Container to center content and set max width */
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 1fr 1fr; /* Two-column layout */
+        }
+        /* Styling for the main headings */
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        /* Styling for paragraphs */
+        p {
+            line-height: 1.6;
+        }
+        /* Styling for each section */
+        .section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        /* Removing bottom margin for last paragraph in each section */
+        .section p:last-child {
+            margin-bottom: 0;
+        }
+        /* Styling for unordered lists */
+        ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+        /* Styling for footer section */
+        footer {
+            grid-column: span 2; /* Full-width footer across both columns */
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #ddd; /* Top border */
+            margin-top: 40px;
+        }
+        /* Styling for links in footer */
+        footer a {
+            color: #888;
+            text-decoration: none;
+        }
+        /* Hover effect for links */
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header section with main title -->
+        <header>
+            <h1>theabbecool</h1>
+        </header>
+        
+        <!-- About Me section -->
+        <section id="about" class="section">
+            <h2>About Me</h2>
+            <p>Hello there! I'm theabbecool, a self-taught game developer passionate about creating interactive experiences. Currently, I'm working on a C++ game project called "Heaven & Hell," where players control both an angel and a devil simultaneously to navigate challenges and reach their goals.</p>
+            <p>My journey involves exploring new technologies and turning creative ideas into functional projects. I'm excited to share my progress and learn from the game development community.</p>
+        </section>
+
+        <!-- Project: Heaven & Hell section -->
+        <section id="project" class="section">
+            <h2>Project: Heaven & Hell</h2>
+            <p>"Heaven & Hell" challenges players with dual character control mechanics, offering unique gameplay dynamics and engaging puzzles. Stay tuned as I continue to develop this project and bring new features to life!</p>
+            <!-- Upcoming Features list -->
+            <h3>Upcoming Features</h3>
+            <ul>
+                <li>Enhanced character customization options.</li>
+                <li>New levels with diverse environments and challenges.</li>
+                <li>Multiplayer mode for cooperative gameplay.</li>
+                <li>Leaderboard system to track player achievements.</li>
+                <li>Rich storyline with branching narratives.</li>
+            </ul>
+        </section>
+
+        <!-- Future Project: Top-Down 2D RPG section -->
+        <section id="future-project" class="section">
+            <h2>Future Project: Top-Down 2D RPG</h2>
+            <p>Exciting things are on the horizon! I'm planning a top-down 2D RPG that will feature:</p>
+            <!-- Features of the future project -->
+            <ul>
+                <li>Multiple diverse NPCs with unique personalities and quests.</li>
+                <li>A wide array of weapons, each with its own upgrade paths and abilities.</li>
+                <li>Diverse enemies with varying behaviors and challenges.</li>
+                <li>A leveling system that allows players to develop their character's skills and abilities.</li>
+                <li>Interactive environments with puzzles and secrets to discover.</li>
+                <li>Engaging storyline with branching paths and impactful player choices.</li>
+            </ul>
+            <p>Stay tuned as I work towards bringing this ambitious RPG project to life!</p>
+        </section>
+
+        <!-- Footer section with contact information and credits -->
+        <footer>
+            <p>Contact me at: [Your contact information]</p>
+            <p>Designed with ♥ by <a href="https://www.youtube.com/" target="_blank">theabbecool</a></p>
+        </footer>
+    </div>
+</body>
+
+</html>

@@ -1,5 +1,3 @@
-// #pragma once
-
 #include "Animation.h"
 #include <cmath>
 #include <iostream>
@@ -9,34 +7,28 @@ Animation::Animation() {};
 Animation::Animation(const std::string& name, SDL_Texture* t) 
 : Animation(name, t, 1, 0) {}
 
-
 Animation::Animation(
         const std::string& name,
         SDL_Texture* t,
         size_t frameCount,
         size_t speed
-) : m_texture(t),
+) : 
+    m_texture(t),
     m_frameCount(frameCount),
     m_currentFrame(0),
     m_speed(speed),
-    m_name(name) 
+    m_name(name)
 {
     m_size = Vec2((float)getTextureSize(t).x / frameCount, (float)getTextureSize(t).y);
-    // m_sprite.setOrigin(m_size.x / 2.0f, m_size.y / 2.0f);
-    setTextureRect( std::floor(m_currentFrame) * m_size.x, 0,  m_size.x, m_size.y );
+    setSrcRect( std::floor(m_currentFrame) * m_size.x, 0,  m_size.x, m_size.y );
 }
 
 // update the animation to show the next frame, depending on its speed
 // animation loops when it reaches the end
 void Animation::update() {
-    // add the speed variable to the current frame
     m_currentFrame++;
-    // if (m_name == "Run") std::cout << "current frame=" << m_currentFrame << std::endl;
-    // todo: 1) calculate the correct frame of animation to play based on 
-    //          current frame and speed
-    //       2) set the texture rectangle properly (see constructor for sample)
     size_t animFrame = (m_currentFrame / m_speed) % m_frameCount;
-    setTextureRect( animFrame * m_size.x, 0, m_size.x, m_size.y );
+    setSrcRect( animFrame * m_size.x, 0, m_size.x, m_size.y );
 }
 
 const Vec2& Animation::getSize() const {
@@ -50,12 +42,15 @@ const std::string& Animation::getName() const {
 SDL_Texture* Animation::getTexture() {
     return m_texture;
 }
-SDL_Rect Animation::getRect() {
-    return m_rect;
-}
-SDL_Rect* Animation::getPtrRect()
+
+SDL_Rect* Animation::getSrcRect()
 {
-    return &m_rect;
+    return &m_srcRect;
+}
+
+SDL_Rect* Animation::getDestRect()
+{
+    return &m_destRect;
 }
 
 bool Animation::hasEnded() const {
@@ -63,13 +58,26 @@ bool Animation::hasEnded() const {
     // and return true
     return (m_currentFrame / m_speed) % m_frameCount == m_frameCount - 1;
 }
-
-void Animation::setTextureRect(const int x, const int y, const int w, const int h)   
+void Animation::setSrcRect(const int x, const int y, const int w, const int h)   
 {
-    m_rect.x = x;
-    m_rect.y = y;
-    m_rect.w = w;
-    m_rect.h = h;
+    m_srcRect.x = x;
+    m_srcRect.y = y;
+    m_srcRect.w = w;
+    m_srcRect.h = h;
+}
+
+void Animation::setDestRect(Vec2 pos)   
+{
+    m_destRect.x = pos.x;
+    m_destRect.y = pos.y;
+}
+
+void Animation::setDestRect(const int x, const int y, const int w, const int h)   
+{
+    m_destRect.x = x;
+    m_destRect.y = y;
+    m_destRect.w = w;
+    m_destRect.h = h;
 }
 
 void Animation::setTexture(SDL_Texture *tex) {
@@ -83,6 +91,25 @@ SDL_Point Animation::getTextureSize(SDL_Texture *texture)
     return size;
 }
 
+void Animation::setAngle(double angle) {
+    m_angle = angle;
+}
+
+void Animation::setScale(Vec2 scale) {
+    m_scale = scale;
+    m_destRect.w = m_srcRect.w * scale.x;
+    m_destRect.h = m_srcRect.h * scale.y;
+    // center = {destRect.w / 2.0f, destRect.h / 2.0f};
+}
+
+// SDL_Sprite& Animation::getSprite() {
+//     return m_sprite;
+// }
+
 void Animation::setCurrentFrame(size_t frame){
     m_currentFrame = frame;
+}
+
+size_t Animation::frames(){
+    return m_frameCount;
 }
