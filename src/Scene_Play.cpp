@@ -150,7 +150,7 @@ void Scene_Play::loadLevel(std::string levelPath){
                 } else if (pixel == "goal") {
                     spawnGoal(Vec2 {64*(float)x,64*(float)y}, Vec2 {64,64}, false);
                 } else if (pixel == "dragon") {
-                    spawnDragon(Vec2 {64*(float)x,64*(float)y}, Vec2{128,128}, true, "snoring_dragon");
+                    spawnDragon(Vec2 {64*(float)x,64*(float)y}, Vec2{192,192}, true, "snoring_dragon");
                 } else if (pixel == "lava") {
                     spawnLava(Vec2 {64*(float)x,64*(float)y}, Vec2{64,64});
                 } else if (pixel == "water") {
@@ -209,10 +209,10 @@ void Scene_Play::spawnCloud(const Vec2 pos, const Vec2 size, bool movable, const
 }
 
 void Scene_Play::spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std::string &ani) {
-    auto entity = m_entities.addEntity("Dragon", (size_t)3);
+    auto entity = m_entities.addEntity("Dragon", (size_t)1);
     entity->addComponent<CAnimation> (m_game->assets().getAnimation(ani), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0,movable);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {3, 3}, 0,movable);
     entity->addComponent<CBoundingBox>(size);
 }
 

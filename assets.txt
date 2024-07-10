@@ -21,7 +21,7 @@ Texture     wizard                      assets/images/wizard.png
 Texture     chest                       assets/images/chest.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
-Animation   waking_dragon               waking_dragon               7   5
+Animation   waking_dragon               waking_dragon               7   15
 Animation   lava_ani                    lava                        3   50
 Animation   water_ani                   water_old                   3   30
 
@@ -41,6 +41,6 @@ Animation   water                       water                       1   100
 Animation   bridge                      bridge                      1   100
 Animation   rock_wall                   rock_wall                   1   100
 Animation   m_texture_outofbound        m_texture_outofbound        1   100
-Animation   wizard                      wizard        2   5
-Animation   tuva                      gras_tuva        1   100
-Animation   chest                      chest        1   100
+Animation   wizard                      wizard                      2   5
+Animation   tuva                        gras_tuva                   1   100
+Animation   chest                       chest                       1   100
