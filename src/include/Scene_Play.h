@@ -26,8 +26,8 @@ class Scene_Play : public Scene
     int m_speed = 400;
 
     void init(const std::string&);
-    void loadLevel();
-    // Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
+    void loadLevel(std::string path);
+    Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
     void spawnPlayer(const Vec2 pos, const std::string name, bool movable);
     void spawnObstacle(const Vec2 pos, const Vec2 size, bool movable, const int frame );
@@ -56,6 +56,6 @@ class Scene_Play : public Scene
     void setPaused(bool);
 
     public:
-    Scene_Play(Game* game);
+    Scene_Play(Game* game, std::string path);
     void update();
 };

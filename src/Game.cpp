@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+// #include <SDL_ttf.h>
 #include <chrono>
 #include <ctime>
 #include <thread>
@@ -36,7 +37,7 @@ void Game::init(const std::string & path){
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
 
     m_assets.loadFromFile(path, m_renderer);
-    changeScene("PLAY", std::make_shared<Scene_Play>(this));
+    changeScene("PLAY", std::make_shared<Scene_Play>(this, "assets/images/level0.png"));
 }
 
 std::shared_ptr<Scene> Game::currentScene() {

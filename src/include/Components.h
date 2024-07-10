@@ -60,7 +60,7 @@ class CBoundingBox : public Component
         Vec2 halfSize;
         CBoundingBox() {}
         CBoundingBox(const Vec2& s) 
-            : size(s), halfSize(s.x / 2.0, s.y / 2.0) {}
+            : size(s), halfSize(s/2.0) {}
 };
 
 class CShape : public Component

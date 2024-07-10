@@ -19,7 +19,7 @@ Animation::Animation(
     m_speed(speed),
     m_name(name)
 {
-    m_size = Vec2((float)getTextureSize(t).x / frameCount, (float)getTextureSize(t).y);
+    m_size = Vec2((float)getTextureSize().x / frameCount, (float)getTextureSize().y);
     setSrcRect( std::floor(m_currentFrame) * m_size.x, 0,  m_size.x, m_size.y );
 }
 
@@ -33,6 +33,10 @@ void Animation::update() {
 
 const Vec2& Animation::getSize() const {
     return m_size;
+}
+
+const Vec2& Animation::getScale() const {
+    return m_scale;
 }
 
 const std::string& Animation::getName() const {
@@ -54,8 +58,6 @@ SDL_Rect* Animation::getDestRect()
 }
 
 bool Animation::hasEnded() const {
-    // todo: detect when animation has ended (last frame was played)
-    // and return true
     return (m_currentFrame / m_speed) % m_frameCount == m_frameCount - 1;
 }
 void Animation::setSrcRect(const int x, const int y, const int w, const int h)   
@@ -72,6 +74,12 @@ void Animation::setDestRect(Vec2 pos)
     m_destRect.y = pos.y;
 }
 
+void Animation::setDestSize(Vec2 size)   
+{
+    m_destRect.w = size.x;
+    m_destRect.h = size.y;
+}
+
 void Animation::setDestRect(const int x, const int y, const int w, const int h)   
 {
     m_destRect.x = x;
@@ -80,14 +88,19 @@ void Animation::setDestRect(const int x, const int y, const int w, const int h)
     m_destRect.h = h;
 }
 
+Vec2 Animation::getDestSize()   
+{
+    return Vec2 {(float)m_destRect.w , (float)m_destRect.h};
+}
+
 void Animation::setTexture(SDL_Texture *tex) {
     m_texture = tex;
 }
 
-SDL_Point Animation::getTextureSize(SDL_Texture *texture)
+SDL_Point Animation::getTextureSize()
 {
     SDL_Point size;
-    SDL_QueryTexture(texture, NULL, NULL, &size.x, &size.y);
+    SDL_QueryTexture(m_texture, NULL, NULL, &size.x, &size.y);
     return size;
 }
 

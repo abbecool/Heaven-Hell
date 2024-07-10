@@ -1,12 +1,11 @@
-Texture     level1                      assets/images/level1.png
-Texture     level2                      assets/images/level2.png
+Texture     gras_tuva                   assets/images/gras_tuva.png
 Texture     gras_sheet                  assets/images/gras_sheet.png
 Texture     flower_sheet                assets/images/flower_sheet.png
 Texture     dirt_sheet                  assets/images/dirt_sheet.png
 Texture     cloud_sheet                 assets/images/cloud_sheet.png
 Texture     m_texture_background        assets/images/gras_blomma.png
 Texture     m_texture_goal              assets/images/seven_heaven.png
-Texture     m_texture_angel             assets/images/idas_angel_4.png
+Texture     m_texture_angel             assets/images/idas_angel.png
 Texture     m_texture_devil             assets/images/idas_djavul.png
 Texture     m_texture_key               assets/images/idas_nyckel.png
 Texture     m_texture_boulder_small     assets/images/liten_sten.png
@@ -18,6 +17,8 @@ Texture     rock_wall                   assets/images/bergvagg.png
 Texture     m_texture_outofbound        assets/images/moln.png
 Texture     sleeping_dragon             assets/images/sleeping_dragon.png
 Texture     waking_dragon               assets/images/waking_dragon.png
+Texture     wizard                      assets/images/wizard.png
+Texture     chest                       assets/images/chest.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   5
@@ -40,3 +41,6 @@ Animation   water                       water                       1   100
 Animation   bridge                      bridge                      1   100
 Animation   rock_wall                   rock_wall                   1   100
 Animation   m_texture_outofbound        m_texture_outofbound        1   100
+Animation   wizard                      wizard        2   5
+Animation   tuva                      gras_tuva        1   100
+Animation   chest                      chest        1   100
