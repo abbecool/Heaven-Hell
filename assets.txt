@@ -19,6 +19,11 @@ Texture     sleeping_dragon             assets/images/sleeping_dragon.png
 Texture     waking_dragon               assets/images/waking_dragon.png
 Texture     wizard                      assets/images/wizard.png
 Texture     chest                       assets/images/chest.png
+Texture     left                        assets/images/left.png
+Texture     up                          assets/images/up.png
+Texture     right                       assets/images/right.png
+Texture     down                        assets/images/down.png
+Texture     Archer_idle                 assets/images/Archer1.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   15
@@ -44,3 +49,8 @@ Animation   m_texture_outofbound        m_texture_outofbound        1   100
 Animation   wizard                      wizard                      2   5
 Animation   tuva                        gras_tuva                   1   100
 Animation   chest                       chest                       1   100
+Animation   left                        left                        1   100    
+Animation   up                          up                          1   100      
+Animation   right                       right                       1   100   
+Animation   down                        down                        1   100    
+Animation   Archer_idle                 Archer_idle                 8   20   

@@ -11,11 +11,14 @@
 // checking multiple flags set: return (flag &(int)PlayerState) != 0
 enum struct PlayerState {
     STAND = 1 << 0,
-    STANDSHOOT = 1 << 1,
-    AIR = 1 << 2,
-    AIRSHOOT = 1 << 3,
-    RUN = 1 << 4,
-    RUNSHOOT = 1 << 5
+    RUN_RIGHT = 1 << 1,
+    RUN_RIGHT_DOWN = 1 << 2,
+    RUN_DOWN = 1 << 3,
+    RUN_LEFT_DOWN = 1 << 4,
+    RUN_LEFT = 1 << 5,
+    RUN_LEFT_UP = 1 << 6,
+    RUN_UP = 1 << 7,
+    RUN_RIGHT_UP = 1 << 8
 };
 
 class Component
@@ -61,22 +64,6 @@ class CBoundingBox : public Component
         CBoundingBox() {}
         CBoundingBox(const Vec2& s) 
             : size(s), halfSize(s/2.0) {}
-};
-
-class CShape : public Component
-{
-public:
-    Vec2 pos;
-    Vec2 size;
-    CShape() {}
-    CShape(const Vec2 p, const Vec2 sz) 
-        : pos(p), size(sz)
-        {
-            // rect->x = pos.x;
-            // rect->y = pos.y;
-            // rect->w = size.x;
-            // rect->h = size.y;
-        }
 };
 
 class CTexture : public Component
@@ -125,3 +112,12 @@ public:
     CAnimation(const Animation& animation, bool r)
                 : animation(animation), repeat(r){}
 };  
+class CState : public Component
+{
+    public:
+    PlayerState state;
+    PlayerState preState; 
+    bool changeAnimate = false;
+    CState() {}
+    CState(const PlayerState s) : state(s), preState(s) {}
+}; 

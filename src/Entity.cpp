@@ -10,8 +10,8 @@ Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
                     CBoundingBox(),
                     CAnimation(),
                     CTexture(),
-                    CShape(),
-                    CKey()
+                    CKey(),
+                    CState()
                 );
         }
 
