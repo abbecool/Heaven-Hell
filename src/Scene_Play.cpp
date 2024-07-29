@@ -25,6 +25,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_s, "DOWN");
     registerAction(SDLK_a, "LEFT");
     registerAction(SDLK_d, "RIGHT");
+    registerAction(SDLK_x, "SHOOT");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
@@ -187,10 +188,10 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture(tex));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), false);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{2, 2}, 0, movable);
-    entity->addComponent<CBoundingBox>(Vec2 {60, 60});
+    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{1, 1}, 0, movable);
+    entity->addComponent<CBoundingBox>(Vec2 {32, 48});
     entity->addComponent<CInputs>();
-    entity->addComponent<CState>(PlayerState::RUN_RIGHT);
+    entity->addComponent<CState>(PlayerState::RUN_DOWN);
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -324,7 +325,7 @@ void Scene_Play::sDoAction(const Action& action) {
                     p->getComponent<CInputs>().up = true;
                 }
                 else if (action.name() == "DOWN") {
-                    p->getComponent<CInputs>().down = true;
+                    p->getComponent<CInputs>().down = true; 
                 }
                 else if (action.name() == "LEFT") {
                     p->getComponent<CInputs>().left = true;
@@ -338,11 +339,11 @@ void Scene_Play::sDoAction(const Action& action) {
                 else if (action.name() == "CTRL") {
                     p->getComponent<CInputs>().ctrl = true;
                 }
-                // else if (action.name() == "SHOOT") {
-                //     if (p->getComponent<CInputs>().canShoot) {
-                //         p->getComponent<CInputs>().shoot = true;
-                //     }
-                // }
+                else if (action.name() == "SHOOT") {
+                    if (p->getComponent<CInputs>().canShoot) {
+                        p->getComponent<CInputs>().shoot = true;
+                    }
+                }
         }
     }
     else if (action.type() == "END") {
@@ -365,9 +366,9 @@ void Scene_Play::sDoAction(const Action& action) {
             else if (action.name() == "CTRL") {
                 p->getComponent<CInputs>().ctrl = false;
             }
-            // else if (action.name() == "SHOOT") {
-            //     p->getComponent<CInputs>().shoot = false;
-            // }
+            else if (action.name() == "SHOOT") {
+                p->getComponent<CInputs>().shoot = false;
+            }
         }
     }
 }
@@ -507,6 +508,67 @@ void Scene_Play::sCollision() {
 
 void Scene_Play::sAnimation() {
     for ( auto e : m_entities.getEntities() ){
+        if (e->tag() == "Player"){
+            if (e->getComponent<CTransform>().vel == Vec2 {0,0}){
+                changePlayerStateTo(PlayerState::STAND);
+            }
+            else if(e->getComponent<CTransform>().vel.y < 0) {
+                changePlayerStateTo(PlayerState::RUN_UP);
+            }
+            else if(e->getComponent<CTransform>().vel.y > 0) {
+                changePlayerStateTo(PlayerState::RUN_DOWN);
+            }
+            else if(e->getComponent<CTransform>().vel.x < 0) {
+                changePlayerStateTo(PlayerState::RUN_LEFT);
+            }
+            else if(e->getComponent<CTransform>().vel.x > 0) {
+                changePlayerStateTo(PlayerState::RUN_RIGHT);
+            }
+            else if(e->getComponent<CTransform>().vel.x > 0) {
+                changePlayerStateTo(PlayerState::RUN_RIGHT);
+            }
+            if(e->getComponent<CInputs>().shoot) {
+                changePlayerStateTo(PlayerState::RIGHT_SHOOT);
+            }
+        }
+        
+        // // change player animation
+        if (e->getComponent<CState>().changeAnimate) {
+            std::string aniName;
+            switch (e->getComponent<CState>().state) {
+                case PlayerState::STAND:
+                    aniName = "idas_angel_down";
+                    break;
+                case PlayerState::RUN_RIGHT:
+                    aniName = "idas_angel_right";
+                    break;
+                case PlayerState::RUN_DOWN:
+                    aniName = "idas_angel_down";
+                    break;
+                case PlayerState::RUN_LEFT:
+                    aniName = "idas_angel_left";
+                    break;
+                case PlayerState::RUN_UP:
+                    aniName = "idas_angel_up";
+                    break;
+                case PlayerState::RUN_RIGHT_DOWN:
+                    aniName = "right_down";
+                    break;
+                case PlayerState::RUN_LEFT_DOWN:
+                    aniName = "left_down";
+                    break;
+                case PlayerState::RUN_LEFT_UP:
+                    aniName = "left_up";
+                    break;
+                case PlayerState::RUN_RIGHT_UP:
+                    aniName = "right_up";
+                    break;
+                case PlayerState::RIGHT_SHOOT:
+                    aniName = "idas_angel_right_shoot";
+                    break;
+            }
+            e->addComponent<CAnimation>(m_game->assets().getAnimation(aniName), false);
+        }
         if (e->hasComponent<CAnimation>())
         {
             e->getComponent<CAnimation>().animation.update();
@@ -514,64 +576,6 @@ void Scene_Play::sAnimation() {
         
     }
 
-    if (m_player->tag() == "Player"){
-        if (m_player->getComponent<CTransform>().vel == Vec2 {0,0}){
-            changePlayerStateTo(PlayerState::STAND);
-        }
-        else if(m_player->getComponent<CTransform>().vel.y < 0) {
-            changePlayerStateTo(PlayerState::RUN_UP);
-        }
-        else if(m_player->getComponent<CTransform>().vel.y > 0) {
-            changePlayerStateTo(PlayerState::RUN_DOWN);
-        }
-        else if(m_player->getComponent<CTransform>().vel.x < 0) {
-            changePlayerStateTo(PlayerState::RUN_LEFT);
-        }
-        else if(m_player->getComponent<CTransform>().vel.x > 0) {
-            changePlayerStateTo(PlayerState::RUN_RIGHT);
-        }
-        else if(m_player->getComponent<CTransform>().vel.x > 0) {
-            changePlayerStateTo(PlayerState::RUN_RIGHT);
-        }
-    }
-    
-    
-    // // change player animation
-    if (m_player->getComponent<CState>().changeAnimate) {
-        std::string aniName;
-        switch (m_player->getComponent<CState>().state) {
-            case PlayerState::STAND:
-                aniName = "m_texture_angel";
-                break;
-            case PlayerState::RUN_RIGHT:
-                aniName = "right";
-                break;
-            case PlayerState::RUN_DOWN:
-                aniName = "down";
-                break;
-            case PlayerState::RUN_LEFT:
-                aniName = "left";
-                break;
-            case PlayerState::RUN_UP:
-                aniName = "up";
-                break;
-            case PlayerState::RUN_RIGHT_DOWN:
-                aniName = "right_down";
-                break;
-            case PlayerState::RUN_LEFT_DOWN:
-                aniName = "left_down";
-                break;
-            case PlayerState::RUN_LEFT_UP:
-                aniName = "left_up";
-                break;
-            case PlayerState::RUN_RIGHT_UP:
-                aniName = "right_up";
-                break;
-        }
-        m_player->addComponent<CAnimation>(
-                m_game->assets().getAnimation(aniName), true
-                );
-    }
 
     // for (auto e : m_entityManager.getEntities()) {
     //     if (e->getComponent<CAnimation>().animation.hasEnded() &&
@@ -600,18 +604,10 @@ void Scene_Play::sRender() {
                 texRect.w = e->getComponent<CTexture>().size.x;
                 texRect.h = e->getComponent<CTexture>().size.y;
 
-                // animation.setDestRect(transform.pos);
                 animation.setDestRect(transform.pos - animation.getDestSize()/2);
                 animation.setScale(transform.scale);
                 animation.setAngle(transform.angle);
-                // animation.setSrcRect();
 
-                if (e->tag() == "Dragon"){
-                // if (animation.getDestSize().x == 128.0f){
-                    // animation.setDestSize(Vec2{32, 32});
-                    // animation.setScale(Vec2{0.5,0.5});
-                    // std::cout << transform.scale.x << std::endl;
-                }      
                 if (animation.frames() == 1){
                     SDL_RenderCopyEx(
                         m_game->renderer(), 
@@ -649,9 +645,6 @@ void Scene_Play::sRender() {
                 collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y);
                 collisionRect.w = static_cast<int>(box.size.x);
                 collisionRect.h = static_cast<int>(box.size.y);
-
-                // if (e->tag() == "Key" || e->tag() == "Player"){
-                // }
 
                 SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
                 SDL_RenderDrawRect(m_game->renderer(), &collisionRect);

@@ -18,7 +18,8 @@ enum struct PlayerState {
     RUN_LEFT = 1 << 5,
     RUN_LEFT_UP = 1 << 6,
     RUN_UP = 1 << 7,
-    RUN_RIGHT_UP = 1 << 8
+    RUN_RIGHT_UP = 1 << 8,
+    RIGHT_SHOOT = 1 << 9
 };
 
 class Component
@@ -30,12 +31,14 @@ class Component
 class CInputs : public Component
 {
 public:
-    bool up = false;
-    bool down = false;
-    bool left = false;
-    bool right = false;
-    bool shift = false;
-    bool ctrl = false;
+    bool up         = false;
+    bool down       = false;
+    bool left       = false;
+    bool right      = false;
+    bool shift      = false;
+    bool ctrl       = false;
+    bool shoot      = false;
+    bool canShoot   = true;
     CInputs() {};
 };
 
