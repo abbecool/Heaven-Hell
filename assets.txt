@@ -54,5 +54,5 @@ Animation   idas_angel_left             idas_angel_left             1   100
 Animation   idas_angel_up               idas_angel_up               1   100      
 Animation   idas_angel_right            idas_angel_right            1   100   
 Animation   idas_angel_down             idas_angel_down             1   100    
-Animation   idas_angel_right_shoot      idas_angel_right_shoot      4   10    
+Animation   idas_angel_right_shoot      idas_angel_right_shoot      4   5    
 Animation   Archer_idle                 Archer_idle                 8   20   

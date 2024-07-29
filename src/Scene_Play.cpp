@@ -25,7 +25,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_s, "DOWN");
     registerAction(SDLK_a, "LEFT");
     registerAction(SDLK_d, "RIGHT");
-    registerAction(SDLK_x, "SHOOT");
+    registerAction(SDLK_SPACE, "SHOOT");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
@@ -181,7 +181,7 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     // std::string tex = "m_texture_devil";
     std::string tex = "Archer_idle";
     if (name == "God"){
-        tex = "m_texture_angel";
+        tex = "idas_angel_down";
         m_player = entity;
     }
 
@@ -509,10 +509,7 @@ void Scene_Play::sCollision() {
 void Scene_Play::sAnimation() {
     for ( auto e : m_entities.getEntities() ){
         if (e->tag() == "Player"){
-            if (e->getComponent<CTransform>().vel == Vec2 {0,0}){
-                changePlayerStateTo(PlayerState::STAND);
-            }
-            else if(e->getComponent<CTransform>().vel.y < 0) {
+            if(e->getComponent<CTransform>().vel.y < 0) {
                 changePlayerStateTo(PlayerState::RUN_UP);
             }
             else if(e->getComponent<CTransform>().vel.y > 0) {
@@ -527,8 +524,11 @@ void Scene_Play::sAnimation() {
             else if(e->getComponent<CTransform>().vel.x > 0) {
                 changePlayerStateTo(PlayerState::RUN_RIGHT);
             }
-            if(e->getComponent<CInputs>().shoot) {
+            else if(e->getComponent<CInputs>().shoot) {
                 changePlayerStateTo(PlayerState::RIGHT_SHOOT);
+            }
+            else {
+                changePlayerStateTo(PlayerState::STAND);
             }
         }
         
@@ -604,8 +604,8 @@ void Scene_Play::sRender() {
                 texRect.w = e->getComponent<CTexture>().size.x;
                 texRect.h = e->getComponent<CTexture>().size.y;
 
-                animation.setDestRect(transform.pos - animation.getDestSize()/2);
                 animation.setScale(transform.scale);
+                animation.setDestRect(transform.pos - animation.getDestSize()/2);
                 animation.setAngle(transform.angle);
 
                 if (animation.frames() == 1){
