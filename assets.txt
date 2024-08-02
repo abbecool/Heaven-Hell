@@ -25,6 +25,7 @@ Texture     idas_angel_right            assets/images/idas_angel_right.png
 Texture     idas_angel_down             assets/images/idas_angel_down.png
 Texture     idas_angel_right_shoot      assets/images/idas_angel_shoot.png
 Texture     Archer_idle                 assets/images/Archer1.png
+Texture     angleS                      assets/images/angleS.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   15
@@ -54,5 +55,6 @@ Animation   idas_angel_left             idas_angel_left             1   100
 Animation   idas_angel_up               idas_angel_up               1   100      
 Animation   idas_angel_right            idas_angel_right            1   100   
 Animation   idas_angel_down             idas_angel_down             1   100    
-Animation   idas_angel_right_shoot      idas_angel_right_shoot      4   5    
+Animation   idas_angel_right_shoot      idas_angel_right_shoot      1   100    
 Animation   Archer_idle                 Archer_idle                 8   20   
+Animation   angleS                      angleS                      4   15   

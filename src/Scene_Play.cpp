@@ -543,7 +543,7 @@ void Scene_Play::sAnimation() {
                     aniName = "idas_angel_right";
                     break;
                 case PlayerState::RUN_DOWN:
-                    aniName = "idas_angel_down";
+                    aniName = "angleS";
                     break;
                 case PlayerState::RUN_LEFT:
                     aniName = "idas_angel_left";
