@@ -178,8 +178,8 @@ void Scene_Play::loadLevel(std::string levelPath){
 void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movable){
 
     auto entity = m_entities.addEntity("Player", (size_t)2);
-    // std::string tex = "m_texture_devil";
-    std::string tex = "Archer_idle";
+    std::string tex = "m_texture_devil";
+    // std::string tex = "Archer_idle";
     if (name == "God"){
         tex = "idas_angel_down";
         m_player = entity;
@@ -192,6 +192,7 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     entity->addComponent<CBoundingBox>(Vec2 {32, 48});
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
+    entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -378,6 +379,7 @@ void Scene_Play::update() {
     if (!m_pause) {
         sMovement();
         sCollision();
+        sStatus();
         m_currentFrame++;
     }
     sAnimation();
@@ -457,18 +459,12 @@ void Scene_Play::sCollision() {
         {   
             if (m_physics.isCollided(p,d))
             {
-                p->movePosition(m_physics.Overlap(p,d));
+                p->movePosition(m_physics.Overlap(p,d)*15);
+                p->getComponent<CHealth>().HP--;
                 d->getComponent<CAnimation>().animation = m_game->assets().getAnimation("waking_dragon");
 
             }
         }
-        // for ( auto b : m_entities.getEntities("Border") )
-        // {   
-        //     if (m_physics.isCollided(p,b))
-        //     {
-        //         p->movePosition(m_physics.Overlap(p,b));
-        //     }
-        // }
         for ( auto k : m_entities.getEntities("Key") )
         {
             if (m_physics.isCollided(p,k))
@@ -482,6 +478,7 @@ void Scene_Play::sCollision() {
             if (m_physics.isStandingIn(p,w))
             {
                 p->getComponent<CTransform>().isMovable = false;
+                p->getComponent<CHealth>().HP = 0;
             }
         }
         for ( auto l : m_entities.getEntities("Lava") )
@@ -489,6 +486,7 @@ void Scene_Play::sCollision() {
             if (m_physics.isStandingIn(p,l))
             {
                 p->getComponent<CTransform>().isMovable = false;
+                p->getComponent<CHealth>().HP = 0;
             }
         }
     }
@@ -503,6 +501,12 @@ void Scene_Play::sCollision() {
         {
             m_entities.getEntities("Player")[1]->getComponent<CTransform>().isMovable = false;
         }
+    }
+}
+
+void Scene_Play::sStatus() {
+    if ( m_player->getComponent<CHealth>().HP <= 0 ){
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level3.png"));
     }
 }
 
@@ -543,7 +547,7 @@ void Scene_Play::sAnimation() {
                     aniName = "idas_angel_right";
                     break;
                 case PlayerState::RUN_DOWN:
-                    aniName = "angleS";
+                    aniName = "idas_angel_down";
                     break;
                 case PlayerState::RUN_LEFT:
                     aniName = "idas_angel_left";
@@ -607,7 +611,7 @@ void Scene_Play::sRender() {
                 animation.setScale(transform.scale);
                 animation.setDestRect(transform.pos - animation.getDestSize()/2);
                 animation.setAngle(transform.angle);
-
+                
                 if (animation.frames() == 1){
                     SDL_RenderCopyEx(
                         m_game->renderer(), 
@@ -650,6 +654,37 @@ void Scene_Play::sRender() {
                 SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
             }
         }
+    }
+    if (m_player->hasComponent<CHealth>()){
+        auto& animation_full = m_player->getComponent<CHealth>().animation_full;
+        auto& animation_half = m_player->getComponent<CHealth>().animation_half;
+        auto& animation_empty = m_player->getComponent<CHealth>().animation_empty;
+        Animation animation;
+        auto hearts = float(m_player->getComponent<CHealth>().HP)/2;
+
+        for (int i = 1; i <= m_player->getComponent<CHealth>().HP_max/2; i++)
+        {   
+            if ( hearts >= i ){
+                animation = animation_full;
+            } else if ( i-hearts == 0.5f ){
+                animation = animation_half;
+            } else{
+                animation = animation_empty;
+            }
+
+            animation.setScale(Vec2 {1,1});
+            animation.setDestRect(Vec2{16+(i-1)*animation.getSize().x,16});
+            SDL_RenderCopyEx(
+                m_game->renderer(), 
+                animation.getTexture(), 
+                nullptr, 
+                animation.getDestRect(),
+                0,
+                NULL,
+                SDL_FLIP_NONE
+            );
+        }
+
     }
 }
 

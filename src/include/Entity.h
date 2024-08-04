@@ -12,7 +12,8 @@ typedef std::tuple<
     CAnimation,
     CTexture,
     CKey,
-    CState    
+    CState,
+    CHealth    
 > ComponentTuple;
 class Entity
 {

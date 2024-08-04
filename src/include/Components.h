@@ -88,13 +88,21 @@ public:
         }
 };
 
-class CName: public Component
+class CHealth: public Component
 {
 public:
-    std::string name;
-    CName() {}
-    CName(const std::string & nm)
-        : name(nm) {}
+    // bool hasLifeSpan;
+    // size_t lifeSpan;
+    int HP;
+    int HP_max;
+    Animation animation_full;
+    Animation animation_half;
+    Animation animation_empty;
+    CHealth() {}
+    // CHealth(size_t lfSpn)
+    //     : lifeSpan(lfSpn), hasLifeSpan(true) {}
+    CHealth(int hp, int hp_max, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
+        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty) {}
 };
 class CKey: public Component
 {

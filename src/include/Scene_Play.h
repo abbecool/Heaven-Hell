@@ -44,6 +44,7 @@ class Scene_Play : public Scene
 
     void sMovement();
     void sCollision();
+    void sStatus();
     void sAnimation();
     void sRender();
     

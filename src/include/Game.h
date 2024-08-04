@@ -33,7 +33,6 @@ protected:
     void init(const std::string & config);
     void update();
     void setPaused(bool paused);
-    std::shared_ptr<Scene> currentScene();
 
     void sUserInput();
     // void sAnimation();
@@ -53,6 +52,7 @@ public:
         const std::string& sceneName,
         std::shared_ptr<Scene> scene,
         bool endCurrentScene=false);
+    std::shared_ptr<Scene> currentScene();
     void quit();
     void run();
     bool isRunning();
