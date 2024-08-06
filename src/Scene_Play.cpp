@@ -214,7 +214,7 @@ void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
 }
 
 void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
-    auto entity = m_entities.addEntity("Dragon", (size_t)1);
+    auto entity = m_entities.addEntity("Dragon", (size_t)3);
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(ani), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
@@ -292,6 +292,18 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
 }
 
+void Scene_Play::spawnProjectile(const Vec2 pos)
+{
+    auto entity = m_entities.addEntity("Projectile", (size_t)3);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("heart_full"), true);
+    // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    // entity->addComponent<CTransform>(pos,Vec2 {10, 0}, 800, true);
+    entity->addComponent<CTransform>(m_player->getComponent<CTransform>().pos,Vec2 {10, 0}, 800, true);
+    entity->addComponent<CBoundingBox>(Vec2{32, 32});
+    // std::cout << "projectile" << std::endl;
+    m_entities.sort();
+}
+
 void Scene_Play::sDoAction(const Action& action) {
     if (action.type() == "START") {
         if (action.name() == "TOGGLE_TEXTURE") {
@@ -343,6 +355,8 @@ void Scene_Play::sDoAction(const Action& action) {
                 else if (action.name() == "SHOOT") {
                     if (p->getComponent<CInputs>().canShoot) {
                         p->getComponent<CInputs>().shoot = true;
+                        spawnProjectile(Vec2{0,0});
+                        // spawnProjectile(p->getComponent<CTransform>().pos);
                     }
                 }
         }
@@ -387,61 +401,57 @@ void Scene_Play::update() {
 }
 
 void Scene_Play::sMovement() {
-    for (auto p : m_entities.getEntities("Player"))
-    {    
-        p->getComponent<CTransform>().vel = { 0,0 };
+    for (auto e : m_entities.getEntities()){    
+        if ( e->tag() == "Player" ){
+            e->getComponent<CTransform>().vel = { 0,0 };
 
-        if (p->getComponent<CInputs>().up)
-        {
-            p->getComponent<CTransform>().vel.y = -1;
-        }
-        if (p->getComponent<CInputs>().down)
-        {
-            p->getComponent<CTransform>().vel.y = 1;
-        }
-        if (p->getComponent<CInputs>().left)
-        {
-            p->getComponent<CTransform>().vel.x = -1;
-        }
-        if (p->getComponent<CInputs>().right)
-        {
-            p->getComponent<CTransform>().vel.x = 1;
-        }
+            if (e->getComponent<CInputs>().up)
+            {
+                e->getComponent<CTransform>().vel.y = -1;
+            }
+            if (e->getComponent<CInputs>().down)
+            {
+                e->getComponent<CTransform>().vel.y = 1;
+            }
+            if (e->getComponent<CInputs>().left)
+            {
+                e->getComponent<CTransform>().vel.x = -1;
+            }
+            if (e->getComponent<CInputs>().right)
+            {
+                e->getComponent<CTransform>().vel.x = 1;
+            }
 
-        if (p->getComponent<CInputs>().shift)
-        {
-            p->getComponent<CTransform>().speed = 0.5*m_speed;
-        }
-        else if (p->getComponent<CInputs>().ctrl)
-        {
-            p->getComponent<CTransform>().speed = 2*m_speed;
-        }
-        else
-        {
-            p->getComponent<CTransform>().speed = m_speed;
+            if (e->getComponent<CInputs>().shift)
+            {
+                e->getComponent<CTransform>().speed = 0.5*m_speed;
+            }
+            else if (e->getComponent<CInputs>().ctrl)
+            {
+                e->getComponent<CTransform>().speed = 2*m_speed;
+            }
+            else
+            {
+                e->getComponent<CTransform>().speed = m_speed;
+            }
         }
         
-        
-        p->getComponent<CTransform>().prevPos = p->getComponent<CTransform>().pos;
+        if ( e->tag() == "Dragon"){
 
-        if (!(p->getComponent<CTransform>().vel.isnull()) && p->getComponent<CTransform>().isMovable )
-        {
-            p->getComponent<CTransform>().pos += p->getComponent<CTransform>().vel.norm(p->getComponent<CTransform>().speed/m_game->framerate());
+            if (!(e->getComponent<CTransform>().vel.isnull()) && e->getComponent<CTransform>().isMovable )
+            {
+                e->getComponent<CTransform>().pos += e->getComponent<CTransform>().vel.norm(e->getComponent<CTransform>().speed/m_game->framerate());
+            }
+            if (e->getComponent<CTransform>().pos != e->getComponent<CTransform>().prevPos)
+            {
+                e->getComponent<CTransform>().isMovable = false;
+            }
         }
-    }
-    for (auto d : m_entities.getEntities("Dragon"))
-    {
-
-        if (!(d->getComponent<CTransform>().vel.isnull()) && d->getComponent<CTransform>().isMovable )
+        e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
+        if (!(e->getComponent<CTransform>().vel.isnull()) && e->getComponent<CTransform>().isMovable )
         {
-            d->getComponent<CTransform>().pos += d->getComponent<CTransform>().vel.norm(d->getComponent<CTransform>().speed/m_game->framerate());
+            e->getComponent<CTransform>().pos += e->getComponent<CTransform>().vel.norm(e->getComponent<CTransform>().speed/m_game->framerate());
         }
-        if (d->getComponent<CTransform>().pos != d->getComponent<CTransform>().prevPos)
-        {
-            d->getComponent<CTransform>().isMovable = false;
-        }
-        d->getComponent<CTransform>().prevPos = d->getComponent<CTransform>().pos;
-        
     }
 }
 

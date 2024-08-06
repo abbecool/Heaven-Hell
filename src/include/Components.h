@@ -50,13 +50,15 @@ public:
     Vec2 vel;    
     Vec2 scale = {0.5, 0.5};    
     float angle = 0;
-    bool isMovable = true;
-    int speed = 400;
+    bool isMovable;
+    int speed;
     CTransform() {}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), isMovable(mvbl){}
+        : pos(p), prevPos(p), vel(v), speed(400), isMovable(mvbl){}
+    CTransform(const Vec2 & p, const Vec2 & v, int spd, bool mvbl) 
+        : pos(p), prevPos(p), vel(v), speed(spd), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, bool mvbl) 
-    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), isMovable(mvbl){}
+    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(400), isMovable(mvbl){}
 };
 
 class CBoundingBox : public Component

@@ -39,8 +39,7 @@ class Scene_Play : public Scene
     void spawnLava(const Vec2 pos);
     void spawnWater(const Vec2 pos, const int frame );
     void spawnBridge(const Vec2 pos, const int frame );
-    // void spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable);
-    // void spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool movable);
+    void spawnProjectile(const Vec2 pos);
 
     void sMovement();
     void sCollision();

@@ -29,6 +29,7 @@ Texture     angleS                      assets/images/angleS.png
 Texture     heart_full                  assets/images/heart_full.png
 Texture     heart_half                  assets/images/heart_half.png
 Texture     heart_empty                 assets/images/heart_empty.png
+Texture     vas_hp                      assets/images/vas_hp.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   15
@@ -64,3 +65,4 @@ Animation   angleS                      angleS                      4   15
 Animation   heart_full                  heart_full                  1   100   
 Animation   heart_half                  heart_half                  1   100   
 Animation   heart_empty                 heart_empty                 1   100   
+Animation   vas_hp                      vas_hp                      1   100   
