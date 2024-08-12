@@ -181,18 +181,18 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     std::string tex = "m_texture_devil";
     // std::string tex = "Archer_idle";
     if (name == "God"){
-        tex = "idas_angel_down";
+        tex = "angelS";
         m_player = entity;
     }
 
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture(tex));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), false);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{1, 1}, 0, movable);
+    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, movable);
     entity->addComponent<CBoundingBox>(Vec2 {32, 48});
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
-    entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    // entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -218,7 +218,7 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(ani), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
-    entity->addComponent<CHealth>(20, 20, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    // entity->addComponent<CHealth>(20, 20, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     entity->addComponent<CBoundingBox>(Vec2{128, 128});
 }
 
@@ -299,11 +299,8 @@ void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player)
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("heart_full"), true);
     // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     // entity->addComponent<CTransform>(pos,Vec2 {10, 0}, 800, true);
-    if (player->getComponent<CTransform>().vel.isnull()){
-        entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, Vec2 {1,0}, 800*0.25, true);
-    }else{
-        entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+player->getComponent<CTransform>().vel, player->getComponent<CTransform>().vel, 800, true);
-    }
+    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+player->getComponent<CTransform>().vel, player->getComponent<CTransform>().vel+Vec2{0.1,0}, 800, true);
+    
 
     entity->addComponent<CBoundingBox>(Vec2{32, 32});
     // std::cout << "projectile" << std::endl;
@@ -582,19 +579,19 @@ void Scene_Play::sAnimation() {
             std::string aniName;
             switch (e->getComponent<CState>().state) {
                 case PlayerState::STAND:
-                    aniName = "idas_angel_down";
+                    aniName = "angelS";
                     break;
                 case PlayerState::RUN_RIGHT:
-                    aniName = "idas_angel_right";
+                    aniName = "angelE";
                     break;
                 case PlayerState::RUN_DOWN:
-                    aniName = "idas_angel_down";
+                    aniName = "angelS";
                     break;
                 case PlayerState::RUN_LEFT:
-                    aniName = "idas_angel_left";
+                    aniName = "angelW";
                     break;
                 case PlayerState::RUN_UP:
-                    aniName = "idas_angel_up";
+                    aniName = "angelN";
                     break;
                 case PlayerState::RUN_RIGHT_DOWN:
                     aniName = "right_down";
@@ -609,7 +606,7 @@ void Scene_Play::sAnimation() {
                     aniName = "right_up";
                     break;
                 case PlayerState::RIGHT_SHOOT:
-                    aniName = "idas_angel_right_shoot";
+                    aniName = "angelE";
                     break;
             }
             e->addComponent<CAnimation>(m_game->assets().getAnimation(aniName), false);

@@ -112,12 +112,7 @@ void Animation::setScale(Vec2 scale) {
     m_scale = scale;
     m_destRect.w = m_srcRect.w * scale.x;
     m_destRect.h = m_srcRect.h * scale.y;
-    // center = {destRect.w / 2.0f, destRect.h / 2.0f};
 }
-
-// SDL_Sprite& Animation::getSprite() {
-//     return m_sprite;
-// }
 
 void Animation::setCurrentFrame(size_t frame){
     m_currentFrame = frame;

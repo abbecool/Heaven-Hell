@@ -25,11 +25,16 @@ Texture     idas_angel_right            assets/images/idas_angel_right.png
 Texture     idas_angel_down             assets/images/idas_angel_down.png
 Texture     idas_angel_right_shoot      assets/images/idas_angel_shoot.png
 Texture     Archer_idle                 assets/images/Archer1.png
-Texture     angleS                      assets/images/angleS.png
 Texture     heart_full                  assets/images/heart_full.png
 Texture     heart_half                  assets/images/heart_half.png
 Texture     heart_empty                 assets/images/heart_empty.png
 Texture     vas_hp                      assets/images/vas_hp.png
+Texture     angelS                      assets/images/angelS.png
+Texture     angelE                      assets/images/angelE.png
+Texture     angelN                      assets/images/angelN.png
+Texture     angelW                      assets/images/angelW.png
+Texture     right                      assets/images/right.png
+Texture     golem                      assets/images/golem.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   15
@@ -55,14 +60,15 @@ Animation   m_texture_outofbound        m_texture_outofbound        1   100
 Animation   wizard                      wizard                      2   5
 Animation   tuva                        gras_tuva                   1   100
 Animation   chest                       chest                       1   100
-Animation   idas_angel_left             idas_angel_left             1   100    
-Animation   idas_angel_up               idas_angel_up               1   100      
-Animation   idas_angel_right            idas_angel_right            1   100   
-Animation   idas_angel_down             idas_angel_down             1   100    
+Animation   angelS             angelS             1   100    
+Animation   angelE               angelE               1   100      
+Animation   angelN            angelN            1   100   
+Animation   angelW             angelW             1   100    
 Animation   idas_angel_right_shoot      idas_angel_right_shoot      1   100    
 Animation   Archer_idle                 Archer_idle                 8   20   
-Animation   angleS                      angleS                      4   15   
 Animation   heart_full                  heart_full                  1   100   
 Animation   heart_half                  heart_half                  1   100   
 Animation   heart_empty                 heart_empty                 1   100   
-Animation   vas_hp                      vas_hp                      1   100   
+Animation   vas_hp                      vas_hp                      1   100    
+Animation   right                      right                      1   100   
+Animation   golem                      golem                      1   100   
