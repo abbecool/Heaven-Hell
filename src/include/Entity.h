@@ -31,6 +31,7 @@ public:
     const std::string& tag() const;
     const size_t layer() const;
     const size_t id() const;
+    const bool movable() const;
     void kill();
 
     template<typename T>

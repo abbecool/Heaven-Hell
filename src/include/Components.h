@@ -50,8 +50,8 @@ public:
     Vec2 vel;    
     Vec2 scale = {0.5, 0.5};    
     float angle = 0;
-    bool isMovable;
     int speed;
+    bool isMovable;
     CTransform() {}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
         : pos(p), prevPos(p), vel(v), speed(400), isMovable(mvbl){}

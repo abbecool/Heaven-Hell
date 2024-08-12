@@ -218,6 +218,7 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(ani), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
+    entity->addComponent<CHealth>(20, 20, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     entity->addComponent<CBoundingBox>(Vec2{128, 128});
 }
 
@@ -292,16 +293,21 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
 }
 
-void Scene_Play::spawnProjectile(const Vec2 pos)
+void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player)
 {
-    auto entity = m_entities.addEntity("Projectile", (size_t)3);
+    auto entity = m_entities.addEntity("Projectile", (size_t)1);
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("heart_full"), true);
     // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     // entity->addComponent<CTransform>(pos,Vec2 {10, 0}, 800, true);
-    entity->addComponent<CTransform>(m_player->getComponent<CTransform>().pos,Vec2 {10, 0}, 800, true);
+    if (player->getComponent<CTransform>().vel.isnull()){
+        entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, Vec2 {1,0}, 800*0.25, true);
+    }else{
+        entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+player->getComponent<CTransform>().vel, player->getComponent<CTransform>().vel, 800, true);
+    }
+
     entity->addComponent<CBoundingBox>(Vec2{32, 32});
     // std::cout << "projectile" << std::endl;
-    m_entities.sort();
+    // m_entities.sort();
 }
 
 void Scene_Play::sDoAction(const Action& action) {
@@ -337,25 +343,25 @@ void Scene_Play::sDoAction(const Action& action) {
                 if (action.name() == "UP") {
                     p->getComponent<CInputs>().up = true;
                 }
-                else if (action.name() == "DOWN") {
+                if (action.name() == "DOWN") {
                     p->getComponent<CInputs>().down = true; 
                 }
-                else if (action.name() == "LEFT") {
+                if (action.name() == "LEFT") {
                     p->getComponent<CInputs>().left = true;
                 }
-                else if (action.name() == "RIGHT") {
+                if (action.name() == "RIGHT") {
                     p->getComponent<CInputs>().right = true;
                 }
-                else if (action.name() == "SHIFT") {
+                if (action.name() == "SHIFT") {
                     p->getComponent<CInputs>().shift = true;
                 }
-                else if (action.name() == "CTRL") {
+                if (action.name() == "CTRL") {
                     p->getComponent<CInputs>().ctrl = true;
                 }
-                else if (action.name() == "SHOOT") {
+                if (action.name() == "SHOOT") {
                     if (p->getComponent<CInputs>().canShoot) {
                         p->getComponent<CInputs>().shoot = true;
-                        spawnProjectile(Vec2{0,0});
+                        spawnProjectile(p);
                         // spawnProjectile(p->getComponent<CTransform>().pos);
                     }
                 }
@@ -407,19 +413,19 @@ void Scene_Play::sMovement() {
 
             if (e->getComponent<CInputs>().up)
             {
-                e->getComponent<CTransform>().vel.y = -1;
+                e->getComponent<CTransform>().vel.y--;
             }
             if (e->getComponent<CInputs>().down)
             {
-                e->getComponent<CTransform>().vel.y = 1;
+                e->getComponent<CTransform>().vel.y++;
             }
             if (e->getComponent<CInputs>().left)
             {
-                e->getComponent<CTransform>().vel.x = -1;
+                e->getComponent<CTransform>().vel.x--;
             }
             if (e->getComponent<CInputs>().right)
             {
-                e->getComponent<CTransform>().vel.x = 1;
+                e->getComponent<CTransform>().vel.x++;
             }
 
             if (e->getComponent<CInputs>().shift)
@@ -487,7 +493,7 @@ void Scene_Play::sCollision() {
         {
             if (m_physics.isStandingIn(p,w))
             {
-                p->getComponent<CTransform>().isMovable = false;
+                // p->getComponent<CTransform>().isMovable = false;
                 p->getComponent<CHealth>().HP = 0;
             }
         }
@@ -495,8 +501,33 @@ void Scene_Play::sCollision() {
         {
             if (m_physics.isStandingIn(p,l))
             {
-                p->getComponent<CTransform>().isMovable = false;
+                // p->getComponent<CTransform>().isMovable = false;
                 p->getComponent<CHealth>().HP = 0;
+            }
+        }
+    }
+
+    for ( auto p : m_entities.getEntities("Projectile") ){
+        for ( auto o : m_entities.getEntities("Obstacle") )
+        {   
+            if (m_physics.isCollided(p,o))
+            {
+                p->kill();
+                // std::cout << p->getComponent<CTransform>().pos.y << std::endl;
+                // p->getComponent<CTransform>().isMovable = false;
+            }
+        }
+        for ( auto d : m_entities.getEntities("Dragon") )
+        {   
+            if (m_physics.isCollided(p,d))
+            {
+                p->getComponent<CTransform>().isMovable = false;
+                if (d->hasComponent<CHealth>()){
+                    d->getComponent<CHealth>().HP--;
+                    if ( d->getComponent<CHealth>().HP <= 0 ){
+                        d->kill();
+                    }
+                }
             }
         }
     }
@@ -643,7 +674,37 @@ void Scene_Play::sRender() {
                         NULL,
                         SDL_FLIP_NONE
                     );
-                }       
+                } 
+                if (e->hasComponent<CHealth>()){
+                    auto& animation_full = e->getComponent<CHealth>().animation_full;
+                    auto& animation_half = e->getComponent<CHealth>().animation_half;
+                    auto& animation_empty = e->getComponent<CHealth>().animation_empty;
+                    Animation animation;
+                    auto hearts = float(e->getComponent<CHealth>().HP)/2;
+
+                    for (int i = 1; i <= e->getComponent<CHealth>().HP_max/2; i++)
+                    {   
+                        if ( hearts >= i ){
+                            animation = animation_full;
+                        } else if ( i-hearts == 0.5f ){
+                            animation = animation_half;
+                        } else{
+                            animation = animation_empty;
+                        }
+
+                        animation.setScale(Vec2 {1,1});
+                        animation.setDestRect(Vec2{e->getComponent<CTransform>().pos.x+(i-1)*animation.getSize().x, e->getComponent<CTransform>().pos.y});
+                        SDL_RenderCopyEx(
+                            m_game->renderer(), 
+                            animation.getTexture(), 
+                            nullptr, 
+                            animation.getDestRect(),
+                            0,
+                            NULL,
+                            SDL_FLIP_NONE
+                        );
+                    }
+                }   
             }
         }
     }
@@ -665,37 +726,37 @@ void Scene_Play::sRender() {
             }
         }
     }
-    if (m_player->hasComponent<CHealth>()){
-        auto& animation_full = m_player->getComponent<CHealth>().animation_full;
-        auto& animation_half = m_player->getComponent<CHealth>().animation_half;
-        auto& animation_empty = m_player->getComponent<CHealth>().animation_empty;
-        Animation animation;
-        auto hearts = float(m_player->getComponent<CHealth>().HP)/2;
+    // if (e->hasComponent<CHealth>()){
+        // auto& animation_full = m_player->getComponent<CHealth>().animation_full;
+        // auto& animation_half = m_player->getComponent<CHealth>().animation_half;
+        // auto& animation_empty = m_player->getComponent<CHealth>().animation_empty;
+        // Animation animation;
+        // auto hearts = float(m_player->getComponent<CHealth>().HP)/2;
 
-        for (int i = 1; i <= m_player->getComponent<CHealth>().HP_max/2; i++)
-        {   
-            if ( hearts >= i ){
-                animation = animation_full;
-            } else if ( i-hearts == 0.5f ){
-                animation = animation_half;
-            } else{
-                animation = animation_empty;
-            }
+        // for (int i = 1; i <= m_player->getComponent<CHealth>().HP_max/2; i++)
+        // {   
+        //     if ( hearts >= i ){
+        //         animation = animation_full;
+        //     } else if ( i-hearts == 0.5f ){
+        //         animation = animation_half;
+        //     } else{
+        //         animation = animation_empty;
+        //     }
 
-            animation.setScale(Vec2 {1,1});
-            animation.setDestRect(Vec2{16+(i-1)*animation.getSize().x,16});
-            SDL_RenderCopyEx(
-                m_game->renderer(), 
-                animation.getTexture(), 
-                nullptr, 
-                animation.getDestRect(),
-                0,
-                NULL,
-                SDL_FLIP_NONE
-            );
-        }
+        //     animation.setScale(Vec2 {1,1});
+        //     animation.setDestRect(Vec2{16+(i-1)*animation.getSize().x,16});
+        //     SDL_RenderCopyEx(
+        //         m_game->renderer(), 
+        //         animation.getTexture(), 
+        //         nullptr, 
+        //         animation.getDestRect(),
+        //         0,
+        //         NULL,
+        //         SDL_FLIP_NONE
+        //     );
+        // }
 
-    }
+    // }
 }
 
 void Scene_Play::onEnd() {

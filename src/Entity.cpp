@@ -36,6 +36,10 @@ void Entity::Entity::kill(){
     m_alive = false;
 }
 
+const bool Entity::Entity::movable() const{
+    return getComponent<CTransform>().isMovable;
+}
+
 void Entity::Entity::movePosition(Vec2 move){
     getComponent<CTransform>().pos += move;
 }

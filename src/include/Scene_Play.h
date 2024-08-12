@@ -39,7 +39,7 @@ class Scene_Play : public Scene
     void spawnLava(const Vec2 pos);
     void spawnWater(const Vec2 pos, const int frame );
     void spawnBridge(const Vec2 pos, const int frame );
-    void spawnProjectile(const Vec2 pos);
+    void spawnProjectile(std::shared_ptr<Entity>);
 
     void sMovement();
     void sCollision();
