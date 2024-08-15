@@ -510,6 +510,9 @@ void Scene_Play::sCollision() {
             {
                 p->getComponent<CHealth>().HP = 0;
             }
+            // if ( m_physics.isCollided(p,w) && m_physics.GetOverlap(p,w).x > p->getComponent<CBoundingBox>().size.x){
+            //     p->getComponent<CHealth>().HP = 0;
+            // }
         }
         for ( auto l : m_entities.getEntities("Lava") )
         {

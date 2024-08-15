@@ -76,25 +76,16 @@ class CTexture : public Component
 public:
     Vec2 pos;
     Vec2 size;
-    // SDL_Rect *rect;
     SDL_Texture * texture;
 
     CTexture() {}
     CTexture(const Vec2 p, const Vec2 sz, SDL_Texture* tex) 
-        : pos(p), size(sz), texture(tex)
-        {
-            // rect->x = pos.x;
-            // rect->y = pos.y;
-            // rect->w = size.x;
-            // rect->h = size.y;
-        }
+        : pos(p), size(sz), texture(tex){}
 };
 
 class CHealth: public Component
 {
 public:
-    // bool hasLifeSpan;
-    // size_t lifeSpan;
     int HP;
     int HP_max;
     Animation animation_full;
@@ -103,8 +94,6 @@ public:
     int heart_frames;
     int damage_frame;
     CHealth() {}
-    // CHealth(size_t lfSpn)
-    //     : lifeSpan(lfSpn), hasLifeSpan(true) {}
     CHealth(int hp, int hp_max, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
         : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(180){}
 };
