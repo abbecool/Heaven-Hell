@@ -33,7 +33,7 @@ void Game::init(const std::string & path){
     {
         std::cout << "Could not create window: " << SDL_GetError( ) << std::endl;
     }
-    m_renderer = SDL_CreateRenderer( m_window, -1 , 0);
+    m_renderer = SDL_CreateRenderer( m_window, -1 , SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
 
     m_assets.loadFromFile(path, m_renderer);

@@ -11,8 +11,9 @@ typedef std::tuple<
     CBoundingBox,
     CAnimation,
     CTexture,
-    CShape,
-    CKey
+    CKey,
+    CState,
+    CHealth    
 > ComponentTuple;
 class Entity
 {
@@ -30,6 +31,7 @@ public:
     const std::string& tag() const;
     const size_t layer() const;
     const size_t id() const;
+    const bool movable() const;
     void kill();
 
     template<typename T>
@@ -73,5 +75,8 @@ public:
     // bool isAlive();
     // void kill();
     void movePosition(Vec2);
+    void setScale(Vec2 scale);
+    void takeDamage(int damage, size_t frame);
+
     // void setColor(const int r, const int g, const int b, const int a);
 };

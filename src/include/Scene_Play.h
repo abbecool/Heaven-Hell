@@ -30,20 +30,20 @@ class Scene_Play : public Scene
     Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
     void spawnPlayer(const Vec2 pos, const std::string name, bool movable);
-    void spawnObstacle(const Vec2 pos, const Vec2 size, bool movable, const int frame );
-    void spawnCloud(const Vec2 pos, const Vec2 size, bool movable, const int frame);
-    void spawnDragon(const Vec2 pos, const Vec2 size, bool movable, const std::string &ani);
-    void spawnBackground(const Vec2 pos, const Vec2 size, bool movable, const int frame);
-    void spawnGoal(const Vec2 pos, const Vec2 size, bool movable);
-    void spawnKey(const Vec2 pos, const Vec2 size, const std::string, bool movable);
-    void spawnLava(const Vec2 pos, const Vec2 size);
-    void spawnWater(const Vec2 pos, const Vec2 size, const int frame );
-    void spawnBridge(const Vec2 pos, const Vec2 size, const int frame );
-    // void spawnWorldBorder(const Vec2 pos, const Vec2 size, bool movable);
-    // void spawnOutofboundBorder(const Vec2 pos, const Vec2 size, bool movable);
+    void spawnObstacle(const Vec2 pos, bool movable, const int frame );
+    void spawnCloud(const Vec2 pos, bool movable, const int frame);
+    void spawnDragon(const Vec2 pos, bool movable, const std::string &ani);
+    void spawnBackground(const Vec2 pos, bool movable, const int frame);
+    void spawnGoal(const Vec2 pos, bool movable);
+    void spawnKey(const Vec2 pos, const std::string, bool movable);
+    void spawnLava(const Vec2 pos);
+    void spawnWater(const Vec2 pos, const int frame );
+    void spawnBridge(const Vec2 pos, const int frame );
+    void spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel);
 
     void sMovement();
     void sCollision();
+    void sStatus();
     void sAnimation();
     void sRender();
     
@@ -54,6 +54,7 @@ class Scene_Play : public Scene
     void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
+    void changePlayerStateTo(PlayerState s);
 
     public:
     Scene_Play(Game* game, std::string path);

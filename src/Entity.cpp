@@ -10,8 +10,9 @@ Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
                     CBoundingBox(),
                     CAnimation(),
                     CTexture(),
-                    CShape(),
-                    CKey()
+                    CKey(),
+                    CState(),
+                    CHealth()
                 );
         }
 
@@ -35,6 +36,19 @@ void Entity::Entity::kill(){
     m_alive = false;
 }
 
+const bool Entity::Entity::movable() const{
+    return getComponent<CTransform>().isMovable;
+}
+
 void Entity::Entity::movePosition(Vec2 move){
     getComponent<CTransform>().pos += move;
+}
+
+void Entity::Entity::setScale(Vec2 scale){
+    getComponent<CTransform>().scale = scale;
+}
+
+void Entity::Entity::takeDamage(int damage, size_t frame){
+    getComponent<CHealth>().HP = getComponent<CHealth>().HP-damage;
+    getComponent<CHealth>().damage_frame = (int)frame;
 }
