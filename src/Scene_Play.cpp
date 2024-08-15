@@ -194,7 +194,7 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), false);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, movable);
-    entity->addComponent<CBoundingBox>(Vec2 {32, 48});
+    entity->addComponent<CBoundingBox>(Vec2 {32, 32});
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
     entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
@@ -510,9 +510,6 @@ void Scene_Play::sCollision() {
             {
                 p->getComponent<CHealth>().HP = 0;
             }
-            // if ( m_physics.isCollided(p,w) && m_physics.GetOverlap(p,w).x > p->getComponent<CBoundingBox>().size.x){
-            //     p->getComponent<CHealth>().HP = 0;
-            // }
         }
         for ( auto l : m_entities.getEntities("Lava") )
         {

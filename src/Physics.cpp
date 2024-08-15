@@ -29,11 +29,13 @@ bool Physics::isStandingIn(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
     }
     
     Vec2 aSize = a->getComponent<CBoundingBox>().size;
+    Vec2 aHalfSize = a->getComponent<CBoundingBox>().halfSize;
     Vec2 bSize = b->getComponent<CBoundingBox>().size;
-    Vec2 aPos = a->getComponent<CTransform>().pos;
-    Vec2 bPos = b->getComponent<CTransform>().pos;
+    Vec2 aPos = a->getComponent<CTransform>().pos - a->getComponent<CBoundingBox>().halfSize;
+    Vec2 bPos = b->getComponent<CTransform>().pos - b->getComponent<CBoundingBox>().halfSize;
 
-    bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
+    bool x_overlap = (aPos.x + aHalfSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x + aHalfSize.x);
+    // bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
     bool y_overlap = (aPos.y + aSize.y <= bPos.y + bSize.y) && (aPos.y + aSize.y > bPos.y);
 
     return (x_overlap && y_overlap);
