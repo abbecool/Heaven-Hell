@@ -47,3 +47,8 @@ void Entity::Entity::movePosition(Vec2 move){
 void Entity::Entity::setScale(Vec2 scale){
     getComponent<CTransform>().scale = scale;
 }
+
+void Entity::Entity::takeDamage(int damage, size_t frame){
+    getComponent<CHealth>().HP = getComponent<CHealth>().HP-damage;
+    getComponent<CHealth>().damage_frame = (int)frame;
+}

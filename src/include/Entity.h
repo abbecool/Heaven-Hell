@@ -76,6 +76,7 @@ public:
     // void kill();
     void movePosition(Vec2);
     void setScale(Vec2 scale);
+    void takeDamage(int damage, size_t frame);
 
     // void setColor(const int r, const int g, const int b, const int a);
 };

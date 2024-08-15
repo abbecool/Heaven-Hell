@@ -100,11 +100,13 @@ public:
     Animation animation_full;
     Animation animation_half;
     Animation animation_empty;
+    int heart_frames;
+    int damage_frame;
     CHealth() {}
     // CHealth(size_t lfSpn)
     //     : lifeSpan(lfSpn), hasLifeSpan(true) {}
     CHealth(int hp, int hp_max, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
-        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty) {}
+        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(180){}
 };
 class CKey: public Component
 {

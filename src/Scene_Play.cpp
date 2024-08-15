@@ -491,7 +491,7 @@ void Scene_Play::sCollision() {
             if (m_physics.isCollided(p,d))
             {
                 p->movePosition(m_physics.Overlap(p,d)*15);
-                p->getComponent<CHealth>().HP--;
+                p->takeDamage(1, m_currentFrame);
                 d->getComponent<CAnimation>().animation = m_game->assets().getAnimation("waking_dragon");
 
             }
@@ -534,7 +534,7 @@ void Scene_Play::sCollision() {
             {
                 p->kill();
                 if (d->hasComponent<CHealth>()){
-                    d->getComponent<CHealth>().HP--;
+                    d->takeDamage(1, m_currentFrame);
                     if ( d->getComponent<CHealth>().HP <= 0 ){
                         d->kill();
                     }
@@ -683,33 +683,38 @@ void Scene_Play::sRender() {
                     );
                 } 
                 if (e->hasComponent<CHealth>()){
-                    auto& animation_full = e->getComponent<CHealth>().animation_full;
-                    auto& animation_half = e->getComponent<CHealth>().animation_half;
-                    auto& animation_empty = e->getComponent<CHealth>().animation_empty;
-                    Animation animation;
-                    auto hearts = float(e->getComponent<CHealth>().HP)/2;
+                    if ( e->getComponent<CHealth>().HP != e->getComponent<CHealth>().HP_max && (int)m_currentFrame - e->getComponent<CHealth>().damage_frame < e->getComponent<CHealth>().heart_frames ){
+                        std::cout << "time since: " << (int)m_currentFrame - e->getComponent<CHealth>().damage_frame << std::endl;
+                        std::cout << "heart frames: " << e->getComponent<CHealth>().heart_frames << std::endl;
+                        auto& animation_full = e->getComponent<CHealth>().animation_full;
+                        auto& animation_half = e->getComponent<CHealth>().animation_half;
+                        auto& animation_empty = e->getComponent<CHealth>().animation_empty;
+                        Animation animation;
+                        auto hearts = float(e->getComponent<CHealth>().HP)/2;
 
-                    for (int i = 1; i <= e->getComponent<CHealth>().HP_max/2; i++)
-                    {   
-                        if ( hearts >= i ){
-                            animation = animation_full;
-                        } else if ( i-hearts == 0.5f ){
-                            animation = animation_half;
-                        } else{
-                            animation = animation_empty;
+                        for (int i = 1; i <= e->getComponent<CHealth>().HP_max/2; i++)
+                        {   
+                            if ( hearts >= i ){
+                                animation = animation_full;
+                            } else if ( i-hearts == 0.5f ){
+                                animation = animation_half;
+                            } else{
+                                animation = animation_empty;
+                            }
+
+                            animation.setScale(Vec2 {0.35,0.35});
+                            animation.setDestRect(Vec2{e->getComponent<CTransform>().pos.x+(i-1-e->getComponent<CHealth>().HP_max/4)*animation.getSize().x*animation.getScale().x, 
+                                                    e->getComponent<CTransform>().pos.y-e->getComponent<CAnimation>().animation.getSize().y*e->getComponent<CAnimation>().animation.getScale().y/2});
+                            SDL_RenderCopyEx(
+                                m_game->renderer(), 
+                                animation.getTexture(), 
+                                nullptr, 
+                                animation.getDestRect(),
+                                0,
+                                NULL,
+                                SDL_FLIP_NONE
+                            );
                         }
-
-                        animation.setScale(Vec2 {1,1});
-                        animation.setDestRect(Vec2{e->getComponent<CTransform>().pos.x+(i-1)*animation.getSize().x, e->getComponent<CTransform>().pos.y});
-                        SDL_RenderCopyEx(
-                            m_game->renderer(), 
-                            animation.getTexture(), 
-                            nullptr, 
-                            animation.getDestRect(),
-                            0,
-                            NULL,
-                            SDL_FLIP_NONE
-                        );
                     }
                 }   
             }
