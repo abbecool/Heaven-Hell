@@ -42,17 +42,12 @@ void EntityManager::sort()
 
 }
 
-void EntityManager::removeDeadEntities(EntityVec & vec)
+void EntityManager::removeDeadEntities(EntityVec& vec)
 {
-    for (auto e : vec)
-    {
-        // vec.erase(std::remove_if(vec.begin(), vec.end(), [] (std::shared_ptr<Entity> e) { return !( e->isAlive() ); } ), vec.end()); 
-        // vec.erase(std::remove_if(vec.begin(), vec.end(), [](const auto& e) {return !e->isAlive();}), vec.end());    
-        vec.erase(std::remove_if(vec.begin(), vec.end(), 
-        [] (std::shared_ptr<Entity> e) { return !e->isAlive(); }), vec.end());
-        // std::cout << e->getComponent<CTransform>().pos.y << std::endl;
-        
-    }
+    vec.erase(
+        std::remove_if(vec.begin(), vec.end(), 
+        [] (const std::shared_ptr<Entity>& e) { return !e->isAlive(); }), 
+        vec.end());
 }
 
 EntityVec EntityManager::getEntities()

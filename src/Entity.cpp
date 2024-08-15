@@ -43,3 +43,7 @@ const bool Entity::Entity::movable() const{
 void Entity::Entity::movePosition(Vec2 move){
     getComponent<CTransform>().pos += move;
 }
+
+void Entity::Entity::setScale(Vec2 scale){
+    getComponent<CTransform>().scale = scale;
+}

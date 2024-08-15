@@ -35,6 +35,7 @@ Texture     angelN                      assets/images/angelN.png
 Texture     angelW                      assets/images/angelW.png
 Texture     right                      assets/images/right.png
 Texture     golem                      assets/images/golem.png
+Texture     devil                      assets/images/devil.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   15
@@ -72,3 +73,4 @@ Animation   heart_empty                 heart_empty                 1   100
 Animation   vas_hp                      vas_hp                      1   100    
 Animation   right                      right                      1   100   
 Animation   golem                      golem                      1   100   
+Animation   devil                      devil                      1   100   

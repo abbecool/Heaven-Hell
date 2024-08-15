@@ -15,8 +15,8 @@ bool Physics::isCollided(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
     Vec2 aPos = a->getComponent<CTransform>().pos - a->getComponent<CBoundingBox>().halfSize;
     Vec2 bPos = b->getComponent<CTransform>().pos - b->getComponent<CBoundingBox>().halfSize;
 
-    bool x_overlap =    (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
-    bool y_overlap =    (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
+    bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
+    bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
 
     return (x_overlap && y_overlap);
 }

@@ -90,6 +90,12 @@ Vec2 Scene_Play::gridToMidPixel(
             eScale.x = 1.0;
             eScale.y = 1.0;
     }
+    // entity->getComponent<CTransform>().scale = eScale;
+    // if ( entity->id() == 213 && entity->tag() == "Player"){
+    //     std::cout << "eSize: " << eSize.x << std::endl;
+    //     std::cout << "transform scale grid: " << entity->getComponent<CTransform>().scale.x << std::endl;
+    // }
+
     offsetX = (m_gridSize.x - eSize.x * eScale.x) / 2.0;
     offsetY = (m_gridSize.y - eSize.y * eScale.y) / 2.0;
 
@@ -178,8 +184,7 @@ void Scene_Play::loadLevel(std::string levelPath){
 void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movable){
 
     auto entity = m_entities.addEntity("Player", (size_t)2);
-    std::string tex = "m_texture_devil";
-    // std::string tex = "Archer_idle";
+    std::string tex = "devil";
     if (name == "God"){
         tex = "angelS";
         m_player = entity;
@@ -192,7 +197,7 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     entity->addComponent<CBoundingBox>(Vec2 {32, 48});
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
-    // entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -218,7 +223,7 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(ani), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
-    // entity->addComponent<CHealth>(20, 20, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->addComponent<CHealth>(20, 20, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     entity->addComponent<CBoundingBox>(Vec2{128, 128});
 }
 
@@ -293,18 +298,13 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
 }
 
-void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player)
+void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
 {
     auto entity = m_entities.addEntity("Projectile", (size_t)1);
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("heart_full"), true);
-    // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    // entity->addComponent<CTransform>(pos,Vec2 {10, 0}, 800, true);
-    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+player->getComponent<CTransform>().vel, player->getComponent<CTransform>().vel+Vec2{0.1,0}, 800, true);
-    
-
+    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+vel, vel, 800, true);
     entity->addComponent<CBoundingBox>(Vec2{32, 32});
-    // std::cout << "projectile" << std::endl;
-    // m_entities.sort();
+    m_entities.sort();
 }
 
 void Scene_Play::sDoAction(const Action& action) {
@@ -358,19 +358,37 @@ void Scene_Play::sDoAction(const Action& action) {
                 if (action.name() == "SHOOT") {
                     if (p->getComponent<CInputs>().canShoot) {
                         p->getComponent<CInputs>().shoot = true;
-                        spawnProjectile(p);
-                        // spawnProjectile(p->getComponent<CTransform>().pos);
+                        if ( p->getComponent<CTransform>().vel.isnull() ){
+                            switch ( p->getComponent<CState>().state ){
+                                case PlayerState::RUN_RIGHT:
+                                    spawnProjectile(p, Vec2{1,0});
+                                    break;
+                                case PlayerState::RUN_LEFT:
+                                    spawnProjectile(p, Vec2{-1,0});
+                                    break;
+                                case PlayerState::RUN_UP:
+                                    spawnProjectile(p, Vec2{0,-1});
+                                    break;
+                                case PlayerState::RUN_DOWN:
+                                    spawnProjectile(p, Vec2{0,1});
+                                    break;
+                            default:
+                                break;
+                            }
+                        } else{
+                            spawnProjectile(p, p->getComponent<CTransform>().vel);
+                        }
                     }
                 }
         }
     }
     else if (action.type() == "END") {
         for (auto p : m_entities.getEntities("Player")){
-            if (action.name() == "UP") {
-                p->getComponent<CInputs>().up = false;
-            }
             if (action.name() == "DOWN") {
                 p->getComponent<CInputs>().down = false;
+            }
+            else if (action.name() == "UP") {
+                p->getComponent<CInputs>().up = false;
             }
             else if (action.name() == "LEFT") {
                 p->getComponent<CInputs>().left = false;
@@ -490,7 +508,6 @@ void Scene_Play::sCollision() {
         {
             if (m_physics.isStandingIn(p,w))
             {
-                // p->getComponent<CTransform>().isMovable = false;
                 p->getComponent<CHealth>().HP = 0;
             }
         }
@@ -498,7 +515,6 @@ void Scene_Play::sCollision() {
         {
             if (m_physics.isStandingIn(p,l))
             {
-                // p->getComponent<CTransform>().isMovable = false;
                 p->getComponent<CHealth>().HP = 0;
             }
         }
@@ -510,15 +526,13 @@ void Scene_Play::sCollision() {
             if (m_physics.isCollided(p,o))
             {
                 p->kill();
-                // std::cout << p->getComponent<CTransform>().pos.y << std::endl;
-                // p->getComponent<CTransform>().isMovable = false;
             }
         }
         for ( auto d : m_entities.getEntities("Dragon") )
         {   
             if (m_physics.isCollided(p,d))
             {
-                p->getComponent<CTransform>().isMovable = false;
+                p->kill();
                 if (d->hasComponent<CHealth>()){
                     d->getComponent<CHealth>().HP--;
                     if ( d->getComponent<CHealth>().HP <= 0 ){
@@ -551,26 +565,17 @@ void Scene_Play::sStatus() {
 void Scene_Play::sAnimation() {
     for ( auto e : m_entities.getEntities() ){
         if (e->tag() == "Player"){
-            if(e->getComponent<CTransform>().vel.y < 0) {
-                changePlayerStateTo(PlayerState::RUN_UP);
-            }
-            else if(e->getComponent<CTransform>().vel.y > 0) {
-                changePlayerStateTo(PlayerState::RUN_DOWN);
+            if( e->getComponent<CTransform>().vel.x > 0 ) {
+                changePlayerStateTo(PlayerState::RUN_RIGHT);
             }
             else if(e->getComponent<CTransform>().vel.x < 0) {
                 changePlayerStateTo(PlayerState::RUN_LEFT);
             }
-            else if(e->getComponent<CTransform>().vel.x > 0) {
-                changePlayerStateTo(PlayerState::RUN_RIGHT);
+            else if(e->getComponent<CTransform>().vel.y > 0) {
+                changePlayerStateTo(PlayerState::RUN_DOWN);
             }
-            else if(e->getComponent<CTransform>().vel.x > 0) {
-                changePlayerStateTo(PlayerState::RUN_RIGHT);
-            }
-            else if(e->getComponent<CInputs>().shoot) {
-                changePlayerStateTo(PlayerState::RIGHT_SHOOT);
-            }
-            else {
-                changePlayerStateTo(PlayerState::STAND);
+            else if(e->getComponent<CTransform>().vel.y < 0) {
+                changePlayerStateTo(PlayerState::RUN_UP);
             }
         }
         
@@ -610,6 +615,7 @@ void Scene_Play::sAnimation() {
                     break;
             }
             e->addComponent<CAnimation>(m_game->assets().getAnimation(aniName), false);
+            // e->setScale(e->getComponent<CTransform>().scale);
         }
         if (e->hasComponent<CAnimation>())
         {
@@ -647,6 +653,10 @@ void Scene_Play::sRender() {
                 texRect.h = e->getComponent<CTexture>().size.y;
 
                 animation.setScale(transform.scale);
+                // if ( e->id() == 213 && e->tag() == "Player"){
+                //     std::cout << "transform scale: " << transform.scale.x << std::endl;
+                //     std::cout << "ani getsize: " << e->getComponent<CAnimation>().animation.getSize().x << std::endl;
+                // }
                 animation.setDestRect(transform.pos - animation.getDestSize()/2);
                 animation.setAngle(transform.angle);
                 
