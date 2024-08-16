@@ -20,6 +20,7 @@ class Scene_Play : public Scene
     PlayerConfig m_playerConfig;
     Physics m_physics;
     Vec2 cameraPos;
+    bool cameraFollow = false;
     float cameraZoom = 1;
     bool m_drawTextures = true;
     bool m_drawCollision = false;

@@ -29,6 +29,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
+    registerAction(SDLK_f, "CAMERA FOLLOW");
     registerAction(SDLK_PLUS, "ZOOM IN");
     registerAction(SDLK_MINUS, "ZOOM OUT");
     registerAction(SDLK_r, "RESET");
@@ -331,6 +332,8 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "ZOOM OUT"){
             cameraZoom = cameraZoom*1.25;
             std::cout << cameraZoom << std::endl;
+        } else if (action.name() == "CAMERA FOLLOW"){
+            cameraFollow = !cameraFollow;
         } 
 
         else if (action.name() == "LEVEL0") { 
@@ -658,7 +661,11 @@ void Scene_Play::sRender() {
     int screenHeight = 1080; // Height of your window
 
     // Calculate the camera's position centered on the player
-    cameraPos = m_player->getComponent<CTransform>().pos - Vec2(screenWidth / 2, screenHeight / 2);
+    if (cameraFollow){
+        cameraPos = m_player->getComponent<CTransform>().pos - Vec2(screenWidth / 2, screenHeight / 2);
+    } else{
+        cameraPos = Vec2{0,0};
+    }
 
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
