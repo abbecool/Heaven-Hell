@@ -94,12 +94,7 @@ Vec2 Scene_Play::gridToMidPixel(
             eScale.x = 1.0;
             eScale.y = 1.0;
     }
-    // entity->getComponent<CTransform>().scale = eScale;
-    // if ( entity->id() == 213 && entity->tag() == "Player"){
-    //     std::cout << "eSize: " << eSize.x << std::endl;
-    //     std::cout << "transform scale grid: " << entity->getComponent<CTransform>().scale.x << std::endl;
-    // }
-
+    
     offsetX = (m_gridSize.x - eSize.x * eScale.x) / 2.0;
     offsetY = (m_gridSize.y - eSize.y * eScale.y) / 2.0;
 
@@ -137,6 +132,7 @@ void Scene_Play::loadLevel(std::string levelPath){
         for (int x = 0; x < WIDTH_PIX; ++x) {
             const std::string& pixel = pixelMatrix[y][x];
             std::vector<bool> neighbors = neighborCheck(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
+            std::vector<std::string> neighborsTags = neighborTag(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
             int textureIndex = getObstacleTextureIndex(neighbors);
 
             if (pixel == "obstacle") {
@@ -144,15 +140,20 @@ void Scene_Play::loadLevel(std::string levelPath){
             }
             else{
 
-                if (pixel == "grass" || pixel == "dirt") {
-                    spawnBackground(Vec2 {64*(float)x,64*(float)y}, false, textureIndex);
+                if (pixel == "grass" ) {
+                    spawnGrass(Vec2 {64*(float)x,64*(float)y}, textureIndex);
+                } else if (pixel == "dirt"){
+                    spawnDirt(Vec2 {64*(float)x,64*(float)y}, textureIndex);
                 } else {
-                    spawnBackground(Vec2 {64*(float)x,64*(float)y}, false, getObstacleTextureIndex(neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                    if ( std::find(neighborsTags.begin(), neighborsTags.end(), "grass") != neighborsTags.end() ){
+                        spawnGrass(Vec2 {64*(float)x,64*(float)y}, getObstacleTextureIndex(neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                    } else{
+                        spawnDirt(Vec2 {64*(float)x,64*(float)y}, getObstacleTextureIndex(neighborCheck(pixelMatrix, "dirt", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                    }
                 }
                 if (pixel == "cloud") {
                     spawnCloud(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
                 } else if (pixel == "player_God") {
-
                     spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "God", true);
                 } else if (pixel == "player_Devil") {
                     spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "Devil", false);
@@ -163,14 +164,16 @@ void Scene_Play::loadLevel(std::string levelPath){
                 } else if (pixel == "dragon") {
                     spawnDragon(Vec2 {64*(float)x,64*(float)y}, true, "snoring_dragon");
                 } else if (pixel == "lava") {
-                    spawnLava(Vec2 {64*(float)x,64*(float)y});
+                    spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava");
                 } else if (pixel == "water") {
-                    spawnWater(Vec2 {64*(float)x,64*(float)y}, textureIndex);
+                    spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
                 } else if (pixel == "bridge") {
+                    if ( std::find(neighborsTags.begin(), neighborsTags.end(), "water") != neighborsTags.end() ){
+                        spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", getObstacleTextureIndex(neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                    } else if ( std::find(neighborsTags.begin(), neighborsTags.end(), "lava") != neighborsTags.end() ){
+                        spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background");
+                    }
                     spawnBridge(Vec2 {64*(float)x,64*(float)y}, textureIndex);
-                }
-                else{
-
                 }
             }
         }
@@ -232,26 +235,30 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     entity->addComponent<CBoundingBox>(Vec2{96, 96});
 }
 
-void Scene_Play::spawnBackground(const Vec2 pos, bool movable, const int frame)
+void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 {
     auto entity = m_entities.addEntity("Background", (size_t)10);
-    if (pos.y >= 1080/2){
-        entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("dirt_sheet"));
-        entity->addComponent<CAnimation> (m_game->assets().getAnimation("dirt_sheet"), true);
+    std::vector<int> ranArray = generateRandomArray(1, m_entities.getTotalEntities(), 0, 15);
+    if (ranArray[0] == 0){
+        entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("flower_sheet"));
+        entity->addComponent<CAnimation> (m_game->assets().getAnimation("flower_sheet"), true);
     }
     else{
-        std::vector<int> ranArray = generateRandomArray(1, m_entities.getTotalEntities(), 0, 15);
-        if (ranArray[0] == 0){
-            entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("flower_sheet"));
-            entity->addComponent<CAnimation> (m_game->assets().getAnimation("flower_sheet"), true);
-        }
-        else{
-            entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("gras_sheet"));
-            entity->addComponent<CAnimation> (m_game->assets().getAnimation("gras_sheet"), true);
-        }
+        entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("gras_sheet"));
+        entity->addComponent<CAnimation> (m_game->assets().getAnimation("gras_sheet"), true);
     }
+
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, movable);
+    entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
+}
+
+void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
+{
+    auto entity = m_entities.addEntity("Background", (size_t)10);
+    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("dirt_sheet"));
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation("dirt_sheet"), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
 }
 
 void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
@@ -274,7 +281,7 @@ void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool
     entity->addComponent<CBoundingBox>(Vec2{32, 32});
 }
 
-void Scene_Play::spawnLava(const Vec2 pos)
+void Scene_Play::spawnLava(const Vec2 pos, const std::string tag)
 {
     auto entity = m_entities.addEntity("Lava", (size_t)8);
     entity->addComponent<CAnimation> (m_game->assets().getAnimation("lava_ani"), true);
@@ -283,9 +290,9 @@ void Scene_Play::spawnLava(const Vec2 pos)
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
 }
 
-void Scene_Play::spawnWater(const Vec2 pos, const int frame)
+void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
 {
-    auto entity = m_entities.addEntity("Water", (size_t)8);
+    auto entity = m_entities.addEntity(tag, (size_t)8);
     entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("water"));
     entity->addComponent<CAnimation> (m_game->assets().getAnimation("water"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -295,7 +302,7 @@ void Scene_Play::spawnWater(const Vec2 pos, const int frame)
 
 void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 {
-    auto entity = m_entities.addEntity("Bridge", (size_t)8);
+    auto entity = m_entities.addEntity("Bridge", (size_t)7);
     entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("bridge"));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("bridge"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -438,55 +445,38 @@ void Scene_Play::update() {
 
 void Scene_Play::sMovement() {
     for (auto e : m_entities.getEntities()){    
+        auto &transform = e->getComponent<CTransform>(); 
         if ( e->tag() == "Player" ){
-            e->getComponent<CTransform>().vel = { 0,0 };
+            transform.vel = { 0,0 };
 
-            if (e->getComponent<CInputs>().up)
-            {
-                e->getComponent<CTransform>().vel.y--;
-            }
-            if (e->getComponent<CInputs>().down)
-            {
-                e->getComponent<CTransform>().vel.y++;
-            }
-            if (e->getComponent<CInputs>().left)
-            {
-                e->getComponent<CTransform>().vel.x--;
-            }
-            if (e->getComponent<CInputs>().right)
-            {
-                e->getComponent<CTransform>().vel.x++;
-            }
-
-            if (e->getComponent<CInputs>().shift)
-            {
-                e->getComponent<CTransform>().speed = 0.5*m_speed;
-            }
-            else if (e->getComponent<CInputs>().ctrl)
-            {
-                e->getComponent<CTransform>().speed = int(1.5*m_speed);
-            }
-            else
-            {
-                e->getComponent<CTransform>().speed = m_speed;
+            if (e->getComponent<CInputs>().up){
+                transform.vel.y--;
+            } if (e->getComponent<CInputs>().down){
+                transform.vel.y++;
+            } if (e->getComponent<CInputs>().left){
+                transform.vel.x--;
+            } if (e->getComponent<CInputs>().right){
+                transform.vel.x++;
+            } if (e->getComponent<CInputs>().shift){
+                transform.tempo = 0.5f;
+            } else if (e->getComponent<CInputs>().ctrl){
+                transform.tempo = 1.5f;
+            } else{
+                transform.tempo = 1.0f;
             }
         }
         
         if ( e->tag() == "Dragon"){
 
-            if (!(e->getComponent<CTransform>().vel.isnull()) && e->getComponent<CTransform>().isMovable )
-            {
-                e->getComponent<CTransform>().pos += e->getComponent<CTransform>().vel.norm(e->getComponent<CTransform>().speed/m_game->framerate());
-            }
-            if (e->getComponent<CTransform>().pos != e->getComponent<CTransform>().prevPos)
-            {
-                e->getComponent<CTransform>().isMovable = false;
+            if (!(transform.vel.isnull()) && transform.isMovable ){
+                transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
+            } if (transform.pos != transform.prevPos){
+                transform.isMovable = false;
             }
         }
-        e->getComponent<CTransform>().prevPos = e->getComponent<CTransform>().pos;
-        if (!(e->getComponent<CTransform>().vel.isnull()) && e->getComponent<CTransform>().isMovable )
-        {
-            e->getComponent<CTransform>().pos += e->getComponent<CTransform>().vel.norm(e->getComponent<CTransform>().speed/m_game->framerate());
+        transform.prevPos = transform.pos;
+        if (!(transform.vel.isnull()) && transform.isMovable ){
+            transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
         }
     }
 }
@@ -798,7 +788,11 @@ std::vector<bool> Scene_Play::neighborCheck(const std::vector<std::vector<std::s
     std::vector<std::string> friendlyPixels(1, "");
     std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
     if ( pixel == "grass" || pixel == "dirt"){
-        friendlyPixels = {"grass", "dirt", "key", "goal", "player_God", "player_Devil", "dragon"};
+        friendlyPixels = {"grass", "dirt", "key", "goal", "player_God", "player_Devil", "dragon", "water"};
+    } else if ( pixel == "water" ){
+        friendlyPixels = {"water", "bridge"};
+    } else if (pixel == "lava"){
+        friendlyPixels = {"lava", "bridge"};
     }
     else{
         friendlyPixels = {pixel};
@@ -810,6 +804,17 @@ std::vector<bool> Scene_Play::neighborCheck(const std::vector<std::vector<std::s
         if(!neighbors[3]){neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pix);}           // left
     }
     return neighbors;
+}
+
+std::vector<std::string> Scene_Play::neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
+    
+    std::vector<std::string> neighborsTags(4, "nan"); // {top, bottom, left, right}
+    if(y > 0){neighborsTags[0] = pixelMatrix[y - 1][x];}            // top
+    if(x < width - 1){neighborsTags[1] = pixelMatrix[y][x + 1];}    // right
+    if(y < height - 1){neighborsTags[2] = pixelMatrix[y + 1][x];}   // bottom
+    if(x > 0 ){neighborsTags[3] = pixelMatrix[y][x - 1];}           // left
+
+    return neighborsTags;
 }
 
 int Scene_Play::getObstacleTextureIndex(const std::vector<bool>& neighbors) {

@@ -52,6 +52,7 @@ public:
     float angle = 0;
     int speed;
     bool isMovable;
+    float tempo = 1.0f;
     CTransform() {}
     CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, bool mvbl) 
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(200), isMovable(mvbl){}

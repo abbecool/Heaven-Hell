@@ -27,7 +27,7 @@ protected:
 
     int m_currentFrame;
     bool m_paused;
-    int m_speed = 200;
+    // int m_speed = 800;
     int m_framerate = 60;
     
     void init(const std::string & config);
