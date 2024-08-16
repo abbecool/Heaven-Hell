@@ -19,6 +19,8 @@ class Scene_Play : public Scene
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
     Physics m_physics;
+    Vec2 cameraPos;
+    float cameraZoom = 1;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;

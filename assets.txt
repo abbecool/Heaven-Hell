@@ -40,7 +40,7 @@ Texture     fireball                      assets/images/fireball.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   15
-Animation   lava_ani                    lava                        3   50
+Animation   lava_ani                    lava                        3   30
 Animation   water_ani                   water_old                   3   30
 
 Animation   gras_sheet                  gras_sheet                  1   100

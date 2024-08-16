@@ -29,6 +29,8 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
+    registerAction(SDLK_PLUS, "ZOOM IN");
+    registerAction(SDLK_MINUS, "ZOOM OUT");
     registerAction(SDLK_r, "RESET");
     registerAction(SDLK_p, "PAUSE");
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
@@ -37,6 +39,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_1, "LEVEL1");
     registerAction(SDLK_2, "LEVEL2");
     registerAction(SDLK_3, "LEVEL3");
+    registerAction(SDLK_4, "LEVEL4");
     loadLevel(levelPath);
 }
 
@@ -123,11 +126,10 @@ void Scene_Play::loadLevel(std::string levelPath){
     // Lock the surface to access the pixels
     SDL_LockSurface(loadedSurface);
     Uint32* pixels = (Uint32*)loadedSurface->pixels;
-
-    const int HEIGHT_PIX = 17;
-    const int WIDTH_PIX = 30;
-    
-    std::vector<std::vector<std::string>> pixelMatrix = createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
+    const int HEIGHT_PIX = loadedSurface->h;
+    const int WIDTH_PIX = loadedSurface->w;
+    auto format = loadedSurface->format;
+    std::vector<std::vector<std::string>> pixelMatrix = createPixelMatrix(pixels, format, WIDTH_PIX, HEIGHT_PIX);
 
     // Process the pixels
     for (int y = 0; y < HEIGHT_PIX; ++y) {
@@ -172,18 +174,20 @@ void Scene_Play::loadLevel(std::string levelPath){
             }
         }
     }
+
+
     // Unlock and free the surface
     SDL_UnlockSurface(loadedSurface);
     SDL_FreeSurface(loadedSurface);
     SDL_DestroyTexture(texture);
-
+    
     m_entities.update();
     m_entities.sort();
 }
 
 void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movable){
 
-    auto entity = m_entities.addEntity("Player", (size_t)2);
+    auto entity = m_entities.addEntity("Player", (size_t)3);
     std::string tex = "devil";
     if (name == "God"){
         tex = "angelS";
@@ -194,10 +198,10 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), false);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, movable);
-    entity->addComponent<CBoundingBox>(Vec2 {32, 32});
+    entity->addComponent<CBoundingBox>(Vec2 {26, 32});
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
-    entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->addComponent<CHealth>(6, 6, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -219,11 +223,11 @@ void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
 }
 
 void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
-    auto entity = m_entities.addEntity("Dragon", (size_t)3);
+    auto entity = m_entities.addEntity("Dragon", (size_t)2);
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(ani), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
-    entity->addComponent<CHealth>(20, 20, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     entity->addComponent<CBoundingBox>(Vec2{96, 96});
 }
 
@@ -313,19 +317,22 @@ void Scene_Play::sDoAction(const Action& action) {
     if (action.type() == "START") {
         if (action.name() == "TOGGLE_TEXTURE") {
             m_drawTextures = !m_drawTextures; 
-        }
-        else if (action.name() == "TOGGLE_COLLISION") { 
+        } else if (action.name() == "TOGGLE_COLLISION") { 
             m_drawCollision = !m_drawCollision; 
-        }
-        else if (action.name() == "TOGGLE_GRID") { 
+        } else if (action.name() == "TOGGLE_GRID") { 
             m_drawDrawGrid = !m_drawDrawGrid; 
-        }
-        else if (action.name() == "PAUSE") { 
+        } else if (action.name() == "PAUSE") { 
             setPaused(!m_pause);
-        }
-        else if (action.name() == "QUIT") { 
+        } else if (action.name() == "QUIT") { 
             onEnd();
-        }
+        } else if (action.name() == "ZOOM IN"){
+            cameraZoom = cameraZoom*0.8;
+            std::cout << cameraZoom << std::endl;
+        } else if (action.name() == "ZOOM OUT"){
+            cameraZoom = cameraZoom*1.25;
+            std::cout << cameraZoom << std::endl;
+        } 
+
         else if (action.name() == "LEVEL0") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level0.png"));
         }else if (action.name() == "LEVEL1") { 
@@ -334,7 +341,10 @@ void Scene_Play::sDoAction(const Action& action) {
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level2.png"));
         }else if (action.name() == "LEVEL3") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level3.png"));
+        }else if (action.name() == "LEVEL4") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level4.png"));
         }
+        
         else if (action.name() == "RESET") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level3.png"));
         }
@@ -545,17 +555,17 @@ void Scene_Play::sCollision() {
         }
     }
 
-    for ( auto g : m_entities.getEntities("Goal") ) 
-    {
-        if ( m_physics.isCollided(m_entities.getEntities("Player")[0],g) )
-        {
-            m_entities.getEntities("Player")[0]->getComponent<CTransform>().isMovable = false;
-        }
-        else if ( m_physics.isCollided(m_entities.getEntities("Player")[1],g) )
-        {
-            m_entities.getEntities("Player")[1]->getComponent<CTransform>().isMovable = false;
-        }
-    }
+    // for ( auto g : m_entities.getEntities("Goal") ) 
+    // {
+    //     if ( m_physics.isCollided(m_entities.getEntities("Player")[0],g) )
+    //     {
+    //         m_entities.getEntities("Player")[0]->getComponent<CTransform>().isMovable = false;
+    //     }
+    //     else if ( m_physics.isCollided(m_entities.getEntities("Player")[1],g) )
+    //     {
+    //         m_entities.getEntities("Player")[1]->getComponent<CTransform>().isMovable = false;
+    //     }
+    // }
 }
 
 void Scene_Play::sStatus() {
@@ -643,8 +653,17 @@ void Scene_Play::sAnimation() {
 }
 
 void Scene_Play::sRender() {
+    // Define the screen width and height (you might want to replace these with your actual values)
+    int screenWidth = 1920;  // Width of your window
+    int screenHeight = 1080; // Height of your window
+
+    // Calculate the camera's position centered on the player
+    cameraPos = m_player->getComponent<CTransform>().pos - Vec2(screenWidth / 2, screenHeight / 2);
+
+    // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
-    SDL_RenderClear( m_game->renderer() );
+    SDL_RenderClear(m_game->renderer());
+
     if (m_drawTextures){
         for (auto e : m_entities.getEntities()){        
             if ( e->hasComponent<CTransform>() && e->hasComponent<CAnimation>()){
@@ -658,12 +677,13 @@ void Scene_Play::sRender() {
                 texRect.w = e->getComponent<CTexture>().size.x;
                 texRect.h = e->getComponent<CTexture>().size.y;
 
+                // Adjust the entity's position based on the camera position
+                Vec2 adjustedPos = transform.pos - cameraPos;
+
+                // Set the destination rectangle for rendering
                 animation.setScale(transform.scale);
-                animation.setDestRect(transform.pos - animation.getDestSize()/2);
+                animation.setDestRect(adjustedPos - animation.getDestSize()/2);
                 animation.setAngle(transform.angle);
-                if ( e->tag() == "Projectile"){
-                    // std::cout << "angle: " << animation.getAngle() << std::endl;
-                }
                 
                 if (animation.frames() == 1){
                     SDL_RenderCopyEx(
@@ -705,9 +725,12 @@ void Scene_Play::sRender() {
                                 animation = animation_empty;
                             }
 
-                            animation.setScale(Vec2 {0.5,0.5});
-                            animation.setDestRect(Vec2{e->getComponent<CTransform>().pos.x+(i-1-e->getComponent<CHealth>().HP_max/4)*animation.getSize().x*animation.getScale().x, 
-                                                    e->getComponent<CTransform>().pos.y-e->getComponent<CAnimation>().animation.getSize().y*e->getComponent<CAnimation>().animation.getScale().y/2});
+                            animation.setScale(Vec2{0.5, 0.5});
+                            animation.setDestRect(Vec2{
+                                adjustedPos.x + (i - 1 - e->getComponent<CHealth>().HP_max / 4) * animation.getSize().x * animation.getScale().x, 
+                                adjustedPos.y - e->getComponent<CAnimation>().animation.getSize().y * e->getComponent<CAnimation>().animation.getScale().y / 2
+                            });
+                            
                             SDL_RenderCopyEx(
                                 m_game->renderer(), 
                                 animation.getTexture(), 
@@ -730,9 +753,10 @@ void Scene_Play::sRender() {
                 auto& transform = e->getComponent<CTransform>();
                 auto& box = e->getComponent<CBoundingBox>();
 
+                // Adjust the collision box position based on the camera position
                 SDL_Rect collisionRect;
-                collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x);
-                collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y);
+                collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x - cameraPos.x);
+                collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y - cameraPos.y);
                 collisionRect.w = static_cast<int>(box.size.x);
                 collisionRect.h = static_cast<int>(box.size.y);
 
