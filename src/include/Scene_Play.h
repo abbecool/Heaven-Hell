@@ -23,7 +23,7 @@ class Scene_Play : public Scene
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
     const Vec2 m_gridSize = { 64, 64 };
-    int m_speed = 400;
+    int m_speed = 200;
 
     void init(const std::string&);
     void loadLevel(std::string path);

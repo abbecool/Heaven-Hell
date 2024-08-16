@@ -224,7 +224,7 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
     entity->addComponent<CHealth>(20, 20, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-    entity->addComponent<CBoundingBox>(Vec2{128, 128});
+    entity->addComponent<CBoundingBox>(Vec2{96, 96});
 }
 
 void Scene_Play::spawnBackground(const Vec2 pos, bool movable, const int frame)
@@ -304,9 +304,8 @@ void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {32, 32}, m_game->assets().getTexture("fireball"));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
     float angle = vel.angle();
-    std::cout << angle << std::endl;
-    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+vel, vel, Vec2{2, 2}, angle, 500, true);
-    entity->addComponent<CBoundingBox>(Vec2{24, 16});
+    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+vel, vel, Vec2{2, 2}, angle, 400, true);
+    entity->addComponent<CBoundingBox>(Vec2{16, 16});
     m_entities.sort();
 }
 
@@ -452,7 +451,7 @@ void Scene_Play::sMovement() {
             }
             else if (e->getComponent<CInputs>().ctrl)
             {
-                e->getComponent<CTransform>().speed = 2*m_speed;
+                e->getComponent<CTransform>().speed = int(1.5*m_speed);
             }
             else
             {
@@ -560,8 +559,10 @@ void Scene_Play::sCollision() {
 }
 
 void Scene_Play::sStatus() {
-    if ( m_player->getComponent<CHealth>().HP <= 0 ){
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level3.png"));
+    for ( auto p : m_entities.getEntities("Player") ){
+        if ( p->getComponent<CHealth>().HP <= 0 ){
+                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level3.png"));
+        }
     }
 }
 
