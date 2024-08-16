@@ -75,4 +75,4 @@ Animation   vas_hp                      vas_hp                      1   100
 Animation   right                      right                      1   100   
 Animation   golem                      golem                      1   100   
 Animation   devil                      devil                      1   100   
-Animation   fireball                      fireball                      1   100   
+Animation   fireball                      fireball                      4   15   

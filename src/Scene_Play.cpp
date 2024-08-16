@@ -305,7 +305,7 @@ void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
     float angle = vel.angle();
     std::cout << angle << std::endl;
-    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+vel, vel, Vec2{2, 2}, angle, 800, true);
+    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+vel, vel, Vec2{2, 2}, angle, 500, true);
     entity->addComponent<CBoundingBox>(Vec2{24, 16});
     m_entities.sort();
 }
