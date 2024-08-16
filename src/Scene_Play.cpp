@@ -124,6 +124,7 @@ void Scene_Play::loadLevel(std::string levelPath){
     Uint32* pixels = (Uint32*)loadedSurface->pixels;
     const int HEIGHT_PIX = loadedSurface->h;
     const int WIDTH_PIX = loadedSurface->w;
+    levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
     auto format = loadedSurface->format;
     std::vector<std::vector<std::string>> pixelMatrix = createPixelMatrix(pixels, format, WIDTH_PIX, HEIGHT_PIX);
 
@@ -334,11 +335,9 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "QUIT") { 
             onEnd();
         } else if (action.name() == "ZOOM IN"){
-            cameraZoom = cameraZoom*0.8;
-            std::cout << cameraZoom << std::endl;
-        } else if (action.name() == "ZOOM OUT"){
             cameraZoom = cameraZoom*1.25;
-            std::cout << cameraZoom << std::endl;
+        } else if (action.name() == "ZOOM OUT"){
+            cameraZoom = cameraZoom*0.8;
         } else if (action.name() == "CAMERA FOLLOW"){
             cameraFollow = !cameraFollow;
         } 
@@ -653,6 +652,10 @@ void Scene_Play::sRender() {
     // Calculate the camera's position centered on the player
     if (cameraFollow){
         cameraPos = m_player->getComponent<CTransform>().pos - Vec2(screenWidth / 2, screenHeight / 2);
+        if (cameraPos.x + (float)screenWidth > m_gridSize.x*levelSize.x){ cameraPos.x = m_gridSize.x*levelSize.x - (float)screenWidth;}     // right wall
+        if (cameraPos.x < 0){cameraPos.x = 0;}      // left wall 
+        if (cameraPos.y + (float)screenHeight > m_gridSize.y*levelSize.y){ cameraPos.y = m_gridSize.y*levelSize.y - (float)screenHeight;}     // bottom wall
+        if (cameraPos.y < 0){ cameraPos.y = 0;}     // top wall
     } else{
         cameraPos = Vec2{0,0};
     }
@@ -678,7 +681,11 @@ void Scene_Play::sRender() {
                 Vec2 adjustedPos = transform.pos - cameraPos;
 
                 // Set the destination rectangle for rendering
-                animation.setScale(transform.scale);
+                if (e->tag() == "Player"){
+                    animation.setScale(transform.scale*cameraZoom);
+                } else{
+                    animation.setScale(transform.scale);
+                }
                 animation.setDestRect(adjustedPos - animation.getDestSize()/2);
                 animation.setAngle(transform.angle);
                 

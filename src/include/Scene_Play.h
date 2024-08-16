@@ -19,6 +19,7 @@ class Scene_Play : public Scene
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
     Physics m_physics;
+    Vec2 levelSize;
     Vec2 cameraPos;
     bool cameraFollow = false;
     float cameraZoom = 1;
