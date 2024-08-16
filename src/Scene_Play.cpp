@@ -301,9 +301,12 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
 {
     auto entity = m_entities.addEntity("Projectile", (size_t)1);
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("heart_full"), true);
-    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+vel, vel, 800, true);
-    entity->addComponent<CBoundingBox>(Vec2{32, 32});
+    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {32, 32}, m_game->assets().getTexture("fireball"));
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
+    float angle = vel.angle();
+    std::cout << angle << std::endl;
+    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+vel, vel, Vec2{2, 2}, angle, 800, true);
+    entity->addComponent<CBoundingBox>(Vec2{24, 16});
     m_entities.sort();
 }
 
@@ -639,6 +642,8 @@ void Scene_Play::sAnimation() {
 }
 
 void Scene_Play::sRender() {
+    SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
+    SDL_RenderClear( m_game->renderer() );
     if (m_drawTextures){
         for (auto e : m_entities.getEntities()){        
             if ( e->hasComponent<CTransform>() && e->hasComponent<CAnimation>()){
@@ -653,12 +658,11 @@ void Scene_Play::sRender() {
                 texRect.h = e->getComponent<CTexture>().size.y;
 
                 animation.setScale(transform.scale);
-                // if ( e->id() == 213 && e->tag() == "Player"){
-                //     std::cout << "transform scale: " << transform.scale.x << std::endl;
-                //     std::cout << "ani getsize: " << e->getComponent<CAnimation>().animation.getSize().x << std::endl;
-                // }
                 animation.setDestRect(transform.pos - animation.getDestSize()/2);
                 animation.setAngle(transform.angle);
+                if ( e->tag() == "Projectile"){
+                    // std::cout << "angle: " << animation.getAngle() << std::endl;
+                }
                 
                 if (animation.frames() == 1){
                     SDL_RenderCopyEx(
@@ -666,7 +670,7 @@ void Scene_Play::sRender() {
                         animation.getTexture(), 
                         &texRect, 
                         animation.getDestRect(),
-                        0,
+                        animation.getAngle(),
                         NULL,
                         SDL_FLIP_NONE
                     );
@@ -677,15 +681,13 @@ void Scene_Play::sRender() {
                         animation.getTexture(), 
                         animation.getSrcRect(), 
                         animation.getDestRect(),
-                        0,
+                        animation.getAngle(),
                         NULL,
                         SDL_FLIP_NONE
                     );
                 } 
                 if (e->hasComponent<CHealth>()){
                     if ( e->getComponent<CHealth>().HP != e->getComponent<CHealth>().HP_max && (int)m_currentFrame - e->getComponent<CHealth>().damage_frame < e->getComponent<CHealth>().heart_frames ){
-                        std::cout << "time since: " << (int)m_currentFrame - e->getComponent<CHealth>().damage_frame << std::endl;
-                        std::cout << "heart frames: " << e->getComponent<CHealth>().heart_frames << std::endl;
                         auto& animation_full = e->getComponent<CHealth>().animation_full;
                         auto& animation_half = e->getComponent<CHealth>().animation_half;
                         auto& animation_empty = e->getComponent<CHealth>().animation_empty;
@@ -702,7 +704,7 @@ void Scene_Play::sRender() {
                                 animation = animation_empty;
                             }
 
-                            animation.setScale(Vec2 {0.35,0.35});
+                            animation.setScale(Vec2 {0.5,0.5});
                             animation.setDestRect(Vec2{e->getComponent<CTransform>().pos.x+(i-1-e->getComponent<CHealth>().HP_max/4)*animation.getSize().x*animation.getScale().x, 
                                                     e->getComponent<CTransform>().pos.y-e->getComponent<CAnimation>().animation.getSize().y*e->getComponent<CAnimation>().animation.getScale().y/2});
                             SDL_RenderCopyEx(
@@ -738,37 +740,6 @@ void Scene_Play::sRender() {
             }
         }
     }
-    // if (e->hasComponent<CHealth>()){
-        // auto& animation_full = m_player->getComponent<CHealth>().animation_full;
-        // auto& animation_half = m_player->getComponent<CHealth>().animation_half;
-        // auto& animation_empty = m_player->getComponent<CHealth>().animation_empty;
-        // Animation animation;
-        // auto hearts = float(m_player->getComponent<CHealth>().HP)/2;
-
-        // for (int i = 1; i <= m_player->getComponent<CHealth>().HP_max/2; i++)
-        // {   
-        //     if ( hearts >= i ){
-        //         animation = animation_full;
-        //     } else if ( i-hearts == 0.5f ){
-        //         animation = animation_half;
-        //     } else{
-        //         animation = animation_empty;
-        //     }
-
-        //     animation.setScale(Vec2 {1,1});
-        //     animation.setDestRect(Vec2{16+(i-1)*animation.getSize().x,16});
-        //     SDL_RenderCopyEx(
-        //         m_game->renderer(), 
-        //         animation.getTexture(), 
-        //         nullptr, 
-        //         animation.getDestRect(),
-        //         0,
-        //         NULL,
-        //         SDL_FLIP_NONE
-        //     );
-        // }
-
-    // }
 }
 
 void Scene_Play::onEnd() {

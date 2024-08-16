@@ -86,3 +86,8 @@ Vec2 Vec2::abs_elem() const
 {
     return Vec2 { std::fabs(x), std::fabs(y) };
 }
+
+float Vec2::angle() const
+{
+    return std::atan2(y, x)* 180.0f / 3.14159265358979323846;
+}

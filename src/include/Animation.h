@@ -47,7 +47,7 @@ class Animation
     void setTexture(SDL_Texture *tex);
     SDL_Point getTextureSize();
     Vec2 getDestSize();
-    // SDL_Sprite& getSprite();
+    float getAngle();
     void setCurrentFrame(size_t frame);
     size_t frames();
     };

@@ -53,12 +53,12 @@ public:
     int speed;
     bool isMovable;
     CTransform() {}
-    CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), speed(400), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v, int spd, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), speed(spd), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, bool mvbl) 
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(400), isMovable(mvbl){}
+    CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
+        : pos(p), prevPos(p), vel(v), speed(400), isMovable(mvbl){}
+    CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, int spd, bool mvbl) 
+    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
 class CBoundingBox : public Component

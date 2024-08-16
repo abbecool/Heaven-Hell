@@ -28,4 +28,5 @@ public:
     Vec2 abs_elem() const;
     Vec2 norm() const;
     Vec2 norm(const float val) const;
+    float angle() const;
 };
