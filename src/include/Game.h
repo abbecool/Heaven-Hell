@@ -14,8 +14,8 @@ typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
 class Game
 {   
 protected:
-    const int HEIGHT = 1080; 
-    const int WIDTH = 1920; 
+    const int WIDTH = 1920;
+    const int HEIGHT = 1080;
 
     SDL_Window *m_window;
     SDL_Renderer *m_renderer;
@@ -27,7 +27,6 @@ protected:
 
     int m_currentFrame;
     bool m_paused;
-    // int m_speed = 800;
     int m_framerate = 60;
     
     void init(const std::string & config);
@@ -35,16 +34,6 @@ protected:
     void setPaused(bool paused);
 
     void sUserInput();
-    // void sAnimation();
-
-    // bool isCollided(std::shared_ptr<Entity>, std::shared_ptr<Entity>);
-    // bool isStandingIn(std::shared_ptr<Entity>, std::shared_ptr<Entity>);
-    // Vec2 Overlap(std::shared_ptr<Entity>, std::shared_ptr<Entity>);
-
-    // void levelLoader(SDL_Texture * level_tex);
-    // std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
-    // std::vector<bool> neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
-    // int getObstacleTextureIndex(const std::vector<bool>& neighbors);
 
 public:
     Game(const std::string & config);

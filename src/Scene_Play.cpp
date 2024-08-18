@@ -79,8 +79,8 @@ Vec2 Scene_Play::gridToMidPixel(
             eScale.y = 1.0;
             break;
         case 32:
-            eScale.x = 2;
-            eScale.y = 2;
+            eScale.x = 2.0;
+            eScale.y = 2.0;
             break;
         case 16:
             eScale.x = 4.0;
@@ -146,11 +146,11 @@ void Scene_Play::loadLevel(std::string levelPath){
                 } else if (pixel == "dirt"){
                     spawnDirt(Vec2 {64*(float)x,64*(float)y}, textureIndex);
                 } else {
-                    if ( std::find(neighborsTags.begin(), neighborsTags.end(), "grass") != neighborsTags.end() ){
-                        spawnGrass(Vec2 {64*(float)x,64*(float)y}, getObstacleTextureIndex(neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                    } else{
+                    if ( std::find(neighborsTags.begin(), neighborsTags.end(), "dirt") != neighborsTags.end() ){
                         spawnDirt(Vec2 {64*(float)x,64*(float)y}, getObstacleTextureIndex(neighborCheck(pixelMatrix, "dirt", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                    }
+                    } else {
+                        spawnGrass(Vec2 {64*(float)x,64*(float)y}, getObstacleTextureIndex(neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                    }   
                 }
                 if (pixel == "cloud") {
                     spawnCloud(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
@@ -165,21 +165,20 @@ void Scene_Play::loadLevel(std::string levelPath){
                 } else if (pixel == "dragon") {
                     spawnDragon(Vec2 {64*(float)x,64*(float)y}, true, "snoring_dragon");
                 } else if (pixel == "lava") {
-                    spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava");
+                    spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava", textureIndex);
                 } else if (pixel == "water") {
                     spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
                 } else if (pixel == "bridge") {
                     if ( std::find(neighborsTags.begin(), neighborsTags.end(), "water") != neighborsTags.end() ){
                         spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", getObstacleTextureIndex(neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
                     } else if ( std::find(neighborsTags.begin(), neighborsTags.end(), "lava") != neighborsTags.end() ){
-                        spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background");
+                        spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", getObstacleTextureIndex(neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
                     }
                     spawnBridge(Vec2 {64*(float)x,64*(float)y}, textureIndex);
                 }
             }
         }
     }
-
 
     // Unlock and free the surface
     SDL_UnlockSurface(loadedSurface);
@@ -203,7 +202,7 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), false);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, movable);
-    entity->addComponent<CBoundingBox>(Vec2 {26, 32});
+    entity->addComponent<CBoundingBox>(Vec2 {32, 48});
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
     entity->addComponent<CHealth>(6, 6, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
@@ -282,12 +281,13 @@ void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool
     entity->addComponent<CBoundingBox>(Vec2{32, 32});
 }
 
-void Scene_Play::spawnLava(const Vec2 pos, const std::string tag)
+void Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
 {
-    auto entity = m_entities.addEntity("Lava", (size_t)8);
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("lava_ani"), true);
+    auto entity = m_entities.addEntity(tag, (size_t)8);
+    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("lava_sheet"));
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation("lava_sheet"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2{1,1}, 0, false);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
 }
 
@@ -621,7 +621,6 @@ void Scene_Play::sAnimation() {
                     break;
             }
             e->addComponent<CAnimation>(m_game->assets().getAnimation(aniName), false);
-            // e->setScale(e->getComponent<CTransform>().scale);
         }
         if (e->hasComponent<CAnimation>())
         {
@@ -681,11 +680,7 @@ void Scene_Play::sRender() {
                 Vec2 adjustedPos = transform.pos - cameraPos;
 
                 // Set the destination rectangle for rendering
-                if (e->tag() == "Player"){
-                    animation.setScale(transform.scale*cameraZoom);
-                } else{
-                    animation.setScale(transform.scale);
-                }
+                animation.setScale(transform.scale*cameraZoom);
                 animation.setDestRect(adjustedPos - animation.getDestSize()/2);
                 animation.setAngle(transform.angle);
                 

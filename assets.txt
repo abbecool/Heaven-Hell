@@ -5,43 +5,31 @@ Texture     dirt_sheet                  assets/images/dirt_sheet.png
 Texture     cloud_sheet                 assets/images/cloud_sheet.png
 Texture     m_texture_background        assets/images/gras_blomma.png
 Texture     m_texture_goal              assets/images/seven_heaven.png
-Texture     m_texture_angel             assets/images/idas_angel.png
-Texture     m_texture_devil             assets/images/idas_djavul.png
 Texture     m_texture_key               assets/images/idas_nyckel.png
-Texture     m_texture_boulder_small     assets/images/liten_sten.png
 Texture     lava                        assets/images/lava.png
-Texture     water_old                   assets/images/water.png
+Texture     lava_sheet                  assets/images/lava_sheet.png
 Texture     water                       assets/images/water_sheet.png
 Texture     bridge                      assets/images/bridge.png
 Texture     rock_wall                   assets/images/bergvagg.png
-Texture     m_texture_outofbound        assets/images/moln.png
 Texture     sleeping_dragon             assets/images/sleeping_dragon.png
 Texture     waking_dragon               assets/images/waking_dragon.png
 Texture     wizard                      assets/images/wizard.png
 Texture     chest                       assets/images/chest.png
-Texture     idas_angel_left             assets/images/idas_angel_left.png
-Texture     idas_angel_up               assets/images/idas_angel_up.png
-Texture     idas_angel_right            assets/images/idas_angel_right.png
-Texture     idas_angel_down             assets/images/idas_angel_down.png
-Texture     idas_angel_right_shoot      assets/images/idas_angel_shoot.png
 Texture     Archer_idle                 assets/images/Archer1.png
 Texture     heart_full                  assets/images/heart_full.png
 Texture     heart_half                  assets/images/heart_half.png
 Texture     heart_empty                 assets/images/heart_empty.png
-Texture     vas_hp                      assets/images/vas_hp.png
 Texture     angelS                      assets/images/angelS.png
 Texture     angelE                      assets/images/angelE.png
 Texture     angelN                      assets/images/angelN.png
 Texture     angelW                      assets/images/angelW.png
-Texture     right                      assets/images/right.png
-Texture     golem                      assets/images/golem.png
-Texture     devil                      assets/images/devil.png
-Texture     fireball                      assets/images/fireball.png
+Texture     golem                       assets/images/golem.png
+Texture     devil                       assets/images/devil.png
+Texture     fireball                    assets/images/fireball.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   15
 Animation   lava_ani                    lava                        3   30
-Animation   water_ani                   water_old                   3   30
 
 Animation   gras_sheet                  gras_sheet                  1   100
 Animation   flower_sheet                flower_sheet                1   100
@@ -49,30 +37,24 @@ Animation   dirt_sheet                  dirt_sheet                  1   100
 Animation   cloud_sheet                 cloud_sheet                 1   100
 Animation   m_texture_background        m_texture_background        1   100
 Animation   m_texture_goal              m_texture_goal              1   100
-Animation   m_texture_angel             m_texture_angel             1   100
-Animation   m_texture_devil             m_texture_devil             1   100
 Animation   m_texture_key               m_texture_key               1   100
-Animation   m_texture_boulder_small     m_texture_boulder_small     1   100
-Animation   lava                        lava                        1   100
-Animation   water_old                   water_old                   1   100
+Animation   lava_sheet                  lava_sheet                  1   100
 Animation   water                       water                       1   100
 Animation   bridge                      bridge                      1   100
 Animation   rock_wall                   rock_wall                   1   100
-Animation   m_texture_outofbound        m_texture_outofbound        1   100
 Animation   wizard                      wizard                      2   5
 Animation   tuva                        gras_tuva                   1   100
 Animation   chest                       chest                       1   100
-Animation   angelS             angelS             1   100    
-Animation   angelE               angelE               1   100      
-Animation   angelN            angelN            1   100   
-Animation   angelW             angelW             1   100    
-Animation   idas_angel_right_shoot      idas_angel_right_shoot      1   100    
-Animation   Archer_idle                 Archer_idle                 8   20   
+Animation   angelS                      angelS                      1   100    
+Animation   angelE                      angelE                      1   100      
+Animation   angelN                      angelN                      1   100   
+Animation   angelW                      angelW                      1   100    
+Animation   Archer_idle                 Archer_idle                 8   20  
+ 
 Animation   heart_full                  heart_full                  1   100   
 Animation   heart_half                  heart_half                  1   100   
-Animation   heart_empty                 heart_empty                 1   100   
-Animation   vas_hp                      vas_hp                      1   100    
-Animation   right                      right                      1   100   
-Animation   golem                      golem                      1   100   
-Animation   devil                      devil                      1   100   
-Animation   fireball                      fireball                      4   15   
+Animation   heart_empty                 heart_empty                 1   100
+  
+Animation   golem                       golem                       1   100   
+Animation   devil                       devil                       1   100   
+Animation   fireball                    fireball                    4   15   

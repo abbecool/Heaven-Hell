@@ -41,7 +41,7 @@ class Scene_Play : public Scene
     void spawnGoal(const Vec2 pos, bool movable);
     void spawnKey(const Vec2 pos, const std::string, bool movable);
     void spawnWater(const Vec2 pos, const std::string tag, const int frame );
-    void spawnLava(const Vec2 pos, const std::string tag);
+    void spawnLava(const Vec2 pos, const std::string tag, const int frame );
     void spawnBridge(const Vec2 pos, const int frame );
     void spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel);
 
