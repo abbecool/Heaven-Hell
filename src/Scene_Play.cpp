@@ -49,8 +49,15 @@ Vec2 Scene_Play::gridToMidPixel(
     float gridY, 
     std::shared_ptr<Entity> entity
 ) {
-    float offsetX, offsetY;
-    auto eSize = entity->getComponent<CAnimation>().animation.getSize();
+    // float offsetX, offsetY;
+    Vec2 offset;
+    Vec2 grid = Vec2{gridX, gridY};
+    Vec2 eSize;
+    if ( entity->hasComponent<CAnimation>() ){
+        eSize = entity->getComponent<CAnimation>().animation.getSize();
+    } else {
+        eSize = m_gridSize/2;
+    }
     
     Vec2 eScale;
     switch ((int)eSize.y) {
@@ -95,13 +102,17 @@ Vec2 Scene_Play::gridToMidPixel(
             eScale.y = 1.0;
     }
     
-    offsetX = (m_gridSize.x - eSize.x * eScale.x) / 2.0;
-    offsetY = (m_gridSize.y - eSize.y * eScale.y) / 2.0;
+    // offsetX = (m_gridSize.x - eSize.x * eScale.x) / 2.0;
+    // offsetY = (m_gridSize.y - eSize.y * eScale.y) / 2.0;
+    offset = (m_gridSize - eSize * eScale) / 2.0;
 
-    return Vec2(
-        gridX + m_gridSize.x / 2 - offsetX,
-        gridY + m_gridSize.y / 2 - offsetY
-    );
+    // return Vec2(
+    //     gridX + m_gridSize.x / 2 - offsetX,
+    //     gridY + m_gridSize.y / 2 - offsetY
+    // );
+
+    return grid + m_gridSize / 2 - offset;
+
 }
 
 void Scene_Play::loadLevel(std::string levelPath){
@@ -210,8 +221,8 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     auto entity = m_entities.addEntity("Obstacle", (size_t)9);
-    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("rock_wall"));
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("rock_wall"), true);
+    // entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("rock_wall"));
+    // entity->addComponent<CAnimation> (m_game->assets().getAnimation("rock_wall"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
     entity->addComponent<CBoundingBox>(Vec2 {64, 64});
@@ -219,8 +230,8 @@ void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
 
 void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
     auto entity = m_entities.addEntity("Obstacle", (size_t)9);
-    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("cloud_sheet"));
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("cloud_sheet"), true);
+    // entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("cloud_sheet"));
+    // entity->addComponent<CAnimation> (m_game->assets().getAnimation("cloud_sheet"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
     entity->addComponent<CBoundingBox>(Vec2 {64, 64});
@@ -240,12 +251,12 @@ void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
     auto entity = m_entities.addEntity("Background", (size_t)10);
     std::vector<int> ranArray = generateRandomArray(1, m_entities.getTotalEntities(), 0, 15);
     if (ranArray[0] == 0){
-        entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("flower_sheet"));
-        entity->addComponent<CAnimation> (m_game->assets().getAnimation("flower_sheet"), true);
+        // entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("flower_sheet"));
+        // entity->addComponent<CAnimation> (m_game->assets().getAnimation("flower_sheet"), true);
     }
     else{
-        entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("gras_sheet"));
-        entity->addComponent<CAnimation> (m_game->assets().getAnimation("gras_sheet"), true);
+        // entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("gras_sheet"));
+        // entity->addComponent<CAnimation> (m_game->assets().getAnimation("gras_sheet"), true);
     }
 
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -255,8 +266,8 @@ void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 {
     auto entity = m_entities.addEntity("Background", (size_t)10);
-    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("dirt_sheet"));
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("dirt_sheet"), true);
+    // entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("dirt_sheet"));
+    // entity->addComponent<CAnimation> (m_game->assets().getAnimation("dirt_sheet"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
 }
@@ -284,8 +295,8 @@ void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool
 void Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
 {
     auto entity = m_entities.addEntity(tag, (size_t)8);
-    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("lava_sheet"));
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("lava_sheet"), true);
+    // entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("lava_sheet"));
+    // entity->addComponent<CAnimation> (m_game->assets().getAnimation("lava_sheet"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
@@ -294,8 +305,8 @@ void Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int fram
 void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
 {
     auto entity = m_entities.addEntity(tag, (size_t)8);
-    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("water"));
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("water"), true);
+    // entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("water"));
+    // entity->addComponent<CAnimation> (m_game->assets().getAnimation("water"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
@@ -584,7 +595,7 @@ void Scene_Play::sAnimation() {
                 changePlayerStateTo(PlayerState::RUN_UP);
             }
         }
-        
+
         // // change player animation
         if (e->getComponent<CState>().changeAnimate) {
             std::string aniName;
