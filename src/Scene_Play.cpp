@@ -13,6 +13,8 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <unordered_map>
+#include <unordered_set>
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath)
     : Scene(game), m_levelPath(levelPath)
@@ -44,12 +46,7 @@ void Scene_Play::init(const std::string& levelPath) {
     loadLevel(levelPath);
 }
 
-Vec2 Scene_Play::gridToMidPixel(
-    float gridX, 
-    float gridY, 
-    std::shared_ptr<Entity> entity
-) {
-    // float offsetX, offsetY;
+Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
     Vec2 offset;
     Vec2 grid = Vec2{gridX, gridY};
     Vec2 eSize;
@@ -102,17 +99,9 @@ Vec2 Scene_Play::gridToMidPixel(
             eScale.y = 1.0;
     }
     
-    // offsetX = (m_gridSize.x - eSize.x * eScale.x) / 2.0;
-    // offsetY = (m_gridSize.y - eSize.y * eScale.y) / 2.0;
     offset = (m_gridSize - eSize * eScale) / 2.0;
 
-    // return Vec2(
-    //     gridX + m_gridSize.x / 2 - offsetX,
-    //     gridY + m_gridSize.y / 2 - offsetY
-    // );
-
     return grid + m_gridSize / 2 - offset;
-
 }
 
 void Scene_Play::loadLevel(std::string levelPath){
@@ -146,12 +135,12 @@ void Scene_Play::loadLevel(std::string levelPath){
             std::vector<bool> neighbors = neighborCheck(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
             std::vector<std::string> neighborsTags = neighborTag(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
             int textureIndex = getObstacleTextureIndex(neighbors);
+            spawnDualGrid(pixelMatrix, x, y);
 
             if (pixel == "obstacle") {
                 spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
             }
             else{
-
                 if (pixel == "grass" ) {
                     spawnGrass(Vec2 {64*(float)x,64*(float)y}, textureIndex);
                 } else if (pixel == "dirt"){
@@ -220,7 +209,7 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
-    auto entity = m_entities.addEntity("Obstacle", (size_t)9);
+    auto entity = m_entities.addEntity("Obstacle", (size_t)8);
     // entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("rock_wall"));
     // entity->addComponent<CAnimation> (m_game->assets().getAnimation("rock_wall"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -229,7 +218,7 @@ void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
 }
 
 void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
-    auto entity = m_entities.addEntity("Obstacle", (size_t)9);
+    auto entity = m_entities.addEntity("Obstacle", (size_t)8);
     // entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("cloud_sheet"));
     // entity->addComponent<CAnimation> (m_game->assets().getAnimation("cloud_sheet"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -310,6 +299,22 @@ void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int fra
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
+}
+
+void Scene_Play::spawnDualTile(const Vec2 pos, std::string tile, const int frame)
+{   
+    size_t layer = 10;
+    if (tile == "water"){layer=layer-1;}
+    if (tile == "lava"){layer=layer-1;}
+    if (tile == "cloud"){layer=layer-2;}
+    if (tile == "obstacle"){
+        layer = layer-2;
+        tile = std::string("mountain");}
+    auto entity = m_entities.addEntity("DualTile", layer);
+    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture(tile+"_dual_sheet"));
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation(tile+"_dual_sheet"), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
 }
 
 void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
@@ -817,6 +822,7 @@ std::vector<bool> Scene_Play::neighborCheck(const std::vector<std::vector<std::s
         if(!neighbors[3]){neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pix);}           // left
     }
     return neighbors;
+
 }
 
 std::vector<std::string> Scene_Play::neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
@@ -880,8 +886,6 @@ std::vector<std::vector<std::string>> Scene_Play::createPixelMatrix(Uint32* pixe
                 pixelMatrix[y][x] = "key";
             } else if ((int)r == 255 && (int)g == 255 && (int)b == 0) {
                 pixelMatrix[y][x] = "goal";
-            // } else if ((int)r == 0 && (int)g == 255 && (int)b == 255) {
-            //     pixelMatrix[y][x] = "out_of_bound_border";
             } else if ((int)r == 9 && (int)g == 88 && (int)b == 9) {
                 pixelMatrix[y][x] = "dragon";
             } else if ((int)r == 255 && (int)g == 0 && (int)b == 0) {
@@ -896,4 +900,59 @@ std::vector<std::vector<std::string>> Scene_Play::createPixelMatrix(Uint32* pixe
         }
     }
     return pixelMatrix;
+}
+
+void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y) {
+    std::vector<std::string> tileQ = std::vector<std::string>(4, "");
+    // std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
+    int textureIndex;
+    // std::cout << tileQ[2] << std::endl;
+    // std::cout << pixelMatrix[y][x] << std::endl;
+    tileQ[1] = pixelMatrix[y][x];   //Q4
+    if (x>0)        {tileQ[0] = pixelMatrix[y][x-1];}    else {tileQ[0] = tileQ[1];}  // Q3
+    if (y>0)        {tileQ[2] = pixelMatrix[y-1][x];}    else {tileQ[2] = tileQ[1];}  // Q1
+    if (x>0 && y>0) {tileQ[3] = pixelMatrix[y-1][x-1];}  else {tileQ[3] = tileQ[1];}  // Q2
+
+    std::unordered_map<std::string, std::unordered_set<std::string>> friendlyNeighbors = {
+        {"grass", {"key", "goal", "player_God", "dragon"}},
+        {"dirt", {"key", "goal", "player_Devil", "dragon"}},
+        {"lava", {"bridge"}},
+        {"water", {"bridge"}}
+    };
+            
+    for (std::string tile : {"grass", "dirt", "water", "lava", "cloud", "obstacle"})
+    {
+        std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [&](const std::string& str) {
+        // Check if the current string is a friendly neighbor for the current tile
+        if (friendlyNeighbors[tile].count(str)) {
+            return tile; // Replace it with the current tile
+        }
+        return str; // Keep the original if it's not a friendly neighbor
+        });
+
+        int numTiles = std::count(tileQ.begin(), tileQ.end(), tile);
+        if (numTiles > 0){
+            if (numTiles == 4) {
+                textureIndex = 6; // All quadrants are tiles
+            } else if (numTiles == 3) {
+                if (tileQ[0] != tile) textureIndex = 10;
+                if (tileQ[1] != tile) textureIndex = 7;
+                if (tileQ[2] != tile) textureIndex = 2;
+                if (tileQ[3] != tile) textureIndex = 5;
+            } else if (numTiles == 2) {
+                if (tileQ[0] != tile && tileQ[1] != tile) textureIndex = 9;
+                if (tileQ[1] != tile && tileQ[2] != tile) textureIndex = 11;
+                if (tileQ[2] != tile && tileQ[3] != tile) textureIndex = 3;
+                if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 1;
+                if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 4;
+                if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 14; 
+            } if (numTiles == 1) {
+                if (tileQ[0] == tile) textureIndex = 0;
+                if (tileQ[1] == tile) textureIndex = 13;
+                if (tileQ[2] == tile) textureIndex = 8;
+                if (tileQ[3] == tile) textureIndex = 15;
+            }
+            spawnDualTile(Vec2 {64*(float)x-32, 64*(float)y-32}, tile, textureIndex);
+        }
+    }
 }
