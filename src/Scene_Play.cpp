@@ -915,19 +915,35 @@ void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix
 
     std::unordered_map<std::string, std::unordered_set<std::string>> friendlyNeighbors = {
         {"grass", {"key", "goal", "player_God", "dragon"}},
-        {"dirt", {"key", "goal", "player_Devil", "dragon"}},
-        {"lava", {"bridge"}},
-        {"water", {"bridge"}}
+        {"dirt", {"key", "goal", "player_Devil", "dragon"}}
     };
             
-    for (std::string tile : {"grass", "dirt", "water", "lava", "cloud", "obstacle"})
+    for (std::string tile : {"grass", "dirt", "water", "lava", "cloud", "obstacle", "bridge"})
     {
-        std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [&](const std::string& str) {
-        // Check if the current string is a friendly neighbor for the current tile
-        if (friendlyNeighbors[tile].count(str)) {
-            return tile; // Replace it with the current tile
+        if ( std::find(tileQ.begin(), tileQ.end(), "bridge") != tileQ.end() ){
+
+            if ( std::find(tileQ.begin(), tileQ.end(), "water") != tileQ.end() ){
+                std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
+                    return (str == "bridge" ) ? "water" : str;
+                });
+            } else if ( std::find(tileQ.begin(), tileQ.end(), "lava") != tileQ.end() ){
+                    std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
+                    return (str == "bridge" ) ? "lava" : str;
+                });
+            } else {
+                std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
+                    return (str == "bridge" ) ? "" : str;
+                });
+            }
         }
-        return str; // Keep the original if it's not a friendly neighbor
+        
+         // Transform the vector based on friendly neighbors for the current tile type
+        std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [&](const std::string& str) {
+            // Check if the current string is a friendly neighbor for the current tile
+            if (friendlyNeighbors[tile].count(str)) {
+                return tile; // Replace it with the current tile
+            }
+            return str; // Keep the original if it's not a friendly neighbor
         });
 
         int numTiles = std::count(tileQ.begin(), tileQ.end(), tile);
@@ -952,7 +968,9 @@ void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix
                 if (tileQ[2] == tile) textureIndex = 8;
                 if (tileQ[3] == tile) textureIndex = 15;
             }
-            spawnDualTile(Vec2 {64*(float)x-32, 64*(float)y-32}, tile, textureIndex);
+            if (tile != ""){
+                spawnDualTile(Vec2 {64*(float)x-32, 64*(float)y-32}, tile, textureIndex);
+            }
         }
     }
 }
