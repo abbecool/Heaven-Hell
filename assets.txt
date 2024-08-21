@@ -26,12 +26,12 @@ Texture     angelW                      assets/images/angelW.png
 Texture     golem                       assets/images/golem.png
 Texture     devil                       assets/images/devil.png
 Texture     fireball                    assets/images/fireball.png
-Texture     grass_dual_sheet            assets/images/grass_dual_sheet.png
-Texture     water_dual_sheet            assets/images/water_dual_sheet.png
-Texture     mountain_dual_sheet            assets/images/mountain_dual_sheet.png
-Texture     dirt_dual_sheet            assets/images/dirt_dual_sheet.png
-Texture     cloud_dual_sheet            assets/images/cloud_dual_sheet.png
-Texture     lava_dual_sheet            assets/images/lava_dual_sheet.png
+Texture     grass_dual_sheet            assets/images/dual_sheets/grass_dual_sheet.png
+Texture     water_dual_sheet            assets/images/dual_sheets/water_dual_sheet.png
+Texture     mountain_dual_sheet         assets/images/dual_sheets/mountain_dual_sheet.png
+Texture     dirt_dual_sheet             assets/images/dual_sheets/dirt_dual_sheet.png
+Texture     cloud_dual_sheet            assets/images/dual_sheets/cloud_dual_sheet.png
+Texture     lava_dual_sheet             assets/images/dual_sheets/lava_dual_sheet.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   15
@@ -67,6 +67,6 @@ Animation   fireball                    fireball                    4   15
 Animation   grass_dual_sheet            grass_dual_sheet            1   100   
 Animation   water_dual_sheet            water_dual_sheet            1   100   
 Animation   mountain_dual_sheet         mountain_dual_sheet         1   100   
-Animation   dirt_dual_sheet         dirt_dual_sheet         1   100   
-Animation   cloud_dual_sheet         cloud_dual_sheet         1   100   
-Animation   lava_dual_sheet         lava_dual_sheet         1   100   
+Animation   dirt_dual_sheet             dirt_dual_sheet             1   100   
+Animation   cloud_dual_sheet            cloud_dual_sheet            1   100   
+Animation   lava_dual_sheet             lava_dual_sheet             1   100   

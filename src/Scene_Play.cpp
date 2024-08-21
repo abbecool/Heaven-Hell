@@ -334,7 +334,7 @@ void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
     float angle = vel.angle();
     entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+vel, vel, Vec2{2, 2}, angle, 400, true);
-    entity->addComponent<CBoundingBox>(Vec2{16, 16});
+    entity->addComponent<CBoundingBox>(Vec2{12, 12});
     m_entities.sort();
 }
 
@@ -359,19 +359,19 @@ void Scene_Play::sDoAction(const Action& action) {
         } 
 
         else if (action.name() == "LEVEL0") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level0.png"));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
         }else if (action.name() == "LEVEL1") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level1.png"));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level1.png"));
         }else if (action.name() == "LEVEL2") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level2.png"));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level2.png"));
         }else if (action.name() == "LEVEL3") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level3.png"));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
         }else if (action.name() == "LEVEL4") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level4.png"));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level4.png"));
         }
         
         else if (action.name() == "RESET") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level3.png"));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
         }
         for (auto p : m_entities.getEntities("Player")){
                 if (action.name() == "UP") {
@@ -579,7 +579,7 @@ void Scene_Play::sCollision() {
 void Scene_Play::sStatus() {
     for ( auto p : m_entities.getEntities("Player") ){
         if ( p->getComponent<CHealth>().HP <= 0 ){
-                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/level3.png"));
+                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
         }
     }
 }
@@ -909,9 +909,9 @@ void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix
     // std::cout << tileQ[2] << std::endl;
     // std::cout << pixelMatrix[y][x] << std::endl;
     tileQ[1] = pixelMatrix[y][x];   //Q4
-    if (x>0)        {tileQ[0] = pixelMatrix[y][x-1];}    else {tileQ[0] = tileQ[1];}  // Q3
-    if (y>0)        {tileQ[2] = pixelMatrix[y-1][x];}    else {tileQ[2] = tileQ[1];}  // Q1
-    if (x>0 && y>0) {tileQ[3] = pixelMatrix[y-1][x-1];}  else {tileQ[3] = tileQ[1];}  // Q2
+    if (x>0)        {tileQ[0] = pixelMatrix[y][x-1];}    else {tileQ[0] = pixelMatrix[y][x];}  // Q3
+    if (y>0)        {tileQ[2] = pixelMatrix[y-1][x];}    else {tileQ[2] = pixelMatrix[y][x];}  // Q1
+    if (x>0 && y>0) {tileQ[3] = pixelMatrix[y-1][x-1];}  else {tileQ[3] = pixelMatrix[y][x];}  // Q2
 
     std::unordered_map<std::string, std::unordered_set<std::string>> friendlyNeighbors = {
         {"grass", {"key", "goal", "player_God", "dragon"}},

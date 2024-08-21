@@ -37,7 +37,7 @@ void Game::init(const std::string & path){
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
 
     m_assets.loadFromFile(path, m_renderer);
-    changeScene("PLAY", std::make_shared<Scene_Play>(this, "assets/images/level0.png"));
+    changeScene("PLAY", std::make_shared<Scene_Play>(this, "assets/images/levels/level0.png"));
 }
 
 std::shared_ptr<Scene> Game::currentScene() {
