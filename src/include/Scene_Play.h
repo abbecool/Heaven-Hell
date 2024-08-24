@@ -21,7 +21,7 @@ class Scene_Play : public Scene
     Physics m_physics;
     Vec2 levelSize;
     Vec2 cameraPos;
-    bool cameraFollow = false;
+    bool cameraFollow = true;
     float cameraZoom = 1;
     bool m_drawTextures = true;
     bool m_drawCollision = false;

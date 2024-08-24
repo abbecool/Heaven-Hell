@@ -14,6 +14,7 @@
 // #include "Scene.cpp"
 #include "Assets.h"
 #include "Scene_Play.h"
+#include "Scene_Menu.h"
 // #include "Action.cpp"
 // #include "Animation.cpp"
 
@@ -37,7 +38,7 @@ void Game::init(const std::string & path){
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
 
     m_assets.loadFromFile(path, m_renderer);
-    changeScene("PLAY", std::make_shared<Scene_Play>(this, "assets/images/levels/level0.png"));
+    changeScene("Menu", std::make_shared<Scene_Menu>(this));
 }
 
 std::shared_ptr<Scene> Game::currentScene() {

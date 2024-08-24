@@ -32,6 +32,12 @@ Texture     mountain_dual_sheet         assets/images/dual_sheets/mountain_dual_
 Texture     dirt_dual_sheet             assets/images/dual_sheets/dirt_dual_sheet.png
 Texture     cloud_dual_sheet            assets/images/dual_sheets/cloud_dual_sheet.png
 Texture     lava_dual_sheet             assets/images/dual_sheets/lava_dual_sheet.png
+Texture     level0                      assets/images/levels/level0.png
+Texture     level1                      assets/images/levels/level1.png
+Texture     level2                      assets/images/levels/level2.png
+Texture     level3                      assets/images/levels/level3.png
+Texture     level4                      assets/images/levels/level4.png
+Texture     title_screen                assets/images/title_screen.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   15
@@ -70,3 +76,9 @@ Animation   mountain_dual_sheet         mountain_dual_sheet         1   100
 Animation   dirt_dual_sheet             dirt_dual_sheet             1   100   
 Animation   cloud_dual_sheet            cloud_dual_sheet            1   100   
 Animation   lava_dual_sheet             lava_dual_sheet             1   100   
+Animation   level0                      level0                      1   100   
+Animation   level1                      level1                      1   100   
+Animation   level2                      level2                      1   100   
+Animation   level3                      level3                      1   100   
+Animation   level4                      level4                      1   100   
+Animation   title_screen                title_screen                1   100   

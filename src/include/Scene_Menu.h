@@ -1,30 +1,58 @@
-// #pragma once
+#pragma once
 
-// #include "Game.h"
-// #include "Scene.h"
-// #include <vector>
+#include "Components.h"
+#include "Physics.h"
+#include "Scene.h"
+#include <memory>
 
-// class Game;
+class Scene_Menu : public Scene
+{
+    struct PlayerConfig
+    {
+        float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
+        std::string WEAPON; 
+    };
 
-// class Scene_Menu : public Scene
-// {
-//     protected:
+    protected:
 
-//     std::string m_title;
-//     // sf::Text m_menuText;
-//     std::vector<std::string> m_menuStrings;
-//     std::vector<std::string> m_levelPaths;
-//     // std::vector<sf::Text> m_menuItems;
-//     size_t m_selectedMenuIndex = 0;
+    std::shared_ptr<Entity> m_player;
+    std::string m_levelPath;
+    PlayerConfig m_playerConfig;
+    Physics m_physics;
+    Vec2 levelSize;
+    Vec2 cameraPos;
+    bool cameraFollow = true;
+    float cameraZoom = 1;
+    bool m_drawTextures = true;
+    bool m_drawCollision = false;
+    bool m_drawDrawGrid = false;
+    const Vec2 m_gridSize = { 64, 64 };
 
-//     void init();
-//     void update();
-//     void onEnd();
-//     void sDoAction(const Action& action);
+    void init();
+    void loadMenu();
+    Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
-//     public:
+    void spawnLevel  (const Vec2 pos, const std::string tile);
+    void spawnDualTile  (const Vec2 pos, const std::string tile, const int frame );
 
-//     Scene_Menu(Game* Game = nullptr);
-//     void sRender();
-// };
+    void sMovement();
+    void sCollision();
+    void sStatus();
+    void sAnimation();
+    void sRender();
+    
+    std::vector<bool> neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
+    std::vector<std::string> neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
+    int getObstacleTextureIndex(const std::vector<bool>& neighbors);
+    std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
+    void spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y);
+    
+    void sDoAction(const Action&);
+    void onEnd();
+    void setPaused(bool);
+    void changePlayerStateTo(PlayerState s);
 
+    public:
+    Scene_Menu(Game* game);
+    void update();
+};

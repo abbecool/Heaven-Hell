@@ -1,138 +1,474 @@
-// // #pragma once
+#include "Scene_Menu.h"
+#include "Scene_Play.h"
+#include "Sprite.h"
+#include "Assets.h"
+#include "Game.h"
+#include "Components.h"
+#include "Action.h"
 
-// #include "Scene_Menu.h"
-// #include "Scene.cpp"
-// #include "Scene_Play.h"
-// // #include "SFML/Graphics/Text.hpp"
+#include "RandomArray.h"
 
-// void Scene_Menu::init() {
-//     // registerAction(sf::Keyboard::W, "UP");
-//     // registerAction(sf::Keyboard::S, "DOWN");
-//     // registerAction(sf::Keyboard::D, "PLAY");
-//     // registerAction(sf::Keyboard::Escape, "QUIT");
+#include <SDL2/SDL_image.h>
 
-//     // m_title = "ROCKMAN BROS";
-//     // int titleSize = 30;
-//     // m_menuText.setString(m_title);
-//     // m_menuText.setFont(m_game->assets().getFont("Mario"));
-//     // m_menuText.setCharacterSize(titleSize);
-//     // m_menuText.setFillColor(sf::Color::Black);
-//     // m_menuText.setPosition(
-//     //     m_game->window().getSize().x / 2.0 
-//     //     - titleSize * (m_title.length() + 1) / 2.0,
-//     //     titleSize * 3
-//     // );
-//     // m_menuStrings.push_back("LEVEL 1");
-//     // m_menuStrings.push_back("LEVEL 2");
-//     // m_menuStrings.push_back("LEVEL 3");
-//     // m_levelPaths.push_back("config/level1.txt");
-//     // m_levelPaths.push_back("config/level2.txt");
-//     // m_levelPaths.push_back("config/level3.txt");
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <unordered_map>
+#include <unordered_set>
 
-//     // for (int i=0; i<m_menuStrings.size(); i++) {
-//     //     sf::Text text(
-//     //         m_menuStrings[i], 
-//     //         m_game->assets().getFont("Mario"), 26
-//     //     );
-//     //     if (i != m_selectedMenuIndex) {
-//     //         text.setFillColor(sf::Color::Black);
-//     //     }
-//     //     text.setPosition(
-//     //         m_game->window().getSize().x / 2.0
-//     //         - 26 * (m_menuStrings[i].length() + 1) / 2.0,
-//     //         m_menuText.getGlobalBounds().top + 10 + 30 * (i + 1)
-//     //     );
-//     //     m_menuItems.push_back(text);
-//     // }
-// }
+Scene_Menu::Scene_Menu(Game* game)
+    : Scene(game)
+{
+    init();
+}
 
-// void Scene_Menu::update() {
-//     sRender();
-// }
+void Scene_Menu::init() {
+    registerAction(SDLK_ESCAPE, "QUIT");
+    registerAction(SDLK_t, "TOGGLE_TEXTURE");
+    registerAction(SDLK_c, "TOGGLE_COLLISION");
+    registerAction(SDLK_0, "LEVEL0");
+    registerAction(SDLK_1, "LEVEL1");
+    registerAction(SDLK_2, "LEVEL2");
+    registerAction(SDLK_3, "LEVEL3");
+    registerAction(SDLK_4, "LEVEL4");
+    loadMenu();
+}
 
-// void Scene_Menu::onEnd() {
-//     m_game->quit();
-// }
-
-// Scene_Menu::Scene_Menu(Game* Game) : Scene(Game) {
-//     init();
-// }
-
-// void Scene_Menu::sRender() {
+Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
+    Vec2 offset;
+    Vec2 grid = Vec2{gridX, gridY};
+    Vec2 eSize;
+    if ( entity->hasComponent<CAnimation>() ){
+        eSize = entity->getComponent<CAnimation>().animation.getSize();
+    } else {
+        eSize = m_gridSize/2;
+    }
     
-//     SDL_RenderClear( m_game->renderer() );
+    Vec2 eScale;
+    switch ((int)eSize.y) {
+        case 270:
+            eScale.x = 0.15;
+            eScale.y = 0.18;
+            break;
+        case 225:
+            eScale.x = 0.18;
+            eScale.y = 0.18;
+            break;
+        case 192:
+            eScale.x = 1;
+            eScale.y = 1;
+            eSize.x = 64;
+            eSize.y = 64;
+            break;
+        case 128:
+            eScale.x = 2;
+            eScale.y = 2;
+            eSize.x = 32;
+            eSize.y = 32;
+            break;
+        case 64:
+            eScale.x = 1.0;
+            eScale.y = 1.0;
+            break;
+        case 32:
+            eScale.x = 2.0;
+            eScale.y = 2.0;
+            break;
+        case 16:
+            eScale.x = 4.0;
+            eScale.y = 4.0;
+            break;
+        case 24:
+            eScale.x = 2.0;
+            eScale.y = 2.0;
+            break; 
+        default:
+            eScale.x = 1.0;
+            eScale.y = 1.0;
+    }
+    
+    offset = (m_gridSize - eSize * eScale) / 2.0;
 
-//     SDL_Rect *rect;
-//     rect->x = 255;
-//     rect->y = 255;
-//     rect->w = 255;
-//     rect->h = 255;
+    return grid + m_gridSize / 2 - offset;
+}
+
+void Scene_Menu::loadMenu(){
+
+    spawnLevel(Vec2 {float(width()/2),float(height()/2)}, "title_screen");
+    // spawnDualTile(Vec2 {64*(float)5,64*(float)5}, "grass", 13);
+    // spawnDualTile(Vec2 {64*(float)6,64*(float)5}, "grass", 0);
+    // spawnDualTile(Vec2 {64*(float)5,64*(float)6}, "grass", 8);
+    // spawnDualTile(Vec2 {64*(float)6,64*(float)6}, "grass", 15);
+
+    // for (size_t i = 0; i <= 4; i++)
+    // {
+    //     spawnLevel(Vec2 {64*(float)(3+4*i),64*(float)(10)}, "level"+std::to_string(i));
+    // }
+
+    
+    m_entities.update();
+    m_entities.sort();
+}
+
+void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
+{   
+    size_t layer = 10;
+    auto entity = m_entities.addEntity("Level", layer);
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation(level), true);
+    entity->addComponent<CTexture>(pos, Vec2 {64, 64}, m_game->assets().getTexture(level));
+    // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity->getComponent<CTransform>().scale = Vec2{2.2,2.2};
+}
+
+void Scene_Menu::spawnDualTile(const Vec2 pos, std::string tile, const int frame)
+{   
+    size_t layer = 10;
+    if (tile == "water"){layer=layer-1;}
+    if (tile == "lava"){layer=layer-1;}
+    if (tile == "cloud"){layer=layer-2;}
+    if (tile == "obstacle"){
+        layer = layer-2;
+        tile = std::string("mountain");}
+    auto entity = m_entities.addEntity("DualTile", layer);
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation(tile+"_dual_sheet"), true);
+    
+    float size;
+    float scale;
+    if (entity->getComponent<CAnimation>().animation.getSize() == Vec2{64,64}){
+        size = 16;
+        scale = 1;
+    } else{
+        size = 32;
+        scale = 0.5;
+    }
+    
+    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*size, (float)(int)(frame/4)*size}, Vec2 {size, size}, m_game->assets().getTexture(tile+"_dual_sheet"));
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
+    entity->getComponent<CTransform>().scale = Vec2{scale,scale};
+}
+
+void Scene_Menu::sDoAction(const Action& action) {
+    if (action.type() == "START") {
+        if (action.name() == "TOGGLE_TEXTURE") {
+            m_drawTextures = !m_drawTextures; 
+        } else if (action.name() == "TOGGLE_COLLISION") { 
+            m_drawCollision = !m_drawCollision; 
+        } else if (action.name() == "TOGGLE_GRID") { 
+            m_drawDrawGrid = !m_drawDrawGrid; 
+        } else if (action.name() == "QUIT") { 
+            onEnd();
+        } 
+
+        else if (action.name() == "LEVEL0") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
+        }else if (action.name() == "LEVEL1") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level1.png"));
+        }else if (action.name() == "LEVEL2") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level2.png"));
+        }else if (action.name() == "LEVEL3") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
+        }else if (action.name() == "LEVEL4") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level4.png"));
+        }        
+    }
+
+    // else if (action.type() == "END") {
+    // }
+}
+
+void Scene_Menu::update() {
+    m_entities.update();
+    sAnimation();
+    sRender();
+}
+
+void Scene_Menu::sMovement() {
+    // for (auto e : m_entities.getEntities()){    
+    //     auto &transform = e->getComponent<CTransform>(); 
         
-//     SDL_SetRenderDrawColor( m_game->renderer(), 255, 255, 255, 255 );
-//     SDL_RenderFillRect( m_game->renderer(), rect );
+    // }
+}
 
-//     SDL_RenderPresent( m_game->renderer() );
+void Scene_Menu::sCollision() {
+    // for ( auto p : m_entities.getEntities() )
+    // {
+        
+    // }
+}
 
-//     // set menu background
-//     // m_game->window().clear(sf::Color(100, 100, 255));
+void Scene_Menu::sAnimation() {
+    for ( auto e : m_entities.getEntities() ){
+        if (e->hasComponent<CAnimation>())
+        {
+            e->getComponent<CAnimation>().animation.update();
+        }
+    }
+}
+
+void Scene_Menu::sRender() {
     
-//     // // draw title
-//     // m_game->window().draw(m_menuText);
+    // Clear the screen with black
+    SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
+    SDL_RenderClear(m_game->renderer());
 
-//     // // draw menu items
-//     // for (int i=0; i<m_menuStrings.size(); i++) {
-//     //     if (i != m_selectedMenuIndex) {
-//     //         m_menuItems[i].setFillColor(sf::Color::Black);
-//     //     }
-//     //     else {
-//     //         m_menuItems[i].setFillColor(sf::Color::White);
-//     //     }
+    if (m_drawTextures){
+        for (auto e : m_entities.getEntities()){        
+            if ( e->hasComponent<CTransform>() && e->hasComponent<CAnimation>()){
 
-//     //     m_menuItems[i].setPosition(
-//     //         m_game->window().getSize().x / 2.0
-//     //         - 26 * (m_menuStrings[i].length() + 1) / 2.0,
-//     //         m_menuText.getGlobalBounds().top + 10 + 30 * (i + 1)
-//     //     );
-//     //     m_game->window().draw(m_menuItems[i]);
-//     // }
+                auto& transform = e->getComponent<CTransform>();
+                auto& animation = e->getComponent<CAnimation>().animation;
 
-//     // // draw help
-//     // sf::Text help("W:UP S:DOWN D: PLAY ESC:BACK/QUIT", 
-//     //     m_game->assets().getFont("Mario"),
-//     //     26
-//     // );
-//     // help.setFillColor(sf::Color::Black);
-//     // help.setPosition(
-//     //     m_game->window().getSize().x / 2.0
-//     //     - 26 * (help.getString().getSize() + 1) / 2.0,
-//     //     m_game->window().getSize().y - 30 * 2
-//     // );
-//     // m_game->window().draw(help);
-// }
+                SDL_Rect texRect;
+                texRect.x = e->getComponent<CTexture>().pos.x;
+                texRect.y = e->getComponent<CTexture>().pos.y;
+                texRect.w = e->getComponent<CTexture>().size.x;
+                texRect.h = e->getComponent<CTexture>().size.y;
 
-// // void Scene_Menu::sDoAction(const Action& action) {
-// //     if (action.type() == "START") {
-// //         if (action.name() == "UP") {
-// //             if (m_selectedMenuIndex > 0) {
-// //                 m_selectedMenuIndex--;
-// //             }
-// //             else {
-// //                 m_selectedMenuIndex = m_menuStrings.size() - 1;
-// //             }
-// //         }
-// //         else if (action.name() == "DOWN") {
-// //             m_selectedMenuIndex = (m_selectedMenuIndex + 1) 
-// //                 % m_menuStrings.size();
-// //         }
-// //         else if (action.name() == "PLAY") {
-// //             m_game->changeScene("PLAY",
-// //                 std::make_shared<Scene_Play>(
-// //                     m_game, m_levelPaths[m_selectedMenuIndex]
-// //                 )
-// //             );
-// //         }
-// //         else if (action.name() == "QUIT") {
-// //             onEnd();
-// //         }
-// //     }
-// // }
+                // Adjust the entity's position based on the camera position
+                Vec2 adjustedPos = transform.pos;
+
+                // Set the destination rectangle for rendering
+                animation.setScale(transform.scale*cameraZoom);
+                animation.setDestRect(adjustedPos - animation.getDestSize()/2);
+                animation.setAngle(transform.angle);
+                
+                if (animation.frames() == 111){
+                    SDL_RenderCopyEx(
+                        m_game->renderer(), 
+                        animation.getTexture(), 
+                        &texRect, 
+                        animation.getDestRect(),
+                        animation.getAngle(),
+                        NULL,
+                        SDL_FLIP_NONE
+                    );
+                } 
+                else {
+                    SDL_RenderCopyEx(
+                        m_game->renderer(), 
+                        animation.getTexture(), 
+                        animation.getSrcRect(), 
+                        animation.getDestRect(),
+                        animation.getAngle(),
+                        NULL,
+                        SDL_FLIP_NONE
+                    );
+                } 
+            }
+        }
+    }
+
+    if (m_drawCollision){
+        for (auto e : m_entities.getEntities()){      
+            if ( e->hasComponent<CTransform>() && e->hasComponent<CAnimation>() ){
+                auto& transform = e->getComponent<CTransform>();
+                auto& animation = e->getComponent<CAnimation>().animation;
+
+                // Adjust the collision box position based on the camera position
+                SDL_Rect collisionRect;
+                collisionRect.x = static_cast<int>(transform.pos.x - animation.getDestRect()->w/2);
+                collisionRect.y = static_cast<int>(transform.pos.y - animation.getDestRect()->h/2);
+                collisionRect.w = static_cast<int>(animation.getDestRect()->w);
+                collisionRect.h = static_cast<int>(animation.getDestRect()->h);
+
+            SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
+                SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
+            }
+        }
+    }
+}
+
+void Scene_Menu::onEnd() {
+    m_game->quit();
+}
+
+void Scene_Menu::setPaused(bool pause) {
+    m_pause = pause;
+}
+
+void Scene_Menu::changePlayerStateTo(PlayerState s) {
+    auto& prev = m_player->getComponent<CState>().preState; 
+    if (prev != s) {
+        prev = m_player->getComponent<CState>().state;
+        m_player->getComponent<CState>().state = s; 
+        m_player->getComponent<CState>().changeAnimate = true;
+    }
+    else { 
+        m_player->getComponent<CState>().changeAnimate = false;
+    }
+}
+
+std::vector<bool> Scene_Menu::neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
+    std::vector<std::string> friendlyPixels(1, "");
+    std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
+    if ( pixel == "grass" || pixel == "dirt"){
+        friendlyPixels = {"grass", "dirt", "key", "goal", "player_God", "player_Devil", "dragon", "water"};
+    } else if ( pixel == "water" ){
+        friendlyPixels = {"water", "bridge"};
+    } else if (pixel == "lava"){
+        friendlyPixels = {"lava", "bridge"};
+    }
+    else{
+        friendlyPixels = {pixel};
+    }
+    for ( auto pix : friendlyPixels){
+        if(!neighbors[0]){neighbors[0] = (y > 0 && pixelMatrix[y - 1][x] == pix);}           // top
+        if(!neighbors[1]){neighbors[1] = (x < width - 1 && pixelMatrix[y][x + 1] == pix);}   // right
+        if(!neighbors[2]){neighbors[2] = (y < height - 1 && pixelMatrix[y + 1][x] == pix);}  // bottom
+        if(!neighbors[3]){neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pix);}           // left
+    }
+    return neighbors;
+
+}
+
+std::vector<std::string> Scene_Menu::neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
+    
+    std::vector<std::string> neighborsTags(4, "nan"); // {top, bottom, left, right}
+    if(y > 0){neighborsTags[0] = pixelMatrix[y - 1][x];}            // top
+    if(x < width - 1){neighborsTags[1] = pixelMatrix[y][x + 1];}    // right
+    if(y < height - 1){neighborsTags[2] = pixelMatrix[y + 1][x];}   // bottom
+    if(x > 0 ){neighborsTags[3] = pixelMatrix[y][x - 1];}           // left
+
+    return neighborsTags;
+}
+
+int Scene_Menu::getObstacleTextureIndex(const std::vector<bool>& neighbors) {
+    int numObstacles = std::count(neighbors.begin(), neighbors.end(), true);
+    if (numObstacles == 1) {
+        if (neighbors[0]) return 12;    // Top
+        if (neighbors[1]) return 1;     // Right
+        if (neighbors[2]) return 4;     // Bottom
+        if (neighbors[3]) return 3;     // Left
+    } else if (numObstacles == 2) {
+        if (!neighbors[0] && !neighbors[1]) return 7;  // Top & Right
+        if (!neighbors[1] && !neighbors[2]) return 15; // Right & Bottom
+        if (!neighbors[2] && !neighbors[3]) return 13; // Bottom & Left
+        if (!neighbors[3] && !neighbors[0]) return 5;  // Left & Top
+        if (!neighbors[0] && !neighbors[2]) return 2;  // Top & Bottom
+        if (!neighbors[1] && !neighbors[3]) return 8; // Right & Left
+    } else if (numObstacles == 3) {
+        if (!neighbors[0]) return 6;    // Top is not an obstacle
+        if (!neighbors[1]) return 11;   // Right is not an obstacle
+        if (!neighbors[2]) return 14;   // Bottom is not an obstacle
+        if (!neighbors[3]) return 9;    // Left is not an obstacle
+    } else if (numObstacles == 4) {
+        return 10; // All neighbors are obstacles
+    }
+    return 0; // No neighbors are obstacles
+}
+
+std::vector<std::vector<std::string>> Scene_Menu::createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height) {
+    std::vector<std::vector<std::string>> pixelMatrix(height, std::vector<std::string>(width, ""));
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            Uint32 pixel = pixels[y * width + x];
+
+            Uint8 r, g, b, a;
+            SDL_GetRGBA(pixel, format, &r, &g, &b, &a);
+
+            if ((int)r == 192 && (int)g == 192 && (int)b == 192) {
+                pixelMatrix[y][x] = "obstacle";
+            } else if ((int)r == 200 && (int)g == 240 && (int)b == 255) {
+                pixelMatrix[y][x] = "cloud";
+            } else if ((int)r == 203 && (int)g == 129 && (int)b == 56) {
+                pixelMatrix[y][x] = "dirt";
+            } else if ((int)r == 0 && (int)g == 255 && (int)b == 0) {
+                pixelMatrix[y][x] = "grass";
+            } else if ((int)r == 255 && (int)g == 255 && (int)b == 255) {
+                pixelMatrix[y][x] = "player_God";
+            } else if ((int)r == 0 && (int)g == 0 && (int)b == 0) {
+                pixelMatrix[y][x] = "player_Devil";
+            } else if ((int)r == 255 && (int)g == 0 && (int)b == 255) {
+                pixelMatrix[y][x] = "key";
+            } else if ((int)r == 255 && (int)g == 255 && (int)b == 0) {
+                pixelMatrix[y][x] = "goal";
+            } else if ((int)r == 9 && (int)g == 88 && (int)b == 9) {
+                pixelMatrix[y][x] = "dragon";
+            } else if ((int)r == 255 && (int)g == 0 && (int)b == 0) {
+                pixelMatrix[y][x] = "lava";
+            } else if ((int)r == 0 && (int)g == 0 && (int)b == 255) {
+                pixelMatrix[y][x] = "water";
+            } else if ((int)r == 179 && (int)g == 0 && (int)b == 255) {
+                pixelMatrix[y][x] = "bridge";
+            } else {
+                pixelMatrix[y][x] = "unknown";
+            }
+        }
+    }
+    return pixelMatrix;
+}
+
+void Scene_Menu::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y) {
+    std::vector<std::string> tileQ = std::vector<std::string>(4, "");
+    // std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
+    int textureIndex;
+    // std::cout << tileQ[2] << std::endl;
+    // std::cout << pixelMatrix[y][x] << std::endl;
+    tileQ[1] = pixelMatrix[y][x];   //Q4
+    if (x>0)        {tileQ[0] = pixelMatrix[y][x-1];}    else {tileQ[0] = pixelMatrix[y][x];}  // Q3
+    if (y>0)        {tileQ[2] = pixelMatrix[y-1][x];}    else {tileQ[2] = pixelMatrix[y][x];}  // Q1
+    if (x>0 && y>0) {tileQ[3] = pixelMatrix[y-1][x-1];}  else {tileQ[3] = pixelMatrix[y][x];}  // Q2
+
+    std::unordered_map<std::string, std::unordered_set<std::string>> friendlyNeighbors = {
+        {"grass", {"key", "goal", "player_God", "dragon"}},
+        {"dirt", {"key", "goal", "player_Devil", "dragon"}}
+    };
+            
+    for (std::string tile : {"grass", "dirt", "water", "lava", "cloud", "obstacle", "bridge"})
+    {
+        if ( std::find(tileQ.begin(), tileQ.end(), "bridge") != tileQ.end() ){
+
+            if ( std::find(tileQ.begin(), tileQ.end(), "water") != tileQ.end() ){
+                std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
+                    return (str == "bridge" ) ? "water" : str;
+                });
+            } else if ( std::find(tileQ.begin(), tileQ.end(), "lava") != tileQ.end() ){
+                    std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
+                    return (str == "bridge" ) ? "lava" : str;
+                });
+            } else {
+                std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
+                    return (str == "bridge" ) ? "" : str;
+                });
+            }
+        }
+        
+         // Transform the vector based on friendly neighbors for the current tile type
+        std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [&](const std::string& str) {
+            // Check if the current string is a friendly neighbor for the current tile
+            if (friendlyNeighbors[tile].count(str)) {
+                return tile; // Replace it with the current tile
+            }
+            return str; // Keep the original if it's not a friendly neighbor
+        });
+
+        int numTiles = std::count(tileQ.begin(), tileQ.end(), tile);
+        if (numTiles > 0){
+            if (numTiles == 4) {
+                textureIndex = 6; // All quadrants are tiles
+            } else if (numTiles == 3) {
+                if (tileQ[0] != tile) textureIndex = 10;
+                if (tileQ[1] != tile) textureIndex = 7;
+                if (tileQ[2] != tile) textureIndex = 2;
+                if (tileQ[3] != tile) textureIndex = 5;
+            } else if (numTiles == 2) {
+                if (tileQ[0] != tile && tileQ[1] != tile) textureIndex = 9;
+                if (tileQ[1] != tile && tileQ[2] != tile) textureIndex = 11;
+                if (tileQ[2] != tile && tileQ[3] != tile) textureIndex = 3;
+                if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 1;
+                if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 4;
+                if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 14; 
+            } if (numTiles == 1) {
+                if (tileQ[0] == tile) textureIndex = 0;
+                if (tileQ[1] == tile) textureIndex = 13;
+                if (tileQ[2] == tile) textureIndex = 8;
+                if (tileQ[3] == tile) textureIndex = 15;
+            }
+            if (tile != ""){
+                spawnDualTile(Vec2 {64*(float)x-32, 64*(float)y-32}, tile, textureIndex);
+            }
+        }
+    }
+}
