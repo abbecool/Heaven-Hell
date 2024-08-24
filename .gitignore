@@ -33,3 +33,5 @@
 
 # Test scripts
 test_*
+
+.vscode*
