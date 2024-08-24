@@ -691,13 +691,13 @@ void Scene_Play::sRender() {
 
                 // Set the destination rectangle for rendering
                 animation.setScale(transform.scale*cameraZoom);
-                if (animation.getDestSize().y != 80){
-                    animation.setDestRect(adjustedPos - animation.getDestSize()/2);
-                } else {
-                    animation.setDestRect(adjustedPos - animation.getDestSize()/2-Vec2{0,8});
-                }
-
+                animation.setDestRect(adjustedPos - animation.getDestSize()/2);
                 animation.setAngle(transform.angle);
+
+                if (e->tag() == "DualTile"){
+                    // std::cout << "w h dest rect: " << animation.getDestRect()->w << animation.getDestRect()->h << std::endl;
+                    animation.setDestSize(Vec2{(float)64, (float)64});
+                }
 
                 if (animation.frames() == 1){
                     SDL_RenderCopyEx(
@@ -943,6 +943,7 @@ void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix
         });
 
         int numTiles = std::count(tileQ.begin(), tileQ.end(), tile);
+        std::unordered_set<std::string> uniqueStrings(tileQ.begin(), tileQ.end());
         if (numTiles > 0){
             if (numTiles == 4) {
                 textureIndex = 6; // All quadrants are tiles
@@ -958,19 +959,30 @@ void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix
                 if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 1;
                 if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 4;
                 if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 14; 
-                std::unordered_set<std::string> uniqueStrings(tileQ.begin(), tileQ.end());
                 if (uniqueStrings.size() == 3 && tile == "grass"){
                     if (tileQ[0] == tile && tileQ[1] == tile) textureIndex = 19;
                     if (tileQ[1] == tile && tileQ[2] == tile) textureIndex = 17;
                     if (tileQ[2] == tile && tileQ[3] == tile) textureIndex = 16;
                     if (tileQ[3] == tile && tileQ[0] == tile) textureIndex = 18;
-
                 }
             } if (numTiles == 1) {
                 if (tileQ[0] == tile) textureIndex = 0;
                 if (tileQ[1] == tile) textureIndex = 13;
                 if (tileQ[2] == tile) textureIndex = 8;
                 if (tileQ[3] == tile) textureIndex = 15;
+                if (uniqueStrings.size() == 3 && tile == "grass"){
+                    if (tileQ[0] == tile && tileQ[2] == tileQ[3]) textureIndex = 20;
+                    if (tileQ[0] == tile && tileQ[1] == tileQ[2]) textureIndex = 25;
+
+                    if (tileQ[1] == tile && tileQ[0] == tileQ[3]) textureIndex = 23;
+                    if (tileQ[1] == tile && tileQ[2] == tileQ[3]) textureIndex = 24;
+
+                    if (tileQ[2] == tile && tileQ[0] == tileQ[1]) textureIndex = 22;
+                    if (tileQ[2] == tile && tileQ[0] == tileQ[3]) textureIndex = 27;
+
+                    if (tileQ[3] == tile && tileQ[1] == tileQ[2]) textureIndex = 21;
+                    if (tileQ[3] == tile && tileQ[0] == tileQ[1]) textureIndex = 26;
+                }
             }
             if (tile != ""){
                 spawnDualTile(Vec2 {64*(float)x-32, 64*(float)y-32}, tile, textureIndex);
@@ -978,3 +990,7 @@ void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix
         }
     }
 }
+// 1  Q4
+// 0  Q3
+// 2  Q1
+// 3  Q2
