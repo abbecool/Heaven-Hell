@@ -21,6 +21,7 @@ class Scene_Play : public Scene
     Physics m_physics;
     Vec2 levelSize;
     Vec2 cameraPos;
+    Vec2 m_mousePosition;
     bool cameraFollow = true;
     float cameraZoom = 1;
     bool m_drawTextures = true;

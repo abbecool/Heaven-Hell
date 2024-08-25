@@ -117,6 +117,7 @@ public:
     CAnimation(const Animation& animation, bool r)
                 : animation(animation), repeat(r){}
 };  
+
 class CState : public Component
 {
     public:
@@ -125,4 +126,12 @@ class CState : public Component
     bool changeAnimate = false;
     CState() {}
     CState(const PlayerState s) : state(s), preState(s) {}
+}; 
+
+class CName : public Component
+{
+    public:
+    std::string name;
+    CName() {}
+    CName(const std::string nm) : name(nm) {}
 }; 

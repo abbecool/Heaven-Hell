@@ -31,6 +31,7 @@ void Scene_Menu::init() {
     registerAction(SDLK_2, "LEVEL2");
     registerAction(SDLK_3, "LEVEL3");
     registerAction(SDLK_4, "LEVEL4");
+    registerAction(SDL_BUTTON_LEFT , "MOUSE LEFT CLICK");
     loadMenu();
 }
 
@@ -100,10 +101,10 @@ void Scene_Menu::loadMenu(){
     // spawnDualTile(Vec2 {64*(float)5,64*(float)6}, "grass", 8);
     // spawnDualTile(Vec2 {64*(float)6,64*(float)6}, "grass", 15);
 
-    // for (size_t i = 0; i <= 4; i++)
-    // {
-    //     spawnLevel(Vec2 {64*(float)(3+4*i),64*(float)(10)}, "level"+std::to_string(i));
-    // }
+    for (size_t i = 0; i <= 4; i++)
+    {
+        spawnLevel(Vec2 {64*(float)(3+4*i),64*(float)(10)}, "level"+std::to_string(i));
+    }
 
     
     m_entities.update();
@@ -119,6 +120,8 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
     // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
     entity->getComponent<CTransform>().scale = Vec2{2.2,2.2};
+    entity->addComponent<CBoundingBox>(Vec2{128,128});
+    entity->addComponent<CName>(level);
 }
 
 void Scene_Menu::spawnDualTile(const Vec2 pos, std::string tile, const int frame)
@@ -159,8 +162,7 @@ void Scene_Menu::sDoAction(const Action& action) {
             m_drawDrawGrid = !m_drawDrawGrid; 
         } else if (action.name() == "QUIT") { 
             onEnd();
-        } 
-
+        }
         else if (action.name() == "LEVEL0") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
         }else if (action.name() == "LEVEL1") { 
@@ -171,7 +173,18 @@ void Scene_Menu::sDoAction(const Action& action) {
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
         }else if (action.name() == "LEVEL4") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level4.png"));
-        }        
+        }else if (action.name() == "MOUSE LEFT CLICK") {
+            for (auto e : m_entities.getEntities("Level")){
+                auto &transform = e->getComponent<CTransform>();
+                auto &Bbox = e->getComponent<CBoundingBox>();
+                auto &name = e->getComponent<CName>().name;
+                if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
+                    if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                        m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/"+name+".png"));
+                    }
+                }
+            }
+        }   
     }
 
     // else if (action.type() == "END") {
@@ -262,18 +275,18 @@ void Scene_Menu::sRender() {
 
     if (m_drawCollision){
         for (auto e : m_entities.getEntities()){      
-            if ( e->hasComponent<CTransform>() && e->hasComponent<CAnimation>() ){
+            if ( e->hasComponent<CTransform>() && e->hasComponent<CBoundingBox>() ){
                 auto& transform = e->getComponent<CTransform>();
-                auto& animation = e->getComponent<CAnimation>().animation;
+                auto& box = e->getComponent<CBoundingBox>();
 
                 // Adjust the collision box position based on the camera position
                 SDL_Rect collisionRect;
-                collisionRect.x = static_cast<int>(transform.pos.x - animation.getDestRect()->w/2);
-                collisionRect.y = static_cast<int>(transform.pos.y - animation.getDestRect()->h/2);
-                collisionRect.w = static_cast<int>(animation.getDestRect()->w);
-                collisionRect.h = static_cast<int>(animation.getDestRect()->h);
+                collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x);
+                collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y);
+                collisionRect.w = static_cast<int>(box.size.x);
+                collisionRect.h = static_cast<int>(box.size.y);
 
-            SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
+                SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
                 SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
             }
         }

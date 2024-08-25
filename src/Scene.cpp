@@ -37,6 +37,14 @@ ActionMap& Scene::getActionMap() {
     return m_actionMap;
 }
 
+void Scene::updateMousePosition(Vec2 pos){
+    m_mousePosition = pos;
+}
+
+Vec2 Scene::getMousePosition(){
+    return m_mousePosition;
+}
+
 // void Scene::drawLine(const Vec2& p1, const Vec2& p2) {
 //     sf::Vertex line[] = {
 //         sf::Vertex(sf::Vector2f(p1.x, p1.y)),

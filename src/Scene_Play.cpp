@@ -28,6 +28,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_a, "LEFT");
     registerAction(SDLK_d, "RIGHT");
     registerAction(SDLK_SPACE, "SHOOT");
+    registerAction(SDL_BUTTON_LEFT , "SHOOT MOUSE");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
@@ -298,7 +299,7 @@ void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {32, 32}, m_game->assets().getTexture("fireball"));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
     float angle = vel.angle();
-    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos+vel, vel, Vec2{2, 2}, angle, 400, true);
+    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, angle, 400, true);
     entity->addComponent<CBoundingBox>(Vec2{12, 12});
     m_entities.sort();
 }
@@ -386,6 +387,9 @@ void Scene_Play::sDoAction(const Action& action) {
                 }
                 if (action.name() == "CTRL") {
                     p->getComponent<CInputs>().ctrl = true;
+                }
+                if (action.name() == "SHOOT MOUSE"){
+                    spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+cameraPos);
                 }
                 if (action.name() == "SHOOT") {
                     if (p->getComponent<CInputs>().canShoot) {

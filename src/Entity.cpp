@@ -12,7 +12,8 @@ Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
                     CTexture(),
                     CKey(),
                     CState(),
-                    CHealth()
+                    CHealth(),
+                    CName()
                 );
         }
 
