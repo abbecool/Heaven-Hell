@@ -94,8 +94,18 @@ Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity
 }
 
 void Scene_Menu::loadMenu(){
+    // spawnTitleScreen
+    // spawnLevel(Vec2 {float(width()/2),float(height()/2)}, "title_screen");
+    size_t layer = 10;
+    auto entity = m_entities.addEntity("Level", layer);
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation("title_screen"), true);
+    entity->addComponent<CTexture>(Vec2 {float(width()/2),float(height()/2)}, Vec2 {64, 64}, m_game->assets().getTexture("title_screen"));
+    entity->addComponent<CTransform>(Vec2 {float(width()/2),float(height()/2)},Vec2 {0, 0}, false);
+    entity->getComponent<CTransform>().scale = Vec2{2,2};
+    // entity->addComponent<CBoundingBox>(Vec2{128,128});
+    entity->addComponent<CName>("title_screen");
+    // 
 
-    spawnLevel(Vec2 {float(width()/2),float(height()/2)}, "title_screen");
     // spawnDualTile(Vec2 {64*(float)5,64*(float)5}, "grass", 13);
     // spawnDualTile(Vec2 {64*(float)6,64*(float)5}, "grass", 0);
     // spawnDualTile(Vec2 {64*(float)5,64*(float)6}, "grass", 8);
@@ -103,7 +113,7 @@ void Scene_Menu::loadMenu(){
 
     for (size_t i = 0; i <= 4; i++)
     {
-        spawnLevel(Vec2 {64*(float)(3+4*i),64*(float)(10)}, "level"+std::to_string(i));
+        spawnLevel(Vec2 {64*(float)(5+5*i),64*(float)(11)}, "level"+std::to_string(i));
     }
 
     
@@ -119,8 +129,8 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
     entity->addComponent<CTexture>(pos, Vec2 {64, 64}, m_game->assets().getTexture(level));
     // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    entity->getComponent<CTransform>().scale = Vec2{2.2,2.2};
-    entity->addComponent<CBoundingBox>(Vec2{128,128});
+    entity->getComponent<CTransform>().scale = Vec2{3,3};
+    entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize()*3);
     entity->addComponent<CName>(level);
 }
 

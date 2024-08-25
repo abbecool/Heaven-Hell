@@ -135,3 +135,14 @@ class CName : public Component
     CName() {}
     CName(const std::string nm) : name(nm) {}
 }; 
+
+class CShadow: public Component
+{
+public:
+    // SDL_Sprite sprite;
+    Animation animation;
+    size_t size;
+    CShadow() {}
+    CShadow(const Animation& animation, size_t sz)
+                : animation(animation), size(sz){}
+};  

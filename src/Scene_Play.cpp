@@ -200,13 +200,14 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     }
 
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture(tex));
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), false);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, movable);
     entity->addComponent<CBoundingBox>(Vec2 {32, 48});
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
     entity->addComponent<CHealth>(6, 6, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -230,6 +231,7 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
     entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     entity->addComponent<CBoundingBox>(Vec2{96, 96});
+    // entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
 }
 
 void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
@@ -543,14 +545,20 @@ void Scene_Play::sCollision() {
         {   
             if (m_physics.isCollided(p,o))
             {
-                p->kill();
+                if ( p->getComponent<CTransform>().isMovable ){
+                    p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
+                    p->getComponent<CTransform>().isMovable = false;
+                }
             }
         }
         for ( auto d : m_entities.getEntities("Dragon") )
         {   
             if (m_physics.isCollided(p,d))
             {
-                p->kill();
+                if ( p->getComponent<CTransform>().isMovable ){
+                    p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
+                    p->getComponent<CTransform>().isMovable = false;
+                }
                 if (d->hasComponent<CHealth>()){
                     d->takeDamage(1, m_currentFrame);
                     if ( d->getComponent<CHealth>().HP <= 0 ){
@@ -634,27 +642,18 @@ void Scene_Play::sAnimation() {
                     aniName = "angelE";
                     break;
             }
-            e->addComponent<CAnimation>(m_game->assets().getAnimation(aniName), false);
+            e->addComponent<CAnimation>(m_game->assets().getAnimation(aniName), true);
         }
-        if (e->hasComponent<CAnimation>())
-        {
-            e->getComponent<CAnimation>().animation.update();
+
+        if ( e->hasComponent<CAnimation>() ){
+            if (e->getComponent<CAnimation>().animation.hasEnded() && !e->getComponent<CAnimation>().repeat) {
+                e->kill();
+            }
+            if (e->hasComponent<CAnimation>()) {
+                e->getComponent<CAnimation>().animation.update();
+            }
         }
-        
     }
-
-
-    // for (auto e : m_entityManager.getEntities()) {
-    //     if (e->getComponent<CAnimation>().animation.hasEnded() &&
-    //         !e->getComponent<CAnimation>().repeat) {
-    //         e->destroy();
-    //     }
-    //     if (e->hasComponent<CAnimation>()) {
-    //         e->getComponent<CAnimation>().animation.update();
-    //     }
-    // }
-    // call entity->getComponent<CAnimation>().animation.update()
-    // if the animation is not repeated, and it has ended, destroy the entity
 }
 
 void Scene_Play::sRender() {
@@ -684,14 +683,33 @@ void Scene_Play::sRender() {
                 auto& transform = e->getComponent<CTransform>();
                 auto& animation = e->getComponent<CAnimation>().animation;
 
+                // Adjust the entity's position based on the camera position
+                Vec2 adjustedPos = transform.pos - cameraPos;
+
+                if ( e->hasComponent<CShadow>() ){
+                    auto& shadow = e->getComponent<CShadow>();
+
+                    // Set the destination rectangle for rendering
+                    shadow.animation.setScale(transform.scale*cameraZoom);
+                    shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
+                    shadow.animation.setAngle(transform.angle);
+
+                    SDL_RenderCopyEx(
+                            m_game->renderer(), 
+                            shadow.animation.getTexture(), 
+                            shadow.animation.getSrcRect(), 
+                            shadow.animation.getDestRect(),
+                            shadow.animation.getAngle(),
+                            NULL,
+                            SDL_FLIP_NONE
+                        );
+                } 
                 SDL_Rect texRect;
                 texRect.x = e->getComponent<CTexture>().pos.x;
                 texRect.y = e->getComponent<CTexture>().pos.y;
                 texRect.w = e->getComponent<CTexture>().size.x;
                 texRect.h = e->getComponent<CTexture>().size.y;
 
-                // Adjust the entity's position based on the camera position
-                Vec2 adjustedPos = transform.pos - cameraPos;
 
                 // Set the destination rectangle for rendering
                 animation.setScale(transform.scale*cameraZoom);
@@ -713,8 +731,7 @@ void Scene_Play::sRender() {
                         NULL,
                         SDL_FLIP_NONE
                     );
-                } 
-                else {
+                } else {
                     SDL_RenderCopyEx(
                         m_game->renderer(), 
                         animation.getTexture(), 
@@ -760,7 +777,7 @@ void Scene_Play::sRender() {
                             );
                         }
                     }
-                }   
+                }
             }
         }
     }
