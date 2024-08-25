@@ -57,6 +57,11 @@ SDL_Rect* Animation::getDestRect()
     return &m_destRect;
 }
 
+float Animation::getAngle()
+{
+    return m_angle;
+}
+
 bool Animation::hasEnded() const {
     return (m_currentFrame / m_speed) % m_frameCount == m_frameCount - 1;
 }

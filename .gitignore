@@ -33,3 +33,6 @@
 
 # Test scripts
 test_*
+
+# vsc settings
+.vscode

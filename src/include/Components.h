@@ -52,13 +52,14 @@ public:
     float angle = 0;
     int speed;
     bool isMovable;
+    float tempo = 1.0f;
     CTransform() {}
-    CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), speed(400), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v, int spd, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), speed(spd), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, bool mvbl) 
-    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(400), isMovable(mvbl){}
+    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
+    CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
+        : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
+    CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, int spd, bool mvbl) 
+    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
 class CBoundingBox : public Component
@@ -116,6 +117,7 @@ public:
     CAnimation(const Animation& animation, bool r)
                 : animation(animation), repeat(r){}
 };  
+
 class CState : public Component
 {
     public:
@@ -125,3 +127,22 @@ class CState : public Component
     CState() {}
     CState(const PlayerState s) : state(s), preState(s) {}
 }; 
+
+class CName : public Component
+{
+    public:
+    std::string name;
+    CName() {}
+    CName(const std::string nm) : name(nm) {}
+}; 
+
+class CShadow: public Component
+{
+public:
+    // SDL_Sprite sprite;
+    Animation animation;
+    size_t size;
+    CShadow() {}
+    CShadow(const Animation& animation, size_t sz)
+                : animation(animation), size(sz){}
+};  

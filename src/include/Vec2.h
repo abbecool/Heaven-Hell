@@ -14,6 +14,7 @@ public:
 
     Vec2 operator + (const Vec2 & rhs) const;
     Vec2 operator - (const Vec2 & rhs) const;
+    Vec2 operator * (const Vec2 & rhs) const;
     Vec2 operator * (const float val) const;
     Vec2 operator / (const float val) const;
 
@@ -28,4 +29,5 @@ public:
     Vec2 abs_elem() const;
     Vec2 norm() const;
     Vec2 norm(const float val) const;
+    float angle() const;
 };

@@ -21,6 +21,7 @@ class Scene
     bool m_pause = false;
     bool m_hasEnded = false;
     size_t m_currentFrame = 0;
+    Vec2 m_mousePosition;
 
     virtual void onEnd() = 0;
     void setPaused(bool paused);
@@ -45,5 +46,6 @@ class Scene
 
     bool hasEnded() const;
     ActionMap& getActionMap();
-    void drawLine(const Vec2& p1, const Vec2& p2);
-};
+
+    void updateMousePosition(Vec2 pos);
+    Vec2 getMousePosition();};

@@ -19,26 +19,34 @@ class Scene_Play : public Scene
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
     Physics m_physics;
+    Vec2 levelSize;
+    Vec2 cameraPos;
+    Vec2 m_mousePosition;
+    bool cameraFollow = true;
+    float cameraZoom = 1;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
     const Vec2 m_gridSize = { 64, 64 };
-    int m_speed = 400;
 
     void init(const std::string&);
     void loadLevel(std::string path);
     Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
-    void spawnPlayer(const Vec2 pos, const std::string name, bool movable);
-    void spawnObstacle(const Vec2 pos, bool movable, const int frame );
-    void spawnCloud(const Vec2 pos, bool movable, const int frame);
-    void spawnDragon(const Vec2 pos, bool movable, const std::string &ani);
-    void spawnBackground(const Vec2 pos, bool movable, const int frame);
-    void spawnGoal(const Vec2 pos, bool movable);
-    void spawnKey(const Vec2 pos, const std::string, bool movable);
-    void spawnLava(const Vec2 pos);
-    void spawnWater(const Vec2 pos, const int frame );
-    void spawnBridge(const Vec2 pos, const int frame );
+    void spawnPlayer    (const Vec2 pos, const std::string name, bool movable);
+    void spawnObstacle  (const Vec2 pos, bool movable, const int frame );
+    void spawnCloud     (const Vec2 pos, bool movable, const int frame);
+    void spawnCloud1    (const Vec2 pos, bool movable, const int frame);
+    void spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
+    void spawnGrass     (const Vec2 pos, const int frame);
+    void spawnDirt      (const Vec2 pos, const int frame);
+    void spawnGoal      (const Vec2 pos, bool movable);
+    void spawnKey       (const Vec2 pos, const std::string, bool movable);
+    void spawnWater     (const Vec2 pos, const std::string tag, const int frame );
+    void spawnWater1    (const Vec2 pos, const std::string tag, const int frame );
+    void spawnDualTile  (const Vec2 pos, const std::string tile, const int frame );
+    void spawnLava      (const Vec2 pos, const std::string tag, const int frame );
+    void spawnBridge    (const Vec2 pos, const int frame );
     void spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel);
 
     void sMovement();
@@ -48,8 +56,10 @@ class Scene_Play : public Scene
     void sRender();
     
     std::vector<bool> neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
+    std::vector<std::string> neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
     int getObstacleTextureIndex(const std::vector<bool>& neighbors);
     std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
+    void spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y);
     
     void sDoAction(const Action&);
     void onEnd();

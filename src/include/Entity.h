@@ -13,7 +13,9 @@ typedef std::tuple<
     CTexture,
     CKey,
     CState,
-    CHealth    
+    CHealth,    
+    CName,  
+    CShadow    
 > ComponentTuple;
 class Entity
 {
