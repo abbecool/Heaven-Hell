@@ -79,6 +79,8 @@
         "numbers": "cpp",
         "cinttypes": "cpp",
         "semaphore": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "list": "cpp",
+        "xhash": "cpp"
     }
 }

@@ -44,6 +44,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_2, "LEVEL2");
     registerAction(SDLK_3, "LEVEL3");
     registerAction(SDLK_4, "LEVEL4");
+    registerAction(SDLK_u, "SAVE");
     loadConfig("config.txt");
     loadLevel(levelPath);
 }
@@ -106,7 +107,7 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity
     return grid + m_gridSize / 2 - offset;
 }
 
-void Scene_Play::loadConfig(std::string confPath){
+void Scene_Play::loadConfig(const std::string& confPath){
     std::ifstream file(confPath);
     if (!file) {
         std::cerr << "Could not load config.txt file!\n";
@@ -125,7 +126,20 @@ void Scene_Play::loadConfig(std::string confPath){
     }
 }
 
-void Scene_Play::loadLevel(std::string levelPath){
+// Function to save the game state to a file
+void Scene_Play::saveGame(const std::string& filename) {
+    std::ofstream saveFile(filename);
+
+    if (saveFile.is_open()) {
+        saveFile << "Player_pos " << (int)(m_player->getComponent<CTransform>().pos.x/m_gridSize.x) << " " << (int)(m_player->getComponent<CTransform>().pos.y/m_gridSize.y) << std::endl;
+        saveFile.close();
+        std::cout << "Game saved successfully!" << std::endl;
+    } else {
+        std::cerr << "Unable to open file for saving!" << std::endl;
+    }
+}
+
+void Scene_Play::loadLevel(const std::string& levelPath){
 
     const char* path = levelPath.c_str();
     SDL_Surface* loadedSurface = IMG_Load(path);
@@ -210,13 +224,28 @@ void Scene_Play::loadLevel(std::string levelPath){
     m_entities.sort();
 }
 
-void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movable){
+void Scene_Play::spawnPlayer(Vec2 pos, const std::string name, bool movable){
 
     auto entity = m_entities.addEntity("Player", (size_t)3);
     std::string tex = "devil";
+    std::string pos_x;
+    std::string pos_y;
     if (name == "God"){
         tex = "angelS";
         m_player = entity;
+
+        std::ifstream file("game_save.txt");
+        if (!file) {
+            std::cerr << "Could not load game_save.txt file!\n";
+            exit(-1);
+        }
+        std::string head;
+        while (file >> head) {
+            if (head == "Player_pos") {
+                file >> pos_x >> pos_y;
+            }
+        }
+        pos = Vec2{64*std::stof(pos_x), 64*std::stof(pos_y)};
     }
 
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture(tex));
@@ -378,6 +407,8 @@ void Scene_Play::sDoAction(const Action& action) {
             cameraZoom = cameraZoom*0.8;
         } else if (action.name() == "CAMERA FOLLOW"){
             cameraFollow = !cameraFollow;
+        } else if (action.name() == "SAVE"){
+            saveGame("game_save.txt");
         } 
 
         else if (action.name() == "LEVEL0") { 

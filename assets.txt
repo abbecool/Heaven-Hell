@@ -85,4 +85,4 @@ Animation   level3                      level3                      1   100
 Animation   level4                      level4                      1   100
 Animation   title_screen                title_screen                1   100
 Animation   shadow                      shadow                      1   100
-Animation   fireball_explode            fireball_explode            3   5
+Animation   fireball_explode            fireball_explode            3   5   

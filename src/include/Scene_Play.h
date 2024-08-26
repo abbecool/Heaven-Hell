@@ -30,8 +30,9 @@ class Scene_Play : public Scene
     const Vec2 m_gridSize = { 64, 64 };
 
     void init(const std::string&);
-    void loadLevel(std::string path);
-    void loadConfig(std::string path);
+    void loadLevel(const std::string& path);
+    void loadConfig(const std::string& path);
+    void saveGame(const std::string& filename);
     Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
     void spawnPlayer    (const Vec2 pos, const std::string name, bool movable);
