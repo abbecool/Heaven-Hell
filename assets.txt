@@ -42,7 +42,7 @@ Texture     shadow                      assets/images/shadow.png
 Texture     fireball_explode            assets/images/fireball_explode.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
-Animation   waking_dragon               waking_dragon               7   15
+Animation   waking_dragon               waking_dragon               7   20
 Animation   lava_ani                    lava                        3   30
 
 Animation   gras_sheet                  gras_sheet                  1   100
@@ -85,4 +85,4 @@ Animation   level3                      level3                      1   100
 Animation   level4                      level4                      1   100   
 Animation   title_screen                title_screen                1   100   
 Animation   shadow                      shadow                      1   100   
-Animation   fireball_explode            fireball_explode            9   3   
+Animation   fireball_explode            fireball_explode            3   10 

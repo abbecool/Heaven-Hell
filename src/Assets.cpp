@@ -38,7 +38,7 @@ const Animation& Assets::getAnimation(const std::string& name) const {
 void Assets::loadFromFile(const std::string & path, SDL_Renderer * ren) {
     std::ifstream file(path);
     if (!file) {
-        std::cerr << "Could not load config.txt file!\n";
+        std::cerr << "Could not load assets.txt file!\n";
         exit(-1);
     }
     std::string head;

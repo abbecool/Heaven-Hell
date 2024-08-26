@@ -44,6 +44,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_2, "LEVEL2");
     registerAction(SDLK_3, "LEVEL3");
     registerAction(SDLK_4, "LEVEL4");
+    loadConfig("config.txt");
     loadLevel(levelPath);
 }
 
@@ -103,6 +104,25 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity
     offset = (m_gridSize - eSize * eScale) / 2.0;
 
     return grid + m_gridSize / 2 - offset;
+}
+
+void Scene_Play::loadConfig(std::string confPath){
+    std::ifstream file(confPath);
+    if (!file) {
+        std::cerr << "Could not load config.txt file!\n";
+        exit(-1);
+    }
+    std::string head;
+    while (file >> head) {
+        if (head == "Player") {
+            file >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.HP >> m_playerConfig.DAMAGE;           
+        }
+        else {
+            std::cerr << "head to " << head << "\n";
+            std::cerr << "The config file format is incorrect!\n";
+            exit(-1);
+        }
+    }
 }
 
 void Scene_Play::loadLevel(std::string levelPath){
@@ -202,12 +222,13 @@ void Scene_Play::spawnPlayer(const Vec2 pos, const std::string name, bool movabl
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture(tex));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, movable);
+    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, m_playerConfig.SPEED, movable);
     entity->addComponent<CBoundingBox>(Vec2 {32, 48});
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
-    entity->addComponent<CHealth>(6, 6, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->addComponent<CHealth>(m_playerConfig.HP, m_playerConfig.HP, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+    entity->addComponent<CDamage>(m_playerConfig.DAMAGE, 6); // damage speed 6 = frames between attacking
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -231,7 +252,9 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
     entity->addComponent<CHealth>(10, 10, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     entity->addComponent<CBoundingBox>(Vec2{96, 96});
-    // entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+    entity->addComponent<CDamage>(2, 30);
+
 }
 
 void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
@@ -303,6 +326,7 @@ void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
     float angle = vel.angle();
     entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, angle, 400, true);
     entity->addComponent<CBoundingBox>(Vec2{12, 12});
+    entity->addComponent<CDamage>(player->getComponent<CDamage>().damage, player->getComponent<CDamage>().speed); // damage speed 6 = frames between attacking
     m_entities.sort();
 }
 
@@ -511,9 +535,11 @@ void Scene_Play::sCollision() {
         {   
             if (m_physics.isCollided(p,d))
             {
-                p->movePosition(m_physics.Overlap(p,d)*15);
-                p->takeDamage(1, m_currentFrame);
-                d->getComponent<CAnimation>().animation = m_game->assets().getAnimation("waking_dragon");
+                if (d->hasComponent<CDamage>()){
+                    p->movePosition(m_physics.Overlap(p,d)*15);
+                    p->takeDamage(d->getComponent<CDamage>().damage, m_currentFrame);
+                    d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
+                }
             }
         }
         for ( auto k : m_entities.getEntities("Key") )
@@ -555,15 +581,17 @@ void Scene_Play::sCollision() {
         {   
             if (m_physics.isCollided(p,d))
             {
+                if (d->hasComponent<CHealth>() && p->hasComponent<CDamage>()){
+                    d->takeDamage(p->getComponent<CDamage>().damage, m_currentFrame);
+                    d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
+                }
                 if ( p->getComponent<CTransform>().isMovable ){
                     p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
                     p->getComponent<CTransform>().isMovable = false;
+                    p->removeComponent<CDamage>();
                 }
-                if (d->hasComponent<CHealth>()){
-                    d->takeDamage(1, m_currentFrame);
-                    if ( d->getComponent<CHealth>().HP <= 0 ){
-                        d->kill();
-                    }
+                if ( d->getComponent<CHealth>().HP <= 0 ){
+                    d->kill();
                 }
             }
         }
@@ -591,63 +619,64 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
+    if( m_player->getComponent<CTransform>().vel.x > 0 ) {
+        changePlayerStateTo(PlayerState::RUN_RIGHT);
+    }
+    else if(m_player->getComponent<CTransform>().vel.x < 0) {
+        changePlayerStateTo(PlayerState::RUN_LEFT);
+    }
+    else if(m_player->getComponent<CTransform>().vel.y > 0) {
+        changePlayerStateTo(PlayerState::RUN_DOWN);
+    }
+    else if(m_player->getComponent<CTransform>().vel.y < 0) {
+        changePlayerStateTo(PlayerState::RUN_UP);
+    }
+
+    // // change player animation
+    if (m_player->getComponent<CState>().changeAnimate) {
+        std::string aniName;
+        switch (m_player->getComponent<CState>().state) {
+            case PlayerState::STAND:
+                aniName = "angelS";
+                break;
+            case PlayerState::RUN_RIGHT:
+                aniName = "angelE";
+                break;
+            case PlayerState::RUN_DOWN:
+                aniName = "angelS";
+                break;
+            case PlayerState::RUN_LEFT:
+                aniName = "angelW";
+                break;
+            case PlayerState::RUN_UP:
+                aniName = "angelN";
+                break;
+            case PlayerState::RUN_RIGHT_DOWN:
+                aniName = "right_down";
+                break;
+            case PlayerState::RUN_LEFT_DOWN:
+                aniName = "left_down";
+                break;
+            case PlayerState::RUN_LEFT_UP:
+                aniName = "left_up";
+                break;
+            case PlayerState::RUN_RIGHT_UP:
+                aniName = "right_up";
+                break;
+            case PlayerState::RIGHT_SHOOT:
+                aniName = "angelE";
+                break;
+        }
+        m_player->addComponent<CAnimation>(m_game->assets().getAnimation(aniName), true);
+    }
     for ( auto e : m_entities.getEntities() ){
-        if (e->tag() == "Player"){
-            if( e->getComponent<CTransform>().vel.x > 0 ) {
-                changePlayerStateTo(PlayerState::RUN_RIGHT);
-            }
-            else if(e->getComponent<CTransform>().vel.x < 0) {
-                changePlayerStateTo(PlayerState::RUN_LEFT);
-            }
-            else if(e->getComponent<CTransform>().vel.y > 0) {
-                changePlayerStateTo(PlayerState::RUN_DOWN);
-            }
-            else if(e->getComponent<CTransform>().vel.y < 0) {
-                changePlayerStateTo(PlayerState::RUN_UP);
-            }
-        }
-
-        // // change player animation
-        if (e->getComponent<CState>().changeAnimate) {
-            std::string aniName;
-            switch (e->getComponent<CState>().state) {
-                case PlayerState::STAND:
-                    aniName = "angelS";
-                    break;
-                case PlayerState::RUN_RIGHT:
-                    aniName = "angelE";
-                    break;
-                case PlayerState::RUN_DOWN:
-                    aniName = "angelS";
-                    break;
-                case PlayerState::RUN_LEFT:
-                    aniName = "angelW";
-                    break;
-                case PlayerState::RUN_UP:
-                    aniName = "angelN";
-                    break;
-                case PlayerState::RUN_RIGHT_DOWN:
-                    aniName = "right_down";
-                    break;
-                case PlayerState::RUN_LEFT_DOWN:
-                    aniName = "left_down";
-                    break;
-                case PlayerState::RUN_LEFT_UP:
-                    aniName = "left_up";
-                    break;
-                case PlayerState::RUN_RIGHT_UP:
-                    aniName = "right_up";
-                    break;
-                case PlayerState::RIGHT_SHOOT:
-                    aniName = "angelE";
-                    break;
-            }
-            e->addComponent<CAnimation>(m_game->assets().getAnimation(aniName), true);
-        }
-
         if ( e->hasComponent<CAnimation>() ){
             if (e->getComponent<CAnimation>().animation.hasEnded() && !e->getComponent<CAnimation>().repeat) {
-                e->kill();
+                if (e->tag() == "Dragon") {
+                    e->addComponent<CAnimation>(m_game->assets().getAnimation("snoring_dragon"), true);
+                } else {
+                    e->kill();
+                }
             }
             if (e->hasComponent<CAnimation>()) {
                 e->getComponent<CAnimation>().animation.update();

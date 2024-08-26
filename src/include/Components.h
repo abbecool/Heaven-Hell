@@ -58,7 +58,7 @@ public:
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
         : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, int spd, bool mvbl) 
+    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, int spd, bool mvbl) 
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
@@ -146,3 +146,11 @@ public:
     CShadow(const Animation& animation, size_t sz)
                 : animation(animation), size(sz){}
 };  
+
+class CDamage : public Component
+{
+    public:
+    int damage, speed;
+    CDamage() {}
+    CDamage(int dmg, int spd) : damage(dmg), speed(spd) {}
+}; 

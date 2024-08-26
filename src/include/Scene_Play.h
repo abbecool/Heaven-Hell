@@ -9,8 +9,8 @@ class Scene_Play : public Scene
 {
     struct PlayerConfig
     {
-        float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
-        std::string WEAPON; 
+        float SPEED, MAXSPEED;
+        int HP, DAMAGE;
     };
 
     protected:
@@ -31,6 +31,7 @@ class Scene_Play : public Scene
 
     void init(const std::string&);
     void loadLevel(std::string path);
+    void loadConfig(std::string path);
     Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
     void spawnPlayer    (const Vec2 pos, const std::string name, bool movable);
