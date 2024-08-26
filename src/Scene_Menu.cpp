@@ -105,18 +105,11 @@ void Scene_Menu::loadMenu(){
     // entity->addComponent<CBoundingBox>(Vec2{128,128});
     entity->addComponent<CName>("title_screen");
     // 
-
-    // spawnDualTile(Vec2 {64*(float)5,64*(float)5}, "grass", 13);
-    // spawnDualTile(Vec2 {64*(float)6,64*(float)5}, "grass", 0);
-    // spawnDualTile(Vec2 {64*(float)5,64*(float)6}, "grass", 8);
-    // spawnDualTile(Vec2 {64*(float)6,64*(float)6}, "grass", 15);
-
     for (size_t i = 0; i <= 4; i++)
     {
         spawnLevel(Vec2 {64*(float)(5+5*i),64*(float)(11)}, "level"+std::to_string(i));
     }
 
-    
     m_entities.update();
     m_entities.sort();
 }

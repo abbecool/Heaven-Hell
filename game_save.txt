@@ -1,1 +1,1 @@
-Player_pos 5 5
+Player_pos 7 12

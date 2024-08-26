@@ -40,6 +40,8 @@ Texture     level4                      assets/images/levels/level4.png
 Texture     title_screen                assets/images/title_screen.png
 Texture     shadow                      assets/images/shadow.png
 Texture     fireball_explode            assets/images/fireball_explode.png
+Texture     wizIdle                     assets/images/wizIdle.png
+Texture     wizWalkS                    assets/images/wizWalkS.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   20
@@ -86,3 +88,5 @@ Animation   level4                      level4                      1   100
 Animation   title_screen                title_screen                1   100
 Animation   shadow                      shadow                      1   100
 Animation   fireball_explode            fireball_explode            3   5   
+Animation   wizIdle                     wizIdle                     4   20   
+Animation   wizWalkS                    wizWalkS                    4   5   

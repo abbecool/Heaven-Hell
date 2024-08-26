@@ -650,16 +650,15 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
-    if( m_player->getComponent<CTransform>().vel.x > 0 ) {
+    if( m_player->getComponent<CTransform>().vel.isnull() ) {
+        changePlayerStateTo(PlayerState::STAND);
+    } else if( m_player->getComponent<CTransform>().vel.x > 0 ) {
         changePlayerStateTo(PlayerState::RUN_RIGHT);
-    }
-    else if(m_player->getComponent<CTransform>().vel.x < 0) {
+    } else if(m_player->getComponent<CTransform>().vel.x < 0) {
         changePlayerStateTo(PlayerState::RUN_LEFT);
-    }
-    else if(m_player->getComponent<CTransform>().vel.y > 0) {
+    } else if(m_player->getComponent<CTransform>().vel.y > 0) {
         changePlayerStateTo(PlayerState::RUN_DOWN);
-    }
-    else if(m_player->getComponent<CTransform>().vel.y < 0) {
+    } else if(m_player->getComponent<CTransform>().vel.y < 0) {
         changePlayerStateTo(PlayerState::RUN_UP);
     }
 
@@ -668,13 +667,13 @@ void Scene_Play::sAnimation() {
         std::string aniName;
         switch (m_player->getComponent<CState>().state) {
             case PlayerState::STAND:
-                aniName = "angelS";
+                aniName = "wizIdle";
                 break;
             case PlayerState::RUN_RIGHT:
                 aniName = "angelE";
                 break;
             case PlayerState::RUN_DOWN:
-                aniName = "angelS";
+                aniName = "wizWalkS";
                 break;
             case PlayerState::RUN_LEFT:
                 aniName = "angelW";
