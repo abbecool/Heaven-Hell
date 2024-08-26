@@ -98,17 +98,19 @@ void Scene_Menu::loadMenu(){
     // spawnLevel(Vec2 {float(width()/2),float(height()/2)}, "title_screen");
     size_t layer = 10;
     auto entity = m_entities.addEntity("Level", layer);
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("title_screen"), true);
-    entity->addComponent<CTexture>(Vec2 {float(width()/2),float(height()/2)}, Vec2 {64, 64}, m_game->assets().getTexture("title_screen"));
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true);
     entity->addComponent<CTransform>(Vec2 {float(width()/2),float(height()/2)},Vec2 {0, 0}, false);
-    entity->getComponent<CTransform>().scale = Vec2{2,2};
-    // entity->addComponent<CBoundingBox>(Vec2{128,128});
+    entity->getComponent<CTransform>().scale = Vec2{1, 1};
     entity->addComponent<CName>("title_screen");
-    // 
-    for (size_t i = 0; i <= 4; i++)
-    {
-        spawnLevel(Vec2 {64*(float)(5+5*i),64*(float)(11)}, "level"+std::to_string(i));
-    }
+
+    layer = 9;
+    entity = m_entities.addEntity("Level", layer);
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true);
+    entity->addComponent<CTransform>(Vec2 {float(64*20),float(64*3)},Vec2 {0, 0}, false);
+    entity->getComponent<CTransform>().scale = Vec2{1, 1};
+    entity->addComponent<CName>("game_title");
+
+    spawnButton(Vec2 {64*(float)(3),64*(float)(9)});
 
     m_entities.update();
     m_entities.sort();
@@ -119,12 +121,23 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
     size_t layer = 10;
     auto entity = m_entities.addEntity("Level", layer);
     entity->addComponent<CAnimation> (m_game->assets().getAnimation(level), true);
-    entity->addComponent<CTexture>(pos, Vec2 {64, 64}, m_game->assets().getTexture(level));
-    // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
     entity->getComponent<CTransform>().scale = Vec2{3,3};
     entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize()*3);
     entity->addComponent<CName>(level);
+}
+
+void Scene_Menu::spawnButton(const Vec2 pos)
+{   
+    size_t layer = 10;
+    auto entity = m_entities.addEntity("Button", layer);
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation("button_unpressed"), true);
+    // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity->getComponent<CTransform>().scale = Vec2{2,2};
+    entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize()*2);
+    entity->addComponent<CName>("play button");
 }
 
 void Scene_Menu::spawnDualTile(const Vec2 pos, std::string tile, const int frame)
@@ -177,21 +190,31 @@ void Scene_Menu::sDoAction(const Action& action) {
         }else if (action.name() == "LEVEL4") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level4.png"));
         }else if (action.name() == "MOUSE LEFT CLICK") {
-            for (auto e : m_entities.getEntities("Level")){
+            for (auto e : m_entities.getEntities("Button")){
                 auto &transform = e->getComponent<CTransform>();
                 auto &Bbox = e->getComponent<CBoundingBox>();
-                auto &name = e->getComponent<CName>().name;
                 if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
-                        m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/"+name+".png"));
+                        e->addComponent<CAnimation>(m_game->assets().getAnimation("button_pressed"), true);
                     }
                 }
             }
         }   
     }
 
-    // else if (action.type() == "END") {
-    // }
+    else if (action.type() == "END") {
+        if (action.name() == "MOUSE LEFT CLICK") {
+            for (auto e : m_entities.getEntities("Button")){
+                auto &transform = e->getComponent<CTransform>();
+                auto &Bbox = e->getComponent<CBoundingBox>();
+                if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
+                    if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                        m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
+                    }
+                }
+            }
+        }   
+    }
 }
 
 void Scene_Menu::update() {

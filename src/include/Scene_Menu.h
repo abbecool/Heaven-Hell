@@ -32,8 +32,9 @@ class Scene_Menu : public Scene
     void loadMenu();
     Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
-    void spawnLevel  (const Vec2 pos, const std::string tile);
-    void spawnDualTile  (const Vec2 pos, const std::string tile, const int frame );
+    void spawnButton(const Vec2 pos);
+    void spawnLevel(const Vec2 pos, const std::string tile);
+    void spawnDualTile(const Vec2 pos, const std::string tile, const int frame );
 
     void sMovement();
     void sCollision();

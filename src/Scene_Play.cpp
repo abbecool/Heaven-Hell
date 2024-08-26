@@ -304,11 +304,10 @@ void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
 {
     auto entity = m_entities.addEntity("Goal", (size_t)4);
-    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64,64}, m_game->assets().getTexture("m_texture_goal"));
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("m_texture_goal"), true);
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation("checkpoint_idle"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2{1,1}, 0, movable);
-    entity->addComponent<CBoundingBox>(Vec2{64, 64});
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2{4,4}, 0, movable);
+    entity->addComponent<CBoundingBox>(Vec2{32, 32});
 }
 
 void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool movable)
@@ -424,7 +423,7 @@ void Scene_Play::sDoAction(const Action& action) {
         }
         
         else if (action.name() == "RESET") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
         }
         for (auto p : m_entities.getEntities("Player")){
                 if (action.name() == "UP") {
@@ -555,6 +554,13 @@ void Scene_Play::sMovement() {
 void Scene_Play::sCollision() {
     for ( auto p : m_entities.getEntities("Player") )
     {
+        for ( auto g : m_entities.getEntities("Goal") )
+        {   
+            if (m_physics.isCollided(p,g))
+            {
+                g->addComponent<CAnimation>(m_game->assets().getAnimation("checkpoint_wave"), true);
+            }
+        }
         for ( auto o : m_entities.getEntities("Obstacle") )
         {   
             if (m_physics.isCollided(p,o))
@@ -670,16 +676,16 @@ void Scene_Play::sAnimation() {
                 aniName = "wizIdle";
                 break;
             case PlayerState::RUN_RIGHT:
-                aniName = "angelE";
+                aniName = "wizWalkE";
                 break;
             case PlayerState::RUN_DOWN:
                 aniName = "wizWalkS";
                 break;
             case PlayerState::RUN_LEFT:
-                aniName = "angelW";
+                aniName = "wizWalkW";
                 break;
             case PlayerState::RUN_UP:
-                aniName = "angelN";
+                aniName = "wizWalkN";
                 break;
             case PlayerState::RUN_RIGHT_DOWN:
                 aniName = "right_down";
@@ -776,7 +782,6 @@ void Scene_Play::sRender() {
                 animation.setAngle(transform.angle);
 
                 if (e->tag() == "DualTile"){
-                    // std::cout << "w h dest rect: " << animation.getDestRect()->w << animation.getDestRect()->h << std::endl;
                     animation.setDestSize(Vec2{(float)64, (float)64});
                 }
 

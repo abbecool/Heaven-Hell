@@ -42,6 +42,15 @@ Texture     shadow                      assets/images/shadow.png
 Texture     fireball_explode            assets/images/fireball_explode.png
 Texture     wizIdle                     assets/images/wizIdle.png
 Texture     wizWalkS                    assets/images/wizWalkS.png
+Texture     wizWalkE                    assets/images/wizWalkE.png
+Texture     wizWalkN                    assets/images/wizWalkN.png
+Texture     wizWalkW                    assets/images/wizWalkW.png
+Texture     level0_screenshot           assets/images/level0_screenshot.png
+Texture     button_unpressed            assets/images/button_unpressed.png
+Texture     button_pressed              assets/images/button_pressed.png
+Texture     game_title                  assets/images/game_title.png
+Texture     checkpoint_idle             assets/images/checkpoint_idle.png
+Texture     checkpoint_wave             assets/images/checkpoint_wave.png
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   20
@@ -89,4 +98,15 @@ Animation   title_screen                title_screen                1   100
 Animation   shadow                      shadow                      1   100
 Animation   fireball_explode            fireball_explode            3   5   
 Animation   wizIdle                     wizIdle                     4   20   
-Animation   wizWalkS                    wizWalkS                    4   5   
+Animation   wizWalkS                    wizWalkS                    4   10   
+Animation   wizWalkE                    wizWalkE                    4   10   
+Animation   wizWalkN                    wizWalkN                    4   10   
+Animation   wizWalkW                    wizWalkW                    4   10   
+Animation   level0_screenshot           level0_screenshot           1   100
+Animation   button_unpressed            button_unpressed            1   100
+Animation   button_pressed              button_pressed              1   100
+Animation   game_title                  game_title                  1   100
+Animation   checkpoint_idle             checkpoint_idle             3   20
+Animation   checkpoint_wave             checkpoint_wave             3   20
+
+
