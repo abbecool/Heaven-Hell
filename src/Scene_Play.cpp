@@ -16,8 +16,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-Scene_Play::Scene_Play(Game* game, std::string levelPath)
-    : Scene(game), m_levelPath(levelPath)
+Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
+    : Scene(game), m_levelPath(levelPath), m_newGame(newGame)
 {
     init(m_levelPath);
 }
@@ -113,7 +113,7 @@ void Scene_Play::loadConfig(const std::string& confPath){
     std::string head;
     while (file >> head) {
         if (head == "Player") {
-            file >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.HP >> m_playerConfig.DAMAGE;           
+            file >> m_playerConfig.x >> m_playerConfig.y >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.HP >> m_playerConfig.DAMAGE;           
         }
         else {
             std::cerr << "head to " << head << "\n";
@@ -129,8 +129,8 @@ void Scene_Play::saveGame(const std::string& filename) {
 
     if (saveFile.is_open()) {
         saveFile << "Player_pos " << (int)(m_player->getComponent<CTransform>().pos.x/m_gridSize.x) << " " << (int)(m_player->getComponent<CTransform>().pos.y/m_gridSize.y) << std::endl;
+        saveFile << "Player_hp " << m_player->getComponent<CHealth>().HP << std::endl;
         saveFile.close();
-        std::cout << "Game saved successfully!" << std::endl;
     } else {
         std::cerr << "Unable to open file for saving!" << std::endl;
     }
@@ -160,6 +160,12 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     auto format = loadedSurface->format;
     std::vector<std::vector<std::string>> pixelMatrix = createPixelMatrix(pixels, format, WIDTH_PIX, HEIGHT_PIX);
 
+    // Unlock and free the surface
+    SDL_UnlockSurface(loadedSurface);
+    SDL_FreeSurface(loadedSurface);
+    SDL_DestroyTexture(texture);
+
+
     // Process the pixels
     for (int y = 0; y < HEIGHT_PIX; ++y) {
         for (int x = 0; x < WIDTH_PIX; ++x) {
@@ -186,16 +192,6 @@ void Scene_Play::loadLevel(const std::string& levelPath){
                 }
                 if (pixel == "cloud") {
                     spawnCloud(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
-                } else if (pixel == "player_God") {
-                    spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "God", true);
-                } else if (pixel == "player_Devil") {
-                    spawnPlayer(Vec2 {64*(float)x,64*(float)y}, "Devil", false);
-                } else if (pixel == "key") {
-                    spawnKey(Vec2 {64*(float)x,64*(float)y}, "Devil", false);
-                } else if (pixel == "goal") {
-                    spawnGoal(Vec2 {64*(float)x,64*(float)y}, false);
-                } else if (pixel == "dragon") {
-                    spawnDragon(Vec2 {64*(float)x,64*(float)y}, true, "snoring_dragon");
                 } else if (pixel == "lava") {
                     spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava", textureIndex);
                 } else if (pixel == "water") {
@@ -212,25 +208,28 @@ void Scene_Play::loadLevel(const std::string& levelPath){
         }
     }
 
-    // Unlock and free the surface
-    SDL_UnlockSurface(loadedSurface);
-    SDL_FreeSurface(loadedSurface);
-    SDL_DestroyTexture(texture);
-    
+    spawnPlayer();
+    spawnCoin(Vec2{64*15,64*12}, 4);
+    spawnDragon(Vec2{64*16 , 64*35}, false, "snoring_dragon");
+    spawnGoal(Vec2{64*23, 64*8}, false);
+    spawnGoal(Vec2{64*37, 64*47}, false);
+
     m_entities.update();
     m_entities.sort();
 }
 
-void Scene_Play::spawnPlayer(Vec2 pos, const std::string name, bool movable){
+void Scene_Play::spawnPlayer(){
 
     auto entity = m_entities.addEntity("Player", (size_t)3);
-    std::string tex = "devil";
-    std::string pos_x;
-    std::string pos_y;
-    if (name == "God"){
-        tex = "angelS";
-        m_player = entity;
-
+    size_t pos_x;
+    size_t pos_y;
+    int hp;
+    m_player = entity;
+    if (m_newGame){
+        pos_x = m_playerConfig.x;
+        pos_y = m_playerConfig.y;
+        hp = m_playerConfig.HP;
+    } else {
         std::ifstream file("game_save.txt");
         if (!file) {
             std::cerr << "Could not load game_save.txt file!\n";
@@ -241,20 +240,25 @@ void Scene_Play::spawnPlayer(Vec2 pos, const std::string name, bool movable){
             if (head == "Player_pos") {
                 file >> pos_x >> pos_y;
             }
+            if (head == "Player_hp") {
+                file >> hp;
+            }
         }
-        pos = Vec2{64*std::stof(pos_x), 64*std::stof(pos_y)};
     }
-
-    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture(tex));
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), true);
+    Vec2 pos = Vec2{64*(float)pos_x, 64*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, m_playerConfig.SPEED, movable);
-    entity->addComponent<CBoundingBox>(Vec2 {36, 36});
+
+    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, m_playerConfig.SPEED, true);
+    entity->addComponent<CBoundingBox>(Vec2 {32, 32});
+
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("wizIdle"), true);
+    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
-    entity->addComponent<CHealth>(m_playerConfig.HP, m_playerConfig.HP, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
-    entity->addComponent<CDamage>(m_playerConfig.DAMAGE, 6); // damage speed 6 = frames between attacking
+
+    entity->addComponent<CDamage>(m_playerConfig.DAMAGE, 6);
+    entity->addComponent<CHealth>(hp, m_playerConfig.HP, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -355,6 +359,16 @@ void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
     m_entities.sort();
 }
 
+void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
+{
+    auto entity = m_entities.addEntity("Coin", layer);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("coin"), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, false);
+    entity->addComponent<CBoundingBox>(Vec2{24, 24});
+    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+}
+
 void Scene_Play::spawnDualTile(const Vec2 pos, std::string tile, const int frame)
 {   
     size_t layer = 10;
@@ -395,8 +409,7 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "PAUSE") { 
             setPaused(!m_pause);
         } else if (action.name() == "QUIT") { 
-            // onEnd();
-            m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+            onEnd();
         } else if (action.name() == "ZOOM IN"){
             cameraZoom = cameraZoom*1.25;
         } else if (action.name() == "ZOOM OUT"){
@@ -405,25 +418,10 @@ void Scene_Play::sDoAction(const Action& action) {
             cameraFollow = !cameraFollow;
         } else if (action.name() == "SAVE"){
             saveGame("game_save.txt");
-        } 
+        } else if (action.name() == "RESET") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
+        }
 
-        else if (action.name() == "LEVEL0") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
-        }else if (action.name() == "LEVEL1") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level1.png"));
-        }else if (action.name() == "LEVEL2") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level2.png"));
-        }else if (action.name() == "LEVEL3") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
-        }else if (action.name() == "LEVEL4") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level4.png"));
-        }else if (action.name() == "LEVEL5") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level5.png"));
-        }
-        
-        else if (action.name() == "RESET") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
-        }
         for (auto p : m_entities.getEntities("Player")){
                 if (action.name() == "UP") {
                     p->getComponent<CInputs>().up = true;
@@ -509,9 +507,9 @@ void Scene_Play::update() {
         sMovement();
         sCollision();
         sStatus();
+        sAnimation();
         m_currentFrame++;
     }
-    sAnimation();
     sRender();
 }
 
@@ -554,54 +552,62 @@ void Scene_Play::sMovement() {
 }
 
 void Scene_Play::sCollision() {
-    for ( auto p : m_entities.getEntities("Player") )
-    {
-        for ( auto g : m_entities.getEntities("Goal") )
-        {   
-            if (m_physics.isCollided(p,g))
-            {
+    
+    auto p = m_player;
+    for ( auto g : m_entities.getEntities("Goal") )
+    {   
+        if (m_physics.isCollided(p,g))
+        {
+            if (g->getComponent<CAnimation>().animation.getName() != "checkpoint_wave"){
                 g->addComponent<CAnimation>(m_game->assets().getAnimation("checkpoint_wave"), true);
+                saveGame("game_save.txt");
             }
         }
-        for ( auto o : m_entities.getEntities("Obstacle") )
-        {   
-            if (m_physics.isCollided(p,o))
-            {
-                p->movePosition(m_physics.Overlap(p,o));
-            }
-        }
-        for ( auto d : m_entities.getEntities("Dragon") )
-        {   
-            if (m_physics.isCollided(p,d))
-            {
-                if (d->hasComponent<CDamage>()){
-                    p->movePosition(m_physics.Overlap(p,d)*15);
-                    p->takeDamage(d->getComponent<CDamage>().damage, m_currentFrame);
-                    d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
-                }
-            }
-        }
-        for ( auto k : m_entities.getEntities("Key") )
+    }
+    for ( auto o : m_entities.getEntities("Obstacle") )
+    {   
+        if (m_physics.isCollided(p,o))
         {
-            if (m_physics.isCollided(p,k))
-            {
-                k->kill();
-                m_entities.getEntities("Player")[1]->getComponent<CTransform>().isMovable = true;
+            p->movePosition(m_physics.Overlap(p,o));
+        }
+    }
+    for ( auto d : m_entities.getEntities("Dragon") )
+    {   
+        if (m_physics.isCollided(p,d))
+        {
+            if (d->hasComponent<CDamage>()){
+                p->movePosition(m_physics.Overlap(p,d)*15);
+                p->takeDamage(d->getComponent<CDamage>().damage, m_currentFrame);
+                d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
             }
         }
-        for ( auto w : m_entities.getEntities("Water") )
+    }
+    for ( auto k : m_entities.getEntities("Key") )
+    {
+        if (m_physics.isCollided(p,k))
         {
-            if (m_physics.isStandingIn(p,w))
-            {
-                p->getComponent<CHealth>().HP = 0;
-            }
+            k->kill();
+            m_entities.getEntities("Player")[1]->getComponent<CTransform>().isMovable = true;
         }
-        for ( auto l : m_entities.getEntities("Lava") )
+    }
+    for ( auto w : m_entities.getEntities("Water") )
+    {
+        if (m_physics.isStandingIn(p,w))
         {
-            if (m_physics.isStandingIn(p,l))
-            {
-                p->getComponent<CHealth>().HP = 0;
-            }
+            p->getComponent<CHealth>().HP = 0;
+        }
+    }
+    for ( auto l : m_entities.getEntities("Lava") )
+    {
+        if (m_physics.isStandingIn(p,l))
+        {
+            p->getComponent<CHealth>().HP = 0;
+        }
+    }
+    for ( auto c : m_entities.getEntities("Coin") ){
+        if (m_physics.isCollided(p,c))
+        {
+            c->kill();
         }
     }
 
@@ -635,24 +641,12 @@ void Scene_Play::sCollision() {
             }
         }
     }
-
-    // for ( auto g : m_entities.getEntities("Goal") ) 
-    // {
-    //     if ( m_physics.isCollided(m_entities.getEntities("Player")[0],g) )
-    //     {
-    //         m_entities.getEntities("Player")[0]->getComponent<CTransform>().isMovable = false;
-    //     }
-    //     else if ( m_physics.isCollided(m_entities.getEntities("Player")[1],g) )
-    //     {
-    //         m_entities.getEntities("Player")[1]->getComponent<CTransform>().isMovable = false;
-    //     }
-    // }
 }
 
 void Scene_Play::sStatus() {
     for ( auto p : m_entities.getEntities("Player") ){
         if ( p->getComponent<CHealth>().HP <= 0 ){
-                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
+                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
         }
     }
 }
@@ -869,7 +863,7 @@ void Scene_Play::sRender() {
 }
 
 void Scene_Play::onEnd() {
-    m_game->quit();
+    m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
 }
 
 void Scene_Play::setPaused(bool pause) {
@@ -1046,7 +1040,7 @@ void Scene_Play::createDualGrid(std::vector<std::vector<std::string>> pixelMatri
                 if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 1;
                 if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 4;
                 if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 14; 
-                if (uniqueStrings.size() == 3 && (tile == "grass" || tile == "water")){
+                if (uniqueStrings.size() == 3 && (tile == "grass")){
                     if (tileQ[0] == tile && tileQ[1] == tile) textureIndex = 19;
                     if (tileQ[1] == tile && tileQ[2] == tile) textureIndex = 17;
                     if (tileQ[2] == tile && tileQ[3] == tile) textureIndex = 16;
@@ -1057,7 +1051,7 @@ void Scene_Play::createDualGrid(std::vector<std::vector<std::string>> pixelMatri
                 if (tileQ[1] == tile) textureIndex = 13;
                 if (tileQ[2] == tile) textureIndex = 8;
                 if (tileQ[3] == tile) textureIndex = 15;
-                if (uniqueStrings.size() == 3 && (tile == "grass" || tile == "water")){
+                if (uniqueStrings.size() == 3 && (tile == "grass")){
                     if (tileQ[0] == tile && tileQ[2] == tileQ[3]) textureIndex = 20;
                     if (tileQ[0] == tile && tileQ[1] == tileQ[2]) textureIndex = 25;
 

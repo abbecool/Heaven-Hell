@@ -198,10 +198,6 @@ void Scene_Menu::sDoAction(const Action& action) {
             m_drawCoordinates = !m_drawCoordinates; 
         } else if (action.name() == "QUIT") { 
             onEnd();
-        } else if (action.name() == "LEVEL0") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
-        } else if (action.name() == "LEVEL5") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level5.png"));
         } else if (action.name() == "MOUSE LEFT CLICK") {
             for (auto e : m_entities.getEntities("Button")){
                 auto &transform = e->getComponent<CTransform>();
@@ -217,12 +213,16 @@ void Scene_Menu::sDoAction(const Action& action) {
 
     else if (action.type() == "END") {
         if (action.name() == "MOUSE LEFT CLICK") {
-            for (auto e : m_entities.getEntities("Button")){
-                auto &transform = e->getComponent<CTransform>();
-                auto &Bbox = e->getComponent<CBoundingBox>();
+            for (auto b : m_entities.getEntities("Button")){
+                auto &transform = b->getComponent<CTransform>();
+                auto &Bbox = b->getComponent<CBoundingBox>();
                 if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
-                        m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
+                        if ( b->getComponent<CName>().name == "new" ){
+                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
+                        } else if ( b->getComponent<CName>().name == "continue" ){
+                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", false));
+                        }
                     }
                 }
             }

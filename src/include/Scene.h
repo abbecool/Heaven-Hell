@@ -24,7 +24,7 @@ class Scene
     Vec2 m_mousePosition;
 
     virtual void onEnd() = 0;
-    void setPaused(bool paused);
+    // void setPaused(bool paused);
 
     public:
 

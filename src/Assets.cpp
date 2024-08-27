@@ -31,7 +31,6 @@ SDL_Texture * Assets::getTexture(std::string name) const
 
 void Assets::addFont(const std::string& name, const std::string& path) {
     const char *path_char = path.c_str(); 
-    std::cout << path_char << std::endl;
     TTF_Font* font = TTF_OpenFont(path_char, 12);
     if (font == nullptr) {
         std::cerr << "Failed to load font! TTF_Error: " << TTF_GetError() << std::endl;

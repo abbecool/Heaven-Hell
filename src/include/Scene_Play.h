@@ -9,6 +9,7 @@ class Scene_Play : public Scene
 {
     struct PlayerConfig
     {
+        size_t x, y;
         float SPEED, MAXSPEED;
         int HP, DAMAGE;
     };
@@ -19,6 +20,7 @@ class Scene_Play : public Scene
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
     Physics m_physics;
+    const Vec2 m_gridSize = { 64, 64 };
     Vec2 levelSize;
     Vec2 cameraPos;
     Vec2 m_mousePosition;
@@ -27,7 +29,7 @@ class Scene_Play : public Scene
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
-    const Vec2 m_gridSize = { 64, 64 };
+    bool m_newGame;
 
     void init(const std::string&);
     void loadLevel(const std::string& path);
@@ -35,7 +37,10 @@ class Scene_Play : public Scene
     void saveGame(const std::string& filename);
     Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
-    void spawnPlayer    (const Vec2 pos, const std::string name, bool movable);
+    void spawnPlayer();
+    void spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel);
+    void spawnCoin(Vec2 pos, const size_t layer);
+
     void spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     void spawnCloud     (const Vec2 pos, bool movable, const int frame);
     void spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
@@ -47,7 +52,6 @@ class Scene_Play : public Scene
     void spawnDualTile  (const Vec2 pos, const std::string tile, const int frame );
     void spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     void spawnBridge    (const Vec2 pos, const int frame );
-    void spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel);
 
     void sMovement();
     void sCollision();
@@ -67,6 +71,6 @@ class Scene_Play : public Scene
     void changePlayerStateTo(PlayerState s);
 
     public:
-    Scene_Play(Game* game, std::string path);
+    Scene_Play(Game* game, std::string path, bool newGame);
     void update();
 };
