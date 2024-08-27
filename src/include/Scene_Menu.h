@@ -26,13 +26,14 @@ class Scene_Menu : public Scene
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
+    bool m_drawCoordinates = false;
     const Vec2 m_gridSize = { 64, 64 };
 
     void init();
     void loadMenu();
     Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
-    void spawnButton(const Vec2 pos);
+    void spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& pressed);
     void spawnLevel(const Vec2 pos, const std::string tile);
     void spawnDualTile(const Vec2 pos, const std::string tile, const int frame );
 

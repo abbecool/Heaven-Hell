@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-// #include <SDL_ttf.h>
 #include <chrono>
 #include <ctime>
 #include <thread>
@@ -31,8 +30,9 @@ void Game::init(const std::string & path){
     }
     m_renderer = SDL_CreateRenderer( m_window, -1 , SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
+    TTF_Init();
 
-    m_assets.loadFromFile(path, m_renderer);
+    m_assets.loadFromFile(path, path, m_renderer);
     changeScene("Menu", std::make_shared<Scene_Menu>(this));
 }
 
@@ -148,7 +148,7 @@ void Game::sUserInput()
     }
 }
 
-const Assets& Game::assets() const{
+Assets& Game::assets(){
     return m_assets;
 }
 

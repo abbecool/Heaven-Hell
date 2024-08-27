@@ -1,0 +1,5 @@
+"HEAVEN & HELL"     minecraft 12 255 255 255 
+"PLAY"              minecraft 12 255 0   0   
+"CONTINUE"          minecraft 12 0   255 0   
+"LEVEL 0"           minecraft 12 175 175 175 
+"LEVEL 1"           minecraft 12 175 175 175 

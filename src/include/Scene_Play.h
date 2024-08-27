@@ -38,14 +38,12 @@ class Scene_Play : public Scene
     void spawnPlayer    (const Vec2 pos, const std::string name, bool movable);
     void spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     void spawnCloud     (const Vec2 pos, bool movable, const int frame);
-    void spawnCloud1    (const Vec2 pos, bool movable, const int frame);
     void spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
     void spawnGrass     (const Vec2 pos, const int frame);
     void spawnDirt      (const Vec2 pos, const int frame);
     void spawnGoal      (const Vec2 pos, bool movable);
     void spawnKey       (const Vec2 pos, const std::string, bool movable);
     void spawnWater     (const Vec2 pos, const std::string tag, const int frame );
-    void spawnWater1    (const Vec2 pos, const std::string tag, const int frame );
     void spawnDualTile  (const Vec2 pos, const std::string tile, const int frame );
     void spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     void spawnBridge    (const Vec2 pos, const int frame );
@@ -61,7 +59,7 @@ class Scene_Play : public Scene
     std::vector<std::string> neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
     int getObstacleTextureIndex(const std::vector<bool>& neighbors);
     std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
-    void spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y);
+    void createDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y, const int HEIGHT_PIX, const int WIDTH_PIX);
     
     void sDoAction(const Action&);
     void onEnd();

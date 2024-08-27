@@ -39,11 +39,8 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_p, "PAUSE");
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
-    registerAction(SDLK_0, "LEVEL0");
-    registerAction(SDLK_1, "LEVEL1");
-    registerAction(SDLK_2, "LEVEL2");
-    registerAction(SDLK_3, "LEVEL3");
-    registerAction(SDLK_4, "LEVEL4");
+    registerAction(SDLK_1, "LEVEL");
+    registerAction(SDLK_2, "LEVEL5");
     registerAction(SDLK_u, "SAVE");
     loadConfig("config.txt");
     loadLevel(levelPath);
@@ -170,7 +167,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
             std::vector<bool> neighbors = neighborCheck(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
             std::vector<std::string> neighborsTags = neighborTag(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
             int textureIndex = getObstacleTextureIndex(neighbors);
-            spawnDualGrid(pixelMatrix, x, y);
+            createDualGrid(pixelMatrix, x, y, HEIGHT_PIX, WIDTH_PIX);
 
             if (pixel == "obstacle") {
                 spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
@@ -252,7 +249,7 @@ void Scene_Play::spawnPlayer(Vec2 pos, const std::string name, bool movable){
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(tex), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, m_playerConfig.SPEED, movable);
-    entity->addComponent<CBoundingBox>(Vec2 {32, 48});
+    entity->addComponent<CBoundingBox>(Vec2 {36, 36});
     entity->addComponent<CInputs>();
     entity->addComponent<CState>(PlayerState::RUN_DOWN);
     entity->addComponent<CHealth>(m_playerConfig.HP, m_playerConfig.HP, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
@@ -420,6 +417,8 @@ void Scene_Play::sDoAction(const Action& action) {
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
         }else if (action.name() == "LEVEL4") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level4.png"));
+        }else if (action.name() == "LEVEL5") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level5.png"));
         }
         
         else if (action.name() == "RESET") { 
@@ -445,31 +444,14 @@ void Scene_Play::sDoAction(const Action& action) {
                     p->getComponent<CInputs>().ctrl = true;
                 }
                 if (action.name() == "SHOOT MOUSE"){
-                    spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+cameraPos);
+                    if (p->getComponent<CInputs>().canShoot) {
+                        p->getComponent<CInputs>().shoot = true;
+                        spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+cameraPos);
+                    }
                 }
                 if (action.name() == "SHOOT") {
                     if (p->getComponent<CInputs>().canShoot) {
                         p->getComponent<CInputs>().shoot = true;
-                        if ( p->getComponent<CTransform>().vel.isnull() ){
-                            switch ( p->getComponent<CState>().state ){
-                                case PlayerState::RUN_RIGHT:
-                                    spawnProjectile(p, Vec2{1,0});
-                                    break;
-                                case PlayerState::RUN_LEFT:
-                                    spawnProjectile(p, Vec2{-1,0});
-                                    break;
-                                case PlayerState::RUN_UP:
-                                    spawnProjectile(p, Vec2{0,-1});
-                                    break;
-                                case PlayerState::RUN_DOWN:
-                                    spawnProjectile(p, Vec2{0,1});
-                                    break;
-                            default:
-                                break;
-                            }
-                        } else{
-                            spawnProjectile(p, p->getComponent<CTransform>().vel);
-                        }
                     }
                 }
         }
@@ -478,23 +460,43 @@ void Scene_Play::sDoAction(const Action& action) {
         for (auto p : m_entities.getEntities("Player")){
             if (action.name() == "DOWN") {
                 p->getComponent<CInputs>().down = false;
-            }
-            else if (action.name() == "UP") {
+            } if (action.name() == "UP") {
                 p->getComponent<CInputs>().up = false;
-            }
-            else if (action.name() == "LEFT") {
+            } if (action.name() == "LEFT") {
                 p->getComponent<CInputs>().left = false;
-            }
-            else if (action.name() == "RIGHT") {
+            } if (action.name() == "RIGHT") {
                 p->getComponent<CInputs>().right = false;
-            }
-            else if (action.name() == "SHIFT") {
+            } if (action.name() == "SHIFT") {
                 p->getComponent<CInputs>().shift = false;
-            }
-            else if (action.name() == "CTRL") {
+            } if (action.name() == "CTRL") {
                 p->getComponent<CInputs>().ctrl = false;
-            }
-            else if (action.name() == "SHOOT") {
+            } if (action.name() == "SHOOT") {
+                if ( p->getComponent<CTransform>().vel.isnull() ){
+                    switch ( p->getComponent<CState>().state ){
+                        case PlayerState::RUN_RIGHT:
+                            spawnProjectile(p, Vec2{1,0});
+                            break;
+                        case PlayerState::RUN_LEFT:
+                            spawnProjectile(p, Vec2{-1,0});
+                            break;
+                        case PlayerState::RUN_UP:
+                            spawnProjectile(p, Vec2{0,-1});
+                            break;
+                        case PlayerState::RUN_DOWN:
+                            spawnProjectile(p, Vec2{0,1});
+                            break;
+                        case PlayerState::STAND:
+                            spawnProjectile(p, Vec2{0,1});
+                            break;
+                    default:
+                        spawnProjectile(p, Vec2{0,1});
+                        break;
+                    }
+                } else{
+                    spawnProjectile(p, p->getComponent<CTransform>().vel);
+                    // spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+cameraPos);
+
+                }
                 p->getComponent<CInputs>().shoot = false;
             }
         }
@@ -650,7 +652,7 @@ void Scene_Play::sCollision() {
 void Scene_Play::sStatus() {
     for ( auto p : m_entities.getEntities("Player") ){
         if ( p->getComponent<CHealth>().HP <= 0 ){
-                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
+                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
         }
     }
 }
@@ -986,7 +988,7 @@ std::vector<std::vector<std::string>> Scene_Play::createPixelMatrix(Uint32* pixe
     return pixelMatrix;
 }
 
-void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y) {
+void Scene_Play::createDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y, const int HEIGHT_PIX, const int WIDTH_PIX) {
     std::vector<std::string> tileQ = std::vector<std::string>(4, "");
     int textureIndex;
     tileQ[1] = pixelMatrix[y][x];   //Q4
@@ -1044,7 +1046,7 @@ void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix
                 if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 1;
                 if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 4;
                 if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 14; 
-                if (uniqueStrings.size() == 3 && tile == "grass"){
+                if (uniqueStrings.size() == 3 && (tile == "grass" || tile == "water")){
                     if (tileQ[0] == tile && tileQ[1] == tile) textureIndex = 19;
                     if (tileQ[1] == tile && tileQ[2] == tile) textureIndex = 17;
                     if (tileQ[2] == tile && tileQ[3] == tile) textureIndex = 16;
@@ -1055,7 +1057,7 @@ void Scene_Play::spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix
                 if (tileQ[1] == tile) textureIndex = 13;
                 if (tileQ[2] == tile) textureIndex = 8;
                 if (tileQ[3] == tile) textureIndex = 15;
-                if (uniqueStrings.size() == 3 && tile == "grass"){
+                if (uniqueStrings.size() == 3 && (tile == "grass" || tile == "water")){
                     if (tileQ[0] == tile && tileQ[2] == tileQ[3]) textureIndex = 20;
                     if (tileQ[0] == tile && tileQ[1] == tileQ[2]) textureIndex = 25;
 

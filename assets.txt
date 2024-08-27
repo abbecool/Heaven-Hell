@@ -46,11 +46,13 @@ Texture     wizWalkE                    assets/images/wizWalkE.png
 Texture     wizWalkN                    assets/images/wizWalkN.png
 Texture     wizWalkW                    assets/images/wizWalkW.png
 Texture     level0_screenshot           assets/images/level0_screenshot.png
-Texture     button_unpressed            assets/images/button_unpressed.png
-Texture     button_pressed              assets/images/button_pressed.png
+Texture     button_unpressed            assets/images/buttons/button_unpressed.png
+Texture     button_pressed              assets/images/buttons/button_pressed.png
 Texture     game_title                  assets/images/game_title.png
 Texture     checkpoint_idle             assets/images/checkpoint_idle.png
 Texture     checkpoint_wave             assets/images/checkpoint_wave.png
+
+Font        minecraft                   assets/fonts/Minecraft.ttf
 
 Animation   snoring_dragon              sleeping_dragon             4   60
 Animation   waking_dragon               waking_dragon               7   20

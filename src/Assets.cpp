@@ -1,19 +1,16 @@
-// #pragma once
-
 #include "Assets.h"
-// #include "Animation.cpp"
 #include <fstream>
 #include <iostream>
 
 #include <SDL2/SDL.h>
 #include "SDL2/SDL_image.h"
+#include "SDL2/SDL_ttf.h"
 
 Assets::Assets(){}
 
+
 void Assets::addTexture(std::string name, const std::string & path, SDL_Renderer * ren)
 {
-    // std::string path1 = path;
-    // path1.erase(remove(path1.begin(), path1.end(), '"'), path1.end()); //remove A from string
     const char *path_char = path.c_str(); 
     SDL_Surface* tempSurface = IMG_Load(path_char);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, tempSurface);
@@ -22,9 +19,28 @@ void Assets::addTexture(std::string name, const std::string & path, SDL_Renderer
     m_textures[name] = texture;
 }
 
+void Assets::addTexture(std::string name, SDL_Texture* texture)
+{
+    m_textures[name] = texture;
+}
+
 SDL_Texture * Assets::getTexture(std::string name) const
 {
     return m_textures.at(name);
+}
+
+void Assets::addFont(const std::string& name, const std::string& path) {
+    const char *path_char = path.c_str(); 
+    std::cout << path_char << std::endl;
+    TTF_Font* font = TTF_OpenFont(path_char, 12);
+    if (font == nullptr) {
+        std::cerr << "Failed to load font! TTF_Error: " << TTF_GetError() << std::endl;
+    }
+    m_fonts[name] = font;
+}
+
+TTF_Font* Assets::getFont(const std::string& name) const {
+    return m_fonts.at(name);
 }
 
 void Assets::addAnimation(const std::string& name, Animation animation) {
@@ -35,8 +51,8 @@ const Animation& Assets::getAnimation(const std::string& name) const {
     return m_animations.at(name);
 }
 
-void Assets::loadFromFile(const std::string & path, SDL_Renderer * ren) {
-    std::ifstream file(path);
+void Assets::loadFromFile(const std::string & pathImages, const std::string & pathText, SDL_Renderer * ren) {
+    std::ifstream file(pathImages);
     if (!file) {
         std::cerr << "Could not load assets.txt file!\n";
         exit(-1);
@@ -49,12 +65,12 @@ void Assets::loadFromFile(const std::string & path, SDL_Renderer * ren) {
             file >> name >> path;
             addTexture(name, path, ren);
         }
-        // else if (head == "Font") {
-        //     std::string font_name;
-        //     std::string font_path;
-        //     file >> font_name >> font_path;
-        //     addFont(font_name, font_path);
-        // }
+        else if (head == "Font") {
+            std::string font_name;
+            std::string font_path;
+            file >> font_name >> font_path;
+            addFont(font_name, font_path);
+        }
         else if (head == "Animation") {
             std::string aniName;
             std::string texName;

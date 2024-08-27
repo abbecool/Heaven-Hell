@@ -9,6 +9,7 @@
 #include "RandomArray.h"
 
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 #include <iostream>
 #include <string>
@@ -26,13 +27,29 @@ void Scene_Menu::init() {
     registerAction(SDLK_ESCAPE, "QUIT");
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
-    registerAction(SDLK_0, "LEVEL0");
-    registerAction(SDLK_1, "LEVEL1");
-    registerAction(SDLK_2, "LEVEL2");
-    registerAction(SDLK_3, "LEVEL3");
-    registerAction(SDLK_4, "LEVEL4");
+    registerAction(SDLK_1, "LEVEL0");
+    registerAction(SDLK_2, "LEVEL5");
     registerAction(SDL_BUTTON_LEFT , "MOUSE LEFT CLICK");
+    registerAction(SDLK_v , "SHOW COORDINATES");
     loadMenu();
+
+    TTF_Font* font = m_game->assets().getFont("minecraft");
+    SDL_Color textColor = {255, 0, 0}; // White color
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "HEAVEN & HELL", textColor);
+    if (textSurface == nullptr) {
+        std::cerr << "Unable to render text surface! TTF_Error: " << TTF_GetError() << std::endl;
+    }
+
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(m_game->renderer(), textSurface);
+    if (textTexture == nullptr) {
+        std::cerr << "Unable to create texture from rendered text! SDL_Error: " << SDL_GetError() << std::endl;
+    }
+    std::string name = "test";
+    m_game->assets().addTexture(name, textTexture);
+
+
+    SDL_FreeSurface(textSurface);
+
 }
 
 Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
@@ -106,11 +123,12 @@ void Scene_Menu::loadMenu(){
     layer = 9;
     entity = m_entities.addEntity("Level", layer);
     entity->addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true);
-    entity->addComponent<CTransform>(Vec2 {float(64*20),float(64*3)},Vec2 {0, 0}, false);
-    entity->getComponent<CTransform>().scale = Vec2{1, 1};
+    entity->addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
+    entity->getComponent<CTransform>().scale = Vec2{1.2, 1.2};
     entity->addComponent<CName>("game_title");
 
-    spawnButton(Vec2 {64*(float)(3),64*(float)(9)});
+    spawnButton(Vec2 {64*3.2,64*8.1}, "button_unpressed", "new");
+    spawnButton(Vec2 {64*3.2,64*9.7}, "button_unpressed", "continue");
 
     m_entities.update();
     m_entities.sort();
@@ -128,16 +146,16 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
     entity->addComponent<CName>(level);
 }
 
-void Scene_Menu::spawnButton(const Vec2 pos)
+void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name)
 {   
     size_t layer = 10;
     auto entity = m_entities.addEntity("Button", layer);
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("button_unpressed"), true);
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation(unpressed), true);
     // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
     entity->getComponent<CTransform>().scale = Vec2{2,2};
     entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize()*2);
-    entity->addComponent<CName>("play button");
+    entity->addComponent<CName>(name);
 }
 
 void Scene_Menu::spawnDualTile(const Vec2 pos, std::string tile, const int frame)
@@ -176,20 +194,15 @@ void Scene_Menu::sDoAction(const Action& action) {
             m_drawCollision = !m_drawCollision; 
         } else if (action.name() == "TOGGLE_GRID") { 
             m_drawDrawGrid = !m_drawDrawGrid; 
+        } else if (action.name() == "SHOW COORDINATES") { 
+            m_drawCoordinates = !m_drawCoordinates; 
         } else if (action.name() == "QUIT") { 
             onEnd();
-        }
-        else if (action.name() == "LEVEL0") { 
+        } else if (action.name() == "LEVEL0") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png"));
-        }else if (action.name() == "LEVEL1") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level1.png"));
-        }else if (action.name() == "LEVEL2") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level2.png"));
-        }else if (action.name() == "LEVEL3") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level3.png"));
-        }else if (action.name() == "LEVEL4") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level4.png"));
-        }else if (action.name() == "MOUSE LEFT CLICK") {
+        } else if (action.name() == "LEVEL5") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level5.png"));
+        } else if (action.name() == "MOUSE LEFT CLICK") {
             for (auto e : m_entities.getEntities("Button")){
                 auto &transform = e->getComponent<CTransform>();
                 auto &Bbox = e->getComponent<CBoundingBox>();
@@ -295,6 +308,9 @@ void Scene_Menu::sRender() {
                         SDL_FLIP_NONE
                     );
                 } 
+                // if (e->tag() == "Button"){
+                //     SDL_RenderCopy(m_game->renderer(), m_game->assets().getTexture("test"), nullptr, animation.getDestRect());
+                // }
             }
         }
     }
@@ -317,6 +333,10 @@ void Scene_Menu::sRender() {
             }
         }
     }
+
+    if (m_drawCoordinates) {
+        std::cout << m_mousePosition.x << " " << m_mousePosition.y << std::endl;
+    } 
 }
 
 void Scene_Menu::onEnd() {

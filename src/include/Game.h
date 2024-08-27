@@ -48,7 +48,7 @@ public:
     int framerate();
     SDL_Renderer* renderer(); 
     SDL_Window* window(); 
-    const Assets& assets() const; 
+    Assets& assets(); 
     int getWidth();
     int getHeight();
 };

@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -I src/include -Wall -g
 
 # Linker flags
-LDFLAGS = -L src/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
+LDFLAGS = -L src/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
 
 # Source directory
 SRC_DIR = src
