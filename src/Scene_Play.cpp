@@ -211,6 +211,10 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     spawnPlayer();
     spawnCoin(Vec2{64*15,64*12}, 4);
     spawnDragon(Vec2{64*16 , 64*35}, false, "snoring_dragon");
+    spawnSmallEnemy(Vec2{64*15 , 64*9}, 3);
+    spawnSmallEnemy(Vec2{64*10 , 64*10}, 3);
+    spawnSmallEnemy(Vec2{64*20 , 64*12}, 3);
+    spawnSmallEnemy(Vec2{64*13 , 64*24}, 3);
     spawnGoal(Vec2{64*23, 64*8}, false);
     spawnGoal(Vec2{64*37, 64*47}, false);
 
@@ -367,6 +371,18 @@ void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, false);
     entity->addComponent<CBoundingBox>(Vec2{24, 24});
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+}
+
+void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
+{
+    auto entity = m_entities.addEntity("Enemy", layer);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("rooter"), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
+    entity->addComponent<CBoundingBox>(Vec2{32, 48});
+    entity->addComponent<CPathfind>(m_player->getComponent<CTransform>().pos);
+    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+    entity->addComponent<CHealth>(4, 4, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
 }
 
 void Scene_Play::spawnDualTile(const Vec2 pos, std::string tile, const int frame)
@@ -544,6 +560,17 @@ void Scene_Play::sMovement() {
                 transform.isMovable = false;
             }
         }
+
+        if (e->hasComponent<CPathfind>()) {
+            Vec2& target = e->getComponent<CPathfind>().target;
+            if ((target - transform.pos).length() < 64*5) {
+                transform.vel = target - transform.pos;
+            } else {
+                transform.vel = Vec2 {0,0};
+            }
+            target = m_player->getComponent<CTransform>().pos;
+        } 
+
         transform.prevPos = transform.pos;
         if (!(transform.vel.isnull()) && transform.isMovable ){
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
@@ -610,6 +637,28 @@ void Scene_Play::sCollision() {
             c->kill();
         }
     }
+    for ( auto e : m_entities.getEntities("Enemy") )
+    {   
+        if (m_physics.isCollided(e,p))
+        {
+            e->movePosition(m_physics.Overlap(e,p));
+        }
+        for ( auto e1 : m_entities.getEntities("Enemy") )
+        {   if (e != e1) {
+                if (m_physics.isCollided(e,e1))
+                {
+                    e->movePosition(m_physics.Overlap(e,e1));
+                }
+            }
+        }
+        for ( auto w : m_entities.getEntities("Water") )
+        {   
+            if (m_physics.isCollided(e,w))
+            {
+                e->movePosition(m_physics.Overlap(e,w));
+            }
+        }
+    }
 
     for ( auto p : m_entities.getEntities("Projectile") ){
         for ( auto o : m_entities.getEntities("Obstacle") )
@@ -640,7 +689,36 @@ void Scene_Play::sCollision() {
                 }
             }
         }
+        for ( auto e : m_entities.getEntities("Enemy") )
+        {   
+            if (m_physics.isCollided(p,e))
+            {
+                if (e->hasComponent<CHealth>() && p->hasComponent<CDamage>()){
+                    e->takeDamage(p->getComponent<CDamage>().damage, m_currentFrame);
+                }
+                if ( p->getComponent<CTransform>().isMovable ){
+                    p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
+                    p->getComponent<CTransform>().isMovable = false;
+                    p->removeComponent<CDamage>();
+                }
+                if ( e->getComponent<CHealth>().HP <= 0 ){
+                    spawnCoin(e->getComponent<CTransform>().pos, 4);
+                    e->kill();
+                }
+            }
+        }
     }
+
+    for ( auto e : m_entities.getEntities("Enemy") ){
+        for ( auto o : m_entities.getEntities("Obstacle") )
+        {   
+            if (m_physics.isCollided(e,o))
+            {
+                e->movePosition(m_physics.Overlap(e,o));
+            }
+        }
+    }
+
 }
 
 void Scene_Play::sStatus() {
@@ -840,6 +918,16 @@ void Scene_Play::sRender() {
                 }
             }
         }
+        // Attemp to render coin balance in corner.
+        // SDL_RenderCopyEx(
+        //             m_game->renderer(), 
+        //             m_game->assets().getTexture("coin"), 
+        //             nullptr, 
+        //             nullptr,
+        //             0,
+        //             NULL,
+        //             SDL_FLIP_NONE
+        //         );
     }
 
     if (m_drawCollision){

@@ -47,7 +47,7 @@ class CTransform : public Component
 public:
     Vec2 pos;    
     Vec2 prevPos;
-    Vec2 vel;    
+    Vec2 vel = {0, 0};    
     Vec2 scale = {0.5, 0.5};    
     float angle = 0;
     int speed;
@@ -165,4 +165,14 @@ class CDialog : public Component
     CDialog() {}
     CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia) 
         : pos(p), size(sz), dialog(dia){}
+};
+
+class CPathfind : public Component
+{
+    public:    
+    Vec2 target;
+
+    CPathfind() {}
+    CPathfind( Vec2 trg ) 
+        : target(trg) {}
 };

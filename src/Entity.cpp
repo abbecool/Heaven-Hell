@@ -16,7 +16,8 @@ Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
                     CName(),
                     CShadow(),
                     CDamage(),
-                    CDialog()
+                    CDialog(),
+                    CPathfind()
                 );
         }
 

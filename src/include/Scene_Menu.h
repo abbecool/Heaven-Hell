@@ -35,24 +35,13 @@ class Scene_Menu : public Scene
 
     void spawnButton(const Vec2 pos, const std::string& button_name, const std::string& name, const std::string& dialog);
     void spawnLevel(const Vec2 pos, const std::string tile);
-    void spawnDualTile(const Vec2 pos, const std::string tile, const int frame );
 
-    void sMovement();
-    void sCollision();
-    void sStatus();
     void sAnimation();
     void sRender();
-    
-    std::vector<bool> neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
-    std::vector<std::string> neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
-    int getObstacleTextureIndex(const std::vector<bool>& neighbors);
-    std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
-    void spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y);
     
     void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
-    void changePlayerStateTo(PlayerState s);
 
     public:
     Scene_Menu(Game* game);

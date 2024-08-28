@@ -52,6 +52,7 @@ Texture     game_title                  assets/images/game_title.png
 Texture     checkpoint_idle             assets/images/checkpoint_idle.png
 Texture     checkpoint_wave             assets/images/checkpoint_wave.png
 Texture     coin                        assets/images/coin.png
+Texture     rooter                      assets/images/smallEnemy.png
 
 Font        minecraft                   assets/fonts/Minecraft.ttf
 
@@ -112,5 +113,6 @@ Animation   game_title                  game_title                  1   100
 Animation   checkpoint_idle             checkpoint_idle             3   20
 Animation   checkpoint_wave             checkpoint_wave             3   20
 Animation   coin                        coin                        3   15
+Animation   rooter                      rooter                      2   100
 
 

@@ -40,6 +40,7 @@ class Scene_Play : public Scene
     void spawnPlayer();
     void spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel);
     void spawnCoin(Vec2 pos, const size_t layer);
+    void spawnSmallEnemy(Vec2 pos, const size_t layer);
 
     void spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     void spawnCloud     (const Vec2 pos, bool movable, const int frame);

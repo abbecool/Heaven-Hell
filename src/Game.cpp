@@ -125,7 +125,6 @@ void Game::sUserInput()
             // determine start or end action by whether it was key press or release
             const std::string actionType = (event.type == SDL_KEYDOWN) ? "START" : "END";
 
-            // std::cout << actionType << std::endl;
             // look up the action and send the action to the scene
             currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.keysym.sym), actionType));
         }
@@ -137,12 +136,10 @@ void Game::sUserInput()
             // determine start or end action by whether it was key press or release
             const std::string actionType = (event.type == SDL_MOUSEBUTTONDOWN ) ? "START" : "END";
 
-            // std::cout << actionType << std::endl;
             // look up the action and send the action to the scene
             currentScene()->doAction(Action(currentScene()->getActionMap().at(event.button.button), actionType));
         }
         if (event.type == SDL_MOUSEMOTION){
-            // std::cout << "Mouse Moved to (" << x << ", " << y << ")" << std::endl;
             currentScene()->updateMousePosition(Vec2{float(event.motion.x),float(event.motion.y)});
         }
     }
