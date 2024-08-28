@@ -16,7 +16,8 @@ typedef std::tuple<
     CHealth,    
     CName,  
     CShadow,    
-    CDamage    
+    CDamage,
+    CDialog    
 > ComponentTuple;
 class Entity
 {

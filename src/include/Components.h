@@ -154,3 +154,15 @@ class CDamage : public Component
     CDamage() {}
     CDamage(int dmg, int spd) : damage(dmg), speed(spd) {}
 }; 
+
+class CDialog : public Component
+{
+    public:    
+    Vec2 pos;
+    Vec2 size;
+    SDL_Texture * dialog;
+
+    CDialog() {}
+    CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia) 
+        : pos(p), size(sz), dialog(dia){}
+};

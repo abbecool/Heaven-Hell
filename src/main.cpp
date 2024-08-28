@@ -15,7 +15,7 @@
 // Different weapons have differant elemental effects and damage types... very original
 
 int main(int argc, char* argv[]){   
-    Game g("assets.txt");
+    Game g("assets.txt", "text.txt");
     g.run();
 
     return EXIT_SUCCESS;

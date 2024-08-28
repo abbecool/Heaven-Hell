@@ -15,7 +15,8 @@ Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
                     CHealth(),
                     CName(),
                     CShadow(),
-                    CDamage()
+                    CDamage(),
+                    CDialog()
                 );
         }
 

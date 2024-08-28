@@ -15,12 +15,12 @@
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
 
-Game::Game(const std::string & config)
+Game::Game(const std::string & pathImages, const std::string & pathText)
 {
-    init(config);
+    init(pathImages, pathText);
 }
 
-void Game::init(const std::string & path){
+void Game::init(const std::string & pathImages, const std::string & pathText){
 
     SDL_Init(SDL_INIT_EVERYTHING);
     m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED);
@@ -32,7 +32,7 @@ void Game::init(const std::string & path){
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
     TTF_Init();
 
-    m_assets.loadFromFile(path, path, m_renderer);
+    m_assets.loadFromFile(pathImages, pathText, m_renderer);
     changeScene("Menu", std::make_shared<Scene_Menu>(this));
 }
 

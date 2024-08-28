@@ -32,24 +32,6 @@ void Scene_Menu::init() {
     registerAction(SDL_BUTTON_LEFT , "MOUSE LEFT CLICK");
     registerAction(SDLK_v , "SHOW COORDINATES");
     loadMenu();
-
-    TTF_Font* font = m_game->assets().getFont("minecraft");
-    SDL_Color textColor = {255, 0, 0}; // White color
-    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "HEAVEN & HELL", textColor);
-    if (textSurface == nullptr) {
-        std::cerr << "Unable to render text surface! TTF_Error: " << TTF_GetError() << std::endl;
-    }
-
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(m_game->renderer(), textSurface);
-    if (textTexture == nullptr) {
-        std::cerr << "Unable to create texture from rendered text! SDL_Error: " << SDL_GetError() << std::endl;
-    }
-    std::string name = "test";
-    m_game->assets().addTexture(name, textTexture);
-
-
-    SDL_FreeSurface(textSurface);
-
 }
 
 Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
@@ -127,8 +109,8 @@ void Scene_Menu::loadMenu(){
     entity->getComponent<CTransform>().scale = Vec2{1.2, 1.2};
     entity->addComponent<CName>("game_title");
 
-    spawnButton(Vec2 {64*3.2,64*8.1}, "button_unpressed", "new");
-    spawnButton(Vec2 {64*3.2,64*9.7}, "button_unpressed", "continue");
+    spawnButton(Vec2 {64*3.2,64*8.1}, "button_unpressed", "new", "NEW GAME");
+    spawnButton(Vec2 {64*3.2,64*9.7}, "button_unpressed", "continue", "CONTINUE");
 
     m_entities.update();
     m_entities.sort();
@@ -146,16 +128,18 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
     entity->addComponent<CName>(level);
 }
 
-void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name)
+void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
 {   
     size_t layer = 10;
     auto entity = m_entities.addEntity("Button", layer);
     entity->addComponent<CAnimation> (m_game->assets().getAnimation(unpressed), true);
     // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    entity->getComponent<CTransform>().scale = Vec2{2,2};
-    entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize()*2);
+    entity->getComponent<CTransform>().scale = Vec2{3,3};
+    entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize()*3);
     entity->addComponent<CName>(name);
+    entity->addComponent<CDialog>(pos, entity->getComponent<CAnimation>().animation.getSize()*3, m_game->assets().getTexture(dialog));
+
 }
 
 void Scene_Menu::spawnDualTile(const Vec2 pos, std::string tile, const int frame)
@@ -205,6 +189,8 @@ void Scene_Menu::sDoAction(const Action& action) {
                 if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
                         e->addComponent<CAnimation>(m_game->assets().getAnimation("button_pressed"), true);
+                        std::cout << e->addComponent<CDialog>().pos.y << std::endl;
+                        e->addComponent<CDialog>().pos.y = e->addComponent<CDialog>().pos.y + 1;
                     }
                 }
             }
@@ -267,50 +253,74 @@ void Scene_Menu::sRender() {
 
     if (m_drawTextures){
         for (auto e : m_entities.getEntities()){        
-            if ( e->hasComponent<CTransform>() && e->hasComponent<CAnimation>()){
+            if ( e->hasComponent<CTransform>() ){
+                if ( e->hasComponent<CAnimation>()){
 
-                auto& transform = e->getComponent<CTransform>();
-                auto& animation = e->getComponent<CAnimation>().animation;
+                    auto& transform = e->getComponent<CTransform>();
+                    auto& animation = e->getComponent<CAnimation>().animation;
 
-                SDL_Rect texRect;
-                texRect.x = e->getComponent<CTexture>().pos.x;
-                texRect.y = e->getComponent<CTexture>().pos.y;
-                texRect.w = e->getComponent<CTexture>().size.x;
-                texRect.h = e->getComponent<CTexture>().size.y;
+                    SDL_Rect texRect;
+                    texRect.x = e->getComponent<CTexture>().pos.x;
+                    texRect.y = e->getComponent<CTexture>().pos.y;
+                    texRect.w = e->getComponent<CTexture>().size.x;
+                    texRect.h = e->getComponent<CTexture>().size.y;
 
-                // Adjust the entity's position based on the camera position
-                Vec2 adjustedPos = transform.pos;
+                    // Adjust the entity's position based on the camera position
+                    Vec2 adjustedPos = transform.pos;
 
-                // Set the destination rectangle for rendering
-                animation.setScale(transform.scale*cameraZoom);
-                animation.setDestRect(adjustedPos - animation.getDestSize()/2);
-                animation.setAngle(transform.angle);
-                
-                if (animation.frames() == 111){
+                    // Set the destination rectangle for rendering
+                    animation.setScale(transform.scale*cameraZoom);
+                    animation.setDestRect(adjustedPos - animation.getDestSize()/2);
+                    animation.setAngle(transform.angle);
+                    
+                    if (animation.frames() == 111){
+                        SDL_RenderCopyEx(
+                            m_game->renderer(), 
+                            animation.getTexture(), 
+                            &texRect, 
+                            animation.getDestRect(),
+                            animation.getAngle(),
+                            NULL,
+                            SDL_FLIP_NONE
+                        );
+                    } 
+                    else {
+                        SDL_RenderCopyEx(
+                            m_game->renderer(), 
+                            animation.getTexture(), 
+                            animation.getSrcRect(), 
+                            animation.getDestRect(),
+                            animation.getAngle(),
+                            NULL,
+                            SDL_FLIP_NONE
+                        );
+                    } 
+                    // if (e->tag() == "Button"){
+                    //     SDL_RenderCopy(m_game->renderer(), m_game->assets().getTexture("test"), nullptr, animation.getDestRect());
+                    // }
+                }
+                if (e->hasComponent<CDialog>()){
+                    auto transform = e->getComponent<CTransform>();
+                    auto Bbox = e->getComponent<CBoundingBox>();
+                    auto texture = e->getComponent<CDialog>();
+
+                    SDL_Rect texRect;
+                    texRect.x = transform.pos.x - Bbox.halfSize.x*0.9;
+                    texRect.y = transform.pos.y - Bbox.halfSize.y*0.9;
+                    texRect.w = texture.size.x*0.9;
+                    texRect.h = texture.size.y*0.9;
+
                     SDL_RenderCopyEx(
-                        m_game->renderer(), 
-                        animation.getTexture(), 
-                        &texRect, 
-                        animation.getDestRect(),
-                        animation.getAngle(),
-                        NULL,
-                        SDL_FLIP_NONE
-                    );
-                } 
-                else {
-                    SDL_RenderCopyEx(
-                        m_game->renderer(), 
-                        animation.getTexture(), 
-                        animation.getSrcRect(), 
-                        animation.getDestRect(),
-                        animation.getAngle(),
-                        NULL,
-                        SDL_FLIP_NONE
-                    );
-                } 
-                // if (e->tag() == "Button"){
-                //     SDL_RenderCopy(m_game->renderer(), m_game->assets().getTexture("test"), nullptr, animation.getDestRect());
-                // }
+                            m_game->renderer(), 
+                            texture.dialog, 
+                            nullptr,
+                            // nullptr,
+                            &texRect, 
+                            0,
+                            NULL,
+                            SDL_FLIP_NONE
+                        );
+                }
             }
         }
     }

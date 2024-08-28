@@ -1,6 +1,9 @@
 #include "Assets.h"
 #include <fstream>
+#include <string>
 #include <iostream>
+#include <limits>
+
 
 #include <SDL2/SDL.h>
 #include "SDL2/SDL_image.h"
@@ -31,7 +34,7 @@ SDL_Texture * Assets::getTexture(std::string name) const
 
 void Assets::addFont(const std::string& name, const std::string& path) {
     const char *path_char = path.c_str(); 
-    TTF_Font* font = TTF_OpenFont(path_char, 12);
+    TTF_Font* font = TTF_OpenFont(path_char, 24);
     if (font == nullptr) {
         std::cerr << "Failed to load font! TTF_Error: " << TTF_GetError() << std::endl;
     }
@@ -68,6 +71,7 @@ void Assets::loadFromFile(const std::string & pathImages, const std::string & pa
             std::string font_name;
             std::string font_path;
             file >> font_name >> font_path;
+            // std::cout << font_name << std::endl;
             addFont(font_name, font_path);
         }
         else if (head == "Animation") {
@@ -82,6 +86,39 @@ void Assets::loadFromFile(const std::string & pathImages, const std::string & pa
             std::cerr << "head to " << head << "\n";
             std::cerr << "The config file format is incorrect!\n";
             exit(-1);
+        }
+    }
+
+    std::ifstream file_text(pathText);
+    if (!file_text) {
+        std::cerr << "Could not load text.txt file!\n";
+        exit(-1);
+    }
+    // std::string head;
+    std::string font_name;
+    Uint8 r, g, b;
+    SDL_Color textColor = {255, 255, 255};
+    while (file_text >> head) {
+        if (head == "Font"){
+            file_text >> font_name >> r >> g >> b;
+            textColor = {r, g, b}; 
+        }
+        if (head == "Text") {
+            std::string dialog;            
+            file_text.ignore(std::numeric_limits<std::streamsize>::max(), '"');  // Ignore until the first quote
+            std::getline(file_text, dialog, '"');  // Read until the closing quote
+
+            SDL_Surface* textSurface = TTF_RenderText_Solid(getFont(font_name), dialog.c_str(), textColor);
+            if (textSurface == nullptr) {
+                std::cerr << "Unable to render text surface! TTF_Error: " << TTF_GetError() << std::endl;
+            }
+
+            SDL_Texture* textTexture = SDL_CreateTextureFromSurface(ren, textSurface);
+            if (textTexture == nullptr) {
+                std::cerr << "Unable to create texture from rendered text! SDL_Error: " << SDL_GetError() << std::endl;
+            }
+            SDL_FreeSurface(textSurface);
+            m_textures[dialog] = textTexture;
         }
     }
 }
