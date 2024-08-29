@@ -22,6 +22,8 @@ enum struct PlayerState {
     RIGHT_SHOOT = 1 << 9
 };
 
+class Entity;
+
 class Component
 {
     public:
@@ -95,8 +97,8 @@ public:
     int heart_frames;
     int damage_frame;
     CHealth() {}
-    CHealth(int hp, int hp_max, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
-        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(180){}
+    CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
+        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(hrt_frms){}
 };
 class CKey: public Component
 {
@@ -150,9 +152,9 @@ public:
 class CDamage : public Component
 {
     public:
-    int damage, speed;
+    int damage, speed, lastAttackFrame;
     CDamage() {}
-    CDamage(int dmg, int spd) : damage(dmg), speed(spd) {}
+    CDamage(int dmg, int spd) : damage(dmg), speed(spd), lastAttackFrame(-spd) {}
 }; 
 
 class CDialog : public Component
@@ -171,8 +173,9 @@ class CPathfind : public Component
 {
     public:    
     Vec2 target;
+    std::shared_ptr<Entity> target2;
 
     CPathfind() {}
-    CPathfind( Vec2 trg ) 
-        : target(trg) {}
+    CPathfind( Vec2 trg, std::shared_ptr<Entity> trg2 ) 
+        : target(trg), target2(trg2) {}
 };

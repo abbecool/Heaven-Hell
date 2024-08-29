@@ -1,5 +1,6 @@
 #include "Entity.h"
 #include <string>
+#include <iostream>
 #include <tuple>
 
 Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
@@ -29,6 +30,10 @@ const std::string & Entity::Entity::tag() const{
     return m_tag;
 }
 
+bool Entity::Entity::isTag(const std::string tag) const{
+    return m_tag == tag;
+}
+
 const size_t Entity::Entity::layer() const{
     return m_layer;
 }
@@ -53,7 +58,11 @@ void Entity::Entity::setScale(Vec2 scale){
     getComponent<CTransform>().scale = scale;
 }
 
-void Entity::Entity::takeDamage(int damage, size_t frame){
-    getComponent<CHealth>().HP = getComponent<CHealth>().HP-damage;
-    getComponent<CHealth>().damage_frame = (int)frame;
+void Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
+    auto attack = attacker->getComponent<CDamage>();
+    if ((int)frame - getComponent<CHealth>().heart_frames > getComponent<CHealth>().damage_frame && (int)frame - getComponent<CHealth>().heart_frames > attack.lastAttackFrame){
+        getComponent<CHealth>().HP = getComponent<CHealth>().HP-attack.damage;
+        getComponent<CHealth>().damage_frame = (int)frame;
+        attack.lastAttackFrame = (int)frame;
+    }
 }

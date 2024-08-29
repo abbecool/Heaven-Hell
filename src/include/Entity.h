@@ -39,6 +39,8 @@ public:
     const bool movable() const;
     void kill();
 
+    bool isTag(std::string tag) const;
+
     template<typename T>
     bool hasComponent() const {
         return getComponent<T>().has;
@@ -67,21 +69,7 @@ public:
         getComponent<T>() = T();
     }
 
-    // std::shared_ptr<CTransform> cTransform;
-    // std::shared_ptr<CName> cName;
-    // std::shared_ptr<CShape> cShape;
-    // std::shared_ptr<CInputs> cInputs;
-    // std::shared_ptr<CKey> cKey;
-    // std::shared_ptr<CTexture> cTexture;
-    // std::shared_ptr<CAnimation> cAnimation;
-    // size_t id();
-    // const std::string tag();
-    // const size_t layer();
-    // bool isAlive();
-    // void kill();
     void movePosition(Vec2);
     void setScale(Vec2 scale);
-    void takeDamage(int damage, size_t frame);
-
-    // void setColor(const int r, const int g, const int b, const int a);
+    void takeDamage(std::shared_ptr<Entity> attacker, size_t frame);
 };
