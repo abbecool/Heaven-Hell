@@ -5,6 +5,7 @@
 #include "Game.h"
 #include "Components.h"
 #include "Action.h"
+#include "Level_Loader.h"
 
 #include "RandomArray.h"
 
@@ -39,8 +40,9 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_p, "PAUSE");
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
-    registerAction(SDLK_1, "LEVEL");
-    registerAction(SDLK_2, "LEVEL5");
+    registerAction(SDLK_0, "LEVEL0");
+    registerAction(SDLK_1, "LEVEL1");
+    registerAction(SDLK_5, "LEVEL5");
     registerAction(SDLK_u, "SAVE");
     loadConfig("config.txt");
     loadLevel(levelPath);
@@ -158,7 +160,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     const int WIDTH_PIX = loadedSurface->w;
     levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
     auto format = loadedSurface->format;
-    std::vector<std::vector<std::string>> pixelMatrix = createPixelMatrix(pixels, format, WIDTH_PIX, HEIGHT_PIX);
+    std::vector<std::vector<std::string>> pixelMatrix = m_levelLoader.createPixelMatrix(pixels, format, WIDTH_PIX, HEIGHT_PIX);
 
     // Unlock and free the surface
     SDL_UnlockSurface(loadedSurface);
@@ -170,10 +172,11 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     for (int y = 0; y < HEIGHT_PIX; ++y) {
         for (int x = 0; x < WIDTH_PIX; ++x) {
             const std::string& pixel = pixelMatrix[y][x];
-            std::vector<bool> neighbors = neighborCheck(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
-            std::vector<std::string> neighborsTags = neighborTag(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
-            int textureIndex = getObstacleTextureIndex(neighbors);
-            createDualGrid(pixelMatrix, x, y, HEIGHT_PIX, WIDTH_PIX);
+            std::vector<bool> neighbors = m_levelLoader.neighborCheck(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
+            std::vector<std::string> neighborsTags = m_levelLoader.neighborTag(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
+            int textureIndex = m_levelLoader.getObstacleTextureIndex(neighbors);
+            std::unordered_map<std::string, int> tileIndex = m_levelLoader.createDualGrid(pixelMatrix, x, y, HEIGHT_PIX, WIDTH_PIX);
+            spawnDualTiles(Vec2 {64*(float)x - 32, 64*(float)y - 32},  tileIndex);
 
             if (pixel == "obstacle") {
                 spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
@@ -185,9 +188,9 @@ void Scene_Play::loadLevel(const std::string& levelPath){
                     spawnDirt(Vec2 {64*(float)x,64*(float)y}, textureIndex);
                 } else {
                     if ( std::find(neighborsTags.begin(), neighborsTags.end(), "dirt") != neighborsTags.end() ){
-                        spawnDirt(Vec2 {64*(float)x,64*(float)y}, getObstacleTextureIndex(neighborCheck(pixelMatrix, "dirt", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                        spawnDirt(Vec2 {64*(float)x,64*(float)y}, m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "dirt", x, y, WIDTH_PIX, HEIGHT_PIX)));
                     } else {
-                        spawnGrass(Vec2 {64*(float)x,64*(float)y}, getObstacleTextureIndex(neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                        spawnGrass(Vec2 {64*(float)x,64*(float)y}, m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
                     }   
                 }
                 if (pixel == "cloud") {
@@ -198,9 +201,9 @@ void Scene_Play::loadLevel(const std::string& levelPath){
                     spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
                 } else if (pixel == "bridge") {
                     if ( std::find(neighborsTags.begin(), neighborsTags.end(), "water") != neighborsTags.end() ){
-                        spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", getObstacleTextureIndex(neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                        spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
                     } else if ( std::find(neighborsTags.begin(), neighborsTags.end(), "lava") != neighborsTags.end() ){
-                        spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", getObstacleTextureIndex(neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                        spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
                     }
                     spawnBridge(Vec2 {64*(float)x,64*(float)y}, textureIndex);
                 }
@@ -386,34 +389,48 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
     entity->addComponent<CDamage>(1, 60);
 }
 
-void Scene_Play::spawnDualTile(const Vec2 pos, std::string tile, const int frame)
+void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
 {   
-    size_t layer = 10;
-    if (tile == "water"){layer=layer-1;}
-    if (tile == "lava"){layer=layer-1;}
-    if (tile == "cloud"){layer=layer-2;}
-    if (tile == "obstacle"){
-        layer = layer-2;
-        tile = std::string("mountain");}
-    auto entity = m_entities.addEntity("DualTile", layer);
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation(tile+"_dual_sheet"), true);
-    
-    float size;
-    float scale;
-    size_t rows = 4;
-    if (entity->getComponent<CAnimation>().animation.getSize().x == 64){
-        size = 16;
-        scale = 1;
-    } else{
-        size = 32;
-        scale = 0.5;
+    for (const auto& [tileKey, textureIndex] : tileTextureMap) {
+        std::string tile = tileKey;
+        size_t layer = 10;
+        
+        if (tile == "water") {
+            layer = layer - 1;
+        } else if (tile == "lava") {
+            layer = layer - 1;
+        } else if (tile == "cloud") {
+            layer = layer - 2;
+        } else if (tile == "obstacle") {
+            layer = layer - 2;
+            tile = "mountain";  // Change the tile name for "obstacle"
+        }
+
+        auto entity = m_entities.addEntity("DualTile", layer);
+        entity->addComponent<CAnimation>(m_game->assets().getAnimation(tile + "_dual_sheet"), true);
+
+        float size;
+        float scale;
+        size_t rows = 4;
+        
+        if (entity->getComponent<CAnimation>().animation.getSize().x == 64) {
+            size = 16;
+            scale = 1;
+        } else {
+            size = 32;
+            scale = 0.5;
+        }
+        
+        entity->addComponent<CTexture>(Vec2{(float)(textureIndex % 4) * size, (float)(int)(textureIndex / rows) * size}, 
+                                       Vec2{size, size}, 
+                                       m_game->assets().getTexture(tile + "_dual_sheet"));
+                                       
+        Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+        entity->addComponent<CTransform>(midGrid, Vec2{0, 0}, false);
+        entity->getComponent<CTransform>().scale = Vec2{scale, scale};
     }
-    
-    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*size, (float)(int)(frame/rows)*size}, Vec2 {size, size}, m_game->assets().getTexture(tile+"_dual_sheet"));
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
-    entity->getComponent<CTransform>().scale = Vec2{scale,scale};
 }
+
 
 void Scene_Play::sDoAction(const Action& action) {
     if (action.type() == "START") {
@@ -435,6 +452,12 @@ void Scene_Play::sDoAction(const Action& action) {
             cameraFollow = !cameraFollow;
         } else if (action.name() == "SAVE"){
             saveGame("game_save.txt");
+        } else if (action.name() == "LEVEL0") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
+        } else if (action.name() == "LEVEL1") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level1.png", true));
+        } else if (action.name() == "LEVEL5") { 
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level5.png", true));
         } else if (action.name() == "RESET") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
         }
@@ -614,57 +637,6 @@ void Scene_Play::sCollision() {
         }
     }
 
-    // for ( auto g : m_entities.getEntities("Goal") )
-    // {   
-    //     if (m_physics.isCollided(p,g))
-    //     {
-    //         if (g->getComponent<CAnimation>().animation.getName() != "checkpoint_wave"){
-    //             g->addComponent<CAnimation>(m_game->assets().getAnimation("checkpoint_wave"), true);
-    //             saveGame("game_save.txt");
-    //         }
-    //     }
-    // }
-    // for ( auto o : m_entities.getEntities("Obstacle") )
-    // {   
-    //     if (m_physics.isCollided(p,o))
-    //     {
-    //         p->movePosition(m_physics.Overlap(p,o));
-    //     }
-    // }
-
-    // for ( auto d : m_entities.getEntities("Dragon") )
-    // {   
-    //     if ( m_physics.isCollided(p,d) )
-    //     {
-    //         if ( d->hasComponent<CDamage>() ){
-    //             p->movePosition(m_physics.Overlap(p,d)*15);
-    //             p->takeDamage(d, m_currentFrame);
-    //             d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
-    //         }
-    //     }
-    // }
-
-    // for ( auto w : m_entities.getEntities("Water") )
-    // {
-    //     if ( m_physics.isStandingIn(p,w) )
-    //     {
-    //         p->getComponent<CHealth>().HP = 0;
-    //     }
-    // }
-    // for ( auto l : m_entities.getEntities("Lava") )
-    // {
-    //     if (m_physics.isStandingIn(p,l))
-    //     {
-    //         p->getComponent<CHealth>().HP = 0;
-    //     }
-    // }
-    // for ( auto c : m_entities.getEntities("Coin") ){
-    //     if (m_physics.isCollided(p,c))
-    //     {
-    //         c->kill();
-    //     }
-    // }
-
     for ( auto e : m_entities.getEntities("Enemy") )
     {   
         for ( auto e2 : m_entities.getEntities() ) {
@@ -680,28 +652,6 @@ void Scene_Play::sCollision() {
         {
             e->movePosition(m_physics.Overlap(e,p));
             p->takeDamage(e, m_currentFrame);
-        }
-        for ( auto e1 : m_entities.getEntities("Enemy") )
-        {   if ( e != e1 ) {
-                if (m_physics.isCollided(e,e1))
-                {
-                    e->movePosition(m_physics.Overlap(e,e1));
-                }
-            }
-        }
-        for ( auto o : m_entities.getEntities("Obstacle") )
-        {   
-            if (m_physics.isCollided(e,o))
-            {
-                e->movePosition(m_physics.Overlap(e,o));
-            }
-        }
-        for ( auto w : m_entities.getEntities("Water") )
-        {   
-            if (m_physics.isCollided(e,w))
-            {
-                e->movePosition(m_physics.Overlap(e,w));
-            }
         }
     }
 
@@ -1028,197 +978,3 @@ void Scene_Play::changePlayerStateTo(PlayerState s) {
         m_player->getComponent<CState>().changeAnimate = false;
     }
 }
-
-std::vector<bool> Scene_Play::neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
-    std::vector<std::string> friendlyPixels(1, "");
-    std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
-    if ( pixel == "grass" || pixel == "dirt"){
-        friendlyPixels = {"grass", "dirt", "key", "goal", "player_God", "player_Devil", "dragon", "water"};
-    } else if ( pixel == "water" ){
-        friendlyPixels = {"water", "bridge"};
-    } else if (pixel == "lava"){
-        friendlyPixels = {"lava", "bridge"};
-    }
-    else{
-        friendlyPixels = {pixel};
-    }
-    for ( auto pix : friendlyPixels){
-        if(!neighbors[0]){neighbors[0] = (y > 0 && pixelMatrix[y - 1][x] == pix);}           // top
-        if(!neighbors[1]){neighbors[1] = (x < width - 1 && pixelMatrix[y][x + 1] == pix);}   // right
-        if(!neighbors[2]){neighbors[2] = (y < height - 1 && pixelMatrix[y + 1][x] == pix);}  // bottom
-        if(!neighbors[3]){neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pix);}           // left
-    }
-    return neighbors;
-
-}
-
-std::vector<std::string> Scene_Play::neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
-    
-    std::vector<std::string> neighborsTags(4, "nan"); // {top, bottom, left, right}
-    if(y > 0){neighborsTags[0] = pixelMatrix[y - 1][x];}            // top
-    if(x < width - 1){neighborsTags[1] = pixelMatrix[y][x + 1];}    // right
-    if(y < height - 1){neighborsTags[2] = pixelMatrix[y + 1][x];}   // bottom
-    if(x > 0 ){neighborsTags[3] = pixelMatrix[y][x - 1];}           // left
-
-    return neighborsTags;
-}
-
-int Scene_Play::getObstacleTextureIndex(const std::vector<bool>& neighbors) {
-    int numObstacles = std::count(neighbors.begin(), neighbors.end(), true);
-    if (numObstacles == 1) {
-        if (neighbors[0]) return 12;    // Top
-        if (neighbors[1]) return 1;     // Right
-        if (neighbors[2]) return 4;     // Bottom
-        if (neighbors[3]) return 3;     // Left
-    } else if (numObstacles == 2) {
-        if (!neighbors[0] && !neighbors[1]) return 7;  // Top & Right
-        if (!neighbors[1] && !neighbors[2]) return 15; // Right & Bottom
-        if (!neighbors[2] && !neighbors[3]) return 13; // Bottom & Left
-        if (!neighbors[3] && !neighbors[0]) return 5;  // Left & Top
-        if (!neighbors[0] && !neighbors[2]) return 2;  // Top & Bottom
-        if (!neighbors[1] && !neighbors[3]) return 8; // Right & Left
-    } else if (numObstacles == 3) {
-        if (!neighbors[0]) return 6;    // Top is not an obstacle
-        if (!neighbors[1]) return 11;   // Right is not an obstacle
-        if (!neighbors[2]) return 14;   // Bottom is not an obstacle
-        if (!neighbors[3]) return 9;    // Left is not an obstacle
-    } else if (numObstacles == 4) {
-        return 10; // All neighbors are obstacles
-    }
-    return 0; // No neighbors are obstacles
-}
-
-std::vector<std::vector<std::string>> Scene_Play::createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height) {
-    std::vector<std::vector<std::string>> pixelMatrix(height, std::vector<std::string>(width, ""));
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            Uint32 pixel = pixels[y * width + x];
-
-            Uint8 r, g, b, a;
-            SDL_GetRGBA(pixel, format, &r, &g, &b, &a);
-
-            if ((int)r == 192 && (int)g == 192 && (int)b == 192) {
-                pixelMatrix[y][x] = "obstacle";
-            } else if ((int)r == 200 && (int)g == 240 && (int)b == 255) {
-                pixelMatrix[y][x] = "cloud";
-            } else if ((int)r == 203 && (int)g == 129 && (int)b == 56) {
-                pixelMatrix[y][x] = "dirt";
-            } else if ((int)r == 0 && (int)g == 255 && (int)b == 0) {
-                pixelMatrix[y][x] = "grass";
-            } else if ((int)r == 255 && (int)g == 255 && (int)b == 255) {
-                pixelMatrix[y][x] = "player_God";
-            } else if ((int)r == 0 && (int)g == 0 && (int)b == 0) {
-                pixelMatrix[y][x] = "player_Devil";
-            } else if ((int)r == 255 && (int)g == 0 && (int)b == 255) {
-                pixelMatrix[y][x] = "key";
-            } else if ((int)r == 255 && (int)g == 255 && (int)b == 0) {
-                pixelMatrix[y][x] = "goal";
-            } else if ((int)r == 9 && (int)g == 88 && (int)b == 9) {
-                pixelMatrix[y][x] = "dragon";
-            } else if ((int)r == 255 && (int)g == 0 && (int)b == 0) {
-                pixelMatrix[y][x] = "lava";
-            } else if ((int)r == 0 && (int)g == 0 && (int)b == 255) {
-                pixelMatrix[y][x] = "water";
-            } else if ((int)r == 179 && (int)g == 0 && (int)b == 255) {
-                pixelMatrix[y][x] = "bridge";
-            } else {
-                pixelMatrix[y][x] = "unknown";
-            }
-        }
-    }
-    return pixelMatrix;
-}
-
-void Scene_Play::createDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y, const int HEIGHT_PIX, const int WIDTH_PIX) {
-    std::vector<std::string> tileQ = std::vector<std::string>(4, "");
-    int textureIndex;
-    tileQ[1] = pixelMatrix[y][x];   //Q4
-    if (x>0)        {tileQ[0] = pixelMatrix[y][x-1];}    else {tileQ[0] = pixelMatrix[y][x];}  // Q3
-    if (y>0)        {tileQ[2] = pixelMatrix[y-1][x];}    else {tileQ[2] = pixelMatrix[y][x];}  // Q1
-    if (x>0 && y>0) {tileQ[3] = pixelMatrix[y-1][x-1];}  else {tileQ[3] = pixelMatrix[y][x];}  // Q2
-
-    std::unordered_map<std::string, std::unordered_set<std::string>> friendlyNeighbors = {
-        {"grass", {"key", "goal", "player_God", "dragon"}},
-        {"dirt", {"key", "goal", "player_Devil", "dragon"}}
-    };
-            
-    for (std::string tile : {"grass", "dirt", "water", "lava", "cloud", "obstacle", "bridge"})
-    {
-        if ( std::find(tileQ.begin(), tileQ.end(), "bridge") != tileQ.end() ){
-
-            if ( std::find(tileQ.begin(), tileQ.end(), "water") != tileQ.end() ){
-                std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
-                    return (str == "bridge" ) ? "water" : str;
-                });
-            } else if ( std::find(tileQ.begin(), tileQ.end(), "lava") != tileQ.end() ){
-                    std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
-                    return (str == "bridge" ) ? "lava" : str;
-                });
-            } else {
-                std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
-                    return (str == "bridge" ) ? "" : str;
-                });
-            }
-        }
-        
-         // Transform the vector based on friendly neighbors for the current tile type
-        std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [&](const std::string& str) {
-            // Check if the current string is a friendly neighbor for the current tile
-            if (friendlyNeighbors[tile].count(str)) {
-                return tile; // Replace it with the current tile
-            }
-            return str; // Keep the original if it's not a friendly neighbor
-        });
-
-        int numTiles = std::count(tileQ.begin(), tileQ.end(), tile);
-        std::unordered_set<std::string> uniqueStrings(tileQ.begin(), tileQ.end());
-        if (numTiles > 0){
-            if (numTiles == 4) {
-                textureIndex = 6; // All quadrants are tiles
-            } else if (numTiles == 3) {
-                if (tileQ[0] != tile) textureIndex = 10;
-                if (tileQ[1] != tile) textureIndex = 7;
-                if (tileQ[2] != tile) textureIndex = 2;
-                if (tileQ[3] != tile) textureIndex = 5;
-            } else if (numTiles == 2) {
-                if (tileQ[0] != tile && tileQ[1] != tile) textureIndex = 9;
-                if (tileQ[1] != tile && tileQ[2] != tile) textureIndex = 11;
-                if (tileQ[2] != tile && tileQ[3] != tile) textureIndex = 3;
-                if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 1;
-                if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 4;
-                if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 14; 
-                if (uniqueStrings.size() == 3 && (tile == "grass")){
-                    if (tileQ[0] == tile && tileQ[1] == tile) textureIndex = 19;
-                    if (tileQ[1] == tile && tileQ[2] == tile) textureIndex = 17;
-                    if (tileQ[2] == tile && tileQ[3] == tile) textureIndex = 16;
-                    if (tileQ[3] == tile && tileQ[0] == tile) textureIndex = 18;
-                }
-            } if (numTiles == 1) {
-                if (tileQ[0] == tile) textureIndex = 0;
-                if (tileQ[1] == tile) textureIndex = 13;
-                if (tileQ[2] == tile) textureIndex = 8;
-                if (tileQ[3] == tile) textureIndex = 15;
-                if (uniqueStrings.size() == 3 && (tile == "grass")){
-                    if (tileQ[0] == tile && tileQ[2] == tileQ[3]) textureIndex = 20;
-                    if (tileQ[0] == tile && tileQ[1] == tileQ[2]) textureIndex = 25;
-
-                    if (tileQ[1] == tile && tileQ[0] == tileQ[3]) textureIndex = 23;
-                    if (tileQ[1] == tile && tileQ[2] == tileQ[3]) textureIndex = 24;
-
-                    if (tileQ[2] == tile && tileQ[0] == tileQ[1]) textureIndex = 22;
-                    if (tileQ[2] == tile && tileQ[0] == tileQ[3]) textureIndex = 27;
-
-                    if (tileQ[3] == tile && tileQ[1] == tileQ[2]) textureIndex = 21;
-                    if (tileQ[3] == tile && tileQ[0] == tileQ[1]) textureIndex = 26;
-                }
-            }
-            if (tile != ""){
-                spawnDualTile(Vec2 {64*(float)x-32, 64*(float)y-32}, tile, textureIndex);
-            }
-        }
-    }
-}
-// 1  Q4
-// 0  Q3
-// 2  Q1
-// 3  Q2

@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "Physics.h"
 #include "Scene.h"
+#include "Level_Loader.h"
 #include <memory>
 
 class Scene_Play : public Scene
@@ -20,6 +21,7 @@ class Scene_Play : public Scene
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
     Physics m_physics;
+    LevelLoader m_levelLoader;
     const Vec2 m_gridSize = { 64, 64 };
     Vec2 levelSize;
     Vec2 cameraPos;
@@ -50,7 +52,7 @@ class Scene_Play : public Scene
     void spawnGoal      (const Vec2 pos, bool movable);
     void spawnKey       (const Vec2 pos, const std::string, bool movable);
     void spawnWater     (const Vec2 pos, const std::string tag, const int frame );
-    void spawnDualTile  (const Vec2 pos, const std::string tile, const int frame );
+    void spawnDualTiles  (const Vec2 pos, std::unordered_map<std::string, int> tileIndex );
     void spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     void spawnBridge    (const Vec2 pos, const int frame );
 
@@ -59,12 +61,6 @@ class Scene_Play : public Scene
     void sStatus();
     void sAnimation();
     void sRender();
-    
-    std::vector<bool> neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
-    std::vector<std::string> neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
-    int getObstacleTextureIndex(const std::vector<bool>& neighbors);
-    std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
-    void createDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y, const int HEIGHT_PIX, const int WIDTH_PIX);
     
     void sDoAction(const Action&);
     void onEnd();

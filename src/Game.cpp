@@ -59,12 +59,15 @@ int Game::framerate(){
 
 void Game::run()
 {
-    auto next_frame = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point current_frame = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point next_frame;
+    // std::chrono::duration time_diff;
 
     while (isRunning())
     {
         // FPS cap
-        next_frame += std::chrono::milliseconds(1000 / m_framerate); // 60Hz
+        current_frame = std::chrono::steady_clock::now();
+        next_frame = current_frame + std::chrono::milliseconds(1000 / m_framerate); // 60Hz
         // 
 
         SDL_RenderClear( m_renderer );
@@ -75,6 +78,14 @@ void Game::run()
         m_currentFrame++;
 
         std::this_thread::sleep_until(next_frame);
+
+        auto time_diff = std::chrono::steady_clock::now()-current_frame;
+        auto time_diff_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_diff);
+        
+        // Print the time in milliseconds, followed by a carriage return
+        std::cout << "FPS: " << 1000/time_diff_ms.count() << "\r";
+        std::cout.flush();  // Ensure the output is displayed immediately
+
     }
     SDL_DestroyWindow( m_window );
     SDL_Quit();

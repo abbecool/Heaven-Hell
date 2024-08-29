@@ -23,6 +23,8 @@ void EntityManager::update()
         // {
             m_entities.push_back(e);
             m_entityMap[e->tag()].push_back(e);
+            // m_entityMapCollision[e->hasComponent<CBoundingBox>()].push_back(e);
+            
         // }
     }
     m_toAdd.clear();
@@ -58,6 +60,11 @@ EntityVec EntityManager::getEntities()
 EntityVec EntityManager::getEntities(std::string tag)
 {
     return m_entityMap[tag];
+}
+
+EntityVec EntityManager::getCollisionEntities()
+{
+    return m_entityMapCollision[true];
 }
 
 size_t EntityManager::getTotalEntities()
