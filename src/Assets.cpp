@@ -71,7 +71,6 @@ void Assets::loadFromFile(const std::string & pathImages, const std::string & pa
             std::string font_name;
             std::string font_path;
             file >> font_name >> font_path;
-            // std::cout << font_name << std::endl;
             addFont(font_name, font_path);
         }
         else if (head == "Animation") {
@@ -96,12 +95,13 @@ void Assets::loadFromFile(const std::string & pathImages, const std::string & pa
     }
     // std::string head;
     std::string font_name;
-    Uint8 r, g, b;
-    SDL_Color textColor = {255, 255, 255};
+    // Uint8 r, g, b;
+    int r, g, b, a;
+    SDL_Color textColor = {255, 255, 255, 255};
     while (file_text >> head) {
         if (head == "Font"){
-            file_text >> font_name >> r >> g >> b;
-            textColor = {r, g, b}; 
+            file_text >> font_name >> r >> g >> b >> a;
+            textColor = {(Uint8)r, (Uint8)g, (Uint8)b, (Uint8)a};
         }
         if (head == "Text") {
             std::string dialog;            

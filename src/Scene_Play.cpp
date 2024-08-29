@@ -534,8 +534,6 @@ void Scene_Play::sCollision() {
     }
 }
 
-
-
 void Scene_Play::sStatus() {
     for ( auto p : m_entities.getEntities("Player") ){
         if ( p->getComponent<CHealth>().HP <= 0 ){
