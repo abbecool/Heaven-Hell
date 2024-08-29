@@ -225,213 +225,6 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     m_entities.sort();
 }
 
-void Scene_Play::spawnPlayer(){
-
-    auto entity = m_entities.addEntity("Player", (size_t)3);
-    size_t pos_x;
-    size_t pos_y;
-    int hp;
-    m_player = entity;
-    if (m_newGame){
-        pos_x = m_playerConfig.x;
-        pos_y = m_playerConfig.y;
-        hp = m_playerConfig.HP;
-    } else {
-        std::ifstream file("game_save.txt");
-        if (!file) {
-            std::cerr << "Could not load game_save.txt file!\n";
-            exit(-1);
-        }
-        std::string head;
-        while (file >> head) {
-            if (head == "Player_pos") {
-                file >> pos_x >> pos_y;
-            }
-            if (head == "Player_hp") {
-                file >> hp;
-            }
-        }
-    }
-    Vec2 pos = Vec2{64*(float)pos_x, 64*(float)pos_y};
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-
-    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, m_playerConfig.SPEED, true);
-    entity->addComponent<CBoundingBox>(Vec2 {32, 32});
-
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("wizIdle"), true);
-    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
-
-    entity->addComponent<CInputs>();
-    entity->addComponent<CState>(PlayerState::RUN_DOWN);
-
-    entity->addComponent<CDamage>(m_playerConfig.DAMAGE, 180);
-    entity->addComponent<CHealth>(hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-}
-
-void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
-    auto entity = m_entities.addEntity("Obstacle", (size_t)8);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
-    entity->addComponent<CBoundingBox>(Vec2 {64, 64});
-}
-
-void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
-    auto entity = m_entities.addEntity("Obstacle", (size_t)8);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
-    entity->addComponent<CBoundingBox>(Vec2 {64, 64});
-}
-
-void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
-    auto entity = m_entities.addEntity("Dragon", (size_t)2);
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation(ani), true);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
-    entity->addComponent<CHealth>(10, 10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-    entity->addComponent<CBoundingBox>(Vec2{96, 96});
-    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
-    entity->addComponent<CDamage>(2, 30);
-
-}
-
-void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
-{
-    auto entity = m_entities.addEntity("Background", (size_t)10);
-    std::vector<int> ranArray = generateRandomArray(1, m_entities.getTotalEntities(), 0, 15);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
-}
-
-void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
-{
-    auto entity = m_entities.addEntity("Background", (size_t)10);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
-}
-
-void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
-{
-    auto entity = m_entities.addEntity("Goal", (size_t)4);
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("checkpoint_idle"), true);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2{4,4}, 0, movable);
-    entity->addComponent<CBoundingBox>(Vec2{32, 32});
-}
-
-void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool movable)
-{
-    auto entity = m_entities.addEntity("Key", (size_t)4);
-    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture("m_texture_key"));
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("m_texture_key"), true);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {1, 1}, 0, movable);
-    entity->addComponent<CBoundingBox>(Vec2{32, 32});
-}
-
-void Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
-{
-    auto entity = m_entities.addEntity(tag, (size_t)8);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
-    entity->addComponent<CBoundingBox>(Vec2{64, 64});
-}
-
-void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
-{
-    auto entity = m_entities.addEntity(tag, (size_t)8);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
-    entity->addComponent<CBoundingBox>(Vec2{64, 64});
-}
-
-void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
-{
-    auto entity = m_entities.addEntity("Bridge", (size_t)7);
-    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("bridge"));
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("bridge"), true);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
-    entity->addComponent<CBoundingBox>(Vec2{64, 64});
-}
-
-void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
-{
-    auto entity = m_entities.addEntity("Projectile", (size_t)1);
-    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {32, 32}, m_game->assets().getTexture("fireball"));
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
-    float angle = vel.angle();
-    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, angle, 400, true);
-    entity->addComponent<CBoundingBox>(Vec2{12, 12});
-    entity->addComponent<CDamage>(player->getComponent<CDamage>().damage, player->getComponent<CDamage>().speed); // damage speed 6 = frames between attacking
-    m_entities.sort();
-}
-
-void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
-{
-    auto entity = m_entities.addEntity("Coin", layer);
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("coin"), true);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, false);
-    entity->addComponent<CBoundingBox>(Vec2{24, 24});
-    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
-}
-
-void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
-{
-    auto entity = m_entities.addEntity("Enemy", layer);
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("rooter"), true);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
-    entity->addComponent<CBoundingBox>(Vec2{32, 48});
-    entity->addComponent<CPathfind>(m_player->getComponent<CTransform>().pos, m_player);
-    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
-    entity->addComponent<CHealth>(4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-    entity->addComponent<CDamage>(1, 60);
-}
-
-void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
-{   
-    for (const auto& [tileKey, textureIndex] : tileTextureMap) {
-        std::string tile = tileKey;
-        size_t layer = 10;
-        
-        if (tile == "water") {
-            layer = layer - 1;
-        } else if (tile == "lava") {
-            layer = layer - 1;
-        } else if (tile == "cloud") {
-            layer = layer - 2;
-        } else if (tile == "obstacle") {
-            layer = layer - 2;
-            tile = "mountain";  // Change the tile name for "obstacle"
-        }
-
-        auto entity = m_entities.addEntity("DualTile", layer);
-        entity->addComponent<CAnimation>(m_game->assets().getAnimation(tile + "_dual_sheet"), true);
-
-        float size;
-        float scale;
-        size_t rows = 4;
-        
-        if (entity->getComponent<CAnimation>().animation.getSize().x == 64) {
-            size = 16;
-            scale = 1;
-        } else {
-            size = 32;
-            scale = 0.5;
-        }
-        
-        entity->addComponent<CTexture>(Vec2{(float)(textureIndex % 4) * size, (float)(int)(textureIndex / rows) * size}, 
-                                       Vec2{size, size}, 
-                                       m_game->assets().getTexture(tile + "_dual_sheet"));
-                                       
-        Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-        entity->addComponent<CTransform>(midGrid, Vec2{0, 0}, false);
-        entity->getComponent<CTransform>().scale = Vec2{scale, scale};
-    }
-}
-
-
 void Scene_Play::sDoAction(const Action& action) {
     if (action.type() == "START") {
         if (action.name() == "TOGGLE_TEXTURE") {
@@ -603,100 +396,145 @@ void Scene_Play::sMovement() {
 }
 
 void Scene_Play::sCollision() {
-    auto p = m_player;
-    for ( auto e : m_entities.getEntities() ){
-        if ( !e->hasComponent<CBoundingBox>() ) {
-            continue;
-        }
-        if ( (e->tag() == "Water" || e->tag() == "Lava") && m_physics.isStandingIn(p,e) )
+// ------------------------------- Player collisions -------------------------------------------------------------------------
+
+    for ( auto o : m_entities.getEntities("Obstacle") ) 
+    {
+        if ( m_physics.isCollided(m_player,o) )
         {
-            p->getComponent<CHealth>().HP = 0;
-        }
-        if ( m_physics.isCollided(p,e) ){
-            if ( e->tag() == "Goal" ) {
-                if ( e->getComponent<CAnimation>().animation.getName() != "checkpoint_wave" ) {
-                e->addComponent<CAnimation>(m_game->assets().getAnimation("checkpoint_wave"), true);
-                saveGame("game_save.txt");
-                } 
-                continue;
-            } else if ( e->tag() == "Obstacle") {
-                p->movePosition(m_physics.Overlap(p,e));
-                continue;
-            } else if ( e->tag() == "Coin"){
-                e->kill();
-                continue;
-            } else if ( e->tag() == "Dragon" ) {
-                if ( e->hasComponent<CDamage>() ){
-                p->movePosition(m_physics.Overlap(p,e)*15);
-                p->takeDamage(e, m_currentFrame);
-                e->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
-            }
-            }
-        } else {
-            continue;
+            m_player->movePosition(m_physics.Overlap(m_player,o));
         }
     }
 
+    for ( auto e : m_entities.getEntities("Enemy")){
+        if ( m_physics.isCollided(m_player, e) )
+        {
+            e->movePosition(m_physics.Overlap(e,m_player));
+            m_player->takeDamage(e, m_currentFrame);
+        }
+    }
+
+    for ( auto c : m_entities.getEntities("Coin") ) 
+    {
+        if ( m_physics.isCollided(m_player,c) )
+        {
+            c->kill();
+        }
+    }
+
+    for ( auto w : m_entities.getEntities("Water") ) 
+    {
+        if ( m_physics.isStandingIn(m_player,w) )
+        {
+            m_player->getComponent<CHealth>().HP = 0;
+        }
+    }
+
+    for ( auto l : m_entities.getEntities("Lava") ) 
+    {
+        if ( m_physics.isStandingIn(m_player,l) )
+        {
+            m_player->getComponent<CHealth>().HP = 0;
+        }
+    }
+
+    for ( auto d : m_entities.getEntities("Dragon") ) 
+    {
+        if ( m_physics.isCollided(m_player,d) && d->hasComponent<CDamage>() )
+        {
+            m_player->movePosition(m_physics.Overlap(m_player,d)*15);
+            m_player->takeDamage(d, m_currentFrame);
+            d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
+        }
+    }
+
+    for ( auto g : m_entities.getEntities("Goal") ) 
+    {
+        if ( m_physics.isCollided(m_player,g) )
+        {
+            if ( g->getComponent<CAnimation>().animation.getName() != "checkpoint_wave" ) {
+            g->addComponent<CAnimation>(m_game->assets().getAnimation("checkpoint_wave"), true);
+            saveGame("game_save.txt");
+            } 
+        }
+    }
+
+
+// ------------------------------- Enemy collisions -------------------------------------------------------------------------
     for ( auto e : m_entities.getEntities("Enemy") )
     {   
-        for ( auto e2 : m_entities.getEntities() ) {
-            if ( m_physics.isCollided(e,e2) && (e != e2) ) {
-                if ( e2->tag() == "Enemy" || e2->tag() == "Obstacle" || e2->tag() == "Water" ) {
-                    e->movePosition(m_physics.Overlap(e,e2));
-                } 
-            } else {
-                continue;
-            }
-        }
-        if ( m_physics.isCollided(e,p) )
+        for ( auto e1 : m_entities.getEntities("Enemy") ) 
         {
-            e->movePosition(m_physics.Overlap(e,p));
-            p->takeDamage(e, m_currentFrame);
+            if ( m_physics.isCollided(e,e1) ) 
+            {
+                e->movePosition(m_physics.Overlap(e,e1));
+            }
         }
     }
 
-    for ( auto p : m_entities.getEntities("Projectile") ){
-        for ( auto e :  m_entities.getEntities() ){
-            if (m_physics.isCollided(p,e)){
-                if ( e->tag() == "Obstacle" ){
-                    if ( p->getComponent<CTransform>().isMovable ){
+// ------------------------------- Projectile collisions -------------------------------------------------------------------------
+
+    for ( auto p : m_entities.getEntities("Projectile") )
+    {
+        for ( auto o :  m_entities.getEntities("Obstacle") )
+        {
+            if (m_physics.isCollided(p,o))
+            {
+                if ( p->getComponent<CTransform>().isMovable )
+                {
                     p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
                     p->getComponent<CTransform>().isMovable = false;
-                    }
-                } else if ( e->tag() == "Dragon" ){
-                    if (e->hasComponent<CHealth>() && p->hasComponent<CDamage>()){
-                    e->takeDamage(p, m_currentFrame);
-                    e->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
-                    }
-                    if ( p->getComponent<CTransform>().isMovable ){
-                        p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
-                        p->getComponent<CTransform>().isMovable = false;
-                        p->removeComponent<CDamage>();
-                    }
-                    if ( e->getComponent<CHealth>().HP <= 0 ){
-                        e->kill();
-                    }
-                } else if ( e->tag() == "Enemy" ){
-                    if (e->hasComponent<CHealth>() && p->hasComponent<CDamage>()){
-                    e->takeDamage(p, m_currentFrame);
-                    }
-                    if ( p->getComponent<CTransform>().isMovable ){
-                        p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
-                        p->getComponent<CTransform>().isMovable = false;
-                        p->removeComponent<CDamage>();
-                    }
-                    if ( e->getComponent<CHealth>().HP <= 0 ){
-                        spawnCoin(e->getComponent<CTransform>().pos, 4);
-                        e->kill();
-                    }
                 }
-            } else {
-                continue;
             }
+        }
 
+        for ( auto e :  m_entities.getEntities("Enemy") )
+        {
+            if (m_physics.isCollided(p,e))
+            {
+                if (e->hasComponent<CHealth>() && p->hasComponent<CDamage>())
+                {
+                    e->takeDamage(p, m_currentFrame);
+                }
+                if ( p->getComponent<CTransform>().isMovable )
+                {
+                    p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
+                    p->getComponent<CTransform>().isMovable = false;
+                    p->removeComponent<CDamage>();
+                }
+                if ( e->getComponent<CHealth>().HP <= 0 )
+                {
+                    spawnCoin(e->getComponent<CTransform>().pos, 4);
+                    e->kill();
+                }
+            }
+        }
+
+        for ( auto d :  m_entities.getEntities("Dragon") )
+        {
+            if (m_physics.isCollided(p,d))
+            {
+                if (d->hasComponent<CHealth>() && p->hasComponent<CDamage>())
+                {
+                    d->takeDamage(p, m_currentFrame);
+                    d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
+                }
+                if ( p->getComponent<CTransform>().isMovable )
+                {
+                    p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
+                    p->getComponent<CTransform>().isMovable = false;
+                    p->removeComponent<CDamage>();
+                }
+                if ( d->getComponent<CHealth>().HP <= 0 )
+                {
+                    d->kill();
+                }
+            }
         }
     }
 }
+
+
 
 void Scene_Play::sStatus() {
     for ( auto p : m_entities.getEntities("Player") ){
@@ -959,12 +797,211 @@ void Scene_Play::sRender() {
     }
 }
 
-void Scene_Play::onEnd() {
-    m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+
+void Scene_Play::spawnPlayer(){
+
+    auto entity = m_entities.addEntity("Player", (size_t)3);
+    size_t pos_x;
+    size_t pos_y;
+    int hp;
+    m_player = entity;
+    if (m_newGame){
+        pos_x = m_playerConfig.x;
+        pos_y = m_playerConfig.y;
+        hp = m_playerConfig.HP;
+    } else {
+        std::ifstream file("game_save.txt");
+        if (!file) {
+            std::cerr << "Could not load game_save.txt file!\n";
+            exit(-1);
+        }
+        std::string head;
+        while (file >> head) {
+            if (head == "Player_pos") {
+                file >> pos_x >> pos_y;
+            }
+            if (head == "Player_hp") {
+                file >> hp;
+            }
+        }
+    }
+    Vec2 pos = Vec2{64*(float)pos_x, 64*(float)pos_y};
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+
+    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, m_playerConfig.SPEED, true);
+    entity->addComponent<CBoundingBox>(Vec2 {32, 32});
+
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("wizIdle"), true);
+    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+
+    entity->addComponent<CInputs>();
+    entity->addComponent<CState>(PlayerState::RUN_DOWN);
+
+    entity->addComponent<CDamage>(m_playerConfig.DAMAGE, 180);
+    entity->addComponent<CHealth>(hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
 }
 
-void Scene_Play::setPaused(bool pause) {
-    m_pause = pause;
+void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
+    auto entity = m_entities.addEntity("Obstacle", (size_t)8);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
+    entity->addComponent<CBoundingBox>(Vec2 {64, 64});
+}
+
+void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
+    auto entity = m_entities.addEntity("Obstacle", (size_t)8);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
+    entity->addComponent<CBoundingBox>(Vec2 {64, 64});
+}
+
+void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
+    auto entity = m_entities.addEntity("Dragon", (size_t)2);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation(ani), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
+    entity->addComponent<CHealth>(10, 10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->addComponent<CBoundingBox>(Vec2{96, 96});
+    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+    entity->addComponent<CDamage>(2, 30);
+
+}
+
+void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
+{
+    auto entity = m_entities.addEntity("Background", (size_t)10);
+    std::vector<int> ranArray = generateRandomArray(1, m_entities.getTotalEntities(), 0, 15);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
+}
+
+void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
+{
+    auto entity = m_entities.addEntity("Background", (size_t)10);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
+}
+
+void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
+{
+    auto entity = m_entities.addEntity("Goal", (size_t)4);
+    entity->addComponent<CAnimation> (m_game->assets().getAnimation("checkpoint_idle"), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2{4,4}, 0, movable);
+    entity->addComponent<CBoundingBox>(Vec2{32, 32});
+}
+
+void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool movable)
+{
+    auto entity = m_entities.addEntity("Key", (size_t)4);
+    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture("m_texture_key"));
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("m_texture_key"), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {1, 1}, 0, movable);
+    entity->addComponent<CBoundingBox>(Vec2{32, 32});
+}
+
+void Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
+{
+    auto entity = m_entities.addEntity(tag, (size_t)8);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
+    entity->addComponent<CBoundingBox>(Vec2{64, 64});
+}
+
+void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
+{
+    auto entity = m_entities.addEntity(tag, (size_t)8);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
+    entity->addComponent<CBoundingBox>(Vec2{64, 64});
+}
+
+void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
+{
+    auto entity = m_entities.addEntity("Bridge", (size_t)7);
+    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("bridge"));
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("bridge"), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
+    entity->addComponent<CBoundingBox>(Vec2{64, 64});
+}
+
+void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
+{
+    auto entity = m_entities.addEntity("Projectile", (size_t)1);
+    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {32, 32}, m_game->assets().getTexture("fireball"));
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
+    float angle = vel.angle();
+    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, angle, 400, true);
+    entity->addComponent<CBoundingBox>(Vec2{12, 12});
+    entity->addComponent<CDamage>(player->getComponent<CDamage>().damage, player->getComponent<CDamage>().speed); // damage speed 6 = frames between attacking
+    m_entities.sort();
+}
+
+void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
+{
+    auto entity = m_entities.addEntity("Coin", layer);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("coin"), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, false);
+    entity->addComponent<CBoundingBox>(Vec2{24, 24});
+    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+}
+
+void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
+{
+    auto entity = m_entities.addEntity("Enemy", layer);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("rooter"), true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
+    entity->addComponent<CBoundingBox>(Vec2{32, 48});
+    entity->addComponent<CPathfind>(m_player->getComponent<CTransform>().pos, m_player);
+    entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
+    entity->addComponent<CHealth>(4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->addComponent<CDamage>(1, 60);
+}
+
+void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
+{   
+    for (const auto& [tileKey, textureIndex] : tileTextureMap) {
+        std::string tile = tileKey;
+        size_t layer = 10;
+        
+        if (tile == "water") {
+            layer = layer - 1;
+        } else if (tile == "lava") {
+            layer = layer - 1;
+        } else if (tile == "cloud") {
+            layer = layer - 2;
+        } else if (tile == "obstacle") {
+            layer = layer - 2;
+            tile = "mountain";  // Change the tile name for "obstacle"
+        }
+
+        auto entity = m_entities.addEntity("DualTile", layer);
+        entity->addComponent<CAnimation>(m_game->assets().getAnimation(tile + "_dual_sheet"), true);
+
+        float size;
+        float scale;
+        size_t rows = 4;
+        
+        if (entity->getComponent<CAnimation>().animation.getSize().x == 64) {
+            size = 16;
+            scale = 1;
+        } else {
+            size = 32;
+            scale = 0.5;
+        }
+        
+        entity->addComponent<CTexture>(Vec2{(float)(textureIndex % 4) * size, (float)(int)(textureIndex / rows) * size}, 
+                                       Vec2{size, size}, 
+                                       m_game->assets().getTexture(tile + "_dual_sheet"));
+                                       
+        Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+        entity->addComponent<CTransform>(midGrid, Vec2{0, 0}, false);
+        entity->getComponent<CTransform>().scale = Vec2{scale, scale};
+    }
 }
 
 void Scene_Play::changePlayerStateTo(PlayerState s) {
@@ -977,4 +1014,12 @@ void Scene_Play::changePlayerStateTo(PlayerState s) {
     else { 
         m_player->getComponent<CState>().changeAnimate = false;
     }
+}
+
+void Scene_Play::onEnd() {
+    m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+}
+
+void Scene_Play::setPaused(bool pause) {
+    m_pause = pause;
 }

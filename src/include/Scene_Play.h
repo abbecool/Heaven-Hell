@@ -58,6 +58,9 @@ class Scene_Play : public Scene
 
     void sMovement();
     void sCollision();
+    // void sCollisionPlayer();
+    // void sCollisionEnemies();
+    // void sCollisionProjectiles();
     void sStatus();
     void sAnimation();
     void sRender();

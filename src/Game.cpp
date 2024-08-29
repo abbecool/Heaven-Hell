@@ -59,9 +59,16 @@ int Game::framerate(){
 
 void Game::run()
 {
+    // std::chrono::steady_clock::time_point current_frame = std::chrono::steady_clock::now();
+    // std::chrono::steady_clock::time_point next_frame;
+    // std::chrono::duration time_diff;
+
     std::chrono::steady_clock::time_point current_frame = std::chrono::steady_clock::now();
     std::chrono::steady_clock::time_point next_frame;
-    // std::chrono::duration time_diff;
+    std::chrono::steady_clock::time_point last_fps_update = current_frame;
+
+    int frame_count = 0;
+    double accumulated_frame_time = 0.0;
 
     while (isRunning())
     {
@@ -79,12 +86,27 @@ void Game::run()
 
         std::this_thread::sleep_until(next_frame);
 
-        auto time_diff = std::chrono::steady_clock::now()-current_frame;
-        auto time_diff_ms = std::chrono::duration_cast<std::chrono::milliseconds>(time_diff);
-        
-        // Print the time in milliseconds, followed by a carriage return
-        std::cout << "FPS: " << 1000/time_diff_ms.count() << "\r";
-        std::cout.flush();  // Ensure the output is displayed immediately
+        auto frame_time = std::chrono::steady_clock::now() - current_frame;
+        auto frame_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(frame_time).count();
+
+        accumulated_frame_time += frame_time_ms;
+        frame_count++;
+
+        // Check if one second has passed
+        if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(1))
+        {
+            double average_frame_time = accumulated_frame_time / frame_count;
+            double average_fps = 1000.0 / average_frame_time;
+
+            // Print the average FPS followed by a carriage return
+            std::cout << "FPS: " << average_fps << "\r";
+            std::cout.flush();  // Ensure the output is displayed immediately
+
+            // Reset counters for the next second
+            accumulated_frame_time = 0.0;
+            frame_count = 0;
+            last_fps_update = std::chrono::steady_clock::now();
+        }
 
     }
     SDL_DestroyWindow( m_window );
