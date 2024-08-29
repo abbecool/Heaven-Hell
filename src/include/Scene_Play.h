@@ -39,6 +39,7 @@ class Scene_Play : public Scene
     void saveGame(const std::string& filename);
     Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
+    void spawnHUD();
     void spawnPlayer();
     void spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel);
     void spawnCoin(Vec2 pos, const size_t layer);

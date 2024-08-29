@@ -212,6 +212,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     }
 
     spawnPlayer();
+    spawnHUD();
     spawnCoin(Vec2{64*15,64*12}, 4);
     spawnDragon(Vec2{64*16 , 64*35}, false, "snoring_dragon");
     spawnSmallEnemy(Vec2{64*15 , 64*9}, 3);
@@ -793,6 +794,14 @@ void Scene_Play::sRender() {
             }
         }
     }
+}
+
+void Scene_Play::spawnHUD(){
+    auto entity = m_entities.addEntity("HUD", (size_t)1);
+    Vec2 posHUD = Vec2{0, 0};
+    entity->addComponent<CTransform>(posHUD);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("wizIdle"), true);
+
 }
 
 

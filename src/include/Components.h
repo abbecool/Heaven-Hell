@@ -52,10 +52,11 @@ public:
     Vec2 vel = {0, 0};    
     Vec2 scale = {0.5, 0.5};    
     float angle = 0;
-    int speed;
-    bool isMovable;
+    int speed = 0;
+    bool isMovable = false;
     float tempo = 1.0f;
     CTransform() {}
+    CTransform(const Vec2 & p) : pos(p), prevPos(p) {}
     CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, bool mvbl) 
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
