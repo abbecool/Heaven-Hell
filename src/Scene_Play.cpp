@@ -695,7 +695,7 @@ void Scene_Play::sRender() {
                     );
                 } 
                 if (e->hasComponent<CHealth>() && e != m_player){
-                    if ( e->getComponent<CHealth>().HP != e->getComponent<CHealth>().HP_max && (int)m_currentFrame - e->getComponent<CHealth>().damage_frame < e->getComponent<CHealth>().heart_frames ){
+                    if ( (int)m_currentFrame - e->getComponent<CHealth>().damage_frame < e->getComponent<CHealth>().heart_frames) {
 
                         Animation animation;
                         auto hearts = float(e->getComponent<CHealth>().HP)/2;
@@ -710,9 +710,9 @@ void Scene_Play::sRender() {
                                 animation = e->getComponent<CHealth>().animation_empty;
                             }
 
-                            animation.setScale(Vec2{0.5, 0.5});
+                            animation.setScale(Vec2{2, 2});
                             animation.setDestRect(Vec2{
-                                adjustedPos.x + (i - 1 - e->getComponent<CHealth>().HP_max / 4) * animation.getSize().x * animation.getScale().x, 
+                                adjustedPos.x + (float)(i-1-(float)e->getComponent<CHealth>().HP_max/4)*animation.getSize().x*animation.getScale().x, 
                                 adjustedPos.y - e->getComponent<CAnimation>().animation.getSize().y * e->getComponent<CAnimation>().animation.getScale().y / 2
                             });
                             
@@ -761,8 +761,8 @@ void Scene_Play::sRender() {
                 animation = m_player->getComponent<CHealth>().animation_empty;
             }
 
-            animation.setScale(Vec2{2, 2});
-            animation.setDestRect(Vec2{(float)(i-1)*64, 0});
+            animation.setScale(Vec2{4, 4});
+            animation.setDestRect(Vec2{(float)(i-1)*animation.getSize().x*animation.getScale().x, 0});
             
             SDL_RenderCopyEx(
                 m_game->renderer(), 
@@ -952,7 +952,7 @@ void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("coin"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, false);
-    entity->addComponent<CBoundingBox>(Vec2{24, 24});
+    entity->addComponent<CBoundingBox>(Vec2{32, 32});
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
 }
 
