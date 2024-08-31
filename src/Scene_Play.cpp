@@ -797,7 +797,7 @@ void Scene_Play::sRender() {
 }
 
 void Scene_Play::spawnHUD(){
-    auto entity = m_entities.addEntity("HUD", (size_t)1);
+    auto entity = m_entities.addEntity("HUD", 1);
     Vec2 posHUD = Vec2{0, 0};
     entity->addComponent<CTransform>(posHUD);
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("wizIdle"), true);
@@ -807,9 +807,9 @@ void Scene_Play::spawnHUD(){
 
 void Scene_Play::spawnPlayer(){
 
-    auto entity = m_entities.addEntity("Player", (size_t)3);
-    size_t pos_x;
-    size_t pos_y;
+    auto entity = m_entities.addEntity("Player", 3);
+    int pos_x;
+    int pos_y;
     int hp;
     m_player = entity;
     if (m_newGame){
@@ -849,21 +849,21 @@ void Scene_Play::spawnPlayer(){
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
-    auto entity = m_entities.addEntity("Obstacle", (size_t)8);
+    auto entity = m_entities.addEntity("Obstacle", 8);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
     entity->addComponent<CBoundingBox>(Vec2 {64, 64});
 }
 
 void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
-    auto entity = m_entities.addEntity("Obstacle", (size_t)8);
+    auto entity = m_entities.addEntity("Obstacle", 8);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
     entity->addComponent<CBoundingBox>(Vec2 {64, 64});
 }
 
 void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
-    auto entity = m_entities.addEntity("Dragon", (size_t)2);
+    auto entity = m_entities.addEntity("Dragon", 2);
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(ani), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
@@ -876,7 +876,7 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
 
 void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 {
-    auto entity = m_entities.addEntity("Background", (size_t)10);
+    auto entity = m_entities.addEntity("Background", 10);
     std::vector<int> ranArray = generateRandomArray(1, m_entities.getTotalEntities(), 0, 15);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
@@ -884,14 +884,14 @@ void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 
 void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 {
-    auto entity = m_entities.addEntity("Background", (size_t)10);
+    auto entity = m_entities.addEntity("Background", 10);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
 }
 
 void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
 {
-    auto entity = m_entities.addEntity("Goal", (size_t)4);
+    auto entity = m_entities.addEntity("Goal", 4);
     entity->addComponent<CAnimation> (m_game->assets().getAnimation("checkpoint_idle"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2{4,4}, 0, movable);
@@ -900,7 +900,7 @@ void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
 
 void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool movable)
 {
-    auto entity = m_entities.addEntity("Key", (size_t)4);
+    auto entity = m_entities.addEntity("Key", 4);
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture("m_texture_key"));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("m_texture_key"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -910,7 +910,7 @@ void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool
 
 void Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
 {
-    auto entity = m_entities.addEntity(tag, (size_t)8);
+    auto entity = m_entities.addEntity(tag, 8);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
@@ -918,7 +918,7 @@ void Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int fram
 
 void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
 {
-    auto entity = m_entities.addEntity(tag, (size_t)8);
+    auto entity = m_entities.addEntity(tag, 8);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
@@ -926,7 +926,7 @@ void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int fra
 
 void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 {
-    auto entity = m_entities.addEntity("Bridge", (size_t)7);
+    auto entity = m_entities.addEntity("Bridge", 7);
     entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("bridge"));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("bridge"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -936,7 +936,7 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 
 void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
 {
-    auto entity = m_entities.addEntity("Projectile", (size_t)1);
+    auto entity = m_entities.addEntity("Projectile", 1);
     entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {32, 32}, m_game->assets().getTexture("fireball"));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
     float angle = vel.angle();

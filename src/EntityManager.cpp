@@ -3,7 +3,7 @@
 
 EntityManager::EntityManager() {}
 
-std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag, const size_t &layer)
+std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag, const Uint8 &layer)
 {   
     auto e = std::make_shared<Entity>(tag, m_TotalEntities++, layer);
     m_toAdd.push_back(e);
