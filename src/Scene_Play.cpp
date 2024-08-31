@@ -17,6 +17,13 @@
 #include <unordered_map>
 #include <unordered_set>
 
+"""
+std::map<std::string, void (Scene_Play::*)()> funcMap;
+
+for loop dropings a map from string to spawnXXX function will be needed
+
+"""
+
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), m_levelPath(levelPath), m_newGame(newGame)
 {
