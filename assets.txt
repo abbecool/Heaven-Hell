@@ -52,7 +52,7 @@ Texture     game_title                  assets/images/game_title.png
 Texture     checkpoint_idle             assets/images/checkpoint_idle.png
 Texture     checkpoint_wave             assets/images/checkpoint_wave.png
 Texture     coin                        assets/images/coin.png
-Texture     coin_front                        assets/images/coin_front.png
+Texture     coin_front                  assets/images/coin_front.png
 Texture     rooter                      assets/images/smallEnemy.png
 
 Font        minecraft                   assets/fonts/Minecraft.ttf
@@ -70,7 +70,6 @@ Animation   m_texture_goal              m_texture_goal              1   100 1   
 Animation   m_texture_key               m_texture_key               1   100 1   1
 Animation   lava_sheet                  lava_sheet                  1   100 1   1
 Animation   water                       water                       1   100 1   1
-Animation   bridge                      bridge                      1   100 1   1
 Animation   rock_wall                   rock_wall                   1   100 1   1
 Animation   wizard                      wizard                      2   5   1   1
 Animation   tuva                        gras_tuva                   1   100 1   1
@@ -117,3 +116,4 @@ Animation   mountain_dual_sheet         mountain_dual_sheet         1   100     
 Animation   dirt_dual_sheet             dirt_dual_sheet             1   100     4   4  
 Animation   cloud_dual_sheet            cloud_dual_sheet            1   100     4   4  
 Animation   lava_dual_sheet             lava_dual_sheet             1   100     4   4  
+Animation   bridge                      bridge                      1   100     4   4

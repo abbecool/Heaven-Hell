@@ -668,7 +668,7 @@ void Scene_Play::sRender() {
                         SDL_FLIP_NONE
                     );
                 } 
-                
+
                 animation.setScale(transform.scale*cameraZoom);
                 animation.setAngle(transform.angle);
                 animation.setDestRect(adjustedPos - animation.getDestSize()/2);
@@ -889,7 +889,6 @@ void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
 void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool movable)
 {
     auto entity = m_entities.addEntity("Key", 4);
-    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {64, 64}, m_game->assets().getTexture("m_texture_key"));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("m_texture_key"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {1, 1}, 0, movable);
@@ -915,20 +914,18 @@ void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int fra
 void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 {
     auto entity = m_entities.addEntity("Bridge", 7);
-    entity->addComponent<CTexture>(Vec2 {(float)(frame%4)*32, (float)(int)(frame/4)*32}, Vec2 {32, 32}, m_game->assets().getTexture("bridge"));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("bridge"), true);
+    entity->getComponent<CAnimation>().animation.setTile(Vec2{(float)(frame % 4), (float)(int)(frame / 4)});
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
+    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2{2,2}, 0, false);
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
 }
 
 void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
 {
     auto entity = m_entities.addEntity("Projectile", 1);
-    entity->addComponent<CTexture>(Vec2 {0,0}, Vec2 {32, 32}, m_game->assets().getTexture("fireball"));
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
-    float angle = vel.angle();
-    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, angle, 400, true);
+    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, vel.angle(), 400, true);
     entity->addComponent<CBoundingBox>(Vec2{12, 12});
     entity->addComponent<CDamage>(player->getComponent<CDamage>().damage, player->getComponent<CDamage>().speed); // damage speed 6 = frames between attacking
     m_entities.sort();
