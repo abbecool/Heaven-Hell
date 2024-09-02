@@ -10,7 +10,6 @@ typedef std::tuple<
     CInputs,
     CBoundingBox,
     CAnimation,
-    CTexture,
     CKey,
     CState,
     CHealth,    

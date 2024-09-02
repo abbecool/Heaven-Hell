@@ -75,18 +75,6 @@ class CBoundingBox : public Component
             : size(s), halfSize(s/2.0) {}
 };
 
-class CTexture : public Component
-{
-public:
-    Vec2 pos;
-    Vec2 size;
-    SDL_Texture * texture;
-
-    CTexture() {}
-    CTexture(const Vec2 p, const Vec2 sz, SDL_Texture* tex) 
-        : pos(p), size(sz), texture(tex){}
-};
-
 class CHealth: public Component
 {
 public:

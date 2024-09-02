@@ -10,7 +10,6 @@ Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
                     CInputs(),
                     CBoundingBox(),
                     CAnimation(),
-                    CTexture(),
                     CKey(),
                     CState(),
                     CHealth(),

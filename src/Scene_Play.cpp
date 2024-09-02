@@ -973,12 +973,7 @@ void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, 
 
         auto entity = m_entities.addEntity("DualTile", layer);
         entity->addComponent<CAnimation>(m_game->assets().getAnimation(tile + "_dual_sheet"), true);
-        entity->getComponent<CAnimation>().animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});
-        
-        entity->addComponent<CTexture>(Vec2{(float)(textureIndex % 4) * 16, (float)(int)(textureIndex / 4) * 16}, 
-                                       Vec2{16, 16}, 
-                                       m_game->assets().getTexture(tile + "_dual_sheet"));
-                                       
+        entity->getComponent<CAnimation>().animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});                           
         Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
         entity->addComponent<CTransform>(midGrid, Vec2{0, 0}, Vec2{4, 4}, 0, false);
         entity->addComponent<CName>(tile);
