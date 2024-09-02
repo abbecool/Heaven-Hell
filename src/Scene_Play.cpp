@@ -1,5 +1,5 @@
-#include "Scene_Play.h"
 #include "Scene_Menu.h"
+#include "Scene_Play.h"
 #include "Sprite.h"
 #include "Assets.h"
 #include "Game.h"
@@ -17,12 +17,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
-"""
-std::map<std::string, void (Scene_Play::*)()> funcMap;
-
-for loop dropings a map from string to spawnXXX function will be needed
-
-"""
+// """
+// std::map<std::string, void (Scene_Play::*)()> funcMap;
+// 
+// for loop dropings a map from string to spawnXXX function will be needed
+// 
+// """
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), m_levelPath(levelPath), m_newGame(newGame)
@@ -189,17 +189,17 @@ void Scene_Play::loadLevel(const std::string& levelPath){
                 spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
             }
             else{
-                if (pixel == "grass" ) {
-                    spawnGrass(Vec2 {64*(float)x,64*(float)y}, textureIndex);
-                } else if (pixel == "dirt"){
-                    spawnDirt(Vec2 {64*(float)x,64*(float)y}, textureIndex);
-                } else {
-                    if ( std::find(neighborsTags.begin(), neighborsTags.end(), "dirt") != neighborsTags.end() ){
-                        spawnDirt(Vec2 {64*(float)x,64*(float)y}, m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "dirt", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                    } else {
-                        spawnGrass(Vec2 {64*(float)x,64*(float)y}, m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                    }   
-                }
+                // if (pixel == "grass" ) {
+                //     spawnGrass(Vec2 {64*(float)x,64*(float)y}, textureIndex);
+                // } else if (pixel == "dirt"){
+                //     spawnDirt(Vec2 {64*(float)x,64*(float)y}, textureIndex);
+                // } else {
+                //     if ( std::find(neighborsTags.begin(), neighborsTags.end(), "dirt") != neighborsTags.end() ){
+                //         spawnDirt(Vec2 {64*(float)x,64*(float)y}, m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "dirt", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                //     } else {
+                //         spawnGrass(Vec2 {64*(float)x,64*(float)y}, m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                //     }   
+                // }
                 if (pixel == "cloud") {
                     spawnCloud(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
                 } else if (pixel == "lava") {
@@ -246,9 +246,9 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "QUIT") { 
             onEnd();
         } else if (action.name() == "ZOOM IN"){
-            cameraZoom = cameraZoom*1.25;
+            cameraZoom = cameraZoom*2;
         } else if (action.name() == "ZOOM OUT"){
-            cameraZoom = cameraZoom*0.8;
+            cameraZoom = cameraZoom*0.5;
         } else if (action.name() == "CAMERA FOLLOW"){
             cameraFollow = !cameraFollow;
         } else if (action.name() == "SAVE"){
@@ -388,7 +388,7 @@ void Scene_Play::sMovement() {
 
         if (e->hasComponent<CPathfind>()) {
             Vec2& target = e->getComponent<CPathfind>().target;
-            if ((target - transform.pos).length() < 64*5) {
+            if ((target - transform.pos).length() < 64*2) {
                 transform.vel = target - transform.pos;
             } else {
                 transform.vel = Vec2 {0,0};
@@ -629,7 +629,8 @@ void Scene_Play::sRender() {
         if (cameraPos.y + (float)screenHeight > m_gridSize.y*levelSize.y){ cameraPos.y = m_gridSize.y*levelSize.y - (float)screenHeight;}     // bottom wall
         if (cameraPos.y < 0){ cameraPos.y = 0;}     // top wall
     } else{
-        cameraPos = Vec2{0,0};
+        cameraPos = Vec2{   m_gridSize.x*30*(int)((int)(m_player->getComponent<CTransform>().pos.x)/(30*m_gridSize.x)),
+                            m_gridSize.y*17*(int)((int)(m_player->getComponent<CTransform>().pos.y)/(17*m_gridSize.y))};
     }
 
     // Clear the screen with black
@@ -639,68 +640,48 @@ void Scene_Play::sRender() {
     if (m_drawTextures){
         for (auto e : m_entities.getEntities()){        
             if ( e->hasComponent<CTransform>() && e->hasComponent<CAnimation>()){
-
+                
                 auto& transform = e->getComponent<CTransform>();
                 auto& animation = e->getComponent<CAnimation>().animation;
 
                 // Adjust the entity's position based on the camera position
                 Vec2 adjustedPos = transform.pos - cameraPos;
+                if (cameraZoom != 1) {
+
+                }
 
                 if ( e->hasComponent<CShadow>() ){
                     auto& shadow = e->getComponent<CShadow>();
 
                     // Set the destination rectangle for rendering
                     shadow.animation.setScale(transform.scale*cameraZoom);
-                    shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
                     shadow.animation.setAngle(transform.angle);
+                    shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
 
                     SDL_RenderCopyEx(
-                            m_game->renderer(), 
-                            shadow.animation.getTexture(), 
-                            shadow.animation.getSrcRect(), 
-                            shadow.animation.getDestRect(),
-                            shadow.animation.getAngle(),
-                            NULL,
-                            SDL_FLIP_NONE
-                        );
+                        m_game->renderer(), 
+                        shadow.animation.getTexture(), 
+                        shadow.animation.getSrcRect(), 
+                        shadow.animation.getDestRect(),
+                        shadow.animation.getAngle(),
+                        NULL,
+                        SDL_FLIP_NONE
+                    );
                 } 
-                SDL_Rect texRect;
-                texRect.x = e->getComponent<CTexture>().pos.x;
-                texRect.y = e->getComponent<CTexture>().pos.y;
-                texRect.w = e->getComponent<CTexture>().size.x;
-                texRect.h = e->getComponent<CTexture>().size.y;
-
-
-                // Set the destination rectangle for rendering
+                
                 animation.setScale(transform.scale*cameraZoom);
-                animation.setDestRect(adjustedPos - animation.getDestSize()/2);
                 animation.setAngle(transform.angle);
+                animation.setDestRect(adjustedPos - animation.getDestSize()/2);
 
-                if (e->tag() == "DualTile"){
-                    animation.setDestSize(Vec2{(float)64, (float)64});
-                }
-
-                if (animation.frames() == 1){
-                    SDL_RenderCopyEx(
-                        m_game->renderer(), 
-                        animation.getTexture(), 
-                        &texRect, 
-                        animation.getDestRect(),
-                        animation.getAngle(),
-                        NULL,
-                        SDL_FLIP_NONE
-                    );
-                } else {
-                    SDL_RenderCopyEx(
-                        m_game->renderer(), 
-                        animation.getTexture(), 
-                        animation.getSrcRect(), 
-                        animation.getDestRect(),
-                        animation.getAngle(),
-                        NULL,
-                        SDL_FLIP_NONE
-                    );
-                } 
+                SDL_RenderCopyEx(
+                    m_game->renderer(), 
+                    animation.getTexture(), 
+                    animation.getSrcRect(), 
+                    animation.getDestRect(),
+                    animation.getAngle(),
+                    NULL,
+                    SDL_FLIP_NONE
+                );
                 if (e->hasComponent<CHealth>() && e != m_player){
                     if ( (int)m_currentFrame - e->getComponent<CHealth>().damage_frame < e->getComponent<CHealth>().heart_frames) {
 
@@ -717,7 +698,7 @@ void Scene_Play::sRender() {
                                 animation = e->getComponent<CHealth>().animation_empty;
                             }
 
-                            animation.setScale(Vec2{2, 2});
+                            animation.setScale(Vec2{2, 2}*cameraZoom);
                             animation.setDestRect(Vec2{
                                 adjustedPos.x + (float)(i-1-(float)e->getComponent<CHealth>().HP_max/4)*animation.getSize().x*animation.getScale().x, 
                                 adjustedPos.y - e->getComponent<CAnimation>().animation.getSize().y * e->getComponent<CAnimation>().animation.getScale().y / 2
@@ -746,14 +727,14 @@ void Scene_Play::sRender() {
         texRect.w = 128;
 
         SDL_RenderCopyEx(
-                    m_game->renderer(), 
-                    m_game->assets().getTexture("coin_front"), 
-                    nullptr, 
-                    &texRect,
-                    0,
-                    NULL,
-                    SDL_FLIP_NONE
-                );
+            m_game->renderer(), 
+            m_game->assets().getTexture("coin_front"), 
+            nullptr, 
+            &texRect,
+            0,
+            NULL,
+            SDL_FLIP_NONE
+        );
 
         Animation animation;
         auto hearts = float(m_player->getComponent<CHealth>().HP)/2;
@@ -995,26 +976,15 @@ void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, 
 
         auto entity = m_entities.addEntity("DualTile", layer);
         entity->addComponent<CAnimation>(m_game->assets().getAnimation(tile + "_dual_sheet"), true);
-
-        float size;
-        float scale;
-        size_t rows = 4;
+        entity->getComponent<CAnimation>().animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});
         
-        if (entity->getComponent<CAnimation>().animation.getSize().x == 64) {
-            size = 16;
-            scale = 1;
-        } else {
-            size = 32;
-            scale = 0.5;
-        }
-        
-        entity->addComponent<CTexture>(Vec2{(float)(textureIndex % 4) * size, (float)(int)(textureIndex / rows) * size}, 
-                                       Vec2{size, size}, 
+        entity->addComponent<CTexture>(Vec2{(float)(textureIndex % 4) * 16, (float)(int)(textureIndex / 4) * 16}, 
+                                       Vec2{16, 16}, 
                                        m_game->assets().getTexture(tile + "_dual_sheet"));
                                        
         Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-        entity->addComponent<CTransform>(midGrid, Vec2{0, 0}, false);
-        entity->getComponent<CTransform>().scale = Vec2{scale, scale};
+        entity->addComponent<CTransform>(midGrid, Vec2{0, 0}, Vec2{4, 4}, 0, false);
+        entity->addComponent<CName>(tile);
     }
 }
 

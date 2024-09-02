@@ -18,6 +18,12 @@ class Animation
     size_t m_speed = 0; // the speed to play this animation
     Vec2 m_size = { 1, 1 }; // size of the animation frame
     std::string m_name = "none";
+    int m_rows = 1;
+    int m_cols = 1;
+    int m_currentRow = 1;
+    int m_currentCol = 1;
+    int m_tileWidth;
+    int m_tileHeight;
 
     public:
 
@@ -27,7 +33,9 @@ class Animation
         const std::string& name,
         SDL_Texture* t,
         size_t frameCount,
-        size_t speed
+        size_t speed,
+        int rows,
+        int cols
     );
 
     void update();
@@ -45,6 +53,7 @@ class Animation
     void setAngle(double angle);
     void setScale(Vec2 scale);
     void setTexture(SDL_Texture *tex);
+    void setTile(Vec2 grid);
     SDL_Point getTextureSize();
     Vec2 getDestSize();
     float getAngle();

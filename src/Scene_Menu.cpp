@@ -216,12 +216,6 @@ void Scene_Menu::sRender() {
                     auto& transform = e->getComponent<CTransform>();
                     auto& animation = e->getComponent<CAnimation>().animation;
 
-                    SDL_Rect texRect;
-                    texRect.x = e->getComponent<CTexture>().pos.x;
-                    texRect.y = e->getComponent<CTexture>().pos.y;
-                    texRect.w = e->getComponent<CTexture>().size.x;
-                    texRect.h = e->getComponent<CTexture>().size.y;
-
                     // Adjust the entity's position based on the camera position
                     Vec2 adjustedPos = transform.pos;
 
@@ -230,28 +224,15 @@ void Scene_Menu::sRender() {
                     animation.setDestRect(adjustedPos - animation.getDestSize()/2);
                     animation.setAngle(transform.angle);
                     
-                    if (animation.frames() == 111){
-                        SDL_RenderCopyEx(
-                            m_game->renderer(), 
-                            animation.getTexture(), 
-                            &texRect, 
-                            animation.getDestRect(),
-                            animation.getAngle(),
-                            NULL,
-                            SDL_FLIP_NONE
-                        );
-                    } 
-                    else {
-                        SDL_RenderCopyEx(
-                            m_game->renderer(), 
-                            animation.getTexture(), 
-                            animation.getSrcRect(), 
-                            animation.getDestRect(),
-                            animation.getAngle(),
-                            NULL,
-                            SDL_FLIP_NONE
-                        );
-                    } 
+                    SDL_RenderCopyEx(
+                        m_game->renderer(), 
+                        animation.getTexture(), 
+                        animation.getSrcRect(), 
+                        animation.getDestRect(),
+                        animation.getAngle(),
+                        NULL,
+                        SDL_FLIP_NONE
+                    );
                 }
                 if (e->hasComponent<CDialog>()){
 
