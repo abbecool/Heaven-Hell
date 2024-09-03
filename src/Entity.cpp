@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <tuple>
+#include <algorithm>
 
 Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
         : m_tag(tag), m_id(id), m_layer(layer){
@@ -60,7 +61,33 @@ void Entity::Entity::setScale(Vec2 scale){
 void Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
     auto attack = attacker->getComponent<CDamage>();
     if ((int)frame - getComponent<CHealth>().heart_frames > getComponent<CHealth>().damage_frame && (int)frame - getComponent<CHealth>().heart_frames > attack.lastAttackFrame){
-        getComponent<CHealth>().HP = getComponent<CHealth>().HP-attack.damage;
+        float damageMultiplier = 1.0f;
+        if ( !getComponent<CHealth>().HPType.empty() && !attack.damageType.empty() ) 
+        {
+            auto hpType = getComponent<CHealth>().HPType;
+
+            for (const auto& damageType : attack.damageType) {
+                // Check if the damage type is effective
+                std::cout << damageType << std::endl; 
+                if (m_effectiveDamageToEnemyMap.find(damageType) != m_effectiveDamageToEnemyMap.end()) {
+                    std::cout << "test " << damageType << std::endl; 
+                    if ( std::any_of(m_effectiveDamageToEnemyMap[damageType].begin(), m_effectiveDamageToEnemyMap[damageType].end(), 
+                        [&](const std::string& element) { return hpType.find(element) != hpType.end(); }) ){
+                        damageMultiplier = 3.0f;
+                        std::cout << "Enemy is weak to " << damageType << " damage!" << std::endl;
+                    }
+                }
+
+                if (m_ineffectiveDamageToEnemyMap.find(damageType) != m_ineffectiveDamageToEnemyMap.end()) {
+                    if ( std::any_of(m_ineffectiveDamageToEnemyMap[damageType].begin(), m_ineffectiveDamageToEnemyMap[damageType].end(), 
+                        [&](const std::string& element) { return hpType.find(element) != hpType.end(); }) ){
+                        damageMultiplier = 2.0f;
+                        std::cout << "Enemy is resistent to " << damageType << " damage!" << std::endl;
+                    }
+                }
+            }
+        }
+        getComponent<CHealth>().HP = getComponent<CHealth>().HP-(int)(attack.damage*damageMultiplier);
         getComponent<CHealth>().damage_frame = (int)frame;
         attack.lastAttackFrame = (int)frame;
     }

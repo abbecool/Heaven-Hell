@@ -3,6 +3,7 @@
 // #include "Sprite.h"
 #include "Animation.h"
 #include <memory>
+#include <unordered_set>
 
 // set a flag: flag |= (int)PlayerState
 // unset a flag: flag &= ~(int)PlayerState
@@ -84,7 +85,8 @@ public:
     Animation animation_half;
     Animation animation_empty;
     int heart_frames;
-    int damage_frame;
+    int damage_frame = 0;
+    std::unordered_set<std::string> HPType;
     CHealth() {}
     CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
         : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(hrt_frms){}
@@ -142,6 +144,7 @@ class CDamage : public Component
 {
     public:
     int damage, speed, lastAttackFrame;
+    std::unordered_set<std::string> damageType;
     CDamage() {}
     CDamage(int dmg, int spd) : damage(dmg), speed(spd), lastAttackFrame(-spd) {}
 }; 

@@ -4,6 +4,8 @@
 #include "Components.h"
 #include <tuple>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 typedef std::tuple<
     CTransform,
@@ -28,6 +30,40 @@ class Entity
     const size_t        m_layer    = 0;
     bool                m_alive = true;
     ComponentTuple      m_components;
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_effectiveDamageToEnemyMap = {
+        {"Fire",        {"Ice", "Grass", }},
+        {"Water",       {"Fire", "Rock"}},
+        {"Lightning",   {"Water", "Air"}},
+        {"Ice",         {"Grass", "Air"}},
+        {"Rock",        {"Ice", "Lightning"}},
+        {"Air",         {"Air"}},
+
+        {"Piercing",    {"Armored", "Flesh"}},
+        {"Slashing",    {"Flesh", "Organic"}},
+        {"Blunt",       {"Armored"}},
+        {"Explosive",   {"Armored"}},
+
+        {"Light",       {"Dark"}},
+        {"Dark",        {"Light"}}
+    };
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_ineffectiveDamageToEnemyMap = {
+        {"Fire",        {"Water", "Rock", }},
+        {"Water",       {"Ice", "Grass"}},
+        {"Lightning",   {"Rock", "Fire"}},
+        {"Ice",         {"Grass", "Air"}},
+        {"Rock",        {"Water", "Rock"}},
+        {"Air",         {"Rock", "Lightning"}},
+
+        {"Piercing",    {}},
+        {"Slashing",    {"Armored"}},
+        {"Blunt",       {}},
+        {"Explosive",   {}},
+
+        {"Light",       {"Light"}},
+        {"Dark",        {"Dark"}}
+    };
+
+
 public:
 
     Entity(const std::string& tag, const size_t id, const size_t layer);

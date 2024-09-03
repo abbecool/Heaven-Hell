@@ -5,6 +5,8 @@
 #include "Scene.h"
 #include "Level_Loader.h"
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
 
 class Scene_Play : public Scene
 {
@@ -33,6 +35,14 @@ class Scene_Play : public Scene
     bool m_drawDrawGrid = false;
     bool m_newGame;
 
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_damageToEnemyMap = {
+        {"fire", {"grass"}},
+        {"water", {"fire"}},
+        {"ice", {"water"}},
+        {"explosive", {"rock"}},
+        {"piercing", {"shielded"}}
+    };
+
     void init(const std::string&);
     void loadLevel(const std::string& path);
     void loadConfig(const std::string& path);
@@ -59,9 +69,6 @@ class Scene_Play : public Scene
 
     void sMovement();
     void sCollision();
-    // void sCollisionPlayer();
-    // void sCollisionEnemies();
-    // void sCollisionProjectiles();
     void sStatus();
     void sAnimation();
     void sRender();
