@@ -68,21 +68,18 @@ void Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
 
             for (const auto& damageType : attack.damageType) {
                 // Check if the damage type is effective
-                std::cout << damageType << std::endl; 
                 if (m_effectiveDamageToEnemyMap.find(damageType) != m_effectiveDamageToEnemyMap.end()) {
-                    std::cout << "test " << damageType << std::endl; 
                     if ( std::any_of(m_effectiveDamageToEnemyMap[damageType].begin(), m_effectiveDamageToEnemyMap[damageType].end(), 
                         [&](const std::string& element) { return hpType.find(element) != hpType.end(); }) ){
-                        damageMultiplier = 3.0f;
-                        std::cout << "Enemy is weak to " << damageType << " damage!" << std::endl;
+                        damageMultiplier *= 2.0f;
+                        // std::cout << "Enemy is weak to " << damageType << " damage!" << std::endl;
                     }
                 }
-
                 if (m_ineffectiveDamageToEnemyMap.find(damageType) != m_ineffectiveDamageToEnemyMap.end()) {
                     if ( std::any_of(m_ineffectiveDamageToEnemyMap[damageType].begin(), m_ineffectiveDamageToEnemyMap[damageType].end(), 
                         [&](const std::string& element) { return hpType.find(element) != hpType.end(); }) ){
-                        damageMultiplier = 2.0f;
-                        std::cout << "Enemy is resistent to " << damageType << " damage!" << std::endl;
+                        damageMultiplier *= 0.5f;
+                        // std::cout << "Enemy is resistent to " << damageType << " damage!" << std::endl;
                     }
                 }
             }

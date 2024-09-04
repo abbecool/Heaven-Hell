@@ -855,12 +855,11 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     entity->addComponent<CAnimation>(m_game->assets().getAnimation(ani), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
-    entity->addComponent<CHealth>(10, 10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-    entity->addComponent<CHealth>().HPType = {"Rock"};
+    entity->addComponent<CHealth>((int)10, (int)10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->getComponent<CHealth>().HPType = {""};
     entity->addComponent<CBoundingBox>(Vec2{96, 96});
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
     entity->addComponent<CDamage>(2, 30);
-
 }
 
 void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
