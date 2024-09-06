@@ -551,56 +551,42 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
-    if( m_player->getComponent<CTransform>().vel.isnull() ) {
-        changePlayerStateTo(PlayerState::STAND);
-    } else if( m_player->getComponent<CTransform>().vel.x > 0 ) {
-        changePlayerStateTo(PlayerState::RUN_RIGHT);
-    } else if(m_player->getComponent<CTransform>().vel.x < 0) {
-        changePlayerStateTo(PlayerState::RUN_LEFT);
-    } else if(m_player->getComponent<CTransform>().vel.y > 0) {
-        changePlayerStateTo(PlayerState::RUN_DOWN);
-    } else if(m_player->getComponent<CTransform>().vel.y < 0) {
-        changePlayerStateTo(PlayerState::RUN_UP);
-    }
-
-    // // change player animation
-    if (m_player->getComponent<CState>().changeAnimate) {
-        std::string aniName;
-        switch (m_player->getComponent<CState>().state) {
-            case PlayerState::STAND:
-                aniName = "wizIdle";
-                break;
-            case PlayerState::RUN_RIGHT:
-                aniName = "wizWalkE";
-                break;
-            case PlayerState::RUN_DOWN:
-                aniName = "wizWalkS";
-                break;
-            case PlayerState::RUN_LEFT:
-                aniName = "wizWalkW";
-                break;
-            case PlayerState::RUN_UP:
-                aniName = "wizWalkN";
-                break;
-            case PlayerState::RUN_RIGHT_DOWN:
-                aniName = "right_down";
-                break;
-            case PlayerState::RUN_LEFT_DOWN:
-                aniName = "left_down";
-                break;
-            case PlayerState::RUN_LEFT_UP:
-                aniName = "left_up";
-                break;
-            case PlayerState::RUN_RIGHT_UP:
-                aniName = "right_up";
-                break;
-            case PlayerState::RIGHT_SHOOT:
-                aniName = "angelE";
-                break;
-        }
-        m_player->addComponent<CAnimation>(m_game->assets().getAnimation(aniName), true);
-    }
     for ( auto e : m_entities.getEntities() ){
+        if ( e->hasComponent<CState>() ){
+            if( e->getComponent<CTransform>().vel.isnull() ) {
+                changePlayerStateTo(e, PlayerState::STAND);
+            } else if( e->getComponent<CTransform>().vel.x > 0 ) {
+                changePlayerStateTo(e, PlayerState::RUN_RIGHT);
+            } else if(e->getComponent<CTransform>().vel.x < 0) {
+                changePlayerStateTo(e, PlayerState::RUN_LEFT);
+            } else if(e->getComponent<CTransform>().vel.y > 0) {
+                changePlayerStateTo(e, PlayerState::RUN_DOWN);
+            } else if(e->getComponent<CTransform>().vel.y < 0) {
+                changePlayerStateTo(e, PlayerState::RUN_UP);
+            }
+
+            // // change player animation
+            if (e->getComponent<CState>().changeAnimate) {
+                std::string entityName = e->getComponent<CName>().name;
+                switch (e->getComponent<CState>().state) {
+                    case PlayerState::STAND:
+                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"Idle"), true);
+                        break;
+                    case PlayerState::RUN_RIGHT:
+                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"WalkE"), true);
+                        break;
+                    case PlayerState::RUN_DOWN:
+                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"WalkS"), true);
+                        break;
+                    case PlayerState::RUN_LEFT:
+                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"WalkW"), true);
+                        break;
+                    case PlayerState::RUN_UP:
+                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"WalkN"), true);
+                        break;
+                }
+            }
+        }
         if ( e->hasComponent<CAnimation>() ){
             if (e->getComponent<CAnimation>().animation.hasEnded() && !e->getComponent<CAnimation>().repeat) {
                 if (e->tag() == "Dragon") {
@@ -826,6 +812,7 @@ void Scene_Play::spawnPlayer(){
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4, 4}, 0, m_playerConfig.SPEED, true);
     entity->addComponent<CBoundingBox>(Vec2 {32, 32});
 
+    entity->addComponent<CName>("wiz");
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("wizIdle"), true);
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
 
@@ -945,7 +932,8 @@ void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
 {
     auto entity = m_entities.addEntity("Enemy", layer);
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("rooter"), true);
+    entity->addComponent<CName>("rooter");
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("rooterIdle"), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
     entity->addComponent<CBoundingBox>(Vec2{32, 48});
@@ -982,15 +970,15 @@ void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, 
     }
 }
 
-void Scene_Play::changePlayerStateTo(PlayerState s) {
-    auto& prev = m_player->getComponent<CState>().preState; 
+void Scene_Play::changePlayerStateTo(std::shared_ptr<Entity> entity, PlayerState s) {
+    auto& prev = entity->getComponent<CState>().preState; 
     if (prev != s) {
-        prev = m_player->getComponent<CState>().state;
-        m_player->getComponent<CState>().state = s; 
-        m_player->getComponent<CState>().changeAnimate = true;
+        prev = entity->getComponent<CState>().state;
+        entity->getComponent<CState>().state = s; 
+        entity->getComponent<CState>().changeAnimate = true;
     }
     else { 
-        m_player->getComponent<CState>().changeAnimate = false;
+        entity->getComponent<CState>().changeAnimate = false;
     }
 }
 

@@ -53,7 +53,11 @@ Texture     checkpoint_idle             assets/images/checkpoint_idle.png
 Texture     checkpoint_wave             assets/images/checkpoint_wave.png
 Texture     coin                        assets/images/coin.png
 Texture     coin_front                  assets/images/coin_front.png
-Texture     rooter                      assets/images/smallEnemy.png
+Texture     rooterIdle                  assets/images/smallEnemy-sheet.png
+Texture     rooterWalkS                 assets/images/smallEnemy-sheet.png
+Texture     rooterWalkW                 assets/images/smallEnemy-sheetW.png
+Texture     rooterWalkN                 assets/images/smallEnemy-sheetN.png
+Texture     rooterWalkE                 assets/images/smallEnemy-sheetE.png
 
 Font        minecraft                   assets/fonts/Minecraft.ttf
 
@@ -108,7 +112,11 @@ Animation   checkpoint_idle             checkpoint_idle             3   20   1  
 Animation   checkpoint_wave             checkpoint_wave             3   20   1   1
 Animation   coin                        coin                        3   15   1   1
 Animation   coin_front                  coin_front                  1   100  1   1
-Animation   rooter                      rooter                      2   100  1   1
+Animation   rooterIdle                  rooterIdle                  4   20   1   1
+Animation   rooterWalkS                 rooterWalkS                 4   20   1   1
+Animation   rooterWalkW                 rooterWalkW                 4   20   1   1
+Animation   rooterWalkN                 rooterWalkN                 4   20   1   1
+Animation   rooterWalkE                 rooterWalkE                 4   20   1   1
 
 Animation   grass_dual_sheet            grass_dual_sheet            1   100     4   7   
 Animation   water_dual_sheet            water_dual_sheet            1   100     4   7  

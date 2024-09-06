@@ -76,7 +76,7 @@ class Scene_Play : public Scene
     void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
-    void changePlayerStateTo(PlayerState s);
+    void changePlayerStateTo(std::shared_ptr<Entity> entity, PlayerState s);
 
     public:
     Scene_Play(Game* game, std::string path, bool newGame);

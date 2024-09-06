@@ -13,14 +13,9 @@
 enum struct PlayerState {
     STAND = 1 << 0,
     RUN_RIGHT = 1 << 1,
-    RUN_RIGHT_DOWN = 1 << 2,
     RUN_DOWN = 1 << 3,
-    RUN_LEFT_DOWN = 1 << 4,
     RUN_LEFT = 1 << 5,
-    RUN_LEFT_UP = 1 << 6,
-    RUN_UP = 1 << 7,
-    RUN_RIGHT_UP = 1 << 8,
-    RIGHT_SHOOT = 1 << 9
+    RUN_UP = 1 << 7
 };
 
 class Entity;
