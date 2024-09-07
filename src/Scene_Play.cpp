@@ -165,7 +165,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     Uint32* pixels = (Uint32*)loadedSurface->pixels;
     const int HEIGHT_PIX = loadedSurface->h;
     const int WIDTH_PIX = loadedSurface->w;
-    levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
+    m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
     auto format = loadedSurface->format;
     std::vector<std::vector<std::string>> pixelMatrix = m_levelLoader.createPixelMatrix(pixels, format, WIDTH_PIX, HEIGHT_PIX);
 
@@ -246,11 +246,11 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "QUIT") { 
             onEnd();
         } else if (action.name() == "ZOOM IN"){
-            cameraZoom = cameraZoom*2;
+            m_camera->setCameraZoom(Vec2 {2, 2});
         } else if (action.name() == "ZOOM OUT"){
-            cameraZoom = cameraZoom*0.5;
+            m_camera->setCameraZoom(Vec2{0.5, 0.5});
         } else if (action.name() == "CAMERA FOLLOW"){
-            cameraFollow = !cameraFollow;
+            m_camera->toggleCameraFollow();
         } else if (action.name() == "SAVE"){
             saveGame("game_save.txt");
         } else if (action.name() == "LEVEL0") { 
@@ -285,7 +285,7 @@ void Scene_Play::sDoAction(const Action& action) {
             if (action.name() == "SHOOT MOUSE"){
                 if (p->getComponent<CInputs>().canShoot) {
                     p->getComponent<CInputs>().shoot = true;
-                    spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+cameraPos);
+                    spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+m_camera->position);
                 }
             }
             if (action.name() == "SHOOT") {
@@ -333,7 +333,7 @@ void Scene_Play::sDoAction(const Action& action) {
                     }
                 } else{
                     spawnProjectile(p, p->getComponent<CTransform>().vel);
-                    // spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+cameraPos);
+                    // spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+m_camera->position);
 
                 }
                 p->getComponent<CInputs>().shoot = false;
@@ -404,18 +404,19 @@ void Scene_Play::sMovement() {
         }
         if ( e == m_player ){
             // Calculate the camera's position centered on the player
-            if (cameraFollow){
-                cameraPos = m_player->getComponent<CTransform>().pos - Vec2(width() / 2, height() / 2);
-                if (cameraPos.x + (float)width() > m_gridSize.x*levelSize.x){ cameraPos.x = m_gridSize.x*levelSize.x - (float)width();}     // right wall
-                if (cameraPos.x < 0){cameraPos.x = 0;}      // left wall 
-                if (cameraPos.y + (float)height() > m_gridSize.y*levelSize.y){ cameraPos.y = m_gridSize.y*levelSize.y - (float)height();}     // bottom wall
-                if (cameraPos.y < 0){ cameraPos.y = 0;}     // top wall
-            } else{
-                cameraPos = Vec2{   m_gridSize.x*30*(int)((int)(m_player->getComponent<CTransform>().pos.x)/(30*m_gridSize.x)),
-                                    m_gridSize.y*17*(int)((int)(m_player->getComponent<CTransform>().pos.y)/(17*m_gridSize.y))};
-            }
+            // if (cameraFollow){
+            //     m_camera->position = m_player->getComponent<CTransform>().pos - Vec2(width() / 2, height() / 2);
+            //     if (m_camera->position.x + (float)width() > m_gridSize.x*m_levelSize.x){ m_camera->position.x = m_gridSize.x*m_levelSize.x - (float)width();}     // right wall
+            //     if (m_camera->position.x < 0){m_camera->position.x = 0;}      // left wall 
+            //     if (m_camera->position.y + (float)height() > m_gridSize.y*m_levelSize.y){ m_camera->position.y = m_gridSize.y*m_levelSize.y - (float)height();}     // bottom wall
+            //     if (m_camera->position.y < 0){ m_camera->position.y = 0;}     // top wall
+            // } else{
+            //     m_camera->position = Vec2{   m_gridSize.x*30*(int)((int)(m_player->getComponent<CTransform>().pos.x)/(30*m_gridSize.x)),
+            //                         m_gridSize.y*17*(int)((int)(m_player->getComponent<CTransform>().pos.y)/(17*m_gridSize.y))};
+            // }
+            m_camera->movement(m_player, *this);
         }
-        if ( cameraPos.x-m_gridSize.x > transform.pos.x || cameraPos.x+width()+m_gridSize.x < transform.pos.x || cameraPos.y-m_gridSize.y > transform.pos.y || cameraPos.y+height()+m_gridSize.y < transform.pos.y ) {
+        if ( m_camera->position.x-m_gridSize.x > transform.pos.x || m_camera->position.x+width()+m_gridSize.x < transform.pos.x || m_camera->position.y-m_gridSize.y > transform.pos.y || m_camera->position.y+height()+m_gridSize.y < transform.pos.y ) {
             e->setInCamera(false);
             continue;
         }
@@ -634,7 +635,7 @@ void Scene_Play::sRender() {
                 auto& animation = e->getComponent<CAnimation>().animation;
 
                 // Adjust the entity's position based on the camera position
-                Vec2 adjustedPos = transform.pos - cameraPos;
+                Vec2 adjustedPos = transform.pos - m_camera->position;
                 if (cameraZoom != 1) {
 
                 }
@@ -761,8 +762,8 @@ void Scene_Play::sRender() {
 
                 // Adjust the collision box position based on the camera position
                 SDL_Rect collisionRect;
-                collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x - cameraPos.x);
-                collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y - cameraPos.y);
+                collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x - m_camera->position.x);
+                collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y - m_camera->position.y);
                 collisionRect.w = static_cast<int>(box.size.x);
                 collisionRect.h = static_cast<int>(box.size.y);
 
@@ -992,4 +993,12 @@ void Scene_Play::onEnd() {
 
 void Scene_Play::setPaused(bool pause) {
     m_pause = pause;
+}
+
+Vec2 Scene_Play::gridSize(){
+    return m_gridSize;
+}
+
+Vec2 Scene_Play::levelSize(){
+    return m_levelSize;
 }

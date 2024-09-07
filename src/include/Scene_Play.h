@@ -2,11 +2,14 @@
 
 #include "Components.h"
 #include "Physics.h"
+// #include "Camera.h"
 #include "Scene.h"
 #include "Level_Loader.h"
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
+
+class Camera;
 
 class Scene_Play : public Scene
 {
@@ -23,10 +26,11 @@ class Scene_Play : public Scene
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
     Physics m_physics;
+    Camera* m_camera;
+    Vec2 cameraPos;
     LevelLoader m_levelLoader;
     const Vec2 m_gridSize = { 64, 64 };
-    Vec2 levelSize;
-    Vec2 cameraPos;
+    Vec2 m_levelSize;
     Vec2 m_mousePosition;
     bool cameraFollow = true;
     float cameraZoom = 1;
@@ -80,5 +84,7 @@ class Scene_Play : public Scene
 
     public:
     Scene_Play(Game* game, std::string path, bool newGame);
+    Vec2 gridSize();
+    Vec2 levelSize();
     void update();
 };
