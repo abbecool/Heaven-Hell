@@ -32,4 +32,5 @@ public:
     Vec2 norm() const;
     Vec2 norm(const float val) const;
     float angle() const;
+    Vec2 mainDir() const;
 };

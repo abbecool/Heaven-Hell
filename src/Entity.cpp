@@ -42,6 +42,14 @@ bool Entity::Entity::isAlive() const{
     return m_alive;
 }
 
+bool Entity::Entity::inCamera() const{
+    return m_inCamera;
+}
+
+void Entity::Entity::setInCamera(bool set){
+    m_inCamera = set;
+}
+
 void Entity::Entity::kill(){
     m_alive = false;
 }

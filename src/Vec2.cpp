@@ -106,3 +106,11 @@ float Vec2::angle() const
 {
     return std::atan2(y, x)* 180.0f / 3.14159265358979323846;
 }
+
+Vec2 Vec2::mainDir() const {
+        if (std::fabs(x) > std::fabs(y)) {
+            return Vec2{x, 0};
+        } else {
+            return Vec2{0, y};
+        }
+    }

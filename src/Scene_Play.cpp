@@ -264,35 +264,35 @@ void Scene_Play::sDoAction(const Action& action) {
         }
 
         for (auto p : m_entities.getEntities("Player")){
-                if (action.name() == "UP") {
-                    p->getComponent<CInputs>().up = true;
+            if (action.name() == "UP") {
+                p->getComponent<CInputs>().up = true;
+            }
+            if (action.name() == "DOWN") {
+                p->getComponent<CInputs>().down = true; 
+            }
+            if (action.name() == "LEFT") {
+                p->getComponent<CInputs>().left = true;
+            }
+            if (action.name() == "RIGHT") {
+                p->getComponent<CInputs>().right = true;
+            }
+            if (action.name() == "SHIFT") {
+                p->getComponent<CInputs>().shift = true;
+            }
+            if (action.name() == "CTRL") {
+                p->getComponent<CInputs>().ctrl = true;
+            }
+            if (action.name() == "SHOOT MOUSE"){
+                if (p->getComponent<CInputs>().canShoot) {
+                    p->getComponent<CInputs>().shoot = true;
+                    spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+cameraPos);
                 }
-                if (action.name() == "DOWN") {
-                    p->getComponent<CInputs>().down = true; 
+            }
+            if (action.name() == "SHOOT") {
+                if (p->getComponent<CInputs>().canShoot) {
+                    p->getComponent<CInputs>().shoot = true;
                 }
-                if (action.name() == "LEFT") {
-                    p->getComponent<CInputs>().left = true;
-                }
-                if (action.name() == "RIGHT") {
-                    p->getComponent<CInputs>().right = true;
-                }
-                if (action.name() == "SHIFT") {
-                    p->getComponent<CInputs>().shift = true;
-                }
-                if (action.name() == "CTRL") {
-                    p->getComponent<CInputs>().ctrl = true;
-                }
-                if (action.name() == "SHOOT MOUSE"){
-                    if (p->getComponent<CInputs>().canShoot) {
-                        p->getComponent<CInputs>().shoot = true;
-                        spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+cameraPos);
-                    }
-                }
-                if (action.name() == "SHOOT") {
-                    if (p->getComponent<CInputs>().canShoot) {
-                        p->getComponent<CInputs>().shoot = true;
-                    }
-                }
+            }
         }
     }
     else if (action.type() == "END") {
@@ -357,7 +357,9 @@ void Scene_Play::update() {
 void Scene_Play::sMovement() {
     for (auto e : m_entities.getEntities()){    
         auto &transform = e->getComponent<CTransform>(); 
-        if ( e->tag() == "Player" ){
+        e->setInCamera(true);
+
+        if ( e == m_player ){
             transform.vel = { 0,0 };
 
             if (e->getComponent<CInputs>().up){
@@ -371,7 +373,7 @@ void Scene_Play::sMovement() {
             } if (e->getComponent<CInputs>().shift){
                 transform.tempo = 0.5f;
             } else if (e->getComponent<CInputs>().ctrl){
-                transform.tempo = 1.5f;
+                transform.tempo = 3.0f;
             } else{
                 transform.tempo = 1.0f;
             }
@@ -399,6 +401,23 @@ void Scene_Play::sMovement() {
         transform.prevPos = transform.pos;
         if (!(transform.vel.isnull()) && transform.isMovable ){
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
+        }
+        if ( e == m_player ){
+            // Calculate the camera's position centered on the player
+            if (cameraFollow){
+                cameraPos = m_player->getComponent<CTransform>().pos - Vec2(width() / 2, height() / 2);
+                if (cameraPos.x + (float)width() > m_gridSize.x*levelSize.x){ cameraPos.x = m_gridSize.x*levelSize.x - (float)width();}     // right wall
+                if (cameraPos.x < 0){cameraPos.x = 0;}      // left wall 
+                if (cameraPos.y + (float)height() > m_gridSize.y*levelSize.y){ cameraPos.y = m_gridSize.y*levelSize.y - (float)height();}     // bottom wall
+                if (cameraPos.y < 0){ cameraPos.y = 0;}     // top wall
+            } else{
+                cameraPos = Vec2{   m_gridSize.x*30*(int)((int)(m_player->getComponent<CTransform>().pos.x)/(30*m_gridSize.x)),
+                                    m_gridSize.y*17*(int)((int)(m_player->getComponent<CTransform>().pos.y)/(17*m_gridSize.y))};
+            }
+        }
+        if ( cameraPos.x-m_gridSize.x > transform.pos.x || cameraPos.x+width()+m_gridSize.x < transform.pos.x || cameraPos.y-m_gridSize.y > transform.pos.y || cameraPos.y+height()+m_gridSize.y < transform.pos.y ) {
+            e->setInCamera(false);
+            continue;
         }
     }
 }
@@ -555,13 +574,13 @@ void Scene_Play::sAnimation() {
         if ( e->hasComponent<CState>() ){
             if( e->getComponent<CTransform>().vel.isnull() ) {
                 changePlayerStateTo(e, PlayerState::STAND);
-            } else if( e->getComponent<CTransform>().vel.x > 0 ) {
+            } else if( e->getComponent<CTransform>().vel.mainDir().x > 0 ) {
                 changePlayerStateTo(e, PlayerState::RUN_RIGHT);
-            } else if(e->getComponent<CTransform>().vel.x < 0) {
+            } else if(e->getComponent<CTransform>().vel.mainDir().x < 0) {
                 changePlayerStateTo(e, PlayerState::RUN_LEFT);
-            } else if(e->getComponent<CTransform>().vel.y > 0) {
+            } else if(e->getComponent<CTransform>().vel.mainDir().y > 0) {
                 changePlayerStateTo(e, PlayerState::RUN_DOWN);
-            } else if(e->getComponent<CTransform>().vel.y < 0) {
+            } else if(e->getComponent<CTransform>().vel.mainDir().y < 0) {
                 changePlayerStateTo(e, PlayerState::RUN_UP);
             }
 
@@ -603,29 +622,13 @@ void Scene_Play::sAnimation() {
 }
 
 void Scene_Play::sRender() {
-    // Define the screen width and height (you might want to replace these with your actual values)
-    int screenWidth = 1920;  // Width of your window
-    int screenHeight = 1080; // Height of your window
-
-    // Calculate the camera's position centered on the player
-    if (cameraFollow){
-        cameraPos = m_player->getComponent<CTransform>().pos - Vec2(screenWidth / 2, screenHeight / 2);
-        if (cameraPos.x + (float)screenWidth > m_gridSize.x*levelSize.x){ cameraPos.x = m_gridSize.x*levelSize.x - (float)screenWidth;}     // right wall
-        if (cameraPos.x < 0){cameraPos.x = 0;}      // left wall 
-        if (cameraPos.y + (float)screenHeight > m_gridSize.y*levelSize.y){ cameraPos.y = m_gridSize.y*levelSize.y - (float)screenHeight;}     // bottom wall
-        if (cameraPos.y < 0){ cameraPos.y = 0;}     // top wall
-    } else{
-        cameraPos = Vec2{   m_gridSize.x*30*(int)((int)(m_player->getComponent<CTransform>().pos.x)/(30*m_gridSize.x)),
-                            m_gridSize.y*17*(int)((int)(m_player->getComponent<CTransform>().pos.y)/(17*m_gridSize.y))};
-    }
-
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
         for (auto e : m_entities.getEntities()){        
-            if ( e->hasComponent<CTransform>() && e->hasComponent<CAnimation>()){
+            if ( e->hasComponent<CTransform>() && e->hasComponent<CAnimation>() && e->inCamera()){
                 
                 auto& transform = e->getComponent<CTransform>();
                 auto& animation = e->getComponent<CAnimation>().animation;
@@ -817,7 +820,7 @@ void Scene_Play::spawnPlayer(){
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
 
     entity->addComponent<CInputs>();
-    entity->addComponent<CState>(PlayerState::RUN_DOWN);
+    entity->addComponent<CState>(PlayerState::STAND);
 
     entity->addComponent<CDamage>(m_playerConfig.DAMAGE, 180);
     entity->addComponent<CHealth>(hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
@@ -934,6 +937,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
     auto entity = m_entities.addEntity("Enemy", layer);
     entity->addComponent<CName>("rooter");
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("rooterIdle"), true);
+    entity->addComponent<CState>(PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
     entity->addComponent<CBoundingBox>(Vec2{32, 48});

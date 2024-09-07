@@ -29,6 +29,7 @@ class Entity
     const size_t        m_id    = 0;
     const size_t        m_layer    = 0;
     bool                m_alive = true;
+    bool                m_inCamera = true;
     ComponentTuple      m_components;
     std::unordered_map<std::string, std::unordered_set<std::string>> m_effectiveDamageToEnemyMap = {
         {"Fire",        {"Ice", "Grass", }},
@@ -68,6 +69,8 @@ public:
 
     Entity(const std::string& tag, const size_t id, const size_t layer);
     bool isAlive() const;
+    bool inCamera() const;
+    void setInCamera(bool set);
     const std::string& tag() const;
     const size_t layer() const;
     const size_t id() const;
