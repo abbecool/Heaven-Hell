@@ -17,11 +17,11 @@ void Scene::registerAction(int inputKey, const std::string& actionName) {
     m_actionMap[inputKey] = actionName;
 }
 
-size_t Scene::width() const {
+int Scene::width() const {
     return m_game->getWidth();
 }
 
-size_t Scene::height() const {
+int Scene::height() const {
     return m_game->getHeight();
 }
 

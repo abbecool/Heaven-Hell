@@ -19,7 +19,8 @@ typedef std::tuple<
     CShadow,    
     CDamage,
     CDialog,
-    CPathfind  
+    CPathfind,
+    CKnockback
 > ComponentTuple;
 class Entity
 {

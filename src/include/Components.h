@@ -166,3 +166,16 @@ class CPathfind : public Component
     CPathfind( Vec2 trg, std::shared_ptr<Entity> trg2 ) 
         : target(trg), target2(trg2) {}
 };
+
+class CKnockback : public Component
+{
+    public:    
+    int duration;
+    int magnitude;
+    int timeElapsed = 0;
+    Vec2 direction;
+
+    CKnockback() {}
+    CKnockback( int dur, int mag, Vec2 dir) 
+        : duration(dur), magnitude(mag), direction(dir) {}
+};

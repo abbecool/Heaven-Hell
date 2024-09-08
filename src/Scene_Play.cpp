@@ -6,6 +6,7 @@
 #include "Components.h"
 #include "Action.h"
 #include "Level_Loader.h"
+#include "Camera.h"
 
 #include "RandomArray.h"
 
@@ -28,6 +29,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), m_levelPath(levelPath), m_newGame(newGame)
 {
     init(m_levelPath);
+    m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
 }
 
 void Scene_Play::init(const std::string& levelPath) {
@@ -246,11 +248,11 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "QUIT") { 
             onEnd();
         } else if (action.name() == "ZOOM IN"){
-            m_camera->setCameraZoom(Vec2 {2, 2});
+            m_camera.setCameraZoom(Vec2 {2, 2});
         } else if (action.name() == "ZOOM OUT"){
-            m_camera->setCameraZoom(Vec2{0.5, 0.5});
+            m_camera.setCameraZoom(Vec2{0.5, 0.5});
         } else if (action.name() == "CAMERA FOLLOW"){
-            m_camera->toggleCameraFollow();
+            m_camera.toggleCameraFollow();
         } else if (action.name() == "SAVE"){
             saveGame("game_save.txt");
         } else if (action.name() == "LEVEL0") { 
@@ -285,7 +287,7 @@ void Scene_Play::sDoAction(const Action& action) {
             if (action.name() == "SHOOT MOUSE"){
                 if (p->getComponent<CInputs>().canShoot) {
                     p->getComponent<CInputs>().shoot = true;
-                    spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+m_camera->position);
+                    spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+m_camera.position);
                 }
             }
             if (action.name() == "SHOOT") {
@@ -333,7 +335,7 @@ void Scene_Play::sDoAction(const Action& action) {
                     }
                 } else{
                     spawnProjectile(p, p->getComponent<CTransform>().vel);
-                    // spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+m_camera->position);
+                    // spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+m_camera.position);
 
                 }
                 p->getComponent<CInputs>().shoot = false;
@@ -357,7 +359,6 @@ void Scene_Play::update() {
 void Scene_Play::sMovement() {
     for (auto e : m_entities.getEntities()){    
         auto &transform = e->getComponent<CTransform>(); 
-        e->setInCamera(true);
 
         if ( e == m_player ){
             transform.vel = { 0,0 };
@@ -396,30 +397,27 @@ void Scene_Play::sMovement() {
                 transform.vel = Vec2 {0,0};
             }
             target = m_player->getComponent<CTransform>().pos;
-        } 
+        }
+
 
         transform.prevPos = transform.pos;
         if (!(transform.vel.isnull()) && transform.isMovable ){
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
         }
+        if ( e->hasComponent<CKnockback>() ){
+            transform.pos += m_physics.knockback(e->getComponent<CKnockback>());
+            if ( e->getComponent<CKnockback>().duration == 0 ){
+                e->removeComponent<CKnockback>();
+            }
+        }
         if ( e == m_player ){
-            // Calculate the camera's position centered on the player
-            // if (cameraFollow){
-            //     m_camera->position = m_player->getComponent<CTransform>().pos - Vec2(width() / 2, height() / 2);
-            //     if (m_camera->position.x + (float)width() > m_gridSize.x*m_levelSize.x){ m_camera->position.x = m_gridSize.x*m_levelSize.x - (float)width();}     // right wall
-            //     if (m_camera->position.x < 0){m_camera->position.x = 0;}      // left wall 
-            //     if (m_camera->position.y + (float)height() > m_gridSize.y*m_levelSize.y){ m_camera->position.y = m_gridSize.y*m_levelSize.y - (float)height();}     // bottom wall
-            //     if (m_camera->position.y < 0){ m_camera->position.y = 0;}     // top wall
-            // } else{
-            //     m_camera->position = Vec2{   m_gridSize.x*30*(int)((int)(m_player->getComponent<CTransform>().pos.x)/(30*m_gridSize.x)),
-            //                         m_gridSize.y*17*(int)((int)(m_player->getComponent<CTransform>().pos.y)/(17*m_gridSize.y))};
-            // }
-            m_camera->movement(m_player, *this);
+            m_camera.update(transform.pos);
         }
-        if ( m_camera->position.x-m_gridSize.x > transform.pos.x || m_camera->position.x+width()+m_gridSize.x < transform.pos.x || m_camera->position.y-m_gridSize.y > transform.pos.y || m_camera->position.y+height()+m_gridSize.y < transform.pos.y ) {
-            e->setInCamera(false);
-            continue;
-        }
+        // if ( m_camera.position.x-m_gridSize.x > transform.pos.x || m_camera.position.x+width()+m_gridSize.x < transform.pos.x || m_camera.position.y-m_gridSize.y > transform.pos.y || m_camera.position.y+height()+m_gridSize.y < transform.pos.y ) {
+            // e->setInCamera(false);
+        // } else {
+        //     e->setInCamera(true);
+        // }
     }
 }
 
@@ -430,15 +428,17 @@ void Scene_Play::sCollision() {
     {
         if ( m_physics.isCollided(m_player,o) )
         {
-            m_player->movePosition(m_physics.Overlap(m_player,o));
+            m_player->movePosition(m_physics.overlap(m_player,o));
         }
     }
 
     for ( auto e : m_entities.getEntities("Enemy")){
         if ( m_physics.isCollided(m_player, e) )
         {
-            e->movePosition(m_physics.Overlap(e,m_player));
+            e->movePosition(m_physics.overlap(e,m_player));
             m_player->takeDamage(e, m_currentFrame);
+            m_player->addComponent<CKnockback>(100, 32, e->getComponent<CTransform>().vel);
+            m_camera.startShake(4, 200);
         }
     }
 
@@ -470,7 +470,7 @@ void Scene_Play::sCollision() {
     {
         if ( m_physics.isCollided(m_player,d) && d->hasComponent<CDamage>() )
         {
-            m_player->movePosition(m_physics.Overlap(m_player,d)*15);
+            m_player->movePosition(m_physics.overlap(m_player,d)*15);
             m_player->takeDamage(d, m_currentFrame);
             d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
         }
@@ -495,7 +495,7 @@ void Scene_Play::sCollision() {
         {
             if ( m_physics.isCollided(e,e1) ) 
             {
-                e->movePosition(m_physics.Overlap(e,e1));
+                e->movePosition(m_physics.overlap(e,e1));
             }
         }
     }
@@ -523,6 +523,7 @@ void Scene_Play::sCollision() {
                 if (e->hasComponent<CHealth>() && p->hasComponent<CDamage>())
                 {
                     e->takeDamage(p, m_currentFrame);
+                    e->addComponent<CKnockback>(50, 10, p->getComponent<CTransform>().vel);
                 }
                 if ( p->getComponent<CTransform>().isMovable )
                 {
@@ -635,7 +636,7 @@ void Scene_Play::sRender() {
                 auto& animation = e->getComponent<CAnimation>().animation;
 
                 // Adjust the entity's position based on the camera position
-                Vec2 adjustedPos = transform.pos - m_camera->position;
+                Vec2 adjustedPos = transform.pos - m_camera.position;
                 if (cameraZoom != 1) {
 
                 }
@@ -762,8 +763,8 @@ void Scene_Play::sRender() {
 
                 // Adjust the collision box position based on the camera position
                 SDL_Rect collisionRect;
-                collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x - m_camera->position.x);
-                collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y - m_camera->position.y);
+                collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x - m_camera.position.x);
+                collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y - m_camera.position.y);
                 collisionRect.w = static_cast<int>(box.size.x);
                 collisionRect.h = static_cast<int>(box.size.y);
 

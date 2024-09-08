@@ -18,7 +18,8 @@ Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
                     CShadow(),
                     CDamage(),
                     CDialog(),
-                    CPathfind()
+                    CPathfind(),
+                    CKnockback()
                 );
         }
 

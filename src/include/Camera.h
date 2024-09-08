@@ -2,12 +2,16 @@
 
 #include "Vec2.h"
 #include "Entity.h"
-#include "Scene_Play.h"
 
 class Camera {
-    bool m_cameraFollow;
-    Vec2 m_cameraZoom;
+    bool m_cameraFollow = false;
+    Vec2 m_cameraZoom = {1, 1};
+    Vec2 m_screenSize = {1920, 1080};
+    Vec2 m_levelSize;
+    Vec2 m_gridSize;
 public:
+    Camera();
+    void calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize);
     Vec2 position;      // Current camera position
     Vec2 originalPosition;  // Original camera position (before shake)
 
@@ -25,7 +29,10 @@ public:
     // Vec2 getShakeOffset(float intensity);
     void reset();
 
-    Vec2 movement(std::shared_ptr<Entity> player, Scene_Play scene);
+    void movement(Vec2 playerPos);
+
+    void startShake(float magnitude, int duration);
+    void screenShake();
 
     void toggleCameraFollow();
     bool getCameraFollow();
@@ -34,6 +41,11 @@ public:
     Vec2 getCameraZoom();
 
     void update();
-    // void update(float deltaTime, ScreenShakeComponent* screenShake);
+    
+    float shakeMagnitude;
+    int shakeDuration;
+    int shakeTimeElapsed;
+
+    void update(Vec2 playerPos);
 
 };
