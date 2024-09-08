@@ -26,6 +26,8 @@ Texture     angelW                      assets/images/angelW.png
 Texture     golem                       assets/images/golem.png
 Texture     devil                       assets/images/devil.png
 Texture     fireball                    assets/images/fireball.png
+Texture     fireball_explode            assets/images/fireball_explode.png
+Texture     fireball_create             assets/images/fireball_create.png
 Texture     grass_dual_sheet            assets/images/dual_sheets/grass_dual_sheet.png
 Texture     water_dual_sheet            assets/images/dual_sheets/water_dual_sheet.png
 Texture     mountain_dual_sheet         assets/images/dual_sheets/mountain_dual_sheet.png
@@ -39,7 +41,6 @@ Texture     level3                      assets/images/levels/level3.png
 Texture     level4                      assets/images/levels/level4.png
 Texture     title_screen                assets/images/title_screen.png
 Texture     shadow                      assets/images/shadow.png
-Texture     fireball_explode            assets/images/fireball_explode.png
 Texture     wizIdle                     assets/images/wizIdle.png
 Texture     wizWalkS                    assets/images/wizWalkS.png
 Texture     wizWalkE                    assets/images/wizWalkE.png
@@ -93,6 +94,8 @@ Animation   heart_empty                 heart_empty                 1   100 1   
 Animation   golem                       golem                       1   100   1  1
 Animation   devil                       devil                       1   100   1  1
 Animation   fireball                    fireball                    4   15    4  1
+Animation   fireball_explode            fireball_explode            3   5     3  1
+Animation   fireball_create             fireball_create             3   10    3  1
 Animation   level0                      level0                      1   100   1  1
 Animation   level1                      level1                      1   100   1  1
 Animation   level2                      level2                      1   100   1  1
@@ -100,7 +103,6 @@ Animation   level3                      level3                      1   100   1 
 Animation   level4                      level4                      1   100   1  1
 Animation   title_screen                title_screen                1   100   1  1
 Animation   shadow                      shadow                      1   100   1  1
-Animation   fireball_explode            fireball_explode            3   5     3  1
 Animation   wizIdle                     wizIdle                     4   20    1  1
 Animation   wizWalkS                    wizWalkS                    4   10    1  1
 Animation   wizWalkE                    wizWalkE                    4   10    1  1

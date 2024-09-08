@@ -254,81 +254,45 @@ void Scene_Play::sDoAction(const Action& action) {
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
         }
 
-        for (auto p : m_entities.getEntities("Player")){
-            if (action.name() == "UP") {
-                p->getComponent<CInputs>().up = true;
-            }
-            if (action.name() == "DOWN") {
-                p->getComponent<CInputs>().down = true; 
-            }
-            if (action.name() == "LEFT") {
-                p->getComponent<CInputs>().left = true;
-            }
-            if (action.name() == "RIGHT") {
-                p->getComponent<CInputs>().right = true;
-            }
-            if (action.name() == "SHIFT") {
-                p->getComponent<CInputs>().shift = true;
-            }
-            if (action.name() == "CTRL") {
-                p->getComponent<CInputs>().ctrl = true;
-            }
-            if (action.name() == "SHOOT MOUSE"){
-                if (p->getComponent<CInputs>().canShoot) {
-                    p->getComponent<CInputs>().shoot = true;
-                    spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+m_camera.position);
-                }
-            }
-            if (action.name() == "SHOOT") {
-                if (p->getComponent<CInputs>().canShoot) {
-                    p->getComponent<CInputs>().shoot = true;
-                }
-            }
+        if (action.name() == "UP") {
+            m_player->getComponent<CInputs>().up = true;
+        }
+        if (action.name() == "DOWN") {
+            m_player->getComponent<CInputs>().down = true; 
+        }
+        if (action.name() == "LEFT") {
+            m_player->getComponent<CInputs>().left = true;
+        }
+        if (action.name() == "RIGHT") {
+            m_player->getComponent<CInputs>().right = true;
+        }
+        if (action.name() == "SHIFT") {
+            m_player->getComponent<CInputs>().shift = true;
+        }
+        if (action.name() == "CTRL") {
+            m_player->getComponent<CInputs>().ctrl = true;
+        }
+        if (action.name() == "SHOOT MOUSE"){
+            m_player->getComponent<CInputs>().shoot = true;
+            spawnProjectile(m_player, getMousePosition()-m_player->getComponent<CTransform>().pos+m_camera.position);
         }
     }
     else if (action.type() == "END") {
-        for (auto p : m_entities.getEntities("Player")){
-            if (action.name() == "DOWN") {
-                p->getComponent<CInputs>().down = false;
-            } if (action.name() == "UP") {
-                p->getComponent<CInputs>().up = false;
-            } if (action.name() == "LEFT") {
-                p->getComponent<CInputs>().left = false;
-            } if (action.name() == "RIGHT") {
-                p->getComponent<CInputs>().right = false;
-            } if (action.name() == "SHIFT") {
-                p->getComponent<CInputs>().shift = false;
-            } if (action.name() == "CTRL") {
-                p->getComponent<CInputs>().ctrl = false;
-            } if (action.name() == "SHOOT") {
-                if ( p->getComponent<CTransform>().vel.isnull() ){
-                    switch ( p->getComponent<CState>().state ){
-                        case PlayerState::RUN_RIGHT:
-                            spawnProjectile(p, Vec2{1,0});
-                            break;
-                        case PlayerState::RUN_LEFT:
-                            spawnProjectile(p, Vec2{-1,0});
-                            break;
-                        case PlayerState::RUN_UP:
-                            spawnProjectile(p, Vec2{0,-1});
-                            break;
-                        case PlayerState::RUN_DOWN:
-                            spawnProjectile(p, Vec2{0,1});
-                            break;
-                        case PlayerState::STAND:
-                            spawnProjectile(p, Vec2{0,1});
-                            break;
-                    default:
-                        spawnProjectile(p, Vec2{0,1});
-                        break;
-                    }
-                } else{
-                    spawnProjectile(p, p->getComponent<CTransform>().vel);
-                    // spawnProjectile(p, getMousePosition()-p->getComponent<CTransform>().pos+m_camera.position);
-
-                }
-                p->getComponent<CInputs>().shoot = false;
-            }
+        if (action.name() == "DOWN") {
+            m_player->getComponent<CInputs>().down = false;
+        } if (action.name() == "UP") {
+            m_player->getComponent<CInputs>().up = false;
+        } if (action.name() == "LEFT") {
+            m_player->getComponent<CInputs>().left = false;
+        } if (action.name() == "RIGHT") {
+            m_player->getComponent<CInputs>().right = false;
+        } if (action.name() == "SHIFT") {
+            m_player->getComponent<CInputs>().shift = false;
+        } if (action.name() == "CTRL") {
+            m_player->getComponent<CInputs>().ctrl = false;
+        } if (action.name() == "SHOOT MOUSE") {
+            // spawnProjectile(m_player, getMousePosition()-m_player->getComponent<CTransform>().pos+m_camera.position);
+            m_player->getComponent<CInputs>().shoot = false;
         }
     }
 }
@@ -583,16 +547,16 @@ void Scene_Play::sAnimation() {
                         e->getComponent<CAnimation>().animation.setRow(0);
                         break;
                     case PlayerState::RUN_RIGHT:
-                        e->getComponent<CAnimation>().animation.setRow(0);
+                        e->getComponent<CAnimation>().animation.setRow(2);
                         break;
                     case PlayerState::RUN_DOWN:
-                        e->getComponent<CAnimation>().animation.setRow(0);
+                        e->getComponent<CAnimation>().animation.setRow(1);
                         break;
                     case PlayerState::RUN_LEFT:
-                        e->getComponent<CAnimation>().animation.setRow(0);
+                        e->getComponent<CAnimation>().animation.setRow(4);
                         break;
                     case PlayerState::RUN_UP:
-                        e->getComponent<CAnimation>().animation.setRow(0);
+                        e->getComponent<CAnimation>().animation.setRow(3);
                         break;
                 }
             }
@@ -905,7 +869,7 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
 {
     auto entity = m_entities.addEntity("Projectile", 1);
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_create"), true);
     entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, vel.angle(), 400, true);
     entity->addComponent<CBoundingBox>(Vec2{12, 12});
     entity->addComponent<CDamage>(player->getComponent<CDamage>().damage, player->getComponent<CDamage>().speed); // damage speed 6 = frames between attacking
