@@ -17,11 +17,11 @@ void Scene::registerAction(int inputKey, const std::string& actionName) {
     m_actionMap[inputKey] = actionName;
 }
 
-size_t Scene::width() const {
+int Scene::width() const {
     return m_game->getWidth();
 }
 
-size_t Scene::height() const {
+int Scene::height() const {
     return m_game->getHeight();
 }
 
@@ -35,6 +35,14 @@ bool Scene::hasEnded() const {
 
 ActionMap& Scene::getActionMap() {
     return m_actionMap;
+}
+
+void Scene::updateMousePosition(Vec2 pos){
+    m_mousePosition = pos;
+}
+
+Vec2 Scene::getMousePosition(){
+    return m_mousePosition;
 }
 
 // void Scene::drawLine(const Vec2& p1, const Vec2& p2) {

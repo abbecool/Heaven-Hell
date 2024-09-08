@@ -1,5 +1,6 @@
 #include "Physics.h"
 #include "Entity.h"
+#include "Components.h"
 #include <cstdlib>
 #include <memory>
 
@@ -41,7 +42,7 @@ bool Physics::isStandingIn(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
     return (x_overlap && y_overlap);
 }
 
-Vec2 Physics::Overlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
+Vec2 Physics::overlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
 {    
     Vec2 aSize = a->getComponent<CBoundingBox>().halfSize;
     Vec2 bSize = b->getComponent<CBoundingBox>().halfSize;
@@ -83,7 +84,7 @@ Vec2 Physics::Overlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
     return move;
 }
 
-Vec2 Physics::GetOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b) {
+Vec2 Physics::getOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b) {
     // todo: return the overlap rectangle size of the bouding boxes of enetity a and b
     Vec2 posA = a->getComponent<CTransform>().pos;
     Vec2 sizeA = a->getComponent<CBoundingBox>().halfSize;
@@ -93,4 +94,15 @@ Vec2 Physics::GetOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b) {
     float ox = sizeA.x + sizeB.x - delta.x;
     float oy = sizeA.y + sizeB.y - delta.y;
     return Vec2(ox, oy);
+}
+
+Vec2 Physics::knockback(CKnockback& knockback){
+    knockback.timeElapsed += 16;
+    if (knockback.timeElapsed < knockback.duration) {
+        return knockback.direction.norm()*knockback.magnitude/(knockback.duration/16);
+    } else {
+        // Reset the  when the duration is over
+        knockback.duration = 0;
+        return Vec2{0, 0};
+    }
 }

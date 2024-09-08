@@ -3,6 +3,7 @@
 // #include "Sprite.h"
 #include "Animation.h"
 #include <memory>
+#include <unordered_set>
 
 // set a flag: flag |= (int)PlayerState
 // unset a flag: flag &= ~(int)PlayerState
@@ -12,15 +13,12 @@
 enum struct PlayerState {
     STAND = 1 << 0,
     RUN_RIGHT = 1 << 1,
-    RUN_RIGHT_DOWN = 1 << 2,
     RUN_DOWN = 1 << 3,
-    RUN_LEFT_DOWN = 1 << 4,
     RUN_LEFT = 1 << 5,
-    RUN_LEFT_UP = 1 << 6,
-    RUN_UP = 1 << 7,
-    RUN_RIGHT_UP = 1 << 8,
-    RIGHT_SHOOT = 1 << 9
+    RUN_UP = 1 << 7
 };
+
+class Entity;
 
 class Component
 {
@@ -47,18 +45,19 @@ class CTransform : public Component
 public:
     Vec2 pos;    
     Vec2 prevPos;
-    Vec2 vel;    
+    Vec2 vel = {0, 0};    
     Vec2 scale = {0.5, 0.5};    
     float angle = 0;
-    int speed;
-    bool isMovable;
+    int speed = 0;
+    bool isMovable = false;
     float tempo = 1.0f;
     CTransform() {}
-    CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, bool mvbl) 
-    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(200), isMovable(mvbl){}
+    CTransform(const Vec2 & p) : pos(p), prevPos(p) {}
+    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, bool mvbl) 
+    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), speed(200), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v,const Vec2 & scl, const float ang, int spd, bool mvbl) 
+        : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
+    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, int spd, bool mvbl) 
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
@@ -72,18 +71,6 @@ class CBoundingBox : public Component
             : size(s), halfSize(s/2.0) {}
 };
 
-class CTexture : public Component
-{
-public:
-    Vec2 pos;
-    Vec2 size;
-    SDL_Texture * texture;
-
-    CTexture() {}
-    CTexture(const Vec2 p, const Vec2 sz, SDL_Texture* tex) 
-        : pos(p), size(sz), texture(tex){}
-};
-
 class CHealth: public Component
 {
 public:
@@ -93,10 +80,11 @@ public:
     Animation animation_half;
     Animation animation_empty;
     int heart_frames;
-    int damage_frame;
+    int damage_frame = 0;
+    std::unordered_set<std::string> HPType;
     CHealth() {}
-    CHealth(int hp, int hp_max, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
-        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(180){}
+    CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
+        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(hrt_frms){}
 };
 class CKey: public Component
 {
@@ -117,6 +105,7 @@ public:
     CAnimation(const Animation& animation, bool r)
                 : animation(animation), repeat(r){}
 };  
+
 class CState : public Component
 {
     public:
@@ -126,3 +115,67 @@ class CState : public Component
     CState() {}
     CState(const PlayerState s) : state(s), preState(s) {}
 }; 
+
+class CName : public Component
+{
+    public:
+    std::string name;
+    CName() {}
+    CName(const std::string nm) : name(nm) {}
+}; 
+
+class CShadow: public Component
+{
+public:
+    // SDL_Sprite sprite;
+    Animation animation;
+    size_t size;
+    CShadow() {}
+    CShadow(const Animation& animation, size_t sz)
+                : animation(animation), size(sz){}
+};  
+
+class CDamage : public Component
+{
+    public:
+    int damage, speed, lastAttackFrame;
+    std::unordered_set<std::string> damageType;
+    CDamage() {}
+    CDamage(int dmg, int spd) : damage(dmg), speed(spd), lastAttackFrame(-spd) {}
+}; 
+
+class CDialog : public Component
+{
+    public:    
+    Vec2 pos;
+    Vec2 size;
+    SDL_Texture * dialog;
+
+    CDialog() {}
+    CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia) 
+        : pos(p), size(sz), dialog(dia){}
+};
+
+class CPathfind : public Component
+{
+    public:    
+    Vec2 target;
+    std::shared_ptr<Entity> target2;
+
+    CPathfind() {}
+    CPathfind( Vec2 trg, std::shared_ptr<Entity> trg2 ) 
+        : target(trg), target2(trg2) {}
+};
+
+class CKnockback : public Component
+{
+    public:    
+    int duration;
+    int magnitude;
+    int timeElapsed = 0;
+    Vec2 direction;
+
+    CKnockback() {}
+    CKnockback( int dur, int mag, Vec2 dir) 
+        : duration(dur), magnitude(mag), direction(dir) {}
+};

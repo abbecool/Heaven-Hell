@@ -17,6 +17,8 @@ public:
     Vec2 operator * (const Vec2 & rhs) const;
     Vec2 operator * (const float val) const;
     Vec2 operator / (const float val) const;
+    Vec2 operator % (const Vec2 & rhs) const;
+    Vec2 operator % (const int val) const;
 
     void operator += (const Vec2 & rhs);
     void operator -= (const Vec2 &rhs);
@@ -30,4 +32,5 @@ public:
     Vec2 norm() const;
     Vec2 norm(const float val) const;
     float angle() const;
+    Vec2 mainDir() const;
 };

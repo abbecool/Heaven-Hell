@@ -3,7 +3,7 @@
 
 EntityManager::EntityManager() {}
 
-std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag, const size_t &layer)
+std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag, const Uint8 &layer)
 {   
     auto e = std::make_shared<Entity>(tag, m_TotalEntities++, layer);
     m_toAdd.push_back(e);
@@ -14,16 +14,8 @@ void EntityManager::update()
 {
     for (auto e : m_toAdd)
     {
-        // if (e->tag() == "Obsticle" || e->tag() == "Background" )
-        // {
-            // m_entities.insert(m_entities.begin(), e);
-            // m_entityMap[e->tag()].insert(m_entityMap[e->tag()].begin(),e);
-        // }
-        // else
-        // {
             m_entities.push_back(e);
             m_entityMap[e->tag()].push_back(e);
-        // }
     }
     m_toAdd.clear();
 

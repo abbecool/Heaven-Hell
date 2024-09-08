@@ -21,9 +21,10 @@ class Scene
     bool m_pause = false;
     bool m_hasEnded = false;
     size_t m_currentFrame = 0;
+    Vec2 m_mousePosition;
 
     virtual void onEnd() = 0;
-    void setPaused(bool paused);
+    // void setPaused(bool paused);
 
     public:
 
@@ -39,11 +40,12 @@ class Scene
     void simulate(const size_t frames);
     void registerAction(int inputKey, const std::string& actionName);
 
-    size_t width() const;
-    size_t height() const;
+    int width() const;
+    int height() const;
     size_t currentFrame() const;
 
     bool hasEnded() const;
     ActionMap& getActionMap();
-    void drawLine(const Vec2& p1, const Vec2& p2);
-};
+
+    void updateMousePosition(Vec2 pos);
+    Vec2 getMousePosition();};

@@ -4,16 +4,23 @@
 #include "Components.h"
 #include <tuple>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 typedef std::tuple<
     CTransform,
     CInputs,
     CBoundingBox,
     CAnimation,
-    CTexture,
     CKey,
     CState,
-    CHealth    
+    CHealth,    
+    CName,  
+    CShadow,    
+    CDamage,
+    CDialog,
+    CPathfind,
+    CKnockback
 > ComponentTuple;
 class Entity
 {
@@ -23,16 +30,55 @@ class Entity
     const size_t        m_id    = 0;
     const size_t        m_layer    = 0;
     bool                m_alive = true;
+    bool                m_inCamera = true;
     ComponentTuple      m_components;
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_effectiveDamageToEnemyMap = {
+        {"Fire",        {"Ice", "Grass", }},
+        {"Water",       {"Fire", "Rock"}},
+        {"Lightning",   {"Water", "Air"}},
+        {"Ice",         {"Grass", "Air"}},
+        {"Rock",        {"Ice", "Lightning"}},
+        {"Air",         {"Air"}},
+
+        {"Piercing",    {"Armored", "Flesh"}},
+        {"Slashing",    {"Flesh", "Organic"}},
+        {"Blunt",       {"Armored"}},
+        {"Explosive",   {"Armored"}},
+
+        {"Light",       {"Dark"}},
+        {"Dark",        {"Light"}}
+    };
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_ineffectiveDamageToEnemyMap = {
+        {"Fire",        {"Water", "Rock", }},
+        {"Water",       {"Ice", "Grass"}},
+        {"Lightning",   {"Rock", "Fire"}},
+        {"Ice",         {"Grass", "Air"}},
+        {"Rock",        {"Water", "Rock"}},
+        {"Air",         {"Rock", "Lightning"}},
+
+        {"Piercing",    {}},
+        {"Slashing",    {"Armored"}},
+        {"Blunt",       {}},
+        {"Explosive",   {}},
+
+        {"Light",       {"Light"}},
+        {"Dark",        {"Dark"}}
+    };
+
+
 public:
 
     Entity(const std::string& tag, const size_t id, const size_t layer);
     bool isAlive() const;
+    bool inCamera() const;
+    void setInCamera(bool set);
     const std::string& tag() const;
     const size_t layer() const;
     const size_t id() const;
     const bool movable() const;
     void kill();
+
+    bool isTag(std::string tag) const;
 
     template<typename T>
     bool hasComponent() const {
@@ -62,21 +108,7 @@ public:
         getComponent<T>() = T();
     }
 
-    // std::shared_ptr<CTransform> cTransform;
-    // std::shared_ptr<CName> cName;
-    // std::shared_ptr<CShape> cShape;
-    // std::shared_ptr<CInputs> cInputs;
-    // std::shared_ptr<CKey> cKey;
-    // std::shared_ptr<CTexture> cTexture;
-    // std::shared_ptr<CAnimation> cAnimation;
-    // size_t id();
-    // const std::string tag();
-    // const size_t layer();
-    // bool isAlive();
-    // void kill();
     void movePosition(Vec2);
     void setScale(Vec2 scale);
-    void takeDamage(int damage, size_t frame);
-
-    // void setColor(const int r, const int g, const int b, const int a);
+    void takeDamage(std::shared_ptr<Entity> attacker, size_t frame);
 };
