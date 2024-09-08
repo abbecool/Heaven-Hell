@@ -26,31 +26,22 @@ class Scene_Menu : public Scene
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
+    bool m_drawCoordinates = false;
     const Vec2 m_gridSize = { 64, 64 };
 
     void init();
     void loadMenu();
     Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
 
-    void spawnLevel  (const Vec2 pos, const std::string tile);
-    void spawnDualTile  (const Vec2 pos, const std::string tile, const int frame );
+    void spawnButton(const Vec2 pos, const std::string& button_name, const std::string& name, const std::string& dialog);
+    void spawnLevel(const Vec2 pos, const std::string tile);
 
-    void sMovement();
-    void sCollision();
-    void sStatus();
     void sAnimation();
     void sRender();
-    
-    std::vector<bool> neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
-    std::vector<std::string> neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height);
-    int getObstacleTextureIndex(const std::vector<bool>& neighbors);
-    std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
-    void spawnDualGrid(std::vector<std::vector<std::string>> pixelMatrix, int x, int y);
     
     void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
-    void changePlayerStateTo(PlayerState s);
 
     public:
     Scene_Menu(Game* game);

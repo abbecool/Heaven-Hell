@@ -4,23 +4,31 @@
 
 Animation::Animation() {};
 
-Animation::Animation(const std::string& name, SDL_Texture* t) 
-: Animation(name, t, 1, 0) {}
+Animation::Animation(const std::string& name, SDL_Texture* t)
+: Animation(name, t, 1, 0, 1, 1) {}
 
 Animation::Animation(
         const std::string& name,
         SDL_Texture* t,
         size_t frameCount,
-        size_t speed
+        size_t speed,
+        int rows,
+        int cols
 ) : 
     m_texture(t),
     m_frameCount(frameCount),
     m_currentFrame(0),
     m_speed(speed),
-    m_name(name)
+    m_name(name),
+    m_rows(rows),
+    m_cols(cols),
+    m_currentRow(0),
+    m_currentCol(0)
 {
-    m_size = Vec2((float)getTextureSize().x / frameCount, (float)getTextureSize().y);
-    setSrcRect( std::floor(m_currentFrame) * m_size.x, 0,  m_size.x, m_size.y );
+    m_tileWidth = getTextureSize().x / cols;
+    m_tileHeight = getTextureSize().y / rows;
+    m_size = Vec2((float)m_tileWidth / frameCount, (float)m_tileHeight);
+    setSrcRect( 0, 0,  m_size.x, m_size.y );
 }
 
 // update the animation to show the next frame, depending on its speed
@@ -28,7 +36,12 @@ Animation::Animation(
 void Animation::update() {
     m_currentFrame++;
     size_t animFrame = (m_currentFrame / m_speed) % m_frameCount;
-    setSrcRect( animFrame * m_size.x, 0, m_size.x, m_size.y );
+    setSrcRect(
+        m_currentCol * m_tileWidth + animFrame * m_size.x,
+        m_currentRow * m_tileHeight,
+        m_size.x,
+        m_size.y
+    );
 }
 
 const Vec2& Animation::getSize() const {
@@ -100,6 +113,11 @@ Vec2 Animation::getDestSize()
 
 void Animation::setTexture(SDL_Texture *tex) {
     m_texture = tex;
+}
+
+void Animation::setTile(Vec2 grid) {
+    m_currentCol = grid.x;
+    m_currentRow = grid.y;
 }
 
 SDL_Point Animation::getTextureSize()

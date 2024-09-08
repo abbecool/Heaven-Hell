@@ -29,14 +29,14 @@ protected:
     bool m_paused;
     int m_framerate = 60;
     
-    void init(const std::string & config);
+    void init(const std::string & pathImages, const std::string & pathText);
     void update();
     void setPaused(bool paused);
 
     void sUserInput();
 
 public:
-    Game(const std::string & config);
+    Game(const std::string & pathImages, const std::string & pathText);
     void changeScene(
         const std::string& sceneName,
         std::shared_ptr<Scene> scene,
@@ -48,7 +48,7 @@ public:
     int framerate();
     SDL_Renderer* renderer(); 
     SDL_Window* window(); 
-    const Assets& assets() const; 
+    Assets& assets(); 
     int getWidth();
     int getHeight();
 };
