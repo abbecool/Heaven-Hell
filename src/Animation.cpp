@@ -25,9 +25,7 @@ Animation::Animation(
     m_currentRow(0),
     m_currentCol(0)
 {
-    m_tileWidth = getTextureSize().x / cols;
-    m_tileHeight = getTextureSize().y / rows;
-    m_size = Vec2((float)m_tileWidth / frameCount, (float)m_tileHeight);
+    m_size = Vec2((float)getTextureSize().x / cols, (float)getTextureSize().y / rows);
     setSrcRect( 0, 0,  m_size.x, m_size.y );
 }
 
@@ -37,11 +35,15 @@ void Animation::update() {
     m_currentFrame++;
     size_t animFrame = (m_currentFrame / m_speed) % m_frameCount;
     setSrcRect(
-        m_currentCol * m_tileWidth + animFrame * m_size.x,
-        m_currentRow * m_tileHeight,
+        (m_currentCol+animFrame) * m_size.x,
+        m_currentRow * m_size.y,
         m_size.x,
         m_size.y
     );
+}
+
+void Animation::setRow(int row){
+    m_currentRow = row;
 }
 
 const Vec2& Animation::getSize() const {

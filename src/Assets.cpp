@@ -76,10 +76,10 @@ void Assets::loadFromFile(const std::string & pathImages, const std::string & pa
         else if (head == "Animation") {
             std::string aniName;
             std::string texName;
-            int frames, speed, cols, rows;
-            file >> aniName >> texName >> frames >> speed >> rows >> cols;
+            int frames, speed, rows, cols;
+            file >> aniName >> texName >> frames >> speed >> cols >> rows;
             SDL_Texture* tex = getTexture(texName);
-            addAnimation( aniName, Animation( aniName, tex, frames, speed, cols, rows) );            
+            addAnimation( aniName, Animation( aniName, tex, frames, speed, rows, cols) );            
         }
         else {
             std::cerr << "head to " << head << "\n";

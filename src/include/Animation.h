@@ -22,8 +22,6 @@ class Animation
     int m_cols = 1;
     int m_currentRow = 1;
     int m_currentCol = 1;
-    int m_tileWidth;
-    int m_tileHeight;
 
     public:
 
@@ -39,6 +37,7 @@ class Animation
     );
 
     void update();
+    void setRow(int row);
     bool hasEnded() const;
     const std::string& getName() const;
     const Vec2& getSize() const;

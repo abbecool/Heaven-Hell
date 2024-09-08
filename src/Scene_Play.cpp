@@ -191,17 +191,6 @@ void Scene_Play::loadLevel(const std::string& levelPath){
                 spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
             }
             else{
-                // if (pixel == "grass" ) {
-                //     spawnGrass(Vec2 {64*(float)x,64*(float)y}, textureIndex);
-                // } else if (pixel == "dirt"){
-                //     spawnDirt(Vec2 {64*(float)x,64*(float)y}, textureIndex);
-                // } else {
-                //     if ( std::find(neighborsTags.begin(), neighborsTags.end(), "dirt") != neighborsTags.end() ){
-                //         spawnDirt(Vec2 {64*(float)x,64*(float)y}, m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "dirt", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                //     } else {
-                //         spawnGrass(Vec2 {64*(float)x,64*(float)y}, m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "grass", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                //     }   
-                // }
                 if (pixel == "cloud") {
                     spawnCloud(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
                 } else if (pixel == "lava") {
@@ -591,19 +580,19 @@ void Scene_Play::sAnimation() {
                 std::string entityName = e->getComponent<CName>().name;
                 switch (e->getComponent<CState>().state) {
                     case PlayerState::STAND:
-                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"Idle"), true);
+                        e->getComponent<CAnimation>().animation.setRow(0);
                         break;
                     case PlayerState::RUN_RIGHT:
-                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"WalkE"), true);
+                        e->getComponent<CAnimation>().animation.setRow(0);
                         break;
                     case PlayerState::RUN_DOWN:
-                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"WalkS"), true);
+                        e->getComponent<CAnimation>().animation.setRow(0);
                         break;
                     case PlayerState::RUN_LEFT:
-                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"WalkW"), true);
+                        e->getComponent<CAnimation>().animation.setRow(0);
                         break;
                     case PlayerState::RUN_UP:
-                        e->addComponent<CAnimation>(m_game->assets().getAnimation(entityName+"WalkN"), true);
+                        e->getComponent<CAnimation>().animation.setRow(0);
                         break;
                 }
             }
@@ -818,7 +807,7 @@ void Scene_Play::spawnPlayer(){
     entity->addComponent<CBoundingBox>(Vec2 {32, 32});
 
     entity->addComponent<CName>("wiz");
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("wizIdle"), true);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("wiz"), true);
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
 
     entity->addComponent<CInputs>();
@@ -938,7 +927,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
 {
     auto entity = m_entities.addEntity("Enemy", layer);
     entity->addComponent<CName>("rooter");
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("rooterIdle"), true);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("rooter"), true);
     entity->addComponent<CState>(PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
