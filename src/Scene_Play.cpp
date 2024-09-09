@@ -212,6 +212,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     spawnHUD();
     spawnCoin(Vec2{64*15,64*12}, 4);
     spawnDragon(Vec2{64*16 , 64*35}, false, "snoring_dragon");
+    spawnWeapon(Vec2{64*14 , 64*29});
     spawnSmallEnemy(Vec2{64*15 , 64*9}, 3);
     spawnSmallEnemy(Vec2{64*10 , 64*10}, 3);
     spawnSmallEnemy(Vec2{64*20 , 64*12}, 3);
@@ -272,8 +273,10 @@ void Scene_Play::sDoAction(const Action& action) {
             m_player->getComponent<CInputs>().ctrl = true;
         }
         if (action.name() == "ATTACK"){
-            m_player->getComponent<CInputs>().shoot = true;
-            spawnProjectile(m_player, getMousePosition()-m_player->getComponent<CTransform>().pos+m_camera.position);
+            if ( m_player->getComponent<CInputs>().canShoot ){
+                m_player->getComponent<CInputs>().shoot = true;
+                spawnProjectile(m_player->getLinkEntity(), getMousePosition()-m_player->getLinkEntity()->getComponent<CTransform>().pos+m_camera.position);
+            }
         }
     }
     else if (action.type() == "END") {
@@ -290,7 +293,15 @@ void Scene_Play::sDoAction(const Action& action) {
         } if (action.name() == "CTRL") {
             m_player->getComponent<CInputs>().ctrl = false;
         } if (action.name() == "ATTACK") {
-            m_player->getComponent<CInputs>().shoot = false;
+            m_player->getComponent<CInputs>().canShoot = false;
+            if ( m_player->getLinkEntity() ){
+                if ( m_player->getLinkEntity()->getLinkEntity()->getComponent<CProjectileState>().state == "Free" ){
+                    m_player->getLinkEntity()->getLinkEntity()->getComponent<CTransform>().isMovable = true; 
+                    m_player->getLinkEntity()->removeLinkEntity();
+                } else {
+                    m_player->getLinkEntity()->getLinkEntity()->kill();
+                }
+            }
         }
     }
 }
@@ -350,7 +361,6 @@ void Scene_Play::sMovement() {
             target = m_player->getComponent<CTransform>().pos;
         }
 
-
         transform.prevPos = transform.pos;
         if (!(transform.vel.isnull()) && transform.isMovable ){
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
@@ -363,6 +373,13 @@ void Scene_Play::sMovement() {
         }
         if ( e == m_player ){
             m_camera.update(transform.pos);
+        }
+        if ( e->getLinkEntity() ){
+            e->getLinkEntity()->getComponent<CTransform>().pos = transform.pos;
+            if (e->getLinkEntity()->tag() == "Projectile"){
+                e->getLinkEntity()->getComponent<CTransform>().vel = getMousePosition()-m_player->getLinkEntity()->getComponent<CTransform>().pos+m_camera.position;
+                e->getLinkEntity()->getComponent<CTransform>().angle = e->getLinkEntity()->getComponent<CTransform>().vel.angle();
+            }
         }
         // if ( m_camera.position.x-m_gridSize.x > transform.pos.x || m_camera.position.x+width()+m_gridSize.x < transform.pos.x || m_camera.position.y-m_gridSize.y > transform.pos.y || m_camera.position.y+height()+m_gridSize.y < transform.pos.y ) {
             // e->setInCamera(false);
@@ -380,6 +397,14 @@ void Scene_Play::sCollision() {
         if ( m_physics.isCollided(m_player,o) )
         {
             m_player->movePosition(m_physics.overlap(m_player,o));
+        }
+    }
+
+    for ( auto w : m_entities.getEntities("Weapon") ) 
+    {
+        if ( m_physics.isCollided(m_player,w) )
+        {
+            m_player->setLinkEntity(w);
         }
     }
 
@@ -513,10 +538,13 @@ void Scene_Play::sCollision() {
 }
 
 void Scene_Play::sStatus() {
-    for ( auto p : m_entities.getEntities("Player") ){
-        if ( p->getComponent<CHealth>().HP <= 0 ){
-                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
-        }
+    if ( m_player->getLinkEntity() ){
+        m_player->getComponent<CInputs>().canShoot = true;
+    } else {
+        m_player->getComponent<CInputs>().canShoot = false;
+    }
+    if ( m_player->getComponent<CHealth>().HP <= 0 ){
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
     }
 }
 
@@ -535,46 +563,40 @@ void Scene_Play::sAnimation() {
                 changePlayerStateTo(e, PlayerState::RUN_UP);
             }
 
+
             // // change player animation
             if (e->getComponent<CState>().changeAnimate) {
-                std::string entityName = e->getComponent<CName>().name;
-                switch (e->getComponent<CState>().state) {
-                    case PlayerState::STAND:
-                        e->getComponent<CAnimation>().animation.setRow(0);
-                        break;
-                    case PlayerState::RUN_RIGHT:
-                        e->getComponent<CAnimation>().animation.setRow(2);
-                        break;
-                    case PlayerState::RUN_DOWN:
-                        e->getComponent<CAnimation>().animation.setRow(1);
-                        break;
-                    case PlayerState::RUN_LEFT:
-                        e->getComponent<CAnimation>().animation.setRow(4);
-                        break;
-                    case PlayerState::RUN_UP:
-                        e->getComponent<CAnimation>().animation.setRow(3);
-                        break;
-                }
+                e->getComponent<CAnimation>().animation.setRow((int)e->getComponent<CState>().state);
             }
         }
+        
+        // if ( e->hasComponent<CProjectileState>() ) {
+        //     if ( e->getComponent<CProjectileState>().state == "Create" ) {
+        //         if ( e->getComponent<CAnimation>().animation.hasEnded() ) {
+        //             m_camera.startShake(2, 200);
+        //             e->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
+        //             e->getComponent<CTransform>().isMovable = true;
+        //         }
+        //         if ( m_player->getComponent<CInputs>().shoot ) {
+        //             e->getComponent<CTransform>().pos = m_player->getComponent<CTransform>().pos;
+        //             e->getComponent<CTransform>().vel = getMousePosition()-m_player->getComponent<CTransform>().pos+m_camera.position;
+        //             e->getComponent<CTransform>().angle = e->getComponent<CTransform>().vel.angle();
+        //         } else {
+        //             e->getComponent<CProjectileState>().state = "Free";
+        //         }
+        //     }
+        // }
         
         if ( e->hasComponent<CProjectileState>() ) {
             if ( e->getComponent<CProjectileState>().state == "Create" ) {
                 if ( e->getComponent<CAnimation>().animation.hasEnded() ) {
-                    m_camera.startShake(2, 200);
-                    e->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
-                    e->getComponent<CTransform>().isMovable = true;
-                }
-                if ( m_player->getComponent<CInputs>().shoot ) {
-                    e->getComponent<CTransform>().pos = m_player->getComponent<CTransform>().pos;
-                    e->getComponent<CTransform>().vel = getMousePosition()-m_player->getComponent<CTransform>().pos+m_camera.position;
-                    e->getComponent<CTransform>().angle = e->getComponent<CTransform>().vel.angle();
-                } else {
                     e->getComponent<CProjectileState>().state = "Free";
+                    e->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
+                    m_camera.startShake(4, 100);
                 }
             }
         }
-        
+
         if ( e->hasComponent<CAnimation>() ){
             if (e->getComponent<CAnimation>().animation.hasEnded() && !e->getComponent<CAnimation>().repeat) {
                 if (e->tag() == "Dragon") {
@@ -793,7 +815,17 @@ void Scene_Play::spawnPlayer(){
 
     entity->addComponent<CDamage>(m_playerConfig.DAMAGE, 180);
     entity->addComponent<CHealth>(hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-    entity->addComponent<CWeapon>(m_game->assets().getAnimation("shadow"), 1, 10, 64);
+    // entity->addComponent<CWeapon>(m_game->assets().getAnimation("staff"), 1, 10, 64);
+}
+
+void Scene_Play::spawnWeapon(Vec2 pos){
+    auto entity = m_entities.addEntity("Weapon", 2);
+
+    entity->addComponent<CTransform>(pos, Vec2{0,0}, Vec2{4, 4}, 0, 0, true);
+    entity->addComponent<CBoundingBox>(Vec2 {32, 32});
+    entity->addComponent<CName>("staff");
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("staff"), true);
+    entity->addComponent<CDamage>(1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -881,13 +913,14 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     entity->addComponent<CBoundingBox>(Vec2{64, 64});
 }
 
-void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
+void Scene_Play::spawnProjectile(std::shared_ptr<Entity> creator, Vec2 vel)
 {
     auto entity = m_entities.addEntity("Projectile", 1);
+    creator->setLinkEntity(entity);
     entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_create"), false);
-    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, vel.angle(), 400, false);
+    entity->addComponent<CTransform>(creator->getComponent<CTransform>().pos, vel, Vec2{2, 2}, vel.angle(), 400, false);
     entity->addComponent<CBoundingBox>(Vec2{12, 12});
-    entity->addComponent<CDamage>(player->getComponent<CDamage>().damage, player->getComponent<CDamage>().speed); // damage speed 6 = frames between attacking
+    entity->addComponent<CDamage>(creator->getComponent<CDamage>().damage, creator->getComponent<CDamage>().speed); // damage speed 6 = frames between attacking
     entity->getComponent<CDamage>().damageType = {"Fire", "Explosive"};
     entity->addComponent<CProjectileState>("Create");
     m_entities.sort();

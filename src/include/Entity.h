@@ -24,6 +24,14 @@ typedef std::tuple<
     CKnockback,
     CWeapon
 > ComponentTuple;
+
+struct Link {
+    std::shared_ptr<Entity> linkEntity;  // Reference to the weapon entity
+
+    Link(){}
+    Link(std::shared_ptr<Entity> lE) : linkEntity(lE) {}
+};
+
 class Entity
 {
     friend class EntityManager;
@@ -34,6 +42,7 @@ class Entity
     bool                m_alive = true;
     bool                m_inCamera = true;
     ComponentTuple      m_components;
+    Link                m_link;
     std::unordered_map<std::string, std::unordered_set<std::string>> m_effectiveDamageToEnemyMap = {
         {"Fire",        {"Ice", "Grass", }},
         {"Water",       {"Fire", "Rock"}},
@@ -79,6 +88,9 @@ public:
     const size_t id() const;
     const bool movable() const;
     void kill();
+    void setLinkEntity(std::shared_ptr<Entity>);
+    std::shared_ptr<Entity> getLinkEntity();
+    void removeLinkEntity();
 
     bool isTag(std::string tag) const;
 

@@ -53,6 +53,7 @@ class Scene_Play : public Scene
 
     void spawnHUD();
     void spawnPlayer();
+    void spawnWeapon(Vec2 pos );
     void spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel);
     void spawnCoin(Vec2 pos, const size_t layer);
     void spawnSmallEnemy(Vec2 pos, const size_t layer);

@@ -57,6 +57,18 @@ void Entity::Entity::kill(){
     m_alive = false;
 }
 
+void Entity::setLinkEntity(std::shared_ptr<Entity> link){
+    m_link.linkEntity = link;
+}
+
+std::shared_ptr<Entity> Entity::getLinkEntity(){
+    return m_link.linkEntity;
+}
+
+void Entity::removeLinkEntity(){
+    m_link = Link();
+}
+
 const bool Entity::Entity::movable() const{
     return getComponent<CTransform>().isMovable;
 }

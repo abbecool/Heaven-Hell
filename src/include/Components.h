@@ -2,6 +2,7 @@
 
 // #include "Sprite.h"
 #include "Animation.h"
+// #include "Entity.h"
 #include <memory>
 #include <unordered_set>
 
@@ -11,11 +12,11 @@
 // checking if a flag set: return (flag & (int)PlayerState) == (int)PlayerState
 // checking multiple flags set: return (flag &(int)PlayerState) != 0
 enum struct PlayerState {
-    STAND = 1 << 0,
-    RUN_RIGHT = 1 << 1,
-    RUN_DOWN = 1 << 3,
-    RUN_LEFT = 1 << 5,
-    RUN_UP = 1 << 7
+    STAND = 0,
+    RUN_DOWN = 1,
+    RUN_RIGHT = 2,
+    RUN_UP = 3,
+    RUN_LEFT = 4
 };
 
 class Entity;
@@ -36,7 +37,7 @@ public:
     bool shift      = false;
     bool ctrl       = false;
     bool shoot      = false;
-    bool canShoot   = true;
+    bool canShoot   = false;
     CInputs() {};
 };
 
@@ -149,6 +150,7 @@ class CDamage : public Component
     std::unordered_set<std::string> damageType;
     CDamage() {}
     CDamage(int dmg, int spd) : damage(dmg), speed(spd), lastAttackFrame(-spd) {}
+    CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), speed(spd), lastAttackFrame(-spd), damageType(dmgType) {}
 }; 
 
 class CDialog : public Component
@@ -195,6 +197,7 @@ public:
     int speed;
     int range;
     bool ranged;
+    
     std::string type;
     CWeapon() {}
     CWeapon(const Animation& animation, int damage, int speed, int range)
