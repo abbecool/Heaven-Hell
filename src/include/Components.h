@@ -115,7 +115,14 @@ class CState : public Component
     CState() {}
     CState(const PlayerState s) : state(s), preState(s) {}
 }; 
-
+class CProjectileState : public Component
+{
+    public:
+    std::string state;
+    bool changeAnimate = false;
+    CProjectileState() {}
+    CProjectileState(std::string state ) : state(state) {}
+}; 
 class CName : public Component
 {
     public:

@@ -561,6 +561,15 @@ void Scene_Play::sAnimation() {
                 }
             }
         }
+        
+        if ( e->hasComponent<CProjectileState>() ) {
+            if ( (e->getComponent<CProjectileState>().state == "Create") & e->getComponent<CAnimation>().animation.hasEnded() ) {
+                e->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
+                e->getComponent<CTransform>().isMovable = true;
+                e->getComponent<CProjectileState>().state = "Free";
+            }
+        }
+        
         if ( e->hasComponent<CAnimation>() ){
             if (e->getComponent<CAnimation>().animation.hasEnded() && !e->getComponent<CAnimation>().repeat) {
                 if (e->tag() == "Dragon") {
@@ -869,11 +878,12 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 void Scene_Play::spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel)
 {
     auto entity = m_entities.addEntity("Projectile", 1);
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_create"), true);
-    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, vel.angle(), 400, true);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_create"), false);
+    entity->addComponent<CTransform>(player->getComponent<CTransform>().pos, vel, Vec2{2, 2}, vel.angle(), 400, false);
     entity->addComponent<CBoundingBox>(Vec2{12, 12});
     entity->addComponent<CDamage>(player->getComponent<CDamage>().damage, player->getComponent<CDamage>().speed); // damage speed 6 = frames between attacking
     entity->getComponent<CDamage>().damageType = {"Fire", "Explosive"};
+    entity->addComponent<CProjectileState>("Create");
     m_entities.sort();
 }
 

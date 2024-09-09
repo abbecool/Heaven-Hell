@@ -14,6 +14,7 @@ typedef std::tuple<
     CAnimation,
     CKey,
     CState,
+    CProjectileState,
     CHealth,    
     CName,  
     CShadow,    
