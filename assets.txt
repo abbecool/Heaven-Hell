@@ -64,8 +64,8 @@ Texture     rooter                      assets/images/rooter-sheet.png
 
 Font        minecraft                   assets/fonts/Minecraft.ttf
 
-Animation   snoring_dragon              sleeping_dragon             4   60  1   1
-Animation   waking_dragon               waking_dragon               7   20  1   1
+Animation   snoring_dragon              sleeping_dragon             4   60  4   1
+Animation   waking_dragon               waking_dragon               7   20  7   1
 Animation   lava_ani                    lava                        3   30  1   1
 
 Animation   gras_sheet                  gras_sheet                  1   100 1   1

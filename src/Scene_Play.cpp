@@ -563,10 +563,18 @@ void Scene_Play::sAnimation() {
         }
         
         if ( e->hasComponent<CProjectileState>() ) {
-            if ( (e->getComponent<CProjectileState>().state == "Create") & e->getComponent<CAnimation>().animation.hasEnded() ) {
-                e->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
-                e->getComponent<CTransform>().isMovable = true;
-                e->getComponent<CProjectileState>().state = "Free";
+            if ( e->getComponent<CProjectileState>().state == "Create" ) {
+                if ( e->getComponent<CAnimation>().animation.hasEnded() ) {
+                    e->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
+                    e->getComponent<CTransform>().isMovable = true;
+                }
+                if ( m_player->getComponent<CInputs>().shoot ) {
+                    e->getComponent<CTransform>().pos = m_player->getComponent<CTransform>().pos;
+                    e->getComponent<CTransform>().vel = getMousePosition()-m_player->getComponent<CTransform>().pos+m_camera.position;
+                    e->getComponent<CTransform>().angle = e->getComponent<CTransform>().vel.angle();
+                } else {
+                    e->getComponent<CProjectileState>().state = "Free";
+                }
             }
         }
         
