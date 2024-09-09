@@ -390,7 +390,6 @@ void Scene_Play::sCollision() {
         {
             e->movePosition(m_physics.overlap(e,m_player));
             m_player->takeDamage(e, m_currentFrame);
-            m_player->addComponent<CKnockback>(100, 32, e->getComponent<CTransform>().vel);
             m_camera.startShake(4, 200);
         }
     }
@@ -476,7 +475,6 @@ void Scene_Play::sCollision() {
                 if (e->hasComponent<CHealth>() && p->hasComponent<CDamage>())
                 {
                     e->takeDamage(p, m_currentFrame);
-                    e->addComponent<CKnockback>(50, 10, p->getComponent<CTransform>().vel);
                 }
                 if ( p->getComponent<CTransform>().isMovable )
                 {

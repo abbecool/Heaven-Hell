@@ -94,6 +94,7 @@ void Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
                 }
             }
         }
+        addComponent<CKnockback>(100*(int)(attack.damage*damageMultiplier), 32*(int)(attack.damage*damageMultiplier), attacker->getComponent<CTransform>().vel);
         getComponent<CHealth>().HP = getComponent<CHealth>().HP-(int)(attack.damage*damageMultiplier);
         getComponent<CHealth>().damage_frame = (int)frame;
         attack.lastAttackFrame = (int)frame;
