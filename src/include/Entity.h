@@ -21,7 +21,8 @@ typedef std::tuple<
     CDamage,
     CDialog,
     CPathfind,
-    CKnockback
+    CKnockback,
+    CWeapon
 > ComponentTuple;
 class Entity
 {

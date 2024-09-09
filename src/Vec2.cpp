@@ -108,7 +108,7 @@ float Vec2::angle() const
 }
 
 Vec2 Vec2::mainDir() const {
-        if (std::fabs(x) > std::fabs(y)) {
+        if (std::fabs(x) >= std::fabs(y)) {
             return Vec2{x, 0};
         } else {
             return Vec2{0, y};

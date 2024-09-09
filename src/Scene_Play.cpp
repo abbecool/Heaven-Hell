@@ -37,8 +37,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_s, "DOWN");
     registerAction(SDLK_a, "LEFT");
     registerAction(SDLK_d, "RIGHT");
-    registerAction(SDLK_SPACE, "SHOOT");
-    registerAction(SDL_BUTTON_LEFT , "SHOOT MOUSE");
+    registerAction(SDL_BUTTON_LEFT , "ATTACK");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
@@ -272,7 +271,7 @@ void Scene_Play::sDoAction(const Action& action) {
         if (action.name() == "CTRL") {
             m_player->getComponent<CInputs>().ctrl = true;
         }
-        if (action.name() == "SHOOT MOUSE"){
+        if (action.name() == "ATTACK"){
             m_player->getComponent<CInputs>().shoot = true;
             spawnProjectile(m_player, getMousePosition()-m_player->getComponent<CTransform>().pos+m_camera.position);
         }
@@ -290,8 +289,7 @@ void Scene_Play::sDoAction(const Action& action) {
             m_player->getComponent<CInputs>().shift = false;
         } if (action.name() == "CTRL") {
             m_player->getComponent<CInputs>().ctrl = false;
-        } if (action.name() == "SHOOT MOUSE") {
-            // spawnProjectile(m_player, getMousePosition()-m_player->getComponent<CTransform>().pos+m_camera.position);
+        } if (action.name() == "ATTACK") {
             m_player->getComponent<CInputs>().shoot = false;
         }
     }
@@ -390,13 +388,13 @@ void Scene_Play::sCollision() {
         {
             e->movePosition(m_physics.overlap(e,m_player));
             m_player->takeDamage(e, m_currentFrame);
-            m_camera.startShake(4, 200);
+            m_camera.startShake(5, 50);
         }
     }
 
     for ( auto c : m_entities.getEntities("Coin") ) 
     {
-        if ( m_physics.isCollided(m_player,c) )
+        if ( m_physics.isCollided(m_player,c) ) 
         {
             c->kill();
         }
@@ -563,6 +561,7 @@ void Scene_Play::sAnimation() {
         if ( e->hasComponent<CProjectileState>() ) {
             if ( e->getComponent<CProjectileState>().state == "Create" ) {
                 if ( e->getComponent<CAnimation>().animation.hasEnded() ) {
+                    m_camera.startShake(2, 200);
                     e->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
                     e->getComponent<CTransform>().isMovable = true;
                 }
@@ -786,7 +785,7 @@ void Scene_Play::spawnPlayer(){
     entity->addComponent<CBoundingBox>(Vec2 {32, 32});
 
     entity->addComponent<CName>("wiz");
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("wiz"), true);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("demon"), true);
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
 
     entity->addComponent<CInputs>();
@@ -794,6 +793,7 @@ void Scene_Play::spawnPlayer(){
 
     entity->addComponent<CDamage>(m_playerConfig.DAMAGE, 180);
     entity->addComponent<CHealth>(hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    entity->addComponent<CWeapon>(m_game->assets().getAnimation("shadow"), 1, 10, 64);
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){

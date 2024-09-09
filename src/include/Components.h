@@ -186,3 +186,17 @@ class CKnockback : public Component
     CKnockback( int dur, int mag, Vec2 dir) 
         : duration(dur), magnitude(mag), direction(dir) {}
 };
+
+class CWeapon: public Component
+{
+public:
+    Animation animation;
+    int damage;
+    int speed;
+    int range;
+    bool ranged;
+    std::string type;
+    CWeapon() {}
+    CWeapon(const Animation& animation, int damage, int speed, int range)
+                : animation(animation), damage(damage), speed(speed), range(range){}
+};  

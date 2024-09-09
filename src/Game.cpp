@@ -23,7 +23,8 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
 void Game::init(const std::string & pathImages, const std::string & pathText){
 
     SDL_Init(SDL_INIT_EVERYTHING);
-    m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED);
+    m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_SetWindowPosition(m_window, 0, 0);
     if ( NULL == m_window )
     {
         std::cout << "Could not create window: " << SDL_GetError( ) << std::endl;
