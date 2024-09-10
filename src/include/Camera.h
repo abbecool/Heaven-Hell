@@ -9,6 +9,15 @@ class Camera {
     Vec2 m_screenSize = {1920, 1080};
     Vec2 m_levelSize;
     Vec2 m_gridSize;
+    
+    float shakeMagnitude;
+    int shakeDuration;
+    int shakeTimeElapsed;
+    float panSpeed;
+    int panDuration;
+    int panTimeElapsed;
+    Vec2 panPos;
+    Vec2 panStartPos;
 public:
     Camera();
     void calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize);
@@ -40,11 +49,10 @@ public:
     void setCameraZoom(Vec2 zoom);
     Vec2 getCameraZoom();
 
+    void startPan(float speed, int duration, Vec2 pos);
+    void panCamera();
+
     void update();
-    
-    float shakeMagnitude;
-    int shakeDuration;
-    int shakeTimeElapsed;
 
     void update(Vec2 playerPos);
 

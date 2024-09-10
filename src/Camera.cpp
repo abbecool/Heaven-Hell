@@ -40,16 +40,15 @@ void Camera::movement(Vec2 playerPos){
     auto gridY = m_gridSize.y;
 
     if (m_cameraFollow){
-        position = playerPos - Vec2(width / 2, height / 2);
-        if (position.x + (float)width > gridX*levelX){ position.x = gridX*levelX - (float)width;}     // right wall
-        if (position.x < 0){position.x = 0;}      // left wall 
-        if (position.y + (float)height > gridY*levelY){ position.y = gridY*levelY - (float)height;}     // bottom wall
-        if (position.y < 0){ position.y = 0;}     // top wall
+        originalPosition = playerPos - Vec2(width / 2, height / 2);
+        if (originalPosition.x + (float)width > gridX*levelX){ originalPosition.x = gridX*levelX - (float)width;}     // right wall
+        if (originalPosition.x < 0){originalPosition.x = 0;}      // left wall 
+        if (originalPosition.y + (float)height > gridY*levelY){ originalPosition.y = gridY*levelY - (float)height;}     // bottom wall
+        if (originalPosition.y < 0){ originalPosition.y = 0;}     // top wall
     } else{
-        position = Vec2{   gridX*30*(int)((int)(playerPos.x)/(30*gridX)),
+        originalPosition = Vec2{   gridX*30*(int)((int)(playerPos.x)/(30*gridX)),
                             gridY*17*(int)((int)(playerPos.y)/(17*gridY))};
     }
-    originalPosition = position;
     screenShake();
 }
 
@@ -99,10 +98,36 @@ Vec2 Camera::getCameraZoom(){
     return m_cameraZoom;
 }
 
+// Start screen shake with a magnitude and duration
+void Camera::startPan(float speed, int duration, Vec2 pos) {
+    panSpeed = speed;
+    panDuration = duration;
+    panTimeElapsed = 0;  // Reset elapsed time
+    panPos = pos;
+    panStartPos = originalPosition;
+}
+
+void Camera::panCamera(){
+    if (panDuration > 0) {
+        if ( (panPos-position).length() > 10 ) {
+            // Apply pan offset to the camera position
+            position += (panPos-panStartPos).norm()*panSpeed/60;
+        } else {
+            panTimeElapsed += 16; // Assuming 60 FPS, increase time (16ms per frame)
+        }
+        if ( panTimeElapsed >= panDuration ) {
+            // Reset the pan when the duration is over
+            panDuration = 0;
+            position = originalPosition;
+        }
+    }
+}
+
 void Camera::update(Vec2 playerPos) {
     // Usual camera movement logic
     movement(playerPos); // Example player position
 
     // Apply screen shake effect if it's active
     screenShake();
+    panCamera();
 }

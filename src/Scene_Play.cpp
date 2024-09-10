@@ -42,6 +42,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
     registerAction(SDLK_f, "CAMERA FOLLOW");
+    registerAction(SDLK_z, "CAMERA PAN");
     registerAction(SDLK_PLUS, "ZOOM IN");
     registerAction(SDLK_MINUS, "ZOOM OUT");
     registerAction(SDLK_r, "RESET");
@@ -211,7 +212,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     spawnPlayer();
     spawnHUD();
     spawnCoin(Vec2{64*15,64*12}, 4);
-    spawnDragon(Vec2{64*16 , 64*35}, false, "snoring_dragon");
+    spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
     spawnWeapon(Vec2{64*14 , 64*29});
     spawnSmallEnemy(Vec2{64*15 , 64*9}, 3);
     spawnSmallEnemy(Vec2{64*10 , 64*10}, 3);
@@ -242,6 +243,8 @@ void Scene_Play::sDoAction(const Action& action) {
             m_camera.setCameraZoom(Vec2{0.5, 0.5});
         } else if (action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
+        } else if (action.name() == "CAMERA PAN"){
+            m_camera.startPan(1024, 1000, Vec2 {64*52+32 - width()/2, 64*44+32 - height()/2});
         } else if (action.name() == "SAVE"){
             saveGame("game_save.txt");
         } else if (action.name() == "LEVEL0") { 
