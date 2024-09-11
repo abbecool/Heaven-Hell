@@ -244,7 +244,7 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if (action.name() == "CAMERA PAN"){
-            m_camera.startPan(1024, 1000, Vec2 {64*52+32 - width()/2, 64*44+32 - height()/2});
+            m_camera.startPan(2048, 1000, Vec2 {64*52+32 - width()/2, 64*44+32 - height()/2});
         } else if (action.name() == "SAVE"){
             saveGame("game_save.txt");
         } else if (action.name() == "LEVEL0") { 
@@ -318,6 +318,7 @@ void Scene_Play::update() {
         sAnimation();
         m_currentFrame++;
     }
+    m_camera.update(m_player->getComponent<CTransform>().pos);
     sRender();
 }
 
@@ -374,9 +375,7 @@ void Scene_Play::sMovement() {
                 e->removeComponent<CKnockback>();
             }
         }
-        if ( e == m_player ){
-            m_camera.update(transform.pos);
-        }
+
         if ( e->getLinkEntity() ){
             e->getLinkEntity()->getComponent<CTransform>().pos = transform.pos;
             if (e->getLinkEntity()->tag() == "Projectile"){

@@ -80,6 +80,16 @@ void Vec2::operator/= (const float val)
 //     return Vec2 {(int)x%(int)rhs.x, (int)y%(int)rhs.y};
 // }
 
+void Vec2::operator++ (){
+    x++;
+    y++;
+}
+
+void Vec2::operator-- (){
+    x--;
+    y--;
+}
+
 bool Vec2::isnull () const
 {
     return (std::fabs(x)+std::fabs(y) == 0);

@@ -5,16 +5,6 @@
 #include <random>
 #include <cmath>
 
-// Random offset generation for screen shake
-// Vec2 Camera::getShakeOffset(float intensity) {
-//     static std::default_random_engine generator;
-//     std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
-    
-//     float offsetX = distribution(generator) * intensity;
-//     float offsetY = distribution(generator) * intensity;
-    
-//     return Vec2(offsetX, offsetY);
-// }
 Camera::Camera(){}
 
 void Camera::calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize){
@@ -26,10 +16,6 @@ void Camera::calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize){
 void Camera::reset() {
         position = originalPosition;
     }
-
-void Camera::update() {
-    
-}
 
 void Camera::movement(Vec2 playerPos){
     auto width = m_screenSize.x;
@@ -49,7 +35,7 @@ void Camera::movement(Vec2 playerPos){
         originalPosition = Vec2{   gridX*30*(int)((int)(playerPos.x)/(30*gridX)),
                             gridY*17*(int)((int)(playerPos.y)/(17*gridY))};
     }
-    screenShake();
+    position = originalPosition;
 }
 
 // Start screen shake with a magnitude and duration
@@ -77,7 +63,7 @@ void Camera::screenShake() {
         } else {
             // Reset the shake when the duration is over
             shakeDuration = 0;
-            position = originalPosition;
+            // position = originalPosition;
         }
     }
 }
@@ -105,21 +91,24 @@ void Camera::startPan(float speed, int duration, Vec2 pos) {
     panTimeElapsed = 0;  // Reset elapsed time
     panPos = pos;
     panStartPos = originalPosition;
+    i = 0;
 }
 
 void Camera::panCamera(){
     if (panDuration > 0) {
-        if ( (panPos-position).length() > 10 ) {
-            // Apply pan offset to the camera position
-            position += (panPos-panStartPos).norm()*panSpeed/60;
+        if ( ( ( panPos-(panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60) ).length() > 32 ) & !( panTimeElapsed >= panDuration ) ) {
+            i++;
         } else {
             panTimeElapsed += 16; // Assuming 60 FPS, increase time (16ms per frame)
         }
         if ( panTimeElapsed >= panDuration ) {
-            // Reset the pan when the duration is over
-            panDuration = 0;
-            position = originalPosition;
+            if ( ( panStartPos-(panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60) ).length() > 32 ) {
+                i--;
+            } else {
+                panDuration = 0;
+            }
         }
+        position = panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60;
     }
 }
 

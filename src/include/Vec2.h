@@ -21,6 +21,9 @@ public:
     Vec2 operator % (const Vec2 & rhs) const;
     Vec2 operator % (const int val) const;
 
+    void operator ++ ();
+    void operator -- ();
+
     void operator += (const Vec2 & rhs);
     void operator -= (const Vec2 &rhs);
     void operator *= (const float val);

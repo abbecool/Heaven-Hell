@@ -14,11 +14,12 @@ class Camera {
     int shakeDuration;
     int shakeTimeElapsed;
     float panSpeed;
-    int panDuration;
     int panTimeElapsed;
+    int i;
     Vec2 panPos;
     Vec2 panStartPos;
 public:
+    int panDuration;
     Camera();
     void calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize);
     Vec2 position;      // Current camera position
