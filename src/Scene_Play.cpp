@@ -244,7 +244,7 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if (action.name() == "CAMERA PAN"){
-            m_camera.startPan(2048, 1000, Vec2 {64*52+32 - width()/2, 64*44+32 - height()/2});
+            m_pause = m_camera.startPan(2048, 1000, Vec2 {64*52+32 - width()/2, 64*44+32 - height()/2}, m_pause);
         } else if (action.name() == "SAVE"){
             saveGame("game_save.txt");
         } else if (action.name() == "LEVEL0") { 
@@ -318,7 +318,7 @@ void Scene_Play::update() {
         sAnimation();
         m_currentFrame++;
     }
-    m_camera.update(m_player->getComponent<CTransform>().pos);
+    m_pause = m_camera.update(m_player->getComponent<CTransform>().pos, m_pause);
     sRender();
 }
 

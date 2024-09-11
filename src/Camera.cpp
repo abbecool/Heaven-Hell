@@ -85,13 +85,15 @@ Vec2 Camera::getCameraZoom(){
 }
 
 // Start screen shake with a magnitude and duration
-void Camera::startPan(float speed, int duration, Vec2 pos) {
+bool Camera::startPan(float speed, int duration, Vec2 pos, bool pause) {
     panSpeed = speed;
     panDuration = duration;
     panTimeElapsed = 0;  // Reset elapsed time
     panPos = pos;
     panStartPos = originalPosition;
+    panInitPause = pause;
     i = 0;
+    return true;
 }
 
 void Camera::panCamera(){
@@ -106,17 +108,21 @@ void Camera::panCamera(){
                 i--;
             } else {
                 panDuration = 0;
+                m_cameraPause = panInitPause;
             }
         }
         position = panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60;
     }
 }
 
-void Camera::update(Vec2 playerPos) {
+bool Camera::update(Vec2 playerPos, bool pause) {
+    m_cameraPause = pause;
     // Usual camera movement logic
     movement(playerPos); // Example player position
 
     // Apply screen shake effect if it's active
     screenShake();
     panCamera();
+
+    return m_cameraPause;
 }

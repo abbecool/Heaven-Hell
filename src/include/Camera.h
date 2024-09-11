@@ -16,6 +16,8 @@ class Camera {
     float panSpeed;
     int panTimeElapsed;
     int i;
+    bool panInitPause;
+    bool m_cameraPause;
     Vec2 panPos;
     Vec2 panStartPos;
 public:
@@ -50,11 +52,9 @@ public:
     void setCameraZoom(Vec2 zoom);
     Vec2 getCameraZoom();
 
-    void startPan(float speed, int duration, Vec2 pos);
+    bool startPan(float speed, int duration, Vec2 pos, bool pause);
     void panCamera();
 
-    void update();
-
-    void update(Vec2 playerPos);
+    bool update(Vec2 playerPos, bool pause);
 
 };
