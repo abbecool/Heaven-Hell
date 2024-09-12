@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_set>
 #include <functional>
+// #include "ScriptableEntity.h"
 
 // set a flag: flag |= (int)PlayerState
 // unset a flag: flag &= ~(int)PlayerState
@@ -18,7 +19,7 @@ enum struct PlayerState {
     RUN_LEFT = 4
 };
 
-class Entity;
+// class Entity;
 class ScriptableEntity;
 
 class Component
@@ -169,11 +170,11 @@ class CPathfind : public Component
 {
     public:    
     Vec2 target;
-    std::shared_ptr<Entity> target2;
+    // std::shared_ptr<Entity> target2;
 
     CPathfind() {}
-    CPathfind( Vec2 trg, std::shared_ptr<Entity> trg2 ) 
-        : target(trg), target2(trg2) {}
+    // CPathfind( Vec2 trg, std::shared_ptr<Entity> trg2 ) 
+    //     : target(trg), target2(trg2) {}
 };
 
 class CKnockback : public Component
@@ -202,28 +203,21 @@ public:
     CWeapon() {}
     CWeapon(const Animation& animation, int damage, int speed, int range)
                 : animation(animation), damage(damage), speed(speed), range(range){}
-};  
+};
 
 class CScript: public Component
 {
 public:
     ScriptableEntity* Instance = nullptr;
 
-    std::function<void> InstantiateFunctinon;
-    std::function<void> DestroyInstanceFunction;
-
-    std::function<void> OnCreateFunction;
-    std::function<void> OnDestroyFunction;
-    std::function<void>(scrpbentt) OnUpdateFunction;
+    ScriptableEntity* (*InstantiateScript)();
+    void (*DestroyInstanceScript)(CScript*);
 
     template<typename T>
     void Bind(){
-        InstantiateFunctinon    = [&]() { Instance = new T();};
-        DestroyInstanceFunction = [&]() { delete (T*)Instance; };
+        InstantiateScript    = []() {return static_cast<ScriptableEntity*>(new T()); }; 
+        DestroyInstanceScript = [](CScript* sc) { delete sc->Instance; sc->Instance = nullptr;};
 
-        OnCreateFunction        = [](ScriptableEntity* instance) {(T*)instance->OnCreate();};
-        OnDestroyFunction       = [](ScriptableEntity* instance) {(T*)instance->OnDestroy();};
-        OnUpdateFunction        = [](ScriptableEntity* instance, Timestep ts) {(T*)instance->OnUpdate(ts);};
     }
 
 };

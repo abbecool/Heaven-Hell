@@ -26,6 +26,8 @@ typedef std::tuple<
     CScript
 > ComponentTuple;
 
+class Entity;
+
 struct Link {
     std::shared_ptr<Entity> linkEntity;  // Reference to the weapon entity
 

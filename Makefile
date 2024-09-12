@@ -2,7 +2,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -I src/include -Wall -g
+CXXFLAGS = -I src/include -Wall -g -MMD -MP
 
 # Linker flags
 LDFLAGS = -L src/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
@@ -22,6 +22,9 @@ SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
 # Object files
 OBJECTS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 
+# Dependency files
+DEPS = $(OBJECTS:.o=.d)
+
 # Default target
 all: create_obj_dir $(TARGET)
 
@@ -37,9 +40,12 @@ $(TARGET): $(OBJECTS)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
+# Include dependency files
+-include $(DEPS)
+
 # Clean up
 clean:
-	rm -f $(OBJ_DIR)/*.o $(TARGET)
+	rm -f $(OBJ_DIR)/*.o $(OBJ_DIR)/*.d $(TARGET)
 
 # Phony targets
 .PHONY: all clean create_obj_dir

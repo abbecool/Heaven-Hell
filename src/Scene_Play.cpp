@@ -7,6 +7,8 @@
 #include "Action.h"
 #include "Level_Loader.h"
 #include "Camera.h"
+#include "ScriptableEntity.h"
+#include "player.cpp"
 
 #include "RandomArray.h"
 
@@ -55,6 +57,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_u, "SAVE");
     loadConfig("config.txt");
     loadLevel(levelPath);
+
 }
 
 Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
@@ -244,7 +247,7 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if (action.name() == "CAMERA PAN"){
-            m_pause = m_camera.startPan(2048, 1000, Vec2 {64*52+32 - width()/2, 64*44+32 - height()/2}, m_pause);
+            m_pause = m_camera.startPan(2048, 1000, Vec2 {(float)(64*52+32 - width()/2), (float)(64*44+32 - height()/2)}, m_pause);
         } else if (action.name() == "SAVE"){
             saveGame("game_save.txt");
         } else if (action.name() == "LEVEL0") { 
@@ -313,10 +316,22 @@ void Scene_Play::update() {
     m_entities.update();
     if (!m_pause) {
         sMovement();
+        m_currentFrame++;
+        if ( m_player->hasComponent<CScript>() ) {
+            auto& sc = m_player->getComponent<CScript>();
+            if ( !sc.Instance )
+            {
+                sc.Instance = sc.InstantiateScript();
+                sc.Instance->m_entity = m_player;
+                sc.Instance->OnCreateFunction();
+
+            }
+            sc.Instance->OnUpdateFunction();
+            // memory leak, destroy 
+        }
         sCollision();
         sStatus();
         sAnimation();
-        m_currentFrame++;
     }
     m_pause = m_camera.update(m_player->getComponent<CTransform>().pos, m_pause);
     sRender();
@@ -355,15 +370,15 @@ void Scene_Play::sMovement() {
             }
         }
 
-        if (e->hasComponent<CPathfind>()) {
-            Vec2& target = e->getComponent<CPathfind>().target;
-            if ((target - transform.pos).length() < 64*2) {
-                transform.vel = target - transform.pos;
-            } else {
-                transform.vel = Vec2 {0,0};
-            }
-            target = m_player->getComponent<CTransform>().pos;
-        }
+        // if (e->hasComponent<CPathfind>()) {
+        //     Vec2& target = e->getComponent<CPathfind>().target;
+        //     if ((target - transform.pos).length() < 64*2) {
+        //         transform.vel = target - transform.pos;
+        //     } else {
+        //         transform.vel = Vec2 {0,0};
+        //     }
+        //     target = m_player->getComponent<CTransform>().pos;
+        // }
 
         transform.prevPos = transform.pos;
         if (!(transform.vel.isnull()) && transform.isMovable ){
@@ -818,6 +833,7 @@ void Scene_Play::spawnPlayer(){
     entity->addComponent<CDamage>(m_playerConfig.DAMAGE, 180);
     entity->addComponent<CHealth>(hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     // entity->addComponent<CWeapon>(m_game->assets().getAnimation("staff"), 1, 10, 64);
+    entity->addComponent<CScript>().Bind<PlayerController>();
 }
 
 void Scene_Play::spawnWeapon(Vec2 pos){
@@ -947,7 +963,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
     entity->addComponent<CBoundingBox>(Vec2{32, 48});
-    entity->addComponent<CPathfind>(m_player->getComponent<CTransform>().pos, m_player);
+    // entity->addComponent<CPathfind>(m_player->getComponent<CTransform>().pos, m_player);
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
     entity->addComponent<CHealth>(4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     entity->getComponent<CHealth>().HPType = {"Grass", "Organic"};
