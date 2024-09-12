@@ -22,7 +22,8 @@ typedef std::tuple<
     CDialog,
     CPathfind,
     CKnockback,
-    CWeapon
+    CWeapon,
+    CScript
 > ComponentTuple;
 
 struct Link {

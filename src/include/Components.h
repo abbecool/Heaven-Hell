@@ -1,10 +1,9 @@
 #pragma once
 
-// #include "Sprite.h"
 #include "Animation.h"
-// #include "Entity.h"
 #include <memory>
 #include <unordered_set>
+#include <functional>
 
 // set a flag: flag |= (int)PlayerState
 // unset a flag: flag &= ~(int)PlayerState
@@ -20,6 +19,7 @@ enum struct PlayerState {
 };
 
 class Entity;
+class ScriptableEntity;
 
 class Component
 {
@@ -203,3 +203,27 @@ public:
     CWeapon(const Animation& animation, int damage, int speed, int range)
                 : animation(animation), damage(damage), speed(speed), range(range){}
 };  
+
+class CScript: public Component
+{
+public:
+    ScriptableEntity* Instance = nullptr;
+
+    std::function<void> InstantiateFunctinon;
+    std::function<void> DestroyInstanceFunction;
+
+    std::function<void> OnCreateFunction;
+    std::function<void> OnDestroyFunction;
+    std::function<void>(scrpbentt) OnUpdateFunction;
+
+    template<typename T>
+    void Bind(){
+        InstantiateFunctinon    = [&]() { Instance = new T();};
+        DestroyInstanceFunction = [&]() { delete (T*)Instance; };
+
+        OnCreateFunction        = [](ScriptableEntity* instance) {(T*)instance->OnCreate();};
+        OnDestroyFunction       = [](ScriptableEntity* instance) {(T*)instance->OnDestroy();};
+        OnUpdateFunction        = [](ScriptableEntity* instance, Timestep ts) {(T*)instance->OnUpdate(ts);};
+    }
+
+};

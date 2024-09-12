@@ -21,7 +21,8 @@ Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
                     CDialog(),
                     CPathfind(),
                     CKnockback(),
-                    CWeapon()
+                    CWeapon(),
+                    CScript()
                 );
         }
 
