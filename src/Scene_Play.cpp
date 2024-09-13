@@ -654,31 +654,16 @@ void Scene_Play::sRender() {
                     shadow.animation.setScale(transform.scale*cameraZoom);
                     shadow.animation.setAngle(transform.angle);
                     shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
-
-                    SDL_RenderCopyEx(
-                        m_game->renderer(), 
-                        shadow.animation.getTexture(), 
-                        shadow.animation.getSrcRect(), 
-                        shadow.animation.getDestRect(),
-                        shadow.animation.getAngle(),
-                        NULL,
-                        SDL_FLIP_NONE
-                    );
+                    
+                    spriteRender(shadow.animation);
                 } 
 
                 animation.setScale(transform.scale*cameraZoom);
                 animation.setAngle(transform.angle);
                 animation.setDestRect(adjustedPos - animation.getDestSize()/2);
+                
+                spriteRender(animation);
 
-                SDL_RenderCopyEx(
-                    m_game->renderer(), 
-                    animation.getTexture(), 
-                    animation.getSrcRect(), 
-                    animation.getDestRect(),
-                    animation.getAngle(),
-                    NULL,
-                    SDL_FLIP_NONE
-                );
                 if (e->hasComponent<CHealth>() && e != m_player){
                     if ( (int)m_currentFrame - e->getComponent<CHealth>().damage_frame < e->getComponent<CHealth>().heart_frames) {
 
@@ -700,16 +685,7 @@ void Scene_Play::sRender() {
                                 adjustedPos.x + (float)(i-1-(float)e->getComponent<CHealth>().HP_max/4)*animation.getSize().x*animation.getScale().x, 
                                 adjustedPos.y - e->getComponent<CAnimation>().animation.getSize().y * e->getComponent<CAnimation>().animation.getScale().y / 2
                             });
-                            
-                            SDL_RenderCopyEx(
-                                m_game->renderer(), 
-                                animation.getTexture(), 
-                                nullptr, 
-                                animation.getDestRect(),
-                                0,
-                                NULL,
-                                SDL_FLIP_NONE
-                            );
+                            spriteRender(animation);
                         }
                     }
                 }
@@ -749,15 +725,7 @@ void Scene_Play::sRender() {
             animation.setScale(Vec2{4, 4});
             animation.setDestRect(Vec2{(float)(i-1)*animation.getSize().x*animation.getScale().x, 0});
             
-            SDL_RenderCopyEx(
-                m_game->renderer(), 
-                animation.getTexture(), 
-                nullptr, 
-                animation.getDestRect(),
-                0,
-                NULL,
-                SDL_FLIP_NONE
-            );
+            spriteRender(animation);
         }
     }
 
@@ -779,6 +747,26 @@ void Scene_Play::sRender() {
             }
         }
     }
+    SDL_Rect rect;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = width();
+    rect.h = height();
+
+    SDL_SetRenderDrawColor(m_game->renderer(), 20, 0, 50, 100);
+    SDL_RenderFillRect(m_game->renderer(), &rect);
+}
+
+void Scene_Play::spriteRender(Animation &animation){
+    SDL_RenderCopyEx(
+        m_game->renderer(), 
+        animation.getTexture(), 
+        animation.getSrcRect(), 
+        animation.getDestRect(),
+        animation.getAngle(),
+        NULL,
+        SDL_FLIP_NONE
+    );
 }
 
 void Scene_Play::spawnHUD(){

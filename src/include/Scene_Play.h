@@ -75,7 +75,8 @@ class Scene_Play : public Scene
     void sStatus();
     void sAnimation();
     void sRender();
-    
+    void spriteRender(Animation &animation);
+
     void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
