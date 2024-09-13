@@ -57,7 +57,6 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_u, "SAVE");
     loadConfig("config.txt");
     loadLevel(levelPath);
-    std::cout << m_player->getComponent<CTransform>().pos.x << " " << m_player->getComponent<CTransform>().pos.y << std::endl;
 }
 
 Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
@@ -314,6 +313,8 @@ void Scene_Play::sDoAction(const Action& action) {
 
 void Scene_Play::update() {
     m_entities.update();
+    m_pause = m_camera.update(m_player->getComponent<CTransform>().pos, m_pause);
+    std::cout << "scene_play: " << m_camera.position.x << std::endl;
     if (!m_pause) {
         sMovement();
         m_currentFrame++;
@@ -333,7 +334,6 @@ void Scene_Play::update() {
         sStatus();
         sAnimation();
     }
-    m_pause = m_camera.update(m_player->getComponent<CTransform>().pos, m_pause);
     sRender();
 }
 
@@ -759,7 +759,7 @@ void Scene_Play::sRender() {
 }
 
 void Scene_Play::spriteRender(Animation &animation){
-    SDL_RenderCopyEx(
+    auto x = SDL_RenderCopyEx(
         m_game->renderer(), 
         animation.getTexture(), 
         animation.getSrcRect(), 
@@ -768,6 +768,9 @@ void Scene_Play::spriteRender(Animation &animation){
         NULL,
         SDL_FLIP_NONE
     );
+    if (x) {
+        std::cout << "error" << std::endl;
+    }
 }
 
 void Scene_Play::spawnHUD(){

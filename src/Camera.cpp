@@ -11,6 +11,7 @@ void Camera::calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize){
     m_screenSize = screenSize;
     m_levelSize = levelSize;
     m_gridSize = gridSize;
+    position = Vec2{0,0};
 }
 
 void Camera::reset() {
@@ -65,7 +66,10 @@ void Camera::screenShake() {
             shakeDuration = 0;
             // position = originalPosition;
         }
+    } else{
+        position = originalPosition;
     }
+    
 }
 
 void Camera::toggleCameraFollow(){
@@ -112,6 +116,8 @@ void Camera::panCamera(){
             }
         }
         position = panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60;
+    } else{
+        position = originalPosition;
     }
 }
 
@@ -123,6 +129,7 @@ bool Camera::update(Vec2 playerPos, bool pause) {
     // Apply screen shake effect if it's active
     screenShake();
     panCamera();
+    // std::cout << "In Camera: " << position.x << std::endl;
 
     return m_cameraPause;
 }
