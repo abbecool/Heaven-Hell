@@ -82,7 +82,7 @@ void Entity::Entity::setScale(Vec2 scale){
     getComponent<CTransform>().scale = scale;
 }
 
-void Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
+bool Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
     auto attack = attacker->getComponent<CDamage>();
     if ((int)frame - getComponent<CHealth>().heart_frames > getComponent<CHealth>().damage_frame && (int)frame - getComponent<CHealth>().heart_frames > attack.lastAttackFrame){
         float damageMultiplier = 1.0f;
@@ -112,5 +112,7 @@ void Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
         getComponent<CHealth>().HP = getComponent<CHealth>().HP-(int)(attack.damage*damageMultiplier);
         getComponent<CHealth>().damage_frame = (int)frame;
         attack.lastAttackFrame = (int)frame;
+        return true;
     }
+    return false;
 }

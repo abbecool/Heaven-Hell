@@ -57,7 +57,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_u, "SAVE");
     loadConfig("config.txt");
     loadLevel(levelPath);
-
+    std::cout << m_player->getComponent<CTransform>().pos.x << " " << m_player->getComponent<CTransform>().pos.y << std::endl;
 }
 
 Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
@@ -429,8 +429,9 @@ void Scene_Play::sCollision() {
         if ( m_physics.isCollided(m_player, e) )
         {
             e->movePosition(m_physics.overlap(e,m_player));
-            m_player->takeDamage(e, m_currentFrame);
-            m_camera.startShake(5, 50);
+            if ( m_player->takeDamage(e, m_currentFrame) ){
+                m_camera.startShake(5, 50);
+            }
         }
     }
 
@@ -724,7 +725,7 @@ void Scene_Play::sRender() {
 
             animation.setScale(Vec2{4, 4});
             animation.setDestRect(Vec2{(float)(i-1)*animation.getSize().x*animation.getScale().x, 0});
-            
+
             spriteRender(animation);
         }
     }
@@ -747,14 +748,14 @@ void Scene_Play::sRender() {
             }
         }
     }
-    SDL_Rect rect;
-    rect.x = 0;
-    rect.y = 0;
-    rect.w = width();
-    rect.h = height();
+    // SDL_Rect rect;
+    // rect.x = 0;
+    // rect.y = 0;
+    // rect.w = width();
+    // rect.h = height();
 
-    SDL_SetRenderDrawColor(m_game->renderer(), 20, 0, 50, 100);
-    SDL_RenderFillRect(m_game->renderer(), &rect);
+    // SDL_SetRenderDrawColor(m_game->renderer(), 20, 0, 50, 100);
+    // SDL_RenderFillRect(m_game->renderer(), &rect);
 }
 
 void Scene_Play::spriteRender(Animation &animation){

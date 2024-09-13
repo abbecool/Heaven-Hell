@@ -127,5 +127,5 @@ public:
 
     void movePosition(Vec2);
     void setScale(Vec2 scale);
-    void takeDamage(std::shared_ptr<Entity> attacker, size_t frame);
+    bool takeDamage(std::shared_ptr<Entity> attacker, size_t frame);
 };
