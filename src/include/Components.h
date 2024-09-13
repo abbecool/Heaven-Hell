@@ -19,7 +19,7 @@ enum struct PlayerState {
     RUN_LEFT = 4
 };
 
-// class Entity;
+class Entity;
 class ScriptableEntity;
 
 class Component
@@ -170,11 +170,11 @@ class CPathfind : public Component
 {
     public:    
     Vec2 target;
-    // std::shared_ptr<Entity> target2;
+    std::shared_ptr<Entity> target2;
 
     CPathfind() {}
-    // CPathfind( Vec2 trg, std::shared_ptr<Entity> trg2 ) 
-    //     : target(trg), target2(trg2) {}
+    CPathfind( Vec2 trg, std::shared_ptr<Entity> trg2 ) 
+        : target(trg), target2(trg2) {}
 };
 
 class CKnockback : public Component
@@ -217,7 +217,6 @@ public:
     void Bind(){
         InstantiateScript    = []() {return static_cast<ScriptableEntity*>(new T()); }; 
         DestroyInstanceScript = [](CScript* sc) { delete sc->Instance; sc->Instance = nullptr;};
-
     }
 
 };

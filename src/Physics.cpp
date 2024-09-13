@@ -95,7 +95,6 @@ Vec2 Physics::getOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b) {
     float oy = sizeA.y + sizeB.y - delta.y;
     return Vec2(ox, oy);
 }
-
 Vec2 Physics::knockback(CKnockback& knockback){
     knockback.timeElapsed += 16;
     if (knockback.timeElapsed < knockback.duration) {

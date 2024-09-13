@@ -370,15 +370,15 @@ void Scene_Play::sMovement() {
             }
         }
 
-        // if (e->hasComponent<CPathfind>()) {
-        //     Vec2& target = e->getComponent<CPathfind>().target;
-        //     if ((target - transform.pos).length() < 64*2) {
-        //         transform.vel = target - transform.pos;
-        //     } else {
-        //         transform.vel = Vec2 {0,0};
-        //     }
-        //     target = m_player->getComponent<CTransform>().pos;
-        // }
+        if (e->hasComponent<CPathfind>()) {
+            Vec2& target = e->getComponent<CPathfind>().target;
+            if ((target - transform.pos).length() < 64*2) {
+                transform.vel = target - transform.pos;
+            } else {
+                transform.vel = Vec2 {0,0};
+            }
+            target = m_player->getComponent<CTransform>().pos;
+        }
 
         transform.prevPos = transform.pos;
         if (!(transform.vel.isnull()) && transform.isMovable ){
@@ -963,7 +963,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
     entity->addComponent<CBoundingBox>(Vec2{32, 48});
-    // entity->addComponent<CPathfind>(m_player->getComponent<CTransform>().pos, m_player);
+    entity->addComponent<CPathfind>(m_player->getComponent<CTransform>().pos, m_player);
     entity->addComponent<CShadow>(m_game->assets().getAnimation("shadow"), false);
     entity->addComponent<CHealth>(4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     entity->getComponent<CHealth>().HPType = {"Grass", "Organic"};

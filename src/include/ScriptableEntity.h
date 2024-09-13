@@ -12,7 +12,7 @@ class ScriptableEntity{
             return m_entity->template getComponent<T>();
         }
     protected:
-        virtual void OnCreateFunction() {std::cout << "in scriptaable entity" << std::endl;}
+        virtual void OnCreateFunction() {}
         virtual void OnDestroyFunction() {}
         virtual void OnUpdateFunction() {}
     private:
