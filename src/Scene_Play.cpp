@@ -948,7 +948,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
 {
     auto entity = m_entities.addEntity("Enemy", layer);
     entity->addComponent<CName>("rooter");
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("rooter"), true);
+    entity->addComponent<CAnimation>(m_game->assets().getAnimation("goblin"), true);
     entity->addComponent<CState>(PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity->addComponent<CTransform>(midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);

@@ -61,6 +61,7 @@ Texture     rooterWalkW                 assets/images/smallEnemy-sheetW.png
 Texture     rooterWalkN                 assets/images/smallEnemy-sheetN.png
 Texture     rooterWalkE                 assets/images/smallEnemy-sheetE.png
 Texture     rooter                      assets/images/rooter-sheet.png
+Texture     goblin                      assets/images/goblin-sheet.png
 Texture     staff                      assets/images/staff.png
 
 Font        minecraft                   assets/fonts/Minecraft.ttf
@@ -124,6 +125,7 @@ Animation   rooterWalkW                 rooterWalkW                 4   20    1 
 Animation   rooterWalkN                 rooterWalkN                 4   20    1  1
 Animation   rooterWalkE                 rooterWalkE                 4   20    1  1
 Animation   rooter                      rooter                      4   20    4  5
+Animation   goblin                      goblin                      4   20    4  5
 
 Animation   grass_dual_sheet            grass_dual_sheet            1   100   4     7   
 Animation   water_dual_sheet            water_dual_sheet            1   100   4     7  
