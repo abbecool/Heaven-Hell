@@ -64,12 +64,8 @@ void Camera::screenShake() {
         } else {
             // Reset the shake when the duration is over
             shakeDuration = 0;
-            // position = originalPosition;
-        }
-    } else{
-        position = originalPosition;
+        }    
     }
-    
 }
 
 void Camera::toggleCameraFollow(){
@@ -116,8 +112,6 @@ void Camera::panCamera(){
             }
         }
         position = panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60;
-    } else{
-        position = originalPosition;
     }
 }
 
@@ -125,11 +119,37 @@ bool Camera::update(Vec2 playerPos, bool pause) {
     m_cameraPause = pause;
     // Usual camera movement logic
     movement(playerPos); // Example player position
-
+    
     // Apply screen shake effect if it's active
     screenShake();
-    panCamera();
-    // std::cout << "In Camera: " << position.x << std::endl;
+    
+    if (panDuration > 0) {
+        panCamera();
+    }
 
     return m_cameraPause;
 }
+
+#include "ScriptableEntity.h"
+#include <iostream>
+
+class CameraController : public ScriptableEntity 
+{
+public:
+    void OnCreateFunction()
+    {
+        // std::cout << "create script entity: OnCreate" << std::endl;
+    }
+
+    void OnDestroyFunction()
+    {
+        // std::cout << "destoy script entity: OnDestroy" << std::endl;
+    }
+
+    void OnUpdateFunction()
+    {
+        // auto& pos = getComponent<CTransform>().pos;
+        // pos.x -= 1;
+    }
+};
+

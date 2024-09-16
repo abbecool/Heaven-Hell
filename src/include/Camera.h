@@ -11,21 +11,21 @@ class Camera {
     Vec2 m_gridSize;
     
     float shakeMagnitude;
-    int shakeDuration;
+    int shakeDuration = 0;
     int shakeTimeElapsed;
     float panSpeed;
     int panTimeElapsed;
     int i;
     bool panInitPause;
     bool m_cameraPause;
-    Vec2 panPos;
-    Vec2 panStartPos;
+    Vec2 panPos = Vec2{0,0};
+    Vec2 panStartPos = Vec2{0,0};
 public:
-    int panDuration;
+    int panDuration = 0;
     Camera();
     void calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize);
-    Vec2 position;      // Current camera position
-    Vec2 originalPosition;  // Original camera position (before shake)
+    Vec2 position = Vec2{0,0};      // Current camera position
+    Vec2 originalPosition = Vec2{0,0};  // Original camera position (before shake)
     
     void reset();
 
