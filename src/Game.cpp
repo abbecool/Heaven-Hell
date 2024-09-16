@@ -34,7 +34,7 @@ void Game::init(const std::string & pathImages, const std::string & pathText){
     TTF_Init();
 
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
-    changeScene("Menu", std::make_shared<Scene_Menu>(this));
+    changeScene("Play", std::make_shared<Scene_Play>(this, "assets/images/levels/level0.png", true));
 }
 
 std::shared_ptr<Scene> Game::currentScene() {
