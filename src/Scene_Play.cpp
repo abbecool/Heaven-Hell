@@ -314,7 +314,6 @@ void Scene_Play::sDoAction(const Action& action) {
 void Scene_Play::update() {
     m_entities.update();
     m_pause = m_camera.update(m_player->getComponent<CTransform>().pos, m_pause);
-    // std::cout << "scene_play: " << m_camera.position.x << std::endl;
     if (!m_pause) {
         sMovement();
         m_currentFrame++;
@@ -322,10 +321,9 @@ void Scene_Play::update() {
             auto& sc = m_player->getComponent<CScript>();
             if ( !sc.Instance )
             {
-                sc.Instance = sc.InstantiateScript();
+                    sc.Instance = sc.InstantiateScript();
                 sc.Instance->m_entity = m_player;
                 sc.Instance->OnCreateFunction();
-
             }
             sc.Instance->OnUpdateFunction();
             // memory leak, destroy 
