@@ -3,56 +3,57 @@
 
 EntityManager::EntityManager() {}
 
-std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag, const Uint8 &layer)
+EntityID EntityManager::addEntity()
 {   
-    auto e = std::make_shared<Entity>(tag, m_TotalEntities++, layer);
-    m_toAdd.push_back(e);
-    return e;
-}
-
-void EntityManager::update()
-{
-    for (auto e : m_toAdd)
-    {
-            m_entities.push_back(e);
-            m_entityMap[e->tag()].push_back(e);
-    }
-    m_toAdd.clear();
-
-    removeDeadEntities(m_entities);
-    for ( auto& [tag, entityVec] : m_entityMap)
-    {
-        removeDeadEntities(entityVec);
-    }
-}
-
-void EntityManager::sort()
-{
-    std::sort(m_entities.begin(), m_entities.end(), [](const std::shared_ptr<Entity> &a, const std::shared_ptr<Entity> &b) {
-        return a->layer() > b->layer();
-    });
-
-}
-
-void EntityManager::removeDeadEntities(EntityVec& vec)
-{
-    vec.erase(
-        std::remove_if(vec.begin(), vec.end(), 
-        [] (const std::shared_ptr<Entity>& e) { return !e->isAlive(); }), 
-        vec.end());
-}
-
-EntityVec EntityManager::getEntities()
-{
-    return m_entities;
-}
-
-EntityVec EntityManager::getEntities(std::string tag)
-{
-    return m_entityMap[tag];
-}
-
-size_t EntityManager::getTotalEntities()
-{
+    m_TotalEntities++;
     return m_TotalEntities;
 }
+
+template<typename Component>
+void EntityManager::addComponent(EntityID id, Component component){
+    transformComponents[id]
+}
+
+template<typename Component>
+bool EntityManager::hasComponent(EntityID id) const{
+    return transformComponents[id];
+}
+
+template<typename Component>
+Component& EntityManager::getComponent(EntityID id){
+
+}
+
+template<typename... Components>
+std::vector<EntityID> EntityManager::view(){
+
+}
+
+// void EntityManager::update()
+// {
+//     for (auto e : m_toAdd)
+//     {
+//             m_entities.push_back(e);
+//             m_entityMap[e->tag()].push_back(e);
+//     }
+//     m_toAdd.clear();
+
+//     removeDeadEntities(m_entities);
+//     for ( auto& [tag, entityVec] : m_entityMap)
+//     {
+//         removeDeadEntities(entityVec);
+//     }
+// }
+
+// void EntityManager::sort()
+// {
+//     std::sort(m_entities.begin(), m_entities.end(), [](const std::shared_ptr<Entity> &a, const std::shared_ptr<Entity> &b) {
+//         return a->layer() > b->layer();
+//     });
+
+// }
+
+EntityID EntityManager::getTotalEntities(){
+    return m_TotalEntities;
+}
+
