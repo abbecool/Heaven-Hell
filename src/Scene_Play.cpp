@@ -219,12 +219,12 @@ void Scene_Play::sDoAction(const Action& action) {
         if (action.name() == "CTRL") {
             m_player->getComponent<CInputs>().ctrl = true;
         }
-        if (action.name() == "ATTACK"){
-            if ( m_player->getComponent<CInputs>().canShoot ){
-                m_player->getComponent<CInputs>().shoot = true;
-                spawnProjectile(m_player->getLinkEntity(), getMousePosition()-m_player->getLinkEntity()->getComponent<CTransform>().pos+m_camera.position);
-            }
-        }
+        // if (action.name() == "ATTACK"){
+        //     if ( m_player->getComponent<CInputs>().canShoot ){
+        //         m_player->getComponent<CInputs>().shoot = true;
+        //         spawnProjectile(m_player->getLinkEntity(), getMousePosition()-m_player->getLinkEntity()->getComponent<CTransform>().pos+m_camera.position);
+        //     }
+        // }
     }
     else if (action.type() == "END") {
         if (action.name() == "DOWN") {
@@ -241,39 +241,40 @@ void Scene_Play::sDoAction(const Action& action) {
             m_player->getComponent<CInputs>().ctrl = false;
         } if (action.name() == "ATTACK") {
             m_player->getComponent<CInputs>().canShoot = false;
-            if ( m_player->getLinkEntity() ){
-                if ( m_player->getLinkEntity()->getLinkEntity()->getComponent<CProjectileState>().state == "Free" ){
-                    m_player->getLinkEntity()->getLinkEntity()->getComponent<CTransform>().isMovable = true; 
-                    m_player->getLinkEntity()->removeLinkEntity();
-                } else {
-                    m_player->getLinkEntity()->getLinkEntity()->kill();
-                }
-            }
+            // if ( m_player->getLinkEntity() ){
+            //     if ( m_player->getLinkEntity()->getLinkEntity()->getComponent<CProjectileState>().state == "Free" ){
+            //         m_player->getLinkEntity()->getLinkEntity()->getComponent<CTransform>().isMovable = true; 
+            //         m_player->getLinkEntity()->removeLinkEntity();
+            //     } else {
+            //         m_player->getLinkEntity()->getLinkEntity()->kill();
+            //     }
+            // }
         }
     }
 }
 
 void Scene_Play::update() {
-    m_entities.update();
-    m_pause = m_camera.update(m_player->getComponent<CTransform>().pos, m_pause);
-    if (!m_pause) {
-        sMovement();
-        m_currentFrame++;
-        if ( m_player->hasComponent<CScript>() ) {
-            auto& sc = m_player->getComponent<CScript>();
-            if ( !sc.Instance )
-            {
-                    sc.Instance = sc.InstantiateScript();
-                sc.Instance->m_entity = m_player;
-                sc.Instance->OnCreateFunction();
-            }
-            sc.Instance->OnUpdateFunction();
-            // memory leak, destroy 
-        }
-        sCollision();
-        sStatus();
-        sAnimation();
-    }
+    // m_entities.update();
+    // m_pause = m_camera.update(m_player->getComponent<CTransform>().pos, m_pause);
+    m_pause = m_camera.update(Vec2{0,0}, m_pause);
+    // if (!m_pause) {
+    //     sMovement();
+    //     m_currentFrame++;
+    //     // if ( m_player->hasComponent<CScript>() ) {
+    //     //     auto& sc = m_player->getComponent<CScript>();
+    //     //     if ( !sc.Instance )
+    //     //     {
+    //     //             sc.Instance = sc.InstantiateScript();
+    //     //         sc.Instance->m_entity = m_player;
+    //     //         sc.Instance->OnCreateFunction();
+    //     //     }
+    //     //     sc.Instance->OnUpdateFunction();
+    //     //     // memory leak, destroy 
+    //     // }
+    //     sCollision();
+    //     sStatus();
+    //     sAnimation();
+    // }
     sRender();
 }
 
@@ -713,7 +714,7 @@ void Scene_Play::spriteRender(Animation &animation){
 void Scene_Play::spawnPlayer(){
 
     auto entityID = m_ECS.addEntity();
-    Entity entity = {entityID, m_ECS*};
+    Entity entity = {entityID, m_ECS*);
 
     auto entity = m_entities.addEntity("Player", 3);
     int pos_x;

@@ -1,8 +1,5 @@
-#include "Entity.h"
+// #include "Entity.h"
 
-Entity::Entity(){};
-Entity::Entity(EntityID id, ECS* manager)
-        : m_entityId(id), m_ECS(manager){};
  
 
 // #include <string>

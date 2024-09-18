@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ECS.h"    
+#include "ECS.hpp"    
 #include <utility>   // For std::forward
 #include <cstdint>   // For uint32_t (EntityID)
 
@@ -13,7 +13,9 @@ private:
 
 public:
     Entity() = default;  // Default constructor
-    Entity(EntityID id, ECS* manager);
+    
+    Entity(EntityID id, ECS* manager)
+        : m_entityId(id), m_ECS(manager){};
 
     template<typename T>
     bool hasComponent() {

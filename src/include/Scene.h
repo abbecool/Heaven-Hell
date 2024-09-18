@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Action.h"
-#include "ECS.h"
+#include "ECS.hpp"
 #include "Game.h"
 
 #include <cstddef>

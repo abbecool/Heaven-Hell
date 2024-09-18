@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ECS.h"
+#include "ECS.hpp"
 
 #include "Scene.h"
 #include "Assets.h"

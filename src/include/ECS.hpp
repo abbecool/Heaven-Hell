@@ -15,16 +15,19 @@
 
 using EntityID = uint32_t;
 
-// class Entity;
+class BaseComponentPool {
+public:
+    virtual ~BaseComponentPool() = default;  // Virtual destructor to allow proper deletion
+};
 
 template<typename T>
-class ComponentPool {
+class ComponentPool : public BaseComponentPool{
 public:
     // Add a component to the pool for a specific entity
     
     template<typename... Args>
     void addComponent(EntityID entityId, Args... args) {
-        pool[entityId] = std::make_unique<T>(std::forward<Args>(args)...);  // Add or replace the component for the entityId
+        pool[entityId] = T(std::forward<Args>(args)...);  // Add or replace the component for the entityId
     }
 
     // Remove a component from the pool
@@ -52,25 +55,46 @@ class ECS
     EntityID m_numEntities = 0;
     friend class Entity;
 public:
-    ECS();
-    EntityID addEntity();
-    EntityID getNumEntities();
+
+    ECS(){};   
+
+    EntityID addEntity(){   
+        return m_numEntities++;
+    };
+
+    EntityID getNumEntities(){
+        return m_numEntities;
+    }    
     
-    template<typename T>
-    bool hasComponent(EntityID id) const;
-    
+    // Add a component to an entity
     template<typename T, typename... Args>
-    T& addComponent(EntityID entity, Args&&... args);
+    T& addComponent(EntityID entity, Args &&... args) {
+        auto& pool = getOrCreateComponentPool<T>();
+        return pool->addComponent(entity, T(std::forward<Args>(args)...));
+    };
 
     // Remove a component from an entityId
     template <typename T>
-    void removeComponent(EntityID entityId);
+    void removeComponent(EntityID entityId) {
+        getOrCreateComponentPool<T>().removeComponent(entityId);
+    }
 
-    template<typename T>
-    T& getComponent(EntityID id);
+    // Check if an entity has a component
+    template <typename T>
+    bool hasComponent(EntityID entityId) const {
+        return getComponentPool<T>().hasComponent(entityId);
+    }
+
+    // Get a component from an entity
+    template <typename T>
+    T& getComponent(EntityID entityId) {
+        return getComponentPool<T>().getComponent(entityId);
+    }
 
     template<typename... T>
-    std::vector<EntityID> view();
+    std::vector<EntityID> view(){
+        return 
+    };
 
     // void removeEntity(EntityID id);
     
@@ -78,15 +102,32 @@ public:
     void sort();
 private:
     // Map to store component pools for each component type
-    std::unordered_map<std::type_index, std::unique_ptr<void>> componentPools;
+    std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
+
+    // // Helper to get or create the component pool for a specific type
+    // template <typename T>
+    // ComponentPool<T>& getOrCreateComponentPool();
+
+    // // Helper to get the component pool for a specific type (const version)
+    // template <typename T>
+    // const ComponentPool<T>& getComponentPool() const;
 
     // Helper to get or create the component pool for a specific type
     template <typename T>
-    ComponentPool<T>& getOrCreateComponentPool();
+    ComponentPool<T>& getOrCreateComponentPool() {
+        std::type_index typeIdx(typeid(T));
+        if (componentPools.find(typeIdx) == componentPools.end()) {
+            componentPools[typeIdx] = std::make_unique<ComponentPool<T>>();
+        }
+        return *reinterpret_cast<ComponentPool<T>*>(componentPools[typeIdx].get());
+    }
 
     // Helper to get the component pool for a specific type (const version)
     template <typename T>
-    const ComponentPool<T>& getComponentPool() const;
+    const ComponentPool<T>& getComponentPool() const {
+        std::type_index typeIdx(typeid(T));
+        return *reinterpret_cast<const ComponentPool<T>*>(componentPools.at(typeIdx).get());
+    }
 };
 
 

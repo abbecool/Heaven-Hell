@@ -1,16 +1,17 @@
 #include "Physics.h"
 #include "Entity.h"
+#include "ECS.hpp"
 #include "Components.h"
 #include <cstdlib>
 #include <memory>
 
 bool Physics::isCollided(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
 {
-    if (a->id() == b->id())
+    if (a == b)
     {
         return false;
     }
-
+    
     Vec2 aSize = a->getComponent<CBoundingBox>().size;
     Vec2 bSize = b->getComponent<CBoundingBox>().size;
     Vec2 aPos = a->getComponent<CTransform>().pos - a->getComponent<CBoundingBox>().halfSize;
@@ -24,7 +25,7 @@ bool Physics::isCollided(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
 
 bool Physics::isStandingIn(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b)
 {
-    if (a->id() == b->id())
+    if (a == b)
     {
         return false;
     }
