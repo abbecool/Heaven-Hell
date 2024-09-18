@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EntityManager.h"
+#include "ECS.h"
 
 #include "Scene.h"
 #include "Assets.h"

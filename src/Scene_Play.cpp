@@ -59,64 +59,6 @@ void Scene_Play::init(const std::string& levelPath) {
     loadLevel(levelPath);
 }
 
-Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
-    Vec2 offset;
-    Vec2 grid = Vec2{gridX, gridY};
-    Vec2 eSize;
-    if ( entity->hasComponent<CAnimation>() ){
-        eSize = entity->getComponent<CAnimation>().animation.getSize();
-    } else {
-        eSize = m_gridSize/2;
-    }
-    
-    Vec2 eScale;
-    switch ((int)eSize.y) {
-        case 270:
-            eScale.x = 0.15;
-            eScale.y = 0.18;
-            break;
-        case 225:
-            eScale.x = 0.18;
-            eScale.y = 0.18;
-            break;
-        case 192:
-            eScale.x = 1;
-            eScale.y = 1;
-            eSize.x = 64;
-            eSize.y = 64;
-            break;
-        case 128:
-            eScale.x = 2;
-            eScale.y = 2;
-            eSize.x = 32;
-            eSize.y = 32;
-            break;
-        case 64:
-            eScale.x = 1.0;
-            eScale.y = 1.0;
-            break;
-        case 32:
-            eScale.x = 2.0;
-            eScale.y = 2.0;
-            break;
-        case 16:
-            eScale.x = 4.0;
-            eScale.y = 4.0;
-            break;
-        case 24:
-            eScale.x = 2.0;
-            eScale.y = 2.0;
-            break; 
-        default:
-            eScale.x = 1.0;
-            eScale.y = 1.0;
-    }
-    
-    offset = (m_gridSize - eSize * eScale) / 2.0;
-
-    return grid + m_gridSize / 2 - offset;
-}
-
 void Scene_Play::loadConfig(const std::string& confPath){
     std::ifstream file(confPath);
     if (!file) {
@@ -223,8 +165,8 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     spawnGoal(Vec2{64*23, 64*8}, false);
     spawnGoal(Vec2{64*37, 64*47}, false);
 
-    m_entities.update();
-    m_entities.sort();
+    m_ECS.update();
+    m_ECS.sort();
 }
 
 void Scene_Play::sDoAction(const Action& action) {
@@ -757,7 +699,7 @@ void Scene_Play::sRender() {
 }
 
 void Scene_Play::spriteRender(Animation &animation){
-    auto x = SDL_RenderCopyEx(
+    SDL_RenderCopyEx(
         m_game->renderer(), 
         animation.getTexture(), 
         animation.getSrcRect(), 
@@ -766,21 +708,12 @@ void Scene_Play::spriteRender(Animation &animation){
         NULL,
         SDL_FLIP_NONE
     );
-    if (x) {
-        std::cout << "error" << std::endl;
-    }
 }
-
-void Scene_Play::spawnHUD(){
-    auto entity = m_entities.addEntity("HUD", 1);
-    Vec2 posHUD = Vec2{0, 0};
-    entity->addComponent<CTransform>(posHUD);
-    entity->addComponent<CAnimation>(m_game->assets().getAnimation("wizIdle"), true);
-
-}
-
 
 void Scene_Play::spawnPlayer(){
+
+    auto entityID = m_ECS.addEntity();
+    Entity entity = {entityID, m_ECS*};
 
     auto entity = m_entities.addEntity("Player", 3);
     int pos_x;
@@ -1012,4 +945,62 @@ Vec2 Scene_Play::gridSize(){
 
 Vec2 Scene_Play::levelSize(){
     return m_levelSize;
+}
+
+Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
+    Vec2 offset;
+    Vec2 grid = Vec2{gridX, gridY};
+    Vec2 eSize;
+    if ( entity->hasComponent<CAnimation>() ){
+        eSize = entity->getComponent<CAnimation>().animation.getSize();
+    } else {
+        eSize = m_gridSize/2;
+    }
+    
+    Vec2 eScale;
+    switch ((int)eSize.y) {
+        case 270:
+            eScale.x = 0.15;
+            eScale.y = 0.18;
+            break;
+        case 225:
+            eScale.x = 0.18;
+            eScale.y = 0.18;
+            break;
+        case 192:
+            eScale.x = 1;
+            eScale.y = 1;
+            eSize.x = 64;
+            eSize.y = 64;
+            break;
+        case 128:
+            eScale.x = 2;
+            eScale.y = 2;
+            eSize.x = 32;
+            eSize.y = 32;
+            break;
+        case 64:
+            eScale.x = 1.0;
+            eScale.y = 1.0;
+            break;
+        case 32:
+            eScale.x = 2.0;
+            eScale.y = 2.0;
+            break;
+        case 16:
+            eScale.x = 4.0;
+            eScale.y = 4.0;
+            break;
+        case 24:
+            eScale.x = 2.0;
+            eScale.y = 2.0;
+            break; 
+        default:
+            eScale.x = 1.0;
+            eScale.y = 1.0;
+    }
+    
+    offset = (m_gridSize - eSize * eScale) / 2.0;
+
+    return grid + m_gridSize / 2 - offset;
 }

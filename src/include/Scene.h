@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Action.h"
-#include "EntityManager.h"
+#include "ECS.h"
 #include "Game.h"
 
 #include <cstddef>
@@ -16,7 +16,7 @@ class Scene
     protected:
 
     Game* m_game = nullptr;  
-    EntityManager m_entities;
+    ECS m_ECS;
     ActionMap m_actionMap;
     bool m_pause = false;
     bool m_hasEnded = false;
@@ -24,7 +24,6 @@ class Scene
     Vec2 m_mousePosition;
 
     virtual void onEnd() = 0;
-    // void setPaused(bool paused);
 
     public:
 
@@ -48,4 +47,5 @@ class Scene
     ActionMap& getActionMap();
 
     void updateMousePosition(Vec2 pos);
-    Vec2 getMousePosition();};
+    Vec2 getMousePosition();
+};

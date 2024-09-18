@@ -1,118 +1,124 @@
 #include "Entity.h"
-#include <string>
-#include <iostream>
-#include <tuple>
-#include <algorithm>
 
-Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
-        : m_tag(tag), m_id(id), m_layer(layer){
-            m_components = std::make_tuple( 
-                    CTransform(),
-                    CInputs(),
-                    CBoundingBox(),
-                    CAnimation(),
-                    CKey(),
-                    CState(),
-                    CProjectileState(),
-                    CHealth(),
-                    CName(),
-                    CShadow(),
-                    CDamage(),
-                    CDialog(),
-                    CPathfind(),
-                    CKnockback(),
-                    CWeapon(),
-                    CScript()
-                );
-        }
+Entity::Entity(){};
+Entity::Entity(EntityID id, ECS* manager)
+        : m_entityId(id), m_ECS(manager){};
+ 
 
-const size_t Entity::Entity::id() const{
-    return m_id;
-}
+// #include <string>
+// #include <iostream>
+// #include <tuple>
+// #include <algorithm>
 
-const std::string & Entity::Entity::tag() const{
-    return m_tag;
-}
+// Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
+//         : m_tag(tag), m_id(id), m_layer(layer){
+//             m_components = std::make_tuple( 
+//                     CTransform(),
+//                     CInputs(),
+//                     CBoundingBox(),
+//                     CAnimation(),
+//                     CKey(),
+//                     CState(),
+//                     CProjectileState(),
+//                     CHealth(),
+//                     CName(),
+//                     CShadow(),
+//                     CDamage(),
+//                     CDialog(),
+//                     CPathfind(),
+//                     CKnockback(),
+//                     CWeapon(),
+//                     CScript()
+//                 );
+//         }
 
-bool Entity::Entity::isTag(const std::string tag) const{
-    return m_tag == tag;
-}
+// const size_t Entity::Entity::id() const{
+//     return m_id;
+// }
 
-const size_t Entity::Entity::layer() const{
-    return m_layer;
-}
+// const std::string & Entity::Entity::tag() const{
+//     return m_tag;
+// }
 
-bool Entity::Entity::isAlive() const{
-    return m_alive;
-}
+// bool Entity::Entity::isTag(const std::string tag) const{
+//     return m_tag == tag;
+// }
 
-bool Entity::Entity::inCamera() const{
-    return m_inCamera;
-}
+// const size_t Entity::Entity::layer() const{
+//     return m_layer;
+// }
 
-void Entity::Entity::setInCamera(bool set){
-    m_inCamera = set;
-}
+// bool Entity::Entity::isAlive() const{
+//     return m_alive;
+// }
 
-void Entity::Entity::kill(){
-    m_alive = false;
-}
+// bool Entity::Entity::inCamera() const{
+//     return m_inCamera;
+// }
 
-void Entity::setLinkEntity(std::shared_ptr<Entity> link){
-    m_link.linkEntity = link;
-}
+// void Entity::Entity::setInCamera(bool set){
+//     m_inCamera = set;
+// }
 
-std::shared_ptr<Entity> Entity::getLinkEntity(){
-    return m_link.linkEntity;
-}
+// void Entity::Entity::kill(){
+//     m_alive = false;
+// }
 
-void Entity::removeLinkEntity(){
-    m_link = Link();
-}
+// void Entity::setLinkEntity(std::shared_ptr<Entity> link){
+//     m_link.linkEntity = link;
+// }
 
-const bool Entity::Entity::movable() const{
-    return getComponent<CTransform>().isMovable;
-}
+// std::shared_ptr<Entity> Entity::getLinkEntity(){
+//     return m_link.linkEntity;
+// }
 
-void Entity::Entity::movePosition(Vec2 move){
-    getComponent<CTransform>().pos += move;
-}
+// void Entity::removeLinkEntity(){
+//     m_link = Link();
+// }
 
-void Entity::Entity::setScale(Vec2 scale){
-    getComponent<CTransform>().scale = scale;
-}
+// const bool Entity::Entity::movable() const{
+//     return getComponent<CTransform>().isMovable;
+// }
 
-bool Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
-    auto attack = attacker->getComponent<CDamage>();
-    if ((int)frame - getComponent<CHealth>().heart_frames > getComponent<CHealth>().damage_frame && (int)frame - getComponent<CHealth>().heart_frames > attack.lastAttackFrame){
-        float damageMultiplier = 1.0f;
-        if ( !getComponent<CHealth>().HPType.empty() && !attack.damageType.empty() ) 
-        {
-            auto hpType = getComponent<CHealth>().HPType;
+// void Entity::Entity::movePosition(Vec2 move){
+//     getComponent<CTransform>().pos += move;
+// }
 
-            for (const auto& damageType : attack.damageType) {
-                // Check if the damage type is effective
-                if (m_effectiveDamageToEnemyMap.find(damageType) != m_effectiveDamageToEnemyMap.end()) {
-                    if ( std::any_of(m_effectiveDamageToEnemyMap[damageType].begin(), m_effectiveDamageToEnemyMap[damageType].end(), 
-                        [&](const std::string& element) { return hpType.find(element) != hpType.end(); }) ){
-                        damageMultiplier *= 2.0f;
-                        // std::cout << "Enemy is weak to " << damageType << " damage!" << std::endl;
-                    }
-                }
-                if (m_ineffectiveDamageToEnemyMap.find(damageType) != m_ineffectiveDamageToEnemyMap.end()) {
-                    if ( std::any_of(m_ineffectiveDamageToEnemyMap[damageType].begin(), m_ineffectiveDamageToEnemyMap[damageType].end(), 
-                        [&](const std::string& element) { return hpType.find(element) != hpType.end(); }) ){
-                        damageMultiplier *= 0.5f;
-                        // std::cout << "Enemy is resistent to " << damageType << " damage!" << std::endl;
-                    }
-                }
-            }
-        }
-        addComponent<CKnockback>(100*(int)(attack.damage*damageMultiplier), 32*(int)(attack.damage*damageMultiplier), attacker->getComponent<CTransform>().vel);
-        getComponent<CHealth>().HP = getComponent<CHealth>().HP-(int)(attack.damage*damageMultiplier);
-        getComponent<CHealth>().damage_frame = (int)frame;
-        attack.lastAttackFrame = (int)frame;
-        return true;
-    }
-    return false;
-}
+// void Entity::Entity::setScale(Vec2 scale){
+//     getComponent<CTransform>().scale = scale;
+// }
+
+// bool Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
+//     auto attack = attacker->getComponent<CDamage>();
+//     if ((int)frame - getComponent<CHealth>().heart_frames > getComponent<CHealth>().damage_frame && (int)frame - getComponent<CHealth>().heart_frames > attack.lastAttackFrame){
+//         float damageMultiplier = 1.0f;
+//         if ( !getComponent<CHealth>().HPType.empty() && !attack.damageType.empty() ) 
+//         {
+//             auto hpType = getComponent<CHealth>().HPType;
+
+//             for (const auto& damageType : attack.damageType) {
+//                 // Check if the damage type is effective
+//                 if (m_effectiveDamageToEnemyMap.find(damageType) != m_effectiveDamageToEnemyMap.end()) {
+//                     if ( std::any_of(m_effectiveDamageToEnemyMap[damageType].begin(), m_effectiveDamageToEnemyMap[damageType].end(), 
+//                         [&](const std::string& element) { return hpType.find(element) != hpType.end(); }) ){
+//                         damageMultiplier *= 2.0f;
+//                         // std::cout << "Enemy is weak to " << damageType << " damage!" << std::endl;
+//                     }
+//                 }
+//                 if (m_ineffectiveDamageToEnemyMap.find(damageType) != m_ineffectiveDamageToEnemyMap.end()) {
+//                     if ( std::any_of(m_ineffectiveDamageToEnemyMap[damageType].begin(), m_ineffectiveDamageToEnemyMap[damageType].end(), 
+//                         [&](const std::string& element) { return hpType.find(element) != hpType.end(); }) ){
+//                         damageMultiplier *= 0.5f;
+//                         // std::cout << "Enemy is resistent to " << damageType << " damage!" << std::endl;
+//                     }
+//                 }
+//             }
+//         }
+//         addComponent<CKnockback>(100*(int)(attack.damage*damageMultiplier), 32*(int)(attack.damage*damageMultiplier), attacker->getComponent<CTransform>().vel);
+//         getComponent<CHealth>().HP = getComponent<CHealth>().HP-(int)(attack.damage*damageMultiplier);
+//         getComponent<CHealth>().damage_frame = (int)frame;
+//         attack.lastAttackFrame = (int)frame;
+//         return true;
+//     }
+//     return false;
+// }
