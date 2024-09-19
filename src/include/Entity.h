@@ -31,6 +31,10 @@ public:
     T& addComponent(Args&&... args) {
         return m_ECS->addComponent<T>(m_entityId, std::forward<Args>(args)...);  // Add component via ECS
     }
+
+    EntityID getID(){
+        return m_entityId;
+    }
 };
 
 

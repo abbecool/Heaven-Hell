@@ -31,7 +31,7 @@ class Scene_Menu : public Scene
 
     void init();
     void loadMenu();
-    Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
+    Vec2 gridToMidPixel(float, float, Entity);
 
     void spawnButton(const Vec2 pos, const std::string& button_name, const std::string& name, const std::string& dialog);
     void spawnLevel(const Vec2 pos, const std::string tile);

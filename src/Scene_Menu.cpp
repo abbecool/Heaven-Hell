@@ -34,12 +34,12 @@ void Scene_Menu::init() {
     loadMenu();
 }
 
-Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
+Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, Entity entity) {
     Vec2 offset;
     Vec2 grid = Vec2{gridX, gridY};
     Vec2 eSize;
-    if ( entity->hasComponent<CAnimation>() ){
-        eSize = entity->getComponent<CAnimation>().animation.getSize();
+    if ( entity.hasComponent<CAnimation>() ){
+        eSize = entity.getComponent<CAnimation>().animation.getSize();
     } else {
         eSize = m_gridSize/2;
     }
@@ -95,50 +95,54 @@ Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity
 void Scene_Menu::loadMenu(){
     // spawnTitleScreen
     // spawnLevel(Vec2 {float(width()/2),float(height()/2)}, "title_screen");
-    size_t layer = 10;
-    auto entity = m_entities.addEntity("Level", layer);
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true);
-    entity->addComponent<CTransform>(Vec2 {float(width()/2),float(height()/2)},Vec2 {0, 0}, false);
-    entity->getComponent<CTransform>().scale = Vec2{1, 1};
-    entity->addComponent<CName>("title_screen");
+    // size_t layer = 10;
+    EntityID entityId = m_ECS.addEntity();
+    Entity entity = {entityId, &m_ECS};
+    entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true);
+    entity.addComponent<CTransform>(Vec2 {float(width()/2),float(height()/2)},Vec2 {0, 0}, false);
+    entity.getComponent<CTransform>().scale = Vec2{1, 1};
+    entity.addComponent<CName>("title_screen");
 
-    layer = 9;
-    entity = m_entities.addEntity("Level", layer);
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true);
-    entity->addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
-    entity->getComponent<CTransform>().scale = Vec2{1.2, 1.2};
-    entity->addComponent<CName>("game_title");
+    // layer = 9;
+    EntityID entityId1 = m_ECS.addEntity();
+    Entity entity1 = {entityId1, &m_ECS};
+    entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true);
+    entity1.addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
+    entity1.getComponent<CTransform>().scale = Vec2{1.2, 1.2};
+    entity1.addComponent<CName>("game_title");
 
     spawnButton(Vec2 {64*3.2,64*8.1}, "button_unpressed", "new", "NEW GAME");
     spawnButton(Vec2 {64*3.2,64*9.7}, "button_unpressed", "continue", "CONTINUE");
 
-    m_entities.update();
-    m_entities.sort();
+    // m_ECS.update();
+    // m_ECS.sort();
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
 {   
-    size_t layer = 10;
-    auto entity = m_entities.addEntity("Level", layer);
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation(level), true);
+    // size_t layer = 10;
+    EntityID entityId = m_ECS.addEntity();
+    Entity entity = {entityId, &m_ECS};
+    entity.addComponent<CAnimation> (m_game->assets().getAnimation(level), true);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
-    entity->getComponent<CTransform>().scale = Vec2{3,3};
-    entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize()*3);
-    entity->addComponent<CName>(level);
+    entity.addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
+    entity.getComponent<CTransform>().scale = Vec2{3,3};
+    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*3);
+    entity.addComponent<CName>(level);
 }
 
 void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
 {   
-    size_t layer = 10;
-    auto entity = m_entities.addEntity("Button", layer);
-    entity->addComponent<CAnimation> (m_game->assets().getAnimation(unpressed), true);
+    // size_t layer = 10;
+    EntityID entityId = m_ECS.addEntity();
+    Entity entity = {entityId, &m_ECS};
+    entity.addComponent<CAnimation> (m_game->assets().getAnimation(unpressed), true);
     // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity->addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    entity->getComponent<CTransform>().scale = Vec2{3,3};
-    entity->addComponent<CBoundingBox>(entity->getComponent<CAnimation>().animation.getSize()*3);
-    entity->addComponent<CName>(name);
-    entity->addComponent<CDialog>(pos, entity->getComponent<CAnimation>().animation.getSize()*3, m_game->assets().getTexture(dialog));
+    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity.getComponent<CTransform>().scale = Vec2{3,3};
+    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*3);
+    entity.addComponent<CName>(name);
+    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*3, m_game->assets().getTexture(dialog));
 
 }
 
@@ -155,50 +159,66 @@ void Scene_Menu::sDoAction(const Action& action) {
         } else if (action.name() == "QUIT") { 
             onEnd();
         } else if (action.name() == "MOUSE LEFT CLICK") {
-            for (auto e : m_entities.getEntities("Button")){
-                auto &transform = e->getComponent<CTransform>();
-                auto &Bbox = e->getComponent<CBoundingBox>();
+            auto view = m_ECS.view<CBoundingBox>();
+            for (auto e : view){
+                auto &transform = m_ECS.getComponent<CTransform>(e);
+                auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
+
                 if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
-                        e->addComponent<CAnimation>(m_game->assets().getAnimation("button_pressed"), true);
-                        e->getComponent<CDialog>().pos.y = e->getComponent<CDialog>().pos.y + 8;
+                        m_ECS.addComponent<CAnimation>(e, m_game->assets().getAnimation("button_pressed"), true);
+                        m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y + 8;
                     }
                 }
             }
+            // for (auto e : m_ECS.getEntities("Button")){
+            //     auto &transform = e->getComponent<CTransform>();
+            //     auto &Bbox = e->getComponent<CBoundingBox>();
+            //     if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
+            //         if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+            //             e->addComponent<CAnimation>(m_game->assets().getAnimation("button_pressed"), true);
+            //             e->getComponent<CDialog>().pos.y = e->getComponent<CDialog>().pos.y + 8;
+            //         }
+            //     }
+            // }
         }   
     }
 
     else if (action.type() == "END") {
         if (action.name() == "MOUSE LEFT CLICK") {
-            for (auto b : m_entities.getEntities("Button")){
-                auto &transform = b->getComponent<CTransform>();
-                auto &Bbox = b->getComponent<CBoundingBox>();
-                if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
-                    if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
-                        if ( b->getComponent<CName>().name == "new" ){
-                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
-                        } else if ( b->getComponent<CName>().name == "continue" ){
-                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", false));
-                        }
-                    }
-                }
-            }
+            // for (auto b : m_ECS.getEntities("Button")){
+            //     auto &transform = b->getComponent<CTransform>();
+            //     auto &Bbox = b->getComponent<CBoundingBox>();
+            //     if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
+            //         if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+            //             if ( b->getComponent<CName>().name == "new" ){
+            //                 m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
+            //             } else if ( b->getComponent<CName>().name == "continue" ){
+            //                 m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", false));
+            //             }
+            //         }
+            //     }
+            // }
         }   
     }
 }
 
 void Scene_Menu::update() {
-    m_entities.update();
+    // m_ECS.update();
     sAnimation();
     sRender();
 }
 
 void Scene_Menu::sAnimation() {
-    for ( auto e : m_entities.getEntities() ){
-        if (e->hasComponent<CAnimation>())
-        {
-            e->getComponent<CAnimation>().animation.update();
-        }
+    // for ( auto e : m_ECS.getEntities() ){
+    //     if (e->hasComponent<CAnimation>())
+    //     {
+    //         e->getComponent<CAnimation>().animation.update();
+    //     }
+    // }
+    auto view = m_ECS.view<CAnimation>();
+    for ( auto e : view){
+        m_ECS.getComponent<CAnimation>(e).animation.update();
     }
 }
 
@@ -209,72 +229,68 @@ void Scene_Menu::sRender() {
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        for (auto e : m_entities.getEntities()){        
-            if ( e->hasComponent<CTransform>() ){
-                if ( e->hasComponent<CAnimation>()){
+        auto view = m_ECS.view<CAnimation>();
+        for (auto e : view)
+        {        
+            auto& transform = m_ECS.getComponent<CTransform>(e);
+            auto& animation = m_ECS.getComponent<CAnimation>(e).animation;
 
-                    auto& transform = e->getComponent<CTransform>();
-                    auto& animation = e->getComponent<CAnimation>().animation;
+            // Adjust the entity's position based on the camera position
+            Vec2 adjustedPos = transform.pos;
 
-                    // Adjust the entity's position based on the camera position
-                    Vec2 adjustedPos = transform.pos;
+            // Set the destination rectangle for rendering
+            animation.setScale(transform.scale*cameraZoom);
+            animation.setDestRect(adjustedPos - animation.getDestSize()/2);
+            animation.setAngle(transform.angle);
+            
+            SDL_RenderCopyEx(
+                m_game->renderer(), 
+                animation.getTexture(), 
+                animation.getSrcRect(), 
+                animation.getDestRect(),
+                animation.getAngle(),
+                NULL,
+                SDL_FLIP_NONE
+            );
+        }
+        auto view1 = m_ECS.view<CDialog>();
+        for (auto e : view1){
+            auto dialog = m_ECS.getComponent<CDialog>(e);
+            auto Bbox = m_ECS.getComponent<CBoundingBox>(e);
 
-                    // Set the destination rectangle for rendering
-                    animation.setScale(transform.scale*cameraZoom);
-                    animation.setDestRect(adjustedPos - animation.getDestSize()/2);
-                    animation.setAngle(transform.angle);
-                    
-                    SDL_RenderCopyEx(
-                        m_game->renderer(), 
-                        animation.getTexture(), 
-                        animation.getSrcRect(), 
-                        animation.getDestRect(),
-                        animation.getAngle(),
-                        NULL,
-                        SDL_FLIP_NONE
-                    );
-                }
-                if (e->hasComponent<CDialog>()){
+            SDL_Rect texRect;
+            texRect.x = dialog.pos.x - Bbox.halfSize.x*0.9;
+            texRect.y = dialog.pos.y - Bbox.halfSize.y*0.8;
+            texRect.w = dialog.size.x*0.9;
+            texRect.h = dialog.size.y*0.8;
 
-                    auto dialog = e->getComponent<CDialog>();
-                    auto Bbox = e->getComponent<CBoundingBox>();
-
-                    SDL_Rect texRect;
-                    texRect.x = dialog.pos.x - Bbox.halfSize.x*0.9;
-                    texRect.y = dialog.pos.y - Bbox.halfSize.y*0.8;
-                    texRect.w = dialog.size.x*0.9;
-                    texRect.h = dialog.size.y*0.8;
-
-                    SDL_RenderCopyEx(
-                            m_game->renderer(), 
-                            dialog.dialog, 
-                            nullptr,
-                            &texRect, 
-                            0,
-                            NULL,
-                            SDL_FLIP_NONE
-                        );
-                }
-            }
+            SDL_RenderCopyEx(
+                    m_game->renderer(), 
+                    dialog.dialog, 
+                    nullptr,
+                    &texRect, 
+                    0,
+                    NULL,
+                    SDL_FLIP_NONE
+                );
         }
     }
 
     if (m_drawCollision){
-        for (auto e : m_entities.getEntities()){      
-            if ( e->hasComponent<CTransform>() && e->hasComponent<CBoundingBox>() ){
-                auto& transform = e->getComponent<CTransform>();
-                auto& box = e->getComponent<CBoundingBox>();
+        auto view2 = m_ECS.view<CBoundingBox>();
+        for (auto e : view2){
+            auto& transform = m_ECS.getComponent<CTransform>(e);
+            auto& box = m_ECS.getComponent<CBoundingBox>(e);
 
-                // Adjust the collision box position based on the camera position
-                SDL_Rect collisionRect;
-                collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x);
-                collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y);
-                collisionRect.w = static_cast<int>(box.size.x);
-                collisionRect.h = static_cast<int>(box.size.y);
+            // Adjust the collision box position based on the camera position
+            SDL_Rect collisionRect;
+            collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x);
+            collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y);
+            collisionRect.w = static_cast<int>(box.size.x);
+            collisionRect.h = static_cast<int>(box.size.y);
 
-                SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
-                SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
-            }
+            SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
+            SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
         }
     }
 

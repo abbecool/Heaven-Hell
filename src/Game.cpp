@@ -10,7 +10,7 @@
 
 #include "Game.h"
 #include "Assets.h"
-#include "Scene_Play.h"
+// #include "Scene_Play.h"
 #include "Scene_Menu.h"
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
@@ -34,7 +34,7 @@ void Game::init(const std::string & pathImages, const std::string & pathText){
     TTF_Init();
 
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
-    changeScene("Play", std::make_shared<Scene_Play>(this, "assets/images/levels/level0.png", true));
+    changeScene("Menu", std::make_shared<Scene_Menu>(this));
 }
 
 std::shared_ptr<Scene> Game::currentScene() {

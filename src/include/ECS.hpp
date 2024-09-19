@@ -26,8 +26,9 @@ public:
     // Add a component to the pool for a specific entity
     
     template<typename... Args>
-    void addComponent(EntityID entityId, Args... args) {
-        pool[entityId] = T(std::forward<Args>(args)...);  // Add or replace the component for the entityId
+    T& addComponent(EntityID entityId, Args... args) {
+        auto& component = pool.emplace(entityId, T(std::forward<Args>(args)...)).first->second;
+        return component;
     }
 
     // Remove a component from the pool
@@ -43,6 +44,48 @@ public:
     // Retrieve the component for an entityId
     T& getComponent(EntityID entityId) {
         return pool.at(entityId);  // Returns a reference to the component
+    }   
+
+    // T& get(EntityID id){
+    //     return pool
+    // }
+
+    // Custom iterator for range-based for loops
+    class Iterator {
+    public:
+        using map_iterator = typename std::unordered_map<EntityID, T>::iterator;
+
+        // Constructor
+        Iterator(map_iterator it) : iter(it) {}
+
+        // Dereference operator to return the entity ID
+        EntityID operator*() const {
+            return iter->first;
+        }
+
+        // Pre-increment operator
+        Iterator& operator++() {
+            ++iter;
+            return *this;
+        }
+
+        // Equality operator
+        bool operator!=(const Iterator& other) const {
+            return iter != other.iter;
+        }
+
+    private:
+        map_iterator iter;  // Underlying iterator for the unordered_map
+    };
+
+    // Begin iterator for range-based for loops
+    Iterator begin() {
+        return Iterator(pool.begin());
+    }
+
+    // End iterator for range-based for loops
+    Iterator end() {
+        return Iterator(pool.end());
     }
 
 private:
@@ -70,7 +113,7 @@ public:
     template<typename T, typename... Args>
     T& addComponent(EntityID entity, Args &&... args) {
         auto& pool = getOrCreateComponentPool<T>();
-        return pool->addComponent(entity, T(std::forward<Args>(args)...));
+        return pool.addComponent(entity, T(std::forward<Args>(args)...));
     };
 
     // Remove a component from an entityId
@@ -81,7 +124,7 @@ public:
 
     // Check if an entity has a component
     template <typename T>
-    bool hasComponent(EntityID entityId) const {
+    bool hasComponent(EntityID entityId) {
         return getComponentPool<T>().hasComponent(entityId);
     }
 
@@ -91,10 +134,16 @@ public:
         return getComponentPool<T>().getComponent(entityId);
     }
 
-    template<typename... T>
-    std::vector<EntityID> view(){
-        return 
+    template<typename T>
+    ComponentPool<T>& view(){
+        return getComponentPool<T>();
     };
+    // Helper to get the component pool for a specific type (const version)
+    template <typename T>
+    ComponentPool<T>& getComponentPool() {
+        std::type_index typeIdx(typeid(T));
+        return *reinterpret_cast<ComponentPool<T>*>(componentPools.at(typeIdx).get());
+    }
 
     // void removeEntity(EntityID id);
     
@@ -122,12 +171,6 @@ private:
         return *reinterpret_cast<ComponentPool<T>*>(componentPools[typeIdx].get());
     }
 
-    // Helper to get the component pool for a specific type (const version)
-    template <typename T>
-    const ComponentPool<T>& getComponentPool() const {
-        std::type_index typeIdx(typeid(T));
-        return *reinterpret_cast<const ComponentPool<T>*>(componentPools.at(typeIdx).get());
-    }
 };
 
 
@@ -161,12 +204,23 @@ struct CTransform
     int speed = 0;
     bool isMovable = false;
     float tempo = 1.0f;
+    CTransform() {}
+    CTransform(const Vec2 & p) : pos(p), prevPos(p) {}
+    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, bool mvbl) 
+    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
+    CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
+        : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
+    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, int spd, bool mvbl) 
+    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
 struct CBoundingBox
 {
     Vec2 size;
     Vec2 halfSize;
+    CBoundingBox() {}
+    CBoundingBox(const Vec2& s) 
+        : size(s), halfSize(s/2.0) {}
 };
 
 struct CHealth
@@ -180,12 +234,18 @@ struct CHealth
     int heart_frames;
     int damage_frame = 0;
     std::unordered_set<std::string> HPType;
+    CHealth() {}
+    CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
+        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(hrt_frms){}
 };
 
 struct CAnimation
 {
     Animation animation;
     bool repeat = false;
+    CAnimation() {}
+    CAnimation(const Animation& animation, bool r)
+                : animation(animation), repeat(r){}
 };  
 
 struct CState
@@ -204,6 +264,8 @@ struct CProjectileState
 struct CName
 {
     std::string name;
+    CName() {}
+    CName(const std::string nm) : name(nm) {}
 }; 
 
 struct CShadow
@@ -223,6 +285,9 @@ struct CDialog
     Vec2 pos;
     Vec2 size;
     SDL_Texture* dialog;
+    CDialog() {}
+    CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia) 
+        : pos(p), size(sz), dialog(dia){}
 };
 
 struct CPathfind
