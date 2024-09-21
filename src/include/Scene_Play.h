@@ -51,7 +51,7 @@ class Scene_Play : public Scene
     void saveGame(const std::string& filename);
     Vec2 gridToMidPixel(float, float, EntityID);
 
-    void spawnHUD();
+    // void spawnHUD();
     void spawnPlayer();
     void spawnWeapon(Vec2 pos );
     void spawnProjectile(EntityID player, Vec2 vel);

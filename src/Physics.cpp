@@ -95,6 +95,7 @@ Vec2 Physics::getOverlap(Entity a, Entity b) {
     float oy = sizeA.y + sizeB.y - delta.y;
     return Vec2(ox, oy);
 }
+
 Vec2 Physics::knockback(CKnockback& knockback){
     knockback.timeElapsed += 16;
     if (knockback.timeElapsed < knockback.duration) {

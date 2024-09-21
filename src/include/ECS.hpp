@@ -141,11 +141,6 @@ public:
     T& getComponent(EntityID entityId) {
         return getComponentPool<T>().getComponent(entityId);
     }
-
-    template<typename T>
-    ComponentPool<T>& view(){
-        return getComponentPool<T>();
-    };
     // Helper to get the component pool for a specific type (const version)
     template <typename T>
     ComponentPool<T>& getComponentPool() {
@@ -158,6 +153,11 @@ public:
     void update(){
         // sort<T>();
     }
+
+    template<typename T>
+    ComponentPool<T>& view(){
+        return getComponentPool<T>();
+    };
 
     template<typename T>
     std::vector<EntityID> view_sorted() {
@@ -177,10 +177,32 @@ public:
 
         // Sort the vector of entity IDs based on the 'layer' property in the component
         std::sort(entitiesWithComponent.begin(), entitiesWithComponent.end(), [&](EntityID a, EntityID b) {
-            return pool.getPool().at(a).layer < pool.getPool().at(b).layer;  // Compare layer values of components
+            return pool.getPool().at(a).layer > pool.getPool().at(b).layer;  // Compare layer values of components
         });
 
         return entitiesWithComponent;  // Return the sorted vector of entity IDs
+    }
+    template<typename T>
+    std::vector<std::pair<EntityID, T*>> sortComponentPoolByLayer() {
+        auto& pool = getComponentPool<T>();  // Assume this returns an unordered_map<EntityID, T>
+
+        // Create a vector of pointers to components with their corresponding EntityID
+        std::vector<std::pair<EntityID, T*>> sortedComponents;
+
+        // Reserve space for efficiency
+        sortedComponents.reserve(pool.size());
+
+        // Populate the vector with entity-component pairs
+        for (auto& [entityID, component] : pool) {
+            sortedComponents.emplace_back(entityID, &component);
+        }
+
+        // Sort the vector based on the 'layer' property in the component
+        std::sort(sortedComponents.begin(), sortedComponents.end(), [](const auto& a, const auto& b) {
+            return a.second->layer < b.second->layer;  // Sorting by the layer property
+        });
+
+        return sortedComponents;  // Return sorted components
     }
 private:
     // Map to store component pools for each component type
@@ -225,6 +247,7 @@ struct CInputs
     bool ctrl       = false;
     bool shoot      = false;
     bool canShoot   = false;
+    CInputs() {};
 };
 
 struct CTransform
@@ -289,12 +312,16 @@ struct CState
     PlayerState state;
     PlayerState preState; 
     bool changeAnimate = false;
+    CState() {}
+    CState(const PlayerState s) : state(s), preState(s) {}
 }; 
 
 struct CProjectileState
 {
-        std::string state;
+    std::string state;
     bool changeAnimate = false;
+    CProjectileState() {}
+    CProjectileState(std::string state ) : state(state) {}
 }; 
 
 struct CName
@@ -308,12 +335,18 @@ struct CShadow
 {
     Animation animation;
     size_t size;
+    CShadow() {}
+    CShadow(const Animation& animation, size_t sz)
+                : animation(animation), size(sz){}
 };  
 
 struct CDamage
 {
     int damage, speed, lastAttackFrame;
     std::unordered_set<std::string> damageType;
+    CDamage() {}
+    CDamage(int dmg, int spd) : damage(dmg), speed(spd), lastAttackFrame(-spd) {}
+    CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), speed(spd), lastAttackFrame(-spd), damageType(dmgType) {}
 }; 
 
 struct CDialog
@@ -329,7 +362,10 @@ struct CDialog
 struct CPathfind
 {
     Vec2 target;
-    int target2;
+    EntityID target2;
+    CPathfind() {}
+    CPathfind( Vec2 trg, EntityID trg2 ) 
+        : target(trg), target2(trg2) {}
 };
 
 struct CKnockback
@@ -338,6 +374,9 @@ struct CKnockback
     int magnitude;
     int timeElapsed = 0;
     Vec2 direction;
+    CKnockback() {}
+    CKnockback( int dur, int mag, Vec2 dir) 
+        : duration(dur), magnitude(mag), direction(dir) {}
 };
 
 struct CWeapon
@@ -348,6 +387,9 @@ struct CWeapon
     int range;
     bool ranged;
     std::string type;
+    CWeapon() {}
+    CWeapon(const Animation& animation, int damage, int speed, int range)
+                : animation(animation), damage(damage), speed(speed), range(range){}
 };
 
 // struct CScript

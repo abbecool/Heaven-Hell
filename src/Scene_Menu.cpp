@@ -98,7 +98,7 @@ void Scene_Menu::loadMenu(){
     // size_t layer = 10;
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true);
+    entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true, 9);
     entity.addComponent<CTransform>(Vec2 {float(width()/2),float(height()/2)},Vec2 {0, 0}, false);
     entity.getComponent<CTransform>().scale = Vec2{1, 1};
     entity.addComponent<CName>("title_screen");
@@ -106,7 +106,7 @@ void Scene_Menu::loadMenu(){
     // layer = 9;
     EntityID entityId1 = m_ECS.addEntity();
     Entity entity1 = {entityId1, &m_ECS};
-    entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true);
+    entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
     entity1.addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
     entity1.getComponent<CTransform>().scale = Vec2{1.2, 1.2};
     entity1.addComponent<CName>("game_title");
@@ -120,10 +120,9 @@ void Scene_Menu::loadMenu(){
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
 {   
-    // size_t layer = 10;
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (m_game->assets().getAnimation(level), true);
+    entity.addComponent<CAnimation> (m_game->assets().getAnimation(level), true, 9);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity.addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
     entity.getComponent<CTransform>().scale = Vec2{3,3};
@@ -133,10 +132,9 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
 
 void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
 {   
-    // size_t layer = 10;
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (m_game->assets().getAnimation(unpressed), true, 10);
+    entity.addComponent<CAnimation> (m_game->assets().getAnimation(unpressed), true, 5);
     // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
     entity.getComponent<CTransform>().scale = Vec2{3,3};
@@ -187,9 +185,9 @@ void Scene_Menu::sDoAction(const Action& action) {
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
                         m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y - 8;
                         if ( name == "new" ){
-                            // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
+                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
                         } else if ( name == "continue" ){
-                            // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", false));
+                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", false));
                         }
                     }
                 }
