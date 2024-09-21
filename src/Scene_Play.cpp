@@ -607,9 +607,9 @@ void Scene_Play::sRender() {
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        // auto viewSorted = m_ECS.sortComponentPoolByLayer<CAnimation>();
+        auto viewSorted = m_ECS.view_sorted<CAnimation>();
         auto view = m_ECS.view<CAnimation>();
-        for (auto e : view){        
+        for (auto e : viewSorted){        
                 
             auto& animation = view.getComponent(e).animation;
             auto& transform = m_ECS.getComponent<CTransform>(e);

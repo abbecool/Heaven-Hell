@@ -208,14 +208,6 @@ private:
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
 
-    // // Helper to get or create the component pool for a specific type
-    // template <typename T>
-    // ComponentPool<T>& getOrCreateComponentPool();
-
-    // // Helper to get the component pool for a specific type (const version)
-    // template <typename T>
-    // const ComponentPool<T>& getComponentPool() const;
-
     // Helper to get or create the component pool for a specific type
     template <typename T>
     ComponentPool<T>& getOrCreateComponentPool() {
@@ -225,7 +217,6 @@ private:
         }
         return *reinterpret_cast<ComponentPool<T>*>(componentPools[typeIdx].get());
     }
-
 };
 
 
