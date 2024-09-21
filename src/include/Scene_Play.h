@@ -20,7 +20,7 @@ class Scene_Play : public Scene
 
     protected:
 
-    std::shared_ptr<Entity> m_player;
+    EntityID m_player;
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
     Physics m_physics;
@@ -49,12 +49,12 @@ class Scene_Play : public Scene
     void loadLevel(const std::string& path);
     void loadConfig(const std::string& path);
     void saveGame(const std::string& filename);
-    Vec2 gridToMidPixel(float, float, std::shared_ptr<Entity>);
+    Vec2 gridToMidPixel(float, float, EntityID);
 
     void spawnHUD();
     void spawnPlayer();
     void spawnWeapon(Vec2 pos );
-    void spawnProjectile(std::shared_ptr<Entity> player, Vec2 vel);
+    void spawnProjectile(EntityID player, Vec2 vel);
     void spawnCoin(Vec2 pos, const size_t layer);
     void spawnSmallEnemy(Vec2 pos, const size_t layer);
 
@@ -80,7 +80,7 @@ class Scene_Play : public Scene
     void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
-    void changePlayerStateTo(std::shared_ptr<Entity> entity, PlayerState s);
+    void changePlayerStateTo(EntityID entity, PlayerState s);
 
     public:
     Scene_Play(Game* game, std::string path, bool newGame);

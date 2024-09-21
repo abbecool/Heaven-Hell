@@ -88,6 +88,14 @@ public:
         return Iterator(pool.end());
     }
 
+    size_t size() const {
+    return pool.size();
+    }
+    
+    std::unordered_map<EntityID, T>& getPool() {
+        return pool;
+    }
+
 private:
     std::unordered_map<EntityID, T> pool;  // Map of components indexed by EntityID
 };
@@ -146,9 +154,34 @@ public:
     }
 
     // void removeEntity(EntityID id);
-    
-    void update();
-    void sort();
+    // template<typename T>
+    void update(){
+        // sort<T>();
+    }
+
+    template<typename T>
+    std::vector<EntityID> view_sorted() {
+        // Get the component pool for the given type
+        ComponentPool<T>& pool = getComponentPool<T>();
+
+        // Create a vector of entity IDs
+        std::vector<EntityID> entitiesWithComponent;
+        
+        // Reserve space to avoid reallocation if pool size is known
+        entitiesWithComponent.reserve(pool.size());
+
+        // Iterate through the pool and collect the entity IDs
+        for (const auto& [entityID, component] : pool.getPool()) {
+            entitiesWithComponent.push_back(entityID);
+        }
+
+        // Sort the vector of entity IDs based on the 'layer' property in the component
+        std::sort(entitiesWithComponent.begin(), entitiesWithComponent.end(), [&](EntityID a, EntityID b) {
+            return pool.getPool().at(a).layer < pool.getPool().at(b).layer;  // Compare layer values of components
+        });
+
+        return entitiesWithComponent;  // Return the sorted vector of entity IDs
+    }
 private:
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
@@ -243,9 +276,12 @@ struct CAnimation
 {
     Animation animation;
     bool repeat = false;
+    int layer = 0;
     CAnimation() {}
     CAnimation(const Animation& animation, bool r)
                 : animation(animation), repeat(r){}
+    CAnimation(const Animation& animation, bool r, int l)
+                : animation(animation), repeat(r), layer(l){}
 };  
 
 struct CState

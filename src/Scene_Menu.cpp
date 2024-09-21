@@ -136,7 +136,7 @@ void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const
     // size_t layer = 10;
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (m_game->assets().getAnimation(unpressed), true);
+    entity.addComponent<CAnimation> (m_game->assets().getAnimation(unpressed), true, 10);
     // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
     entity.getComponent<CTransform>().scale = Vec2{3,3};
@@ -166,26 +166,34 @@ void Scene_Menu::sDoAction(const Action& action) {
 
                 if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
-                        m_ECS.addComponent<CAnimation>(e, m_game->assets().getAnimation("button_pressed"), true);
+                        m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
                         m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y + 8;
                     }
                 }
             }
-            // for (auto e : m_ECS.getEntities("Button")){
-            //     auto &transform = e->getComponent<CTransform>();
-            //     auto &Bbox = e->getComponent<CBoundingBox>();
-            //     if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
-            //         if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
-            //             e->addComponent<CAnimation>(m_game->assets().getAnimation("button_pressed"), true);
-            //             e->getComponent<CDialog>().pos.y = e->getComponent<CDialog>().pos.y + 8;
-            //         }
-            //     }
-            // }
         }   
     }
 
     else if (action.type() == "END") {
         if (action.name() == "MOUSE LEFT CLICK") {
+            auto view = m_ECS.view<CBoundingBox>();
+            for (auto e : view){
+                auto &transform = m_ECS.getComponent<CTransform>(e);
+                auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
+                auto &name = m_ECS.getComponent<CName>(e).name;
+                if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
+
+                    if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                        m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
+                        m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y - 8;
+                        if ( name == "new" ){
+                            // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
+                        } else if ( name == "continue" ){
+                            // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", false));
+                        }
+                    }
+                }
+            }
             // for (auto b : m_ECS.getEntities("Button")){
             //     auto &transform = b->getComponent<CTransform>();
             //     auto &Bbox = b->getComponent<CBoundingBox>();
@@ -204,7 +212,7 @@ void Scene_Menu::sDoAction(const Action& action) {
 }
 
 void Scene_Menu::update() {
-    // m_ECS.update();
+    m_ECS.update();
     sAnimation();
     sRender();
 }
@@ -229,7 +237,7 @@ void Scene_Menu::sRender() {
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        auto view = m_ECS.view<CAnimation>();
+        auto view = m_ECS.view_sorted<CAnimation>();
         for (auto e : view)
         {        
             auto& transform = m_ECS.getComponent<CTransform>(e);
