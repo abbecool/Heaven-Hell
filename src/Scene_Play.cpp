@@ -518,73 +518,36 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
-    // auto view = m_ECS.view<CState>();
-    // for ( auto e : view ){
-    //     if( m_ECS.getComponent<CTransform>(e).vel.isnull() ) {
-    //         changePlayerStateTo(e, PlayerState::STAND);
-    //     } else if( m_ECS.getComponent<CTransform>(e).vel.mainDir().x > 0 ) {
-    //         changePlayerStateTo(e, PlayerState::RUN_RIGHT);
-    //     } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().x < 0) {
-    //         changePlayerStateTo(e, PlayerState::RUN_LEFT);
-    //     } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().y > 0) {
-    //         changePlayerStateTo(e, PlayerState::RUN_DOWN);
-    //     } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().y < 0) {
-    //         changePlayerStateTo(e, PlayerState::RUN_UP);
-    //     }
+    auto view = m_ECS.view<CTransform, CState>();
+    for ( auto e : view ){
+        if( view.getComponent<CTransform>(e).vel.isnull() ) {
+            changePlayerStateTo(e, PlayerState::STAND);
+        } else if( view.getComponent<CTransform>(e).vel.mainDir().x > 0 ) {
+            changePlayerStateTo(e, PlayerState::RUN_RIGHT);
+        } else if(view.getComponent<CTransform>(e).vel.mainDir().x < 0) {
+            changePlayerStateTo(e, PlayerState::RUN_LEFT);
+        } else if(view.getComponent<CTransform>(e).vel.mainDir().y > 0) {
+            changePlayerStateTo(e, PlayerState::RUN_DOWN);
+        } else if(view.getComponent<CTransform>(e).vel.mainDir().y < 0) {
+            changePlayerStateTo(e, PlayerState::RUN_UP);
+        }
+        // // change player animation
+        if (view.getComponent<CState>(e).changeAnimate) {
+            m_ECS.getComponent<CAnimation>(e).animation.setRow((int)m_ECS.getComponent<CState>(e).state);
+        }
+    }
 
-
-    //     // // change player animation
-    //     if (m_ECS.getComponent<CState>(e).changeAnimate) {
-    //         m_ECS.getComponent<CAnimation>(e).animation.setRow((int)m_ECS.getComponent<CState>(e).state);
-    //     }
-    // }
-
-    // auto view1 = m_ECS.view<CProjectileState>();
+    // auto view1 = m_ECS.view<CAnimation, CProjectileState>();
     // for ( auto e : view1 ) {
-    //     if ( m_ECS.getComponent<CProjectileState>(e).state == "Create" ) {
-    //         if ( m_ECS.getComponent<CAnimation>(e).animation.hasEnded() ) {
-    //             m_ECS.getComponent<CProjectileState>(e).state = "Free";
-    //             m_ECS.addComponent<CAnimation>(e, m_game->assets().getAnimation("fireball"), true);
-    //             m_camera.startShake(4, 100);
-    //         }
-    //     }
+        // if ( view1.getComponent<CProjectileState>(e).state == "Create" ) {
+        //     if ( view1.getComponent<CAnimation>(e).animation.hasEnded() ) {
+        //         view1.getComponent<CProjectileState>(e).state = "Free";
+        //         // view1.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("fireball");
+        //         m_camera.startShake(4, 100);
+        //     }
+        // }
     // }
 
-    // for ( auto e : m_entities.getEntities() ){
-        // if ( e->hasComponent<CState>() ){
-        //     if( m_ECS.getComponent<CTransform>(e).vel.isnull() ) {
-        //         changePlayerStateTo(e, PlayerState::STAND);
-        //     } else if( m_ECS.getComponent<CTransform>(e).vel.mainDir().x > 0 ) {
-        //         changePlayerStateTo(e, PlayerState::RUN_RIGHT);
-        //     } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().x < 0) {
-        //         changePlayerStateTo(e, PlayerState::RUN_LEFT);
-        //     } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().y > 0) {
-        //         changePlayerStateTo(e, PlayerState::RUN_DOWN);
-        //     } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().y < 0) {
-        //         changePlayerStateTo(e, PlayerState::RUN_UP);
-        //     }
-        //     // // change player animation
-        //     if (m_ECS.getComponent<CState>(e).changeAnimate) {
-        //         m_ECS.getComponent<CAnimation>(e).animation.setRow((int)m_ECS.getComponent<CState>(e).state);
-        //     }
-        // }
-        
-        // if ( e->hasComponent<CProjectileState>() ) {
-        //     if ( m_ECS.getComponent<CProjectileState>(e).state == "Create" ) {
-        //         if ( m_ECS.getComponent<CAnimation>(e).animation.hasEnded() ) {
-        //             m_camera.startShake(2, 200);
-        //             e->addComponent<CAnimation>(m_game->assets().getAnimation("fireball"), true);
-        //             m_ECS.getComponent<CTransform>(e).isMovable = true;
-        //         }
-        //         if ( m_player->getComponent<CInputs>().shoot ) {
-        //             m_ECS.getComponent<CTransform>(e).pos = m_player->getComponent<CTransform>().pos;
-        //             m_ECS.getComponent<CTransform>(e).vel = getMousePosition()-m_player->getComponent<CTransform>().pos+m_camera.position;
-        //             m_ECS.getComponent<CTransform>(e).angle = m_ECS.getComponent<CTransform>(e).vel.angle();
-        //         } else {
-        //             m_ECS.getComponent<CProjectileState>(e).state = "Free";
-        //         }
-        //     }
-        // }
     auto &view2 = m_ECS.view<CAnimation>();
     for ( auto e : view2 ){
         // auto& animation = m_ECS.getComponent<CAnimation>(e);
@@ -608,28 +571,28 @@ void Scene_Play::sRender() {
 
     if (m_drawTextures){
         // auto viewSorted = m_ECS.sortComponentPoolByLayer<CAnimation>();
-        auto view = m_ECS.view<CAnimation>();
+        auto view = m_ECS.view<CTransform, CAnimation>();
         for (auto e : view){        
                 
-            auto& animation = view.getComponent(e).animation;
-            auto& transform = m_ECS.getComponent<CTransform>(e);
+            auto& transform = view.getComponent<CTransform>(e);
+            auto& animation = view.getComponent<CAnimation>(e).animation;
 
             // Adjust the entity's position based on the camera position
             Vec2 adjustedPos = transform.pos - m_camera.position;
-            if (cameraZoom != 1) {
+            // if (cameraZoom != 1) {
 
-            }
+            // }
 
-            if ( m_ECS.hasComponent<CShadow>(e) ){
-                auto& shadow = m_ECS.getComponent<CShadow>(e);
+            // if ( m_ECS.hasComponent<CShadow>(e) ){
+            //     auto& shadow = m_ECS.getComponent<CShadow>(e);
 
-                // Set the destination rectangle for rendering
-                shadow.animation.setScale(transform.scale*cameraZoom);
-                shadow.animation.setAngle(transform.angle);
-                shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
+            //     // Set the destination rectangle for rendering
+            //     shadow.animation.setScale(transform.scale*cameraZoom);
+            //     shadow.animation.setAngle(transform.angle);
+            //     shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
                 
-                spriteRender(shadow.animation);
-            } 
+            //     spriteRender(shadow.animation);
+            // } 
 
             animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
@@ -637,31 +600,31 @@ void Scene_Play::sRender() {
             
             spriteRender(animation);
 
-            if (m_ECS.hasComponent<CHealth>(e) && e != m_player){
-                if ( (int)m_currentFrame - m_ECS.getComponent<CHealth>(e).damage_frame < m_ECS.getComponent<CHealth>(e).heart_frames) {
+            // if (m_ECS.hasComponent<CHealth>(e) && e != m_player){
+            //     if ( (int)m_currentFrame - m_ECS.getComponent<CHealth>(e).damage_frame < m_ECS.getComponent<CHealth>(e).heart_frames) {
 
-                    Animation animation;
-                    auto hearts = float(m_ECS.getComponent<CHealth>(e).HP)/2;
+            //         Animation animation;
+            //         auto hearts = float(m_ECS.getComponent<CHealth>(e).HP)/2;
 
-                    for (int i = 1; i <= m_ECS.getComponent<CHealth>(e).HP_max/2; i++)
-                    {   
-                        if ( hearts >= i ){
-                            animation = m_ECS.getComponent<CHealth>(e).animation_full;
-                        } else if ( i-hearts == 0.5f ){
-                            animation = m_ECS.getComponent<CHealth>(e).animation_half;
-                        } else{
-                            animation = m_ECS.getComponent<CHealth>(e).animation_empty;
-                        }
+            //         for (int i = 1; i <= m_ECS.getComponent<CHealth>(e).HP_max/2; i++)
+            //         {   
+            //             if ( hearts >= i ){
+            //                 animation = m_ECS.getComponent<CHealth>(e).animation_full;
+            //             } else if ( i-hearts == 0.5f ){
+            //                 animation = m_ECS.getComponent<CHealth>(e).animation_half;
+            //             } else{
+            //                 animation = m_ECS.getComponent<CHealth>(e).animation_empty;
+            //             }
 
-                        animation.setScale(Vec2{2, 2}*cameraZoom);
-                        animation.setDestRect(Vec2{
-                            adjustedPos.x + (float)(i-1-(float)m_ECS.getComponent<CHealth>(e).HP_max/4)*animation.getSize().x*animation.getScale().x, 
-                            adjustedPos.y - m_ECS.getComponent<CAnimation>(e).animation.getSize().y * m_ECS.getComponent<CAnimation>(e).animation.getScale().y / 2
-                        });
-                        spriteRender(animation);
-                    }
-                }
-            }
+            //             animation.setScale(Vec2{2, 2}*cameraZoom);
+            //             animation.setDestRect(Vec2{
+            //                 adjustedPos.x + (float)(i-1-(float)m_ECS.getComponent<CHealth>(e).HP_max/4)*animation.getSize().x*animation.getScale().x, 
+            //                 adjustedPos.y - m_ECS.getComponent<CAnimation>(e).animation.getSize().y * m_ECS.getComponent<CAnimation>(e).animation.getScale().y / 2
+            //             });
+            //             spriteRender(animation);
+            //         }
+            //     }
+            // }
         }
         // Attemp to render coin balance in corner.
 
@@ -702,10 +665,10 @@ void Scene_Play::sRender() {
     }
 
     if (m_drawCollision){
-        auto view = m_ECS.view<CBoundingBox>();
+        auto view = m_ECS.view<CTransform, CBoundingBox>();
         for (auto e : view){      
-            auto& transform = m_ECS.getComponent<CTransform>(e);
-            auto& box = m_ECS.getComponent<CBoundingBox>(e);
+            auto transform = view.getComponent<CTransform>(e);
+            auto box = view.getComponent<CBoundingBox>(e);
 
             // Adjust the collision box position based on the camera position
             SDL_Rect collisionRect;

@@ -10,7 +10,6 @@
 
 #include "Game.h"
 #include "Assets.h"
-// #include "Scene_Play.h"
 #include "Scene_Menu.h"
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
