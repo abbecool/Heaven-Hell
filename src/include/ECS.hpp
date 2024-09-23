@@ -45,10 +45,9 @@ public:
     T& getComponent(EntityID entityId) {
         return pool.at(entityId);  // Returns a reference to the component
     }   
-
-    // T& get(EntityID id){
-    //     return pool
-    // }
+    T& find(EntityID entityId) {
+        return *pool.find(entityId);
+    }
 
     // Custom iterator for range-based for loops
     class Iterator {
@@ -96,10 +95,65 @@ public:
         return pool;
     }
 
-private:
     std::unordered_map<EntityID, T> pool;  // Map of components indexed by EntityID
+private:
 };
 
+template<typename T, typename Other> 
+class BasicView : BaseComponentPool{
+public:
+    // Custom iterator for range-based for loops
+    class Iterator {
+    public:
+        using map_iterator = typename std::unordered_map<EntityID, std::tuple<T, Other>>::iterator;
+
+        // Constructor
+        Iterator(map_iterator it) : iter(it) {}
+
+        // Dereference operator to return the entity ID
+        EntityID operator*() const {
+            return iter->first;
+        }
+
+        // Pre-increment operator
+        Iterator& operator++() {
+            ++iter;
+            return *this;
+        }
+
+        // Equality operator
+        bool operator!=(const Iterator& other) const {
+            return iter != other.iter;
+        }
+
+    private:
+        map_iterator iter;  // Underlying iterator for the unordered_map
+    };
+
+    // Begin iterator for range-based for loops
+    Iterator begin() {
+        return Iterator(pool.begin());
+    }
+
+    // End iterator for range-based for loops
+    Iterator end() {
+        return Iterator(pool.end());
+    }
+    void addEntity(EntityID entityID, const T& componentT, const Other& componentOther) {
+        pool[entityID] = std::make_tuple(componentT, componentOther);
+    }
+    // Retrieve the component for an entityId
+    template<typename t>
+    t& getComponent(EntityID entityId) {
+        if constexpr (std::is_same_v<t, T>) {
+            return std::get<0>(pool.at(entityId));  // Get the first component (T) from the tuple
+        } else if constexpr (std::is_same_v<t, Other>) {
+            return std::get<1>(pool.at(entityId));  // Get the second component (Other) from the tuple
+        }
+    }   
+    std::unordered_map<EntityID, std::tuple<T, Other>> pool;  // Map of components indexed by EntityID
+private:
+};
 
 class ECS
 {
@@ -158,6 +212,22 @@ public:
     ComponentPool<T>& view(){
         return getComponentPool<T>();
     };
+
+    template<typename T, typename Other>
+    BasicView<T, Other> view() {
+        ComponentPool<T>& poolT = getComponentPool<T>();
+        ComponentPool<Other>& poolOther = getComponentPool<Other>();
+        BasicView<T, Other> view;
+
+        for (const auto& [entityID, componentT] : poolT.getPool()) {
+            if (poolOther.hasComponent(entityID)) {
+                const Other& componentOther = poolOther.getComponent(entityID);
+                view.addEntity(entityID, componentT, componentOther);
+            }
+        }
+
+        return view;
+    }
 
     template<typename T>
     std::vector<EntityID> view_sorted() {

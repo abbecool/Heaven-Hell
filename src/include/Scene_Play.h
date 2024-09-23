@@ -33,7 +33,7 @@ class Scene_Play : public Scene
     bool cameraFollow = true;
     float cameraZoom = 1;
     bool m_drawTextures = true;
-    bool m_drawCollision = false;
+    bool m_drawCollision = true;
     bool m_drawDrawGrid = false;
     bool m_newGame;
 
