@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <map>
 #include <vector>
-#include <algorithm>
+// #include <algorithm>
 #include <memory>
 #include <unordered_set>
 #include <typeindex>
@@ -164,7 +164,7 @@ class ECS
     friend class Entity;
 public:
 
-    ECS(){};   
+    ECS(){}  
 
     EntityID addEntity(){   
         return m_numEntities++;

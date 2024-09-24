@@ -10,7 +10,9 @@
 
 #include "Game.h"
 #include "Assets.h"
-#include "Scene_Menu.h"
+#include "Scene_Basic.h"
+// #include "Scene_Play.h"
+// #include "Scene_Menu.h"
 std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
 std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
 
@@ -33,7 +35,9 @@ void Game::init(const std::string & pathImages, const std::string & pathText){
     TTF_Init();
 
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
-    changeScene("Menu", std::make_shared<Scene_Menu>(this));
+    changeScene("Basic", std::make_shared<Scene_Basic>(this, "assets/images/levels/level0.png", true));
+    // changeScene("Play", std::make_shared<Scene_Play>(this, "assets/images/levels/level0.png", true));
+
 }
 
 std::shared_ptr<Scene> Game::currentScene() {
@@ -59,11 +63,7 @@ int Game::framerate(){
 
 void Game::run()
 {
-    // std::chrono::steady_clock::time_point current_frame = std::chrono::steady_clock::now();
-    // std::chrono::steady_clock::time_point next_frame;
-    // std::chrono::duration time_diff;
-
-    std::chrono::steady_clock::time_point current_frame = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point current_frame;
     std::chrono::steady_clock::time_point next_frame;
     std::chrono::steady_clock::time_point last_fps_update = current_frame;
 
@@ -74,8 +74,7 @@ void Game::run()
     {
         // FPS cap
         current_frame = std::chrono::steady_clock::now();
-        next_frame = current_frame + std::chrono::milliseconds(1000 / m_framerateCap);
-        // 
+        next_frame = current_frame + std::chrono::milliseconds(1000 / m_framerate);
 
         SDL_RenderClear( m_renderer );
 
@@ -91,22 +90,19 @@ void Game::run()
 
         accumulated_frame_time += frame_time_ms;
         frame_count++;
-        
-
-        double average_frame_time = accumulated_frame_time / frame_count;
-        double average_fps = 1000.0 / average_frame_time;
-        m_currentFrame = average_fps;
 
         // Check if one second has passed
         if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(1))
         {
+            double average_frame_time = accumulated_frame_time / frame_count;
+            double average_fps = 1000.0 / average_frame_time;
             // Print the average FPS followed by a carriage return
             std::cout << "FPS: " << average_fps << "\r";
             std::cout.flush();  // Ensure the output is displayed immediately
 
-            // Reset counters for the next second
             accumulated_frame_time = 0.0;
             frame_count = 0;
+            // Reset counters for the next second
             last_fps_update = std::chrono::steady_clock::now();
         }
 
@@ -117,7 +113,6 @@ void Game::run()
 
 void Game::quit() {
     m_running = false;
-    // m_window.close();
 }
 
 void Game::update() {
