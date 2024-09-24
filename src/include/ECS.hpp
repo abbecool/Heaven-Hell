@@ -15,8 +15,8 @@
 #include <bitset>
 
 using EntityID = uint32_t;
-constexpr size_t MAX_COMPONENTS = 32;  // Max number of components supported
-using ComponentMask = std::bitset<MAX_COMPONENTS>;  // Tracks components for each entity
+// constexpr size_t MAX_COMPONENTS = 32;  // Max number of components supported
+// using ComponentMask = std::bitset<MAX_COMPONENTS>;  // Tracks components for each entity
 
 class BaseComponentPool {
 public:
@@ -177,7 +177,6 @@ public:
     // Add a component to an entity
     template<typename T, typename... Args>
     T& addComponent(EntityID entity, Args &&... args) {
-        entityPool[entity] = typeid(T);
         auto& pool = getOrCreateComponentPool<T>();
         return pool.addComponent(entity, T(std::forward<Args>(args)...));
     };
@@ -284,7 +283,7 @@ public:
 private:
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
-    std::unordered_map<EntityID, ComponentMask> entityPool;
+    // std::unordered_map<EntityID, ComponentMask> entityPool;
 
 
     // Helper to get or create the component pool for a specific type
@@ -298,22 +297,22 @@ private:
     }
 };
 
-enum ComponentType {
-    CInputs             = 0,  
-    CTransform          = 1,   
-    CBoundingBox        = 2, 
-    CHealth             = 3,  
-    CAnimation          = 4,   
-    CState              = 5,   
-    CProjectileState    = 6, 
-    CName               = 7,    
-    CShadow             = 8,  
-    CDamage             = 9,  
-    CDialog             = 10,  
-    CPathfind           = 11,    
-    CKnockback          = 12,   
-    CWeapon             = 13
-};
+// enum ComponentType {
+//     CInputs             = 0,  
+//     CTransform          = 1,   
+//     CBoundingBox        = 2, 
+//     CHealth             = 3,  
+//     CAnimation          = 4,   
+//     CState              = 5,   
+//     CProjectileState    = 6, 
+//     CName               = 7,    
+//     CShadow             = 8,  
+//     CDamage             = 9,  
+//     CDialog             = 10,  
+//     CPathfind           = 11,    
+//     CKnockback          = 12,   
+//     CWeapon             = 13
+// };
 
 enum struct PlayerState {
     STAND = 0,
