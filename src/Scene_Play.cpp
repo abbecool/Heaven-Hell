@@ -571,9 +571,9 @@ void Scene_Play::sRender() {
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        auto viewSorted = m_ECS.view_sorted<CAnimation>();
+        // auto viewSorted = m_ECS.view_sorted<CAnimation>();
         auto view = m_ECS.view<CTransform, CAnimation>();
-        for (auto e : viewSorted){
+        for (auto e : view){
                 
             auto& transform = view.getComponent<CTransform>(e);
             auto& animation = view.getComponent<CAnimation>(e).animation;
