@@ -27,7 +27,8 @@ protected:
 
     int m_currentFrame;
     bool m_paused;
-    int m_framerate = 400;
+    int m_framerateCap = 1000;
+    int m_framerate;
     
     void init(const std::string & pathImages, const std::string & pathText);
     void update();

@@ -74,7 +74,7 @@ void Game::run()
     {
         // FPS cap
         current_frame = std::chrono::steady_clock::now();
-        next_frame = current_frame + std::chrono::milliseconds(1000 / m_framerate); // 60Hz
+        next_frame = current_frame + std::chrono::milliseconds(1000 / m_framerateCap);
         // 
 
         SDL_RenderClear( m_renderer );
@@ -92,12 +92,13 @@ void Game::run()
         accumulated_frame_time += frame_time_ms;
         frame_count++;
 
+        double average_frame_time = accumulated_frame_time / frame_count;
+        double average_fps = 1000.0 / average_frame_time;
+        m_currentFrame = average_fps;
+
         // Check if one second has passed
         if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(1))
         {
-            double average_frame_time = accumulated_frame_time / frame_count;
-            double average_fps = 1000.0 / average_frame_time;
-
             // Print the average FPS followed by a carriage return
             std::cout << "FPS: " << average_fps << "\r";
             std::cout.flush();  // Ensure the output is displayed immediately
