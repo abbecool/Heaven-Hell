@@ -91,6 +91,7 @@ void Game::run()
 
         accumulated_frame_time += frame_time_ms;
         frame_count++;
+        
 
         double average_frame_time = accumulated_frame_time / frame_count;
         double average_fps = 1000.0 / average_frame_time;
