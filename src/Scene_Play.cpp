@@ -279,13 +279,14 @@ void Scene_Play::update() {
 }
 
 void Scene_Play::sMovement() {
-    auto &view = m_ECS.view<CInputs>();
+    // TODO: make a view reference
+    auto view = m_ECS.view<CTransform, CInputs>();
     for (auto e : view){    
         auto &transform = m_ECS.getComponent<CTransform>(e);
+        auto &inputs = m_ECS.getComponent<CInputs>(e);
 
         if ( e == m_player ){
             transform.vel = { 0,0 };
-            auto &inputs = view.getComponent(e);
             if (inputs.up){
                 transform.vel.y--;
             } if (inputs.down){
@@ -570,9 +571,9 @@ void Scene_Play::sRender() {
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        // auto viewSorted = m_ECS.sortComponentPoolByLayer<CAnimation>();
+        auto viewSorted = m_ECS.view_sorted<CAnimation>();
         auto view = m_ECS.view<CTransform, CAnimation>();
-        for (auto e : view){        
+        for (auto e : viewSorted){
                 
             auto& transform = view.getComponent<CTransform>(e);
             auto& animation = view.getComponent<CAnimation>(e).animation;
@@ -583,16 +584,16 @@ void Scene_Play::sRender() {
 
             // }
 
-            // if ( m_ECS.hasComponent<CShadow>(e) ){
-            //     auto& shadow = m_ECS.getComponent<CShadow>(e);
+            if ( m_ECS.hasComponent<CShadow>(e) ){
+                auto& shadow = m_ECS.getComponent<CShadow>(e);
 
-            //     // Set the destination rectangle for rendering
-            //     shadow.animation.setScale(transform.scale*cameraZoom);
-            //     shadow.animation.setAngle(transform.angle);
-            //     shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
+                // Set the destination rectangle for rendering
+                shadow.animation.setScale(transform.scale*cameraZoom);
+                shadow.animation.setAngle(transform.angle);
+                shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
                 
-            //     spriteRender(shadow.animation);
-            // } 
+                spriteRender(shadow.animation);
+            } 
 
             animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
@@ -600,31 +601,31 @@ void Scene_Play::sRender() {
             
             spriteRender(animation);
 
-            // if (m_ECS.hasComponent<CHealth>(e) && e != m_player){
-            //     if ( (int)m_currentFrame - m_ECS.getComponent<CHealth>(e).damage_frame < m_ECS.getComponent<CHealth>(e).heart_frames) {
+            if (m_ECS.hasComponent<CHealth>(e) && e != m_player){
+                if ( (int)m_currentFrame - m_ECS.getComponent<CHealth>(e).damage_frame < m_ECS.getComponent<CHealth>(e).heart_frames) {
 
-            //         Animation animation;
-            //         auto hearts = float(m_ECS.getComponent<CHealth>(e).HP)/2;
+                    Animation animation;
+                    auto hearts = float(m_ECS.getComponent<CHealth>(e).HP)/2;
 
-            //         for (int i = 1; i <= m_ECS.getComponent<CHealth>(e).HP_max/2; i++)
-            //         {   
-            //             if ( hearts >= i ){
-            //                 animation = m_ECS.getComponent<CHealth>(e).animation_full;
-            //             } else if ( i-hearts == 0.5f ){
-            //                 animation = m_ECS.getComponent<CHealth>(e).animation_half;
-            //             } else{
-            //                 animation = m_ECS.getComponent<CHealth>(e).animation_empty;
-            //             }
+                    for (int i = 1; i <= m_ECS.getComponent<CHealth>(e).HP_max/2; i++)
+                    {   
+                        if ( hearts >= i ){
+                            animation = m_ECS.getComponent<CHealth>(e).animation_full;
+                        } else if ( i-hearts == 0.5f ){
+                            animation = m_ECS.getComponent<CHealth>(e).animation_half;
+                        } else{
+                            animation = m_ECS.getComponent<CHealth>(e).animation_empty;
+                        }
 
-            //             animation.setScale(Vec2{2, 2}*cameraZoom);
-            //             animation.setDestRect(Vec2{
-            //                 adjustedPos.x + (float)(i-1-(float)m_ECS.getComponent<CHealth>(e).HP_max/4)*animation.getSize().x*animation.getScale().x, 
-            //                 adjustedPos.y - m_ECS.getComponent<CAnimation>(e).animation.getSize().y * m_ECS.getComponent<CAnimation>(e).animation.getScale().y / 2
-            //             });
-            //             spriteRender(animation);
-            //         }
-            //     }
-            // }
+                        animation.setScale(Vec2{2, 2}*cameraZoom);
+                        animation.setDestRect(Vec2{
+                            adjustedPos.x + (float)(i-1-(float)m_ECS.getComponent<CHealth>(e).HP_max/4)*animation.getSize().x*animation.getScale().x, 
+                            adjustedPos.y - m_ECS.getComponent<CAnimation>(e).animation.getSize().y * m_ECS.getComponent<CAnimation>(e).animation.getScale().y / 2
+                        });
+                        spriteRender(animation);
+                    }
+                }
+            }
         }
         // Attemp to render coin balance in corner.
 

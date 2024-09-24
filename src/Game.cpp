@@ -93,7 +93,7 @@ void Game::run()
         frame_count++;
 
         // Check if one second has passed
-        if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(10))
+        if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(1))
         {
             double average_frame_time = accumulated_frame_time / frame_count;
             double average_fps = 1000.0 / average_frame_time;

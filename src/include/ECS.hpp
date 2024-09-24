@@ -95,8 +95,8 @@ public:
         return pool;
     }
 
-    std::unordered_map<EntityID, T> pool;  // Map of components indexed by EntityID
 private:
+    std::unordered_map<EntityID, T> pool;  // Map of components indexed by EntityID
 };
 
 template<typename T, typename Other> 
@@ -151,8 +151,8 @@ public:
             return std::get<1>(pool.at(entityId));  // Get the second component (Other) from the tuple
         }
     }   
-    std::unordered_map<EntityID, std::tuple<T, Other>> pool;  // Map of components indexed by EntityID
 private:
+    std::unordered_map<EntityID, std::tuple<T, Other>> pool;  // Map of components indexed by EntityID
 };
 
 class ECS
@@ -225,7 +225,6 @@ public:
                 view.addEntity(entityID, componentT, componentOther);
             }
         }
-
         return view;
     }
 
@@ -233,6 +232,7 @@ public:
     std::vector<EntityID> view_sorted() {
         // Get the component pool for the given type
         ComponentPool<T>& pool = getComponentPool<T>();
+        auto& componentMap = pool.getPool();
 
         // Create a vector of entity IDs
         std::vector<EntityID> entitiesWithComponent;
@@ -241,13 +241,15 @@ public:
         entitiesWithComponent.reserve(pool.size());
 
         // Iterate through the pool and collect the entity IDs
-        for (const auto& [entityID, component] : pool.getPool()) {
+        for (const auto& [entityID, component] : componentMap) {
             entitiesWithComponent.push_back(entityID);
         }
 
         // Sort the vector of entity IDs based on the 'layer' property in the component
         std::sort(entitiesWithComponent.begin(), entitiesWithComponent.end(), [&](EntityID a, EntityID b) {
-            return pool.getPool().at(a).layer > pool.getPool().at(b).layer;  // Compare layer values of components
+            const auto& componentA = componentMap.at(a);  // Access the components only once per entity
+            const auto& componentB = componentMap.at(b);
+            return componentA.layer > componentB.layer;
         });
 
         return entitiesWithComponent;  // Return the sorted vector of entity IDs
