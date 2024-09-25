@@ -2,21 +2,16 @@
 #include <memory>
 #include <queue>
 
-#include "Types.hpp"
-
 using EntityID = uint32_t;
 
 class EntityManager
 {
 private:
-    EntityID m_numEntities = 0;
+    std::queue<EntityID> m_AvailableEntities;
 public:
     EntityManager(){}
 
-    EntityID addEntity()
-    {
-        return m_numEntities++;
-    }
+    EntityID addEntity(){}
 
     void removeEntity(){}
 };

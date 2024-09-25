@@ -305,14 +305,11 @@ void Scene_Basic::spriteRender(Animation &animation){
 // }
 
 void Scene_Basic::spawnObstacle(const Vec2 pos, bool movable, const int frame){
-    auto entity_old = m_ECS.addEntity();
-    m_ECS.addComponent<CTransform>(entity_old, pos, Vec2 {0, 0}, Vec2 {4,4}, 0, movable);
-    m_ECS.addComponent<CAnimation>(entity_old, m_game->assets().getAnimation("coin"), true, 10);
-    // m_ECS.getComponent<CAnimation>(entity_old).animation.setTile(Vec2{(float)(7 % 4), (float)(int)(7 / 4)});  
-    m_ECS.addComponent<CBoundingBox>(entity_old, Vec2 {64, 64});
-
-    EntityID entityId = m_EntityManager.addEntity();
-    // Entity Entity = {entityId, &m_EntityManager};
+    auto entity = m_ECS.addEntity();
+    m_ECS.addComponent<CTransform>(entity, pos, Vec2 {0, 0}, Vec2 {4,4}, 0, movable);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, 10);
+    // m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(7 % 4), (float)(int)(7 / 4)});  
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
 }
 
 // void Scene_Basic::spawnCoin(Vec2 pos, const size_t layer)
