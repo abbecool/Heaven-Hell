@@ -15,7 +15,7 @@ class Scene_Menu : public Scene
 
     protected:
 
-    std::shared_ptr<Entity> m_player;
+    EntityID m_player;
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
     Physics m_physics;
