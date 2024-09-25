@@ -310,6 +310,8 @@ void Scene_Basic::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, 10);
     // m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(7 % 4), (float)(int)(7 / 4)});  
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
+
+    EntityID eID = m_EntityManager.addEntity();
 }
 
 // void Scene_Basic::spawnCoin(Vec2 pos, const size_t layer)

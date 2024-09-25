@@ -1,17 +1,38 @@
 #pragma once
 #include <memory>
 #include <queue>
+#include <typeindex>
+#include <unordered_map>
 
-using EntityID = uint32_t;
+#include "Types.hpp"
+#include "ComponentPool.hpp"
 
 class EntityManager
 {
-private:
-    std::queue<EntityID> m_AvailableEntities;
 public:
     EntityManager(){}
 
-    EntityID addEntity(){}
+    EntityID addEntity()
+    {
+        return m_numEntities++;
+    }
 
-    void removeEntity(){}
+    void removeEntity(EntityID id)
+    {
+        m_ComponentMasks[id].reset();
+    }
+
+    void SetSignature(EntityID id, componentMask signature)
+	{
+		m_ComponentMasks[id] = signature;
+	}
+
+	componentMask GetSignature(EntityID id)
+	{
+		return m_ComponentMasks[id];
+	}
+private:
+    EntityID m_numEntities = 0;
+    std::unordered_map<EntityID, componentMask> m_ComponentMasks;
+    std::unordered_map<std::type_index, std::unique_ptr<BasicComponentPool>> componentPools;
 };

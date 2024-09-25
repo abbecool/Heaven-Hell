@@ -5,7 +5,7 @@
 #include "Camera.h"
 #include "Scene.h"
 #include "Level_Loader.h"
-// #include "ECS/Enhet.h"
+#include "ECS/Enhet.h"
 
 #include <memory>
 #include <unordered_map>
@@ -38,6 +38,8 @@ class Scene_Basic : public Scene
     bool m_drawCollision = true;
     bool m_drawDrawGrid = false;
     bool m_newGame;
+
+    EntityManager m_EntityManager;
 
     std::unordered_map<std::string, std::unordered_set<std::string>> m_damageToEnemyMap = {
         {"fire", {"grass"}},

@@ -1,12 +1,10 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-// #include <Sprite.h>
 #include "Vec2.h"
 #include <string>
 class Animation
 {
-    // SDL_Sprite m_sprite;
     SDL_Renderer* m_renderer;
     SDL_Texture* m_texture;
     SDL_Rect m_srcRect;
