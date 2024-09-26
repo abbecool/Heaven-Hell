@@ -42,7 +42,6 @@
 # # Build dirs
 Binaries/*
 !Binaries/.gitkeep
-/obj/
 
 # Test scripts
 test_*

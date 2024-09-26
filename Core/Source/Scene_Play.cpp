@@ -587,16 +587,16 @@ void Scene_Play::sRender() {
 
             // }
 
-            if ( m_ECS.hasComponent<CShadow>(e) ){
-                auto& shadow = m_ECS.getComponent<CShadow>(e);
+            //if ( m_ECS.hasComponent<CShadow>(e) ){
+            //    auto& shadow = m_ECS.getComponent<CShadow>(e);
 
-                // Set the destination rectangle for rendering
-                shadow.animation.setScale(transform.scale*cameraZoom);
-                shadow.animation.setAngle(transform.angle);
-                shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
-                
-                spriteRender(shadow.animation);
-            } 
+            //    // Set the destination rectangle for rendering
+            //    shadow.animation.setScale(transform.scale*cameraZoom);
+            //    shadow.animation.setAngle(transform.angle);
+            //    shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
+            //    
+            //    spriteRender(shadow.animation);
+            //} 
 
             animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
@@ -604,7 +604,7 @@ void Scene_Play::sRender() {
             
             spriteRender(animation);
 
-            if (m_ECS.hasComponent<CHealth>(e) && e != m_player){
+            /*if (m_ECS.hasComponent<CHealth>(e) && e != m_player){
                 if ( (int)m_currentFrame - m_ECS.getComponent<CHealth>(e).damage_frame < m_ECS.getComponent<CHealth>(e).heart_frames) {
 
                     Animation animation;
@@ -628,7 +628,7 @@ void Scene_Play::sRender() {
                         spriteRender(animation);
                     }
                 }
-            }
+            }*/
         }
         // Attemp to render coin balance in corner.
 
