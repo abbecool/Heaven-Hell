@@ -712,13 +712,13 @@ void Scene_Play::spawnPlayer(){
     auto entityID = m_ECS.addEntity();
     m_player = entityID;
 
-    int pos_x;
-    int pos_y;
+    int pos_x = 0;
+    int pos_y = 0;
     int hp;
     if (m_newGame){
-        pos_x = m_playerConfig.x;
-        pos_y = m_playerConfig.y;
-        hp = m_playerConfig.HP;
+        pos_x = (int)m_playerConfig.x;
+        pos_y = (int)m_playerConfig.y;
+        hp = (int)m_playerConfig.HP;
     } else {
         std::ifstream file("game_save.txt");
         if (!file) {
@@ -738,7 +738,7 @@ void Scene_Play::spawnPlayer(){
     Vec2 pos = Vec2{64*(float)pos_x, 64*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entityID);
 
-    m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0, m_playerConfig.SPEED, true);
+    m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, m_playerConfig.SPEED, true);
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
 
     m_ECS.addComponent<CName>(entityID, "wiz");
@@ -757,7 +757,7 @@ void Scene_Play::spawnPlayer(){
 void Scene_Play::spawnWeapon(Vec2 pos){
     auto entity = m_ECS.addEntity();
 
-    m_ECS.addComponent<CTransform>(entity, pos, Vec2{0,0}, Vec2{4, 4}, 0, 0, true);
+    m_ECS.addComponent<CTransform>(entity, pos, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {32, 32});
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
@@ -767,14 +767,14 @@ void Scene_Play::spawnWeapon(Vec2 pos){
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
 }
 
 void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
 }
 
@@ -782,7 +782,7 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(ani), true, 3);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0.0f, movable);
     m_ECS.addComponent<CHealth>(entity, (int)10, (int)10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {""};
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{96, 96});
@@ -795,14 +795,14 @@ void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
     auto entity = m_ECS.addEntity();
     // std::vector<int> ranArray = generateRandomArray(1, m_ECS.getNumEntities(), 0, 15);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0.0f, false);
 }
 
 void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0.0f, false);
 }
 
 void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
@@ -810,7 +810,7 @@ void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("checkpoint_idle"), true, 3);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{4,4}, 0, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{4,4}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
 }
 
@@ -819,7 +819,7 @@ void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("m_texture_key"), true, 3);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {1, 1}, 0, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {1, 1}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
 }
 
@@ -845,7 +845,7 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("bridge"), true, 3);
     m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(frame % 4), (float)(int)(frame / 4)});
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
 }
 
@@ -854,7 +854,7 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     auto entity = m_ECS.addEntity();
     // creator->setLinkEntity(entity);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, 3);
-    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400, false);
+    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
     m_ECS.addComponent<CDamage>(entity, m_ECS.getComponent<CDamage>(creator).damage, m_ECS.getComponent<CDamage>(creator).speed); // damage speed 6 = frames between attacking
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
@@ -867,7 +867,7 @@ void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, 3);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
 }
@@ -879,7 +879,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("rooter"), true, 3);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 150.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 48});
     // m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos, m_player);
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
@@ -910,7 +910,7 @@ void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, 
         m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, 10);
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});                           
         Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-        m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{4, 4}, 0, false);
+        m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{4, 4}, 0.0f, false);
         m_ECS.addComponent<CName>(entity, tile);
     }
 }
@@ -956,12 +956,12 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, EntityID entity) {
     Vec2 eScale;
     switch ((int)eSize.y) {
         case 270:
-            eScale.x = 0.15;
-            eScale.y = 0.18;
+            eScale.x = 0.15f;
+            eScale.y = 0.18f;
             break;
         case 225:
-            eScale.x = 0.18;
-            eScale.y = 0.18;
+            eScale.x = 0.18f;
+            eScale.y = 0.18f;
             break;
         case 192:
             eScale.x = 1;
@@ -976,24 +976,24 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, EntityID entity) {
             eSize.y = 32;
             break;
         case 64:
-            eScale.x = 1.0;
-            eScale.y = 1.0;
+            eScale.x = 1.0f;
+            eScale.y = 1.0f;
             break;
         case 32:
-            eScale.x = 2.0;
-            eScale.y = 2.0;
+            eScale.x = 2.0f;
+            eScale.y = 2.0f;
             break;
         case 16:
-            eScale.x = 4.0;
-            eScale.y = 4.0;
+            eScale.x = 4.0f;
+            eScale.y = 4.0f;
             break;
         case 24:
-            eScale.x = 2.0;
-            eScale.y = 2.0;
+            eScale.x = 2.0f;
+            eScale.y = 2.0f;
             break; 
         default:
-            eScale.x = 1.0;
-            eScale.y = 1.0;
+            eScale.x = 1.0f;
+            eScale.y = 1.0f;
     }
     
     offset = (m_gridSize - eSize * eScale) / 2.0;

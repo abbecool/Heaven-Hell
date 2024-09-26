@@ -52,7 +52,7 @@ std::vector<std::string> LevelLoader::neighborTag(const std::vector<std::vector<
 }
 
 int LevelLoader::getObstacleTextureIndex(const std::vector<bool>& neighbors) {
-    int numObstacles = std::count(neighbors.begin(), neighbors.end(), true);
+    int numObstacles = (int)std::count(neighbors.begin(), neighbors.end(), true);
     if (numObstacles == 1) {
         if (neighbors[0]) return 12;    // Top
         if (neighbors[1]) return 1;     // Right
@@ -158,7 +158,7 @@ std::unordered_map<std::string, int> LevelLoader::createDualGrid(
             return friendlyNeighbors[tile].count(str) ? tile : str;
         });
 
-        int numTiles = std::count(tileQ.begin(), tileQ.end(), tile);
+        int numTiles = (int)std::count(tileQ.begin(), tileQ.end(), tile);
         std::unordered_set<std::string> uniqueStrings(tileQ.begin(), tileQ.end());
 
         if (numTiles > 0) {

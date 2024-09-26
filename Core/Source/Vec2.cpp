@@ -120,7 +120,7 @@ Vec2 Vec2::abs_elem() const
 
 float Vec2::angle() const
 {
-    return (float)std::atan2(y, x)* 180.0f / 3.14159265358979323846;
+    return (float)std::atan2(y, x)* 180.0f / 3.14159265358979323846f;
 }
 
 Vec2 Vec2::mainDir() const {

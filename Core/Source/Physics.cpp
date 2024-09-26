@@ -99,7 +99,7 @@ Vec2 Physics::getOverlap(Entity a, Entity b) {
 Vec2 Physics::knockback(CKnockback& knockback){
     knockback.timeElapsed += 16;
     if (knockback.timeElapsed < knockback.duration) {
-        return knockback.direction.norm()*knockback.magnitude/(knockback.duration/16);
+        return knockback.direction.norm()*(float)knockback.magnitude/(float)(knockback.duration/16);
     } else {
         // Reset the  when the duration is over
         knockback.duration = 0;

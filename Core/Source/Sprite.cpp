@@ -27,16 +27,16 @@ void SDL_Sprite::initialize() {
     }
 }
 
-void SDL_Sprite::setDestPosition(float x, float y) {
-    destRect.x = (int)x;
-    destRect.y = (int)y;
+void SDL_Sprite::setDestPosition(int x, int y) {
+    destRect.x = x;
+    destRect.y = y;
 }
 
 SDL_Rect* SDL_Sprite::getDestRect() {
     return &destRect;
 }
 
-void SDL_Sprite::setSrcPosition(float x, float y, float w, float h) {
+void SDL_Sprite::setSrcPosition(int x, int y, int w, int h) {
     srcRect.x = x;
     srcRect.y = y;
     srcRect.w = w;
@@ -47,15 +47,15 @@ SDL_Rect* SDL_Sprite::getSrcRect() {
     return &srcRect;
 }
 
-void SDL_Sprite::setRotation(double angle) {
+void SDL_Sprite::setRotation(float angle) {
     rotation = angle;
 }
 
 void SDL_Sprite::setScale(float scaleX, float scaleY) {
     this->scaleX = scaleX;
     this->scaleY = scaleY;
-    destRect.w = srcRect.w * scaleX;
-    destRect.h = srcRect.h * scaleY;
+    destRect.w = srcRect.w * (int)scaleX;
+    destRect.h = srcRect.h * (int)scaleY;
     center = {destRect.w / 2.0f, destRect.h / 2.0f};
 }
 

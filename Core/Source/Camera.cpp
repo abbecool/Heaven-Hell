@@ -98,7 +98,7 @@ bool Camera::startPan(float speed, int duration, Vec2 pos, bool pause) {
 
 void Camera::panCamera(){
     if (panDuration > 0) {
-        if ( ( ( panPos-(panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60) ).length() > 32 ) & !( panTimeElapsed >= panDuration ) ) {
+        if ( ( ( panPos-(panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60) ).length() > 32 ) && !( panTimeElapsed >= panDuration ) ) {
             i++;
         } else {
             panTimeElapsed += 16; // Assuming 60 FPS, increase time (16ms per frame)
