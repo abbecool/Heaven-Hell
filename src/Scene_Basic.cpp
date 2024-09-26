@@ -44,6 +44,12 @@ void Scene_Basic::init(const std::string& levelPath) {
     registerAction(SDLK_5, "LEVEL5");
     registerAction(SDLK_u, "SAVE");
 
+
+
+    m_EntityManager.RegisterComponent<CTransform_new>();
+    m_EntityManager.RegisterComponent<CBoundingBox_new>();
+    m_EntityManager.RegisterComponent<CAnimation_new>();
+
     // spawnPlayer();
     spawnObstacle(Vec2 {64*2, 64*2}, false, 7);
     // spawnCoin(Vec2{64*15,64*12}, 4);
@@ -274,6 +280,25 @@ void Scene_Basic::sRender() {
             SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
         }
     }
+
+    // auto view = m_ECS.view<CTransform, CAnimation>();
+    //     for (auto e : view){
+                
+    //         auto& transform = view.getComponent<CTransform>(e);
+    //         auto& animation = view.getComponent<CAnimation>(e).animation;
+
+    //         // Adjust the entity's position based on the camera position
+    //         Vec2 adjustedPos = transform.pos - m_camera.position;
+    //         // if (cameraZoom != 1) {
+
+    //         // }
+
+    //         animation.setScale(transform.scale*cameraZoom);
+    //         animation.setAngle(transform.angle);
+    //         animation.setDestRect(adjustedPos - animation.getDestSize()/2);
+    //         spriteRender(animation);
+    //     }
+
 }
 
 void Scene_Basic::spriteRender(Animation &animation){
@@ -311,7 +336,10 @@ void Scene_Basic::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     // m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(7 % 4), (float)(int)(7 / 4)});  
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
 
-    EntityID eID = m_EntityManager.addEntity();
+    EntityID eID = m_EntityManager.CreateEntity();
+    m_EntityManager.AddComponent(eID, CTransform_new{pos, Vec2 {0, 0}, Vec2 {8,8}, 0, movable});
+    m_EntityManager.AddComponent(eID, CAnimation_new{m_game->assets().getAnimation("coin"), true, 10});
+    m_EntityManager.AddComponent(eID, CBoundingBox_new{Vec2 {64, 64}});
 }
 
 // void Scene_Basic::spawnCoin(Vec2 pos, const size_t layer)

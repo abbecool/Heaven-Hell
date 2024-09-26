@@ -1,38 +1,100 @@
 #pragma once
-#include <memory>
+
+#include <array>
+#include <cassert>
 #include <queue>
-#include <typeindex>
-#include <unordered_map>
-
 #include "Types.hpp"
-#include "ComponentPool.hpp"
-
+#include "ComponentManager.hpp"
 class EntityManager
 {
 public:
-    EntityManager(){}
-
-    EntityID addEntity()
-    {
-        return m_numEntities++;
-    }
-
-    void removeEntity(EntityID id)
-    {
-        m_ComponentMasks[id].reset();
-    }
-
-    void SetSignature(EntityID id, componentMask signature)
+	EntityManager()
 	{
-		m_ComponentMasks[id] = signature;
+		for (EntityID entity = 0; entity < MAX_ENTITIES; ++entity)
+		{
+			mAvailableEntities.push(entity);
+		}
 	}
 
-	componentMask GetSignature(EntityID id)
+	EntityID CreateEntity()
 	{
-		return m_ComponentMasks[id];
+		assert(mLivingEntityCount < MAX_ENTITIES && "Too many entities in existence.");
+
+		EntityID id = mAvailableEntities.front();
+		mAvailableEntities.pop();
+		++mLivingEntityCount;
+
+		return id;
 	}
+
+	void DestroyEntity(EntityID entity)
+	{
+		assert(entity < MAX_ENTITIES && "EntityID out of range.");
+
+		mSignatures[entity].reset();
+		mAvailableEntities.push(entity);
+		--mLivingEntityCount;
+
+        m_ComponentManager->EntityDestroyed(entity);
+	}
+
+	void SetSignature(EntityID entity, Signature signature)
+	{
+		assert(entity < MAX_ENTITIES && "EntityID out of range.");
+
+		mSignatures[entity] = signature;
+	}
+
+	Signature GetSignature(EntityID entity)
+	{
+		assert(entity < MAX_ENTITIES && "EntityID out of range.");
+
+		return mSignatures[entity];
+	}
+
+    	// Component methods
+	template<typename T>
+	void RegisterComponent()
+	{
+		m_ComponentManager->RegisterComponent<T>();
+	}
+
+	template<typename T>
+	void AddComponent(EntityID entity, T component)
+	{
+		m_ComponentManager->AddComponent<T>(entity, component);
+
+		auto signature = GetSignature(entity);
+		signature.set(m_ComponentManager->GetComponentType<T>(), true);
+		SetSignature(entity, signature);
+	}
+
+	template<typename T>
+	void RemoveComponent(EntityID entity)
+	{
+		m_ComponentManager->RemoveComponent<T>(entity);
+
+		auto signature = GetSignature(entity);
+		signature.set(m_ComponentManager->GetComponentType<T>(), false);
+		SetSignature(entity, signature);
+	}
+
+	template<typename T>
+	T& GetComponent(EntityID entity)
+	{
+		return m_ComponentManager->GetComponent<T>(entity);
+	}
+
+	template<typename T>
+	ComponentType GetComponentType()
+	{
+		return m_ComponentManager->GetComponentType<T>();
+	}
+
 private:
-    EntityID m_numEntities = 0;
-    std::unordered_map<EntityID, componentMask> m_ComponentMasks;
-    std::unordered_map<std::type_index, std::unique_ptr<BasicComponentPool>> componentPools;
+	std::queue<EntityID> mAvailableEntities{};
+	std::array<Signature, MAX_ENTITIES> mSignatures{};
+	uint32_t mLivingEntityCount{};
+
+    std::unique_ptr<ComponentManager> m_ComponentManager;
 };
