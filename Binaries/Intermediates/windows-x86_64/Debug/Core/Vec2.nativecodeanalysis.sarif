@@ -1,0 +1,43 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.41.34120.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///c:/users/albin/projects/privat/heaven-hell/core/source/vec2.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "4bf21b5198e58b039d981646c92c46845f15758f079ef364bbb7e6130c8082f6"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/albin/projects/privat/heaven-hell/core/source/include/vec2.h"
+          },
+          "hashes": {
+            "sha-256": "9add554634e2cd554691a61827550afdd67a2667dfd3dada76cee56288ce875d"
+          }
+        }
+      ]
+    }
+  ]
+}

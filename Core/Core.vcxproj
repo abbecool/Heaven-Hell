@@ -58,6 +58,8 @@
     <IntDir>..\Binaries\Intermediates\windows-x86_64\Debug\Core\</IntDir>
     <TargetName>Core</TargetName>
     <TargetExt>.lib</TargetExt>
+    <IncludePath>C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include\SDL2;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\Binaries\windows-x86_64\Release\Core\</OutDir>
@@ -87,6 +89,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include;C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include\SDL2;C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

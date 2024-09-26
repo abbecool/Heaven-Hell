@@ -1,11 +1,12 @@
 project "Core"
-   kind "StaticLib"
+   --kind "StaticLib"
+   kind "ConsoleApp"
    language "C++"
    cppdialect "C++20"
    targetdir "Binaries/%{cfg.buildcfg}"
    staticruntime "off"
 
-   files { "Source/**.h", "Source/**.cpp", "Source/**.hpp" }
+   files { "Source/**.h", "Source/**.cpp", "Source/**.hpp"  }
 
    includedirs
    {

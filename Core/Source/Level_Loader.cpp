@@ -17,7 +17,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-
 std::vector<bool> LevelLoader::neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
     std::vector<std::string> friendlyPixels(1, "");
     std::vector<bool> neighbors(4, false); // {top, bottom, left, right}

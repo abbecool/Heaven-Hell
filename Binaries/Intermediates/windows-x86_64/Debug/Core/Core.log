@@ -1,63 +1,15 @@
-﻿  Action.cpp
-  Animation.cpp
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(29,40): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(29,30): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(41,15): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(40,15): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(39,22): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(38,34): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(93,23): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(94,23): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(99,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(100,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(121,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(122,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(133,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(138,32): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Animation.cpp(139,32): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-  Assets.cpp
-  Camera.cpp
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Camera.cpp(101,68): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Camera.cpp(107,75): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Camera.cpp(114,62): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
-  ECS.cpp
-  Entity.cpp
-  Game.cpp
-  Level_Loader.cpp
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Level_Loader.cpp(56,22): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Level_Loader.cpp(162,22): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
-  Physics.cpp
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Physics.cpp(102,52): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Physics.cpp(102,82): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
-  RandomArray.cpp
-  Scene.cpp
-  Scene_Menu.cpp
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(50,24): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(51,24): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(54,24): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(55,24): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(111,58): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(111,53): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(114,32): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(114,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(115,32): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(115,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(269,38): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(270,38): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(271,38): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Menu.cpp(272,38): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-  Scene_Play.cpp
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(717,31): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(718,31): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(957,24): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(958,24): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(961,24): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(962,24): warning C4305: '=': truncation from 'double' to 'float'
+﻿  Scene_Play.cpp
+C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(719,31): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(720,31): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(959,24): warning C4305: '=': truncation from 'double' to 'float'
+C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(960,24): warning C4305: '=': truncation from 'double' to 'float'
+C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(963,24): warning C4305: '=': truncation from 'double' to 'float'
+C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(964,24): warning C4305: '=': truncation from 'double' to 'float'
 C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include\ECS.hpp(179,62): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
   (compiling source file 'Source/Scene_Play.cpp')
       C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include\ECS.hpp(179,62):
       the template instantiation context (the oldest one first) is
-          C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(739,11):
+          C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Scene_Play.cpp(741,11):
           see reference to function template instantiation 'T &ECS::addComponent<CTransform,Vec2&,Vec2,Vec2,int,float&,bool>(EntityID,Vec2 &,Vec2 &&,Vec2 &&,int &&,float &,bool &&)' being compiled
           with
           [
@@ -71,57 +23,4 @@ C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include\ECS.hpp(179,62): 
 C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include\ECS.hpp(179,62): warning C4244:         ]
   (compiling source file 'Source/Scene_Play.cpp')
   
-  Sprite.cpp
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Sprite.cpp(31,18): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Sprite.cpp(32,18): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Sprite.cpp(40,17): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Sprite.cpp(41,17): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Sprite.cpp(42,17): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Sprite.cpp(43,17): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Sprite.cpp(57,28): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Sprite.cpp(58,28): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-  Vec2.cpp
-C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\Vec2.cpp(123,37): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-  main.cpp
-  player.cpp
-  dragon.cpp
-  projectile.cpp
-  rooter.cpp
-  Generating Code...
-Animation.obj : error LNK2019: unresolved external symbol SDL_QueryTexture referenced in function "public: struct SDL_Point __cdecl Animation::getTextureSize(void)" (?getTextureSize@Animation@@QEAA?AUSDL_Point@@XZ)
-Assets.obj : error LNK2019: unresolved external symbol SDL_GetError referenced in function "public: void __cdecl Assets::addFont(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?addFont@Assets@@QEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z)
-Game.obj : error LNK2001: unresolved external symbol SDL_GetError
-Scene_Play.obj : error LNK2001: unresolved external symbol SDL_GetError
-Assets.obj : error LNK2019: unresolved external symbol SDL_FreeSurface referenced in function "public: void __cdecl Assets::addTexture(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,struct SDL_Renderer *)" (?addTexture@Assets@@QEAAXV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBV23@PEAUSDL_Renderer@@@Z)
-Scene_Play.obj : error LNK2001: unresolved external symbol SDL_FreeSurface
-Assets.obj : error LNK2019: unresolved external symbol SDL_CreateTextureFromSurface referenced in function "public: void __cdecl Assets::addTexture(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,struct SDL_Renderer *)" (?addTexture@Assets@@QEAAXV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBV23@PEAUSDL_Renderer@@@Z)
-Scene_Play.obj : error LNK2001: unresolved external symbol SDL_CreateTextureFromSurface
-Assets.obj : error LNK2019: unresolved external symbol TTF_OpenFont referenced in function "public: void __cdecl Assets::addFont(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?addFont@Assets@@QEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z)
-Assets.obj : error LNK2019: unresolved external symbol TTF_RenderText_Solid referenced in function "public: void __cdecl Assets::loadFromFile(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,struct SDL_Renderer *)" (?loadFromFile@Assets@@QEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0PEAUSDL_Renderer@@@Z)
-Assets.obj : error LNK2019: unresolved external symbol IMG_Load referenced in function "public: void __cdecl Assets::addTexture(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,struct SDL_Renderer *)" (?addTexture@Assets@@QEAAXV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBV23@PEAUSDL_Renderer@@@Z)
-Scene_Play.obj : error LNK2001: unresolved external symbol IMG_Load
-Game.obj : error LNK2019: unresolved external symbol SDL_CreateWindow referenced in function "protected: void __cdecl Game::init(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?init@Game@@IEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z)
-Game.obj : error LNK2019: unresolved external symbol SDL_SetWindowPosition referenced in function "protected: void __cdecl Game::init(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?init@Game@@IEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z)
-Game.obj : error LNK2019: unresolved external symbol SDL_DestroyWindow referenced in function "public: void __cdecl Game::run(void)" (?run@Game@@QEAAXXZ)
-Game.obj : error LNK2019: unresolved external symbol SDL_PollEvent referenced in function "protected: void __cdecl Game::sUserInput(void)" (?sUserInput@Game@@IEAAXXZ)
-Game.obj : error LNK2019: unresolved external symbol SDL_CreateRenderer referenced in function "protected: void __cdecl Game::init(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?init@Game@@IEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z)
-Game.obj : error LNK2019: unresolved external symbol SDL_SetRenderDrawBlendMode referenced in function "protected: void __cdecl Game::init(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?init@Game@@IEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z)
-Game.obj : error LNK2019: unresolved external symbol SDL_RenderClear referenced in function "public: void __cdecl Game::run(void)" (?run@Game@@QEAAXXZ)
-Scene_Menu.obj : error LNK2001: unresolved external symbol SDL_RenderClear
-Scene_Play.obj : error LNK2001: unresolved external symbol SDL_RenderClear
-Game.obj : error LNK2019: unresolved external symbol SDL_RenderPresent referenced in function "public: void __cdecl Game::run(void)" (?run@Game@@QEAAXXZ)
-Game.obj : error LNK2019: unresolved external symbol SDL_Init referenced in function "protected: void __cdecl Game::init(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?init@Game@@IEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z)
-Game.obj : error LNK2019: unresolved external symbol SDL_Quit referenced in function "public: void __cdecl Game::run(void)" (?run@Game@@QEAAXXZ)
-Game.obj : error LNK2019: unresolved external symbol TTF_Init referenced in function "protected: void __cdecl Game::init(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?init@Game@@IEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z)
-Level_Loader.obj : error LNK2019: unresolved external symbol SDL_GetRGBA referenced in function "public: class std::vector<class std::vector<class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class std::allocator<class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > > >,class std::allocator<class std::vector<class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class std::allocator<class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > > > > > __cdecl LevelLoader::createPixelMatrix(unsigned int *,struct SDL_PixelFormat *,int,int)" (?createPixelMatrix@LevelLoader@@QEAA?AV?$vector@V?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@V?$allocator@V?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@@2@@std@@PEAIPEAUSDL_PixelFormat@@HH@Z)
-Scene_Menu.obj : error LNK2019: unresolved external symbol SDL_SetRenderDrawColor referenced in function "protected: virtual void __cdecl Scene_Menu::sRender(void)" (?sRender@Scene_Menu@@MEAAXXZ)
-Scene_Play.obj : error LNK2001: unresolved external symbol SDL_SetRenderDrawColor
-Scene_Menu.obj : error LNK2019: unresolved external symbol SDL_RenderDrawRect referenced in function "protected: virtual void __cdecl Scene_Menu::sRender(void)" (?sRender@Scene_Menu@@MEAAXXZ)
-Scene_Play.obj : error LNK2001: unresolved external symbol SDL_RenderDrawRect
-Scene_Menu.obj : error LNK2019: unresolved external symbol SDL_RenderCopyEx referenced in function "protected: virtual void __cdecl Scene_Menu::sRender(void)" (?sRender@Scene_Menu@@MEAAXXZ)
-Scene_Play.obj : error LNK2001: unresolved external symbol SDL_RenderCopyEx
-Scene_Play.obj : error LNK2019: unresolved external symbol SDL_LockSurface referenced in function "protected: void __cdecl Scene_Play::loadLevel(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?loadLevel@Scene_Play@@IEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z)
-Scene_Play.obj : error LNK2019: unresolved external symbol SDL_UnlockSurface referenced in function "protected: void __cdecl Scene_Play::loadLevel(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?loadLevel@Scene_Play@@IEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z)
-Scene_Play.obj : error LNK2019: unresolved external symbol SDL_DestroyTexture referenced in function "protected: void __cdecl Scene_Play::loadLevel(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?loadLevel@Scene_Play@@IEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z)
-MSVCRTD.lib(exe_winmain.obj) : error LNK2019: unresolved external symbol WinMain referenced in function "int __cdecl invoke_main(void)" (?invoke_main@@YAHXZ)
-..\Binaries\windows-x86_64\Debug\Core\Core.lib : fatal error LNK1120: 26 unresolved externals
+  Core.vcxproj -> C:\Users\albin\projects\privat\Heaven-Hell\Binaries\windows-x86_64\Debug\Core\Core.lib

@@ -28,8 +28,8 @@ void SDL_Sprite::initialize() {
 }
 
 void SDL_Sprite::setDestPosition(float x, float y) {
-    destRect.x = x;
-    destRect.y = y;
+    destRect.x = (int)x;
+    destRect.y = (int)y;
 }
 
 SDL_Rect* SDL_Sprite::getDestRect() {

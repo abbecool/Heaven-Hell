@@ -232,6 +232,7 @@ public:
 
     template<typename T>
     std::vector<EntityID> view_sorted() {
+        std::cout << "test" << std::endl;
         // Get the component pool for the given type
         ComponentPool<T>& pool = getComponentPool<T>();
         auto& componentMap = pool.getPool();

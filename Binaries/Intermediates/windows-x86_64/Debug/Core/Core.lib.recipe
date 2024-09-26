@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <ProjectOutputs />
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>C:\Users\albin\projects\privat\Heaven-Hell\Binaries\windows-x86_64\Debug\Core\Core.lib</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
   <ContentFiles />
   <SatelliteDlls />
   <NonRecipeFileRefs />

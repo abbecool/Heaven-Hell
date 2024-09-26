@@ -159,6 +159,8 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
     spawnWeapon(Vec2{64*14 , 64*29});
     spawnSmallEnemy(Vec2{64*15 , 64*9}, 3);
+    spawnSmallEnemy(Vec2{64*12 , 64*8}, 3);
+    spawnSmallEnemy(Vec2{64*10 , 64*10}, 3);
     spawnSmallEnemy(Vec2{64*10 , 64*10}, 3);
     spawnSmallEnemy(Vec2{64*20 , 64*12}, 3);
     spawnSmallEnemy(Vec2{64*13 , 64*24}, 3);
@@ -573,11 +575,11 @@ void Scene_Play::sRender() {
     if (m_drawTextures){
         auto viewSorted = m_ECS.view_sorted<CAnimation>();
         auto view = m_ECS.view<CTransform, CAnimation>();
-        // for (auto e : view){
+         //for (auto e : view){
         for (auto e : viewSorted){
                 
-            auto& transform = view.getComponent<CTransform>(e);
-            auto& animation = view.getComponent<CAnimation>(e).animation;
+            auto& transform = m_ECS.getComponent<CTransform>(e);
+            auto& animation = m_ECS.getComponent<CAnimation>(e).animation;
 
             // Adjust the entity's position based on the camera position
             Vec2 adjustedPos = transform.pos - m_camera.position;
