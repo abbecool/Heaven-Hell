@@ -571,9 +571,9 @@ void Scene_Play::sRender() {
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        auto viewSorted = m_ECS.view_sorted<CAnimation>();
+        // auto viewSorted = m_ECS.view_sorted<CAnimation>();
         auto view = m_ECS.view<CTransform, CAnimation>();
-        for (auto e : viewSorted){
+        for (auto e : view){
                 
             auto& transform = view.getComponent<CTransform>(e);
             auto& animation = view.getComponent<CAnimation>(e).animation;
@@ -777,7 +777,7 @@ void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
 
 void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(ani), true);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(ani), true, 3);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
     m_ECS.addComponent<CHealth>(entity, (int)10, (int)10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
@@ -805,7 +805,7 @@ void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("checkpoint_idle"), true);
+    m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("checkpoint_idle"), true, 3);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{4,4}, 0, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
@@ -814,7 +814,7 @@ void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
 void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool movable)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("m_texture_key"), true);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("m_texture_key"), true, 3);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {1, 1}, 0, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
@@ -839,7 +839,7 @@ void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int fra
 void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("bridge"), true);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("bridge"), true, 3);
     m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(frame % 4), (float)(int)(frame / 4)});
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0, false);
@@ -850,7 +850,7 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
 {
     auto entity = m_ECS.addEntity();
     // creator->setLinkEntity(entity);
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, 3);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
     m_ECS.addComponent<CDamage>(entity, m_ECS.getComponent<CDamage>(creator).damage, m_ECS.getComponent<CDamage>(creator).speed); // damage speed 6 = frames between attacking
@@ -862,7 +862,7 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
 void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, 3);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
@@ -873,12 +873,12 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CName>(entity, "rooter");
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("rooter"), true);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("rooter"), true, 3);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 48});
-    m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos, m_player);
+    // m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos, m_player);
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};

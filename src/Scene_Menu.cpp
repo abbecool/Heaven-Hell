@@ -150,6 +150,7 @@ void Scene_Menu::sDoAction(const Action& action) {
             m_drawTextures = !m_drawTextures; 
         } else if (action.name() == "TOGGLE_COLLISION") { 
             m_drawCollision = !m_drawCollision; 
+            std::cout << "framerate: " << m_game->framerate() << std::endl;
         } else if (action.name() == "TOGGLE_GRID") { 
             m_drawDrawGrid = !m_drawDrawGrid; 
         } else if (action.name() == "SHOW COORDINATES") { 

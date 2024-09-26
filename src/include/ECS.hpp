@@ -1,7 +1,7 @@
 #pragma once
 
 // #include "ScriptableEntity.h"
-#include "Animation.h"
+#include "Components.h"
 // #include "Entity.h"
 #include <iostream>
 #include <unordered_map>
@@ -102,6 +102,7 @@ private:
 template<typename T, typename Other> 
 class BasicView : BaseComponentPool{
 public:
+    BasicView(){};
     // Custom iterator for range-based for loops
     class Iterator {
     public:
@@ -217,15 +218,16 @@ public:
     BasicView<T, Other> view() {
         ComponentPool<T>& poolT = getComponentPool<T>();
         ComponentPool<Other>& poolOther = getComponentPool<Other>();
-        BasicView<T, Other> view;
+        BasicView<T, Other> viewCache;
+        // viewCache = BasicView<T, Other>();
 
         for (const auto& [entityID, componentT] : poolT.getPool()) {
             if (poolOther.hasComponent(entityID)) {
                 const Other& componentOther = poolOther.getComponent(entityID);
-                view.addEntity(entityID, componentT, componentOther);
+                viewCache.addEntity(entityID, componentT, componentOther);
             }
         }
-        return view;
+        return viewCache;
     }
 
     template<typename T>
@@ -279,7 +281,8 @@ public:
 private:
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
-
+    // BasicView<Component, Component> viewCache;
+    // BaseComponentPool viewCache;
     // Helper to get or create the component pool for a specific type
     template <typename T>
     ComponentPool<T>& getOrCreateComponentPool() {
@@ -290,201 +293,3 @@ private:
         return *reinterpret_cast<ComponentPool<T>*>(componentPools[typeIdx].get());
     }
 };
-
-
-enum struct PlayerState {
-    STAND = 0,
-    RUN_DOWN = 1,
-    RUN_RIGHT = 2,
-    RUN_UP = 3,
-    RUN_LEFT = 4
-};
-
-struct CInputs
-{
-    bool up         = false;
-    bool down       = false;
-    bool left       = false;
-    bool right      = false;
-    bool shift      = false;
-    bool ctrl       = false;
-    bool shoot      = false;
-    bool canShoot   = false;
-    CInputs() {};
-};
-
-struct CTransform
-{
-    Vec2 pos;    
-    Vec2 prevPos;
-    Vec2 vel = {0, 0};    
-    Vec2 scale = {0.5, 0.5};    
-    float angle = 0;
-    int speed = 0;
-    bool isMovable = false;
-    float tempo = 1.0f;
-    CTransform() {}
-    CTransform(const Vec2 & p) : pos(p), prevPos(p) {}
-    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, bool mvbl) 
-    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, int spd, bool mvbl) 
-    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
-};
-
-struct CBoundingBox
-{
-    Vec2 size;
-    Vec2 halfSize;
-    CBoundingBox() {}
-    CBoundingBox(const Vec2& s) 
-        : size(s), halfSize(s/2.0) {}
-};
-
-struct CHealth
-{
-    int HP;
-    int HP_max;
-    bool alive;
-    Animation animation_full;
-    Animation animation_half;
-    Animation animation_empty;
-    int heart_frames;
-    int damage_frame = 0;
-    std::unordered_set<std::string> HPType;
-    CHealth() {}
-    CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
-        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(hrt_frms){}
-};
-
-struct CAnimation
-{
-    Animation animation;
-    bool repeat = false;
-    int layer = 0;
-    CAnimation() {}
-    CAnimation(const Animation& animation, bool r)
-                : animation(animation), repeat(r){}
-    CAnimation(const Animation& animation, bool r, int l)
-                : animation(animation), repeat(r), layer(l){}
-};  
-
-struct CState
-{
-    PlayerState state;
-    PlayerState preState; 
-    bool changeAnimate = false;
-    CState() {}
-    CState(const PlayerState s) : state(s), preState(s) {}
-}; 
-
-struct CProjectileState
-{
-    std::string state;
-    bool changeAnimate = false;
-    CProjectileState() {}
-    CProjectileState(std::string state ) : state(state) {}
-}; 
-
-struct CName
-{
-    std::string name;
-    CName() {}
-    CName(const std::string nm) : name(nm) {}
-}; 
-
-struct CShadow
-{
-    Animation animation;
-    size_t size;
-    CShadow() {}
-    CShadow(const Animation& animation, size_t sz)
-                : animation(animation), size(sz){}
-};  
-
-struct CDamage
-{
-    int damage, speed, lastAttackFrame;
-    std::unordered_set<std::string> damageType;
-    CDamage() {}
-    CDamage(int dmg, int spd) : damage(dmg), speed(spd), lastAttackFrame(-spd) {}
-    CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), speed(spd), lastAttackFrame(-spd), damageType(dmgType) {}
-}; 
-
-struct CDialog
-{
-    Vec2 pos;
-    Vec2 size;
-    SDL_Texture* dialog;
-    CDialog() {}
-    CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia) 
-        : pos(p), size(sz), dialog(dia){}
-};
-
-struct CPathfind
-{
-    Vec2 target;
-    EntityID target2;
-    CPathfind() {}
-    CPathfind( Vec2 trg, EntityID trg2 ) 
-        : target(trg), target2(trg2) {}
-};
-
-struct CKnockback
-{
-    int duration;
-    int magnitude;
-    int timeElapsed = 0;
-    Vec2 direction;
-    CKnockback() {}
-    CKnockback( int dur, int mag, Vec2 dir) 
-        : duration(dur), magnitude(mag), direction(dir) {}
-};
-
-struct CWeapon
-{
-    Animation animation;
-    int damage;
-    int speed;
-    int range;
-    bool ranged;
-    std::string type;
-    CWeapon() {}
-    CWeapon(const Animation& animation, int damage, int speed, int range)
-                : animation(animation), damage(damage), speed(speed), range(range){}
-};
-
-// struct CScript
-// {
-//     ScriptableEntity* Instance = nullptr;
-
-//     ScriptableEntity* (*InstantiateScript)();
-//     void (*DestroyInstanceScript)(CScript*);
-
-//     template<typename T>
-//     void Bind(){
-//         InstantiateScript    = []() {return static_cast<ScriptableEntity*>(new T()); }; 
-//         DestroyInstanceScript = [](CScript* sc) { delete sc->Instance; sc->Instance = nullptr;};
-//     }
-// };
-
-
-// std::unordered_map<EntityID, CTransform> transformComponents;
-// std::unordered_map<EntityID, CHealth> healthComponents;
-
-// std::unordered_map<EntityID, CInputs> inputsComponents;
-// std::unordered_map<EntityID, CTransform> transformComponents;
-// std::unordered_map<EntityID, CBoundingBox> boundingBoxComponents;
-// std::unordered_map<EntityID, CHealth> healthComponents;
-// std::unordered_map<EntityID, CAnimation> animationComponents;
-// std::unordered_map<EntityID, CState> stateComponents;
-// std::unordered_map<EntityID, CProjectileState> projectileStateComponents;
-// std::unordered_map<EntityID, CName> nameComponents;
-// std::unordered_map<EntityID, CShadow> shadowComponents;
-// std::unordered_map<EntityID, CDamage> damageComponents;
-// std::unordered_map<EntityID, CDialog> dialogComponents;
-// std::unordered_map<EntityID, CPathfind> pathfindComponents;
-// std::unordered_map<EntityID, CKnockback> knockbackComponents;
-// std::unordered_map<EntityID, CWeapon> weaponComponents;
-// std::unordered_map<EntityID, CScript> scriptComponents;

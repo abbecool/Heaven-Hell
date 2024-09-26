@@ -13,7 +13,12 @@ enum struct PlayerState {
     RUN_LEFT = 4
 };
 
-struct CInputs
+struct CComponent
+{
+
+};
+
+struct CInputs : public CComponent
 {
     bool up         = false;
     bool down       = false;
@@ -25,7 +30,7 @@ struct CInputs
     bool canShoot   = false;
 };
 
-struct CTransform
+struct CTransform : public CComponent
 {
     Vec2 pos;    
     Vec2 prevPos;
@@ -37,13 +42,13 @@ struct CTransform
     float tempo = 1.0f;
 };
 
-struct CBoundingBox
+struct CBoundingBox : public CComponent
 {
     Vec2 size;
     Vec2 halfSize;
 };
 
-struct CHealth
+struct CHealth : public CComponent
 {
     int HP;
     int HP_max;
@@ -55,56 +60,57 @@ struct CHealth
     std::unordered_set<std::string> HPType;
 };
 
-struct CAnimation
+struct CAnimation : public CComponent
 {
     Animation animation;
     bool repeat = false;
+    int layer;
 };  
 
-struct CState
+struct CState : public CComponent
 {
     PlayerState state;
     PlayerState preState; 
     bool changeAnimate = false;
 }; 
 
-struct CProjectileState
+struct CProjectileState : public CComponent
 {
         std::string state;
     bool changeAnimate = false;
 }; 
 
-struct CName
+struct CName : public CComponent
 {
     std::string name;
 }; 
 
-struct CShadow
+struct CShadow : public CComponent
 {
     Animation animation;
     size_t size;
 };  
 
-struct CDamage
+struct CDamage : public CComponent
 {
     int damage, speed, lastAttackFrame;
     std::unordered_set<std::string> damageType;
 }; 
 
-struct CDialog
+struct CDialog : public CComponent
 {
     Vec2 pos;
     Vec2 size;
     SDL_Texture* dialog;
 };
 
-struct CPathfind
+struct CPathfind : public CComponent
 {
     Vec2 target;
     int target2;
 };
 
-struct CKnockback
+struct CKnockback : public CComponent
 {
     int duration;
     int magnitude;
@@ -112,7 +118,7 @@ struct CKnockback
     Vec2 direction;
 };
 
-struct CWeapon
+struct CWeapon : public CComponent
 {
     Animation animation;
     int damage;
@@ -122,7 +128,7 @@ struct CWeapon
     std::string type;
 };
 
-// struct CScript
+// struct CScript : public CComponent
 // {
 // //     ScriptableEntity* Instance = nullptr;
 
