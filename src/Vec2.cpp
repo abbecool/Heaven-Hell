@@ -97,7 +97,8 @@ bool Vec2::isnull () const
 
 float Vec2::length () const
 {
-    return sqrt(pow(x,2) + pow(y,2));
+    return std::hypot(x, y);
+    //return sqrt(pow(x,2) + pow(y,2));
 }
 
 Vec2 Vec2::norm () const

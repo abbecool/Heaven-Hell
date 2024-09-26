@@ -23,7 +23,7 @@
 # Compiled Static libraries
 *.lai
 # *.la
-# *.a
+# *.agit add 
 *.lib
 
 # Executables
@@ -33,6 +33,7 @@
 
 # Test scripts
 test_*
+.vs
 
 # vsc settings
 .vscode
