@@ -521,22 +521,22 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
-    auto view = m_ECS.view<CTransform, CState>();
+    auto view = m_ECS.view<CAnimation, CState>();
     for ( auto e : view ){
-        if( view.getComponent<CTransform>(e).vel.isnull() ) {
+        if( m_ECS.getComponent<CTransform>(e).vel.isnull() ) {
             changePlayerStateTo(e, PlayerState::STAND);
-        } else if( view.getComponent<CTransform>(e).vel.mainDir().x > 0 ) {
+        } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().x > 0 ) {
             changePlayerStateTo(e, PlayerState::RUN_RIGHT);
-        } else if(view.getComponent<CTransform>(e).vel.mainDir().x < 0) {
+        } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().x < 0) {
             changePlayerStateTo(e, PlayerState::RUN_LEFT);
-        } else if(view.getComponent<CTransform>(e).vel.mainDir().y > 0) {
+        } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().y > 0) {
             changePlayerStateTo(e, PlayerState::RUN_DOWN);
-        } else if(view.getComponent<CTransform>(e).vel.mainDir().y < 0) {
+        } else if(m_ECS.getComponent<CTransform>(e).vel.mainDir().y < 0) {
             changePlayerStateTo(e, PlayerState::RUN_UP);
         }
         // // change player animation
         if (view.getComponent<CState>(e).changeAnimate) {
-            m_ECS.getComponent<CAnimation>(e).animation.setRow((int)m_ECS.getComponent<CState>(e).state);
+            view.getComponent<CAnimation>(e).animation.setRow((int)view.getComponent<CState>(e).state);
         }
     }
 
@@ -573,10 +573,10 @@ void Scene_Play::sRender() {
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        auto viewSorted = m_ECS.view_sorted<CAnimation>();
-        auto view = m_ECS.view<CTransform, CAnimation>();
+        //auto viewSorted = m_ECS.view_sorted<CAnimation>();
+        auto view = m_ECS.view<CAnimation, CTransform>();
          //for (auto e : view){
-        for (auto e : viewSorted){
+        for (auto e : view){
                 
             auto& transform = m_ECS.getComponent<CTransform>(e);
             auto& animation = m_ECS.getComponent<CAnimation>(e).animation;
