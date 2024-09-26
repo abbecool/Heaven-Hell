@@ -13,6 +13,7 @@
 *.idb
 *.pdb
 *.ini
+*.ilk
 
 # Precompiled Headers
 *.gch
@@ -39,9 +40,9 @@
 *.app
 
 # # Build dirs
-# Binaries/*
-# !Binaries/.gitkeep
-# # /obj/
+Binaries/*
+!Binaries/.gitkeep
+/obj/
 
 # Test scripts
 test_*
