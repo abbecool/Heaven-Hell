@@ -567,19 +567,19 @@ void Scene_Play::sAnimation() {
     // }
 }
 
+        //auto viewSorted = m_ECS.view_sorted<CAnimation>();
 void Scene_Play::sRender() {
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        //auto viewSorted = m_ECS.view_sorted<CAnimation>();
-        auto view = m_ECS.view<CAnimation, CTransform>();
+        ComponentPool<CAnimation> view = m_ECS.view<CAnimation>();
          //for (auto e : view){
         for (auto e : view){
                 
-            auto& transform = m_ECS.getComponent<CTransform>(e);
-            auto& animation = m_ECS.getComponent<CAnimation>(e).animation;
+            CTransform& transform = m_ECS.getComponent<CTransform>(e);
+            Animation& animation = m_ECS.getComponent<CAnimation>(e).animation;
 
             // Adjust the entity's position based on the camera position
             Vec2 adjustedPos = transform.pos - m_camera.position;

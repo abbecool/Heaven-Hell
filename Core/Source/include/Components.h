@@ -100,7 +100,6 @@ public:
 class CAnimation: public Component
 {
 public:
-    // SDL_Sprite sprite;
     Animation animation;
     bool repeat = false;
     int layer = 5;
