@@ -571,13 +571,13 @@ void Scene_Play::sRender() {
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        auto viewSorted = m_ECS.view_sorted<CAnimation>();
-        auto view = m_ECS.view<CTransform, CAnimation>();
-        // for (auto e : view){
-        for (auto e : viewSorted){
+        // auto viewSorted = m_ECS.view_sorted<CAnimation>();
+        auto view = m_ECS.view<CAnimation>();
+        for (auto e : view){
+        // for (auto e : viewSorted){
                 
-            auto& transform = view.getComponent<CTransform>(e);
-            auto& animation = view.getComponent<CAnimation>(e).animation;
+            auto& transform = m_ECS.getComponent<CTransform>(e);
+            auto& animation = m_ECS.getComponent<CAnimation>(e).animation;
 
             // Adjust the entity's position based on the camera position
             Vec2 adjustedPos = transform.pos - m_camera.position;
