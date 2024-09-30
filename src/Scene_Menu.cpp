@@ -186,7 +186,7 @@ void Scene_Menu::sDoAction(const Action& action) {
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
                         m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y - 8;
                         if ( name == "new" ){
-                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
+                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
                         } else if ( name == "continue" ){
                             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", false));
                         }

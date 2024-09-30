@@ -82,6 +82,9 @@
         "variant": "cpp",
         "list": "cpp",
         "xhash": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "any": "cpp",
+        "bitset": "cpp",
+        "queue": "cpp"
     }
 }

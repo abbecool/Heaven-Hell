@@ -183,11 +183,16 @@ class CPathfind : public Component
 {
     public:    
     Vec2 target;
-    std::shared_ptr<Entity> target2;
 
     CPathfind() {}
-    CPathfind( Vec2 trg, std::shared_ptr<Entity> trg2 ) 
-        : target(trg), target2(trg2) {}
+    CPathfind( Vec2 trg) 
+        : target(trg){}
+};
+
+class CLoot : public Component
+{
+    public:
+    CLoot() {}
 };
 
 class CKnockback : public Component

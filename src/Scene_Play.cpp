@@ -280,15 +280,13 @@ void Scene_Play::update() {
 }
 
 void Scene_Play::sMovement() {
-    // TODO: make a view reference
-    auto& view = m_ECS.view<CInputs>();
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
+
     auto& inputPool = m_ECS.getComponentPool<CInputs>();
+    auto& view = m_ECS.view<CInputs>();
     for (auto e : view){    
         auto &transform = transformPool.getComponent(e);
-        // auto &transform = m_ECS.getComponent<CTransform>(e);
         auto &inputs = inputPool.getComponent(e);
-        // auto &inputs = m_ECS.getComponent<CInputs>(e);
 
         if ( e == m_player ){
             transform.vel = { 0,0 };
@@ -318,16 +316,7 @@ void Scene_Play::sMovement() {
         //     }
         // }
 
-        // if (m_ECS.hasComponent<CPathfind>(e)) {
-        //     Vec2& target = m_ECS.getComponent<CPathfind>(e).target;
-        //     if ((target - transform.pos).length() < 64*2) {
-        //         transform.vel = target - transform.pos;
-        //     } else {
-        //         transform.vel = Vec2 {0,0};
-        //     }
-        //     target = m_ECS.getComponent<CTransform>(m_player).pos;
-        // }
-
+        // Update position
         transform.prevPos = transform.pos;
         if (!(transform.vel.isnull()) && transform.isMovable ){
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
@@ -352,6 +341,27 @@ void Scene_Play::sMovement() {
         //     e->setInCamera(true);
         // }
     }
+    auto& pathfindPool = m_ECS.getComponentPool<CPathfind>();
+    auto& view1 = m_ECS.view<CPathfind>();
+    for (auto e : view1)
+    {
+        auto& transform = transformPool.getComponent(e);
+        auto& pathfind = pathfindPool.getComponent(e);
+        Vec2& target = pathfind.target;
+        if ((target - transform.pos).length() < 64*2) {
+            transform.vel = target - transform.pos;
+        } else {
+            transform.vel = Vec2 {0,0};
+        }
+        target = transformPool.getComponent(m_player).pos;
+
+         // Update position
+        transform.prevPos = transform.pos;
+        if (!(transform.vel.isnull()) && transform.isMovable ){
+            transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
+        }
+    }
+    
 }
 
 void Scene_Play::sCollision() {
@@ -364,6 +374,14 @@ void Scene_Play::sCollision() {
         if ( m_physics.isCollided(player, entity) )
         {
             player.getComponent<CTransform>().pos += m_physics.overlap(player,entity);
+        }
+    }
+    auto& viewLoot = m_ECS.getComponentPool<CLoot>();
+    for (auto e : viewLoot ){
+        Entity entity = {e, &m_ECS};
+        if ( m_physics.isCollided(player, entity) )
+        {
+            m_ECS.removeEntity(e);
         }
     }
 //     for ( auto o : m_entities.getEntities("Obstacle") ) 
@@ -449,6 +467,19 @@ void Scene_Play::sCollision() {
 //             }
 //         }
 //     }
+    auto& viewP = m_ECS.view<CPathfind>();
+    for (auto e1 : viewP)
+    {
+        Entity entity1 = {e1, &m_ECS}; 
+        for (auto e2 : viewP)
+        {
+            Entity entity2 = {e2, &m_ECS}; 
+            if ( m_physics.isCollided(entity1,entity2) ) 
+            {
+                m_ECS.getComponent<CTransform>(e1).pos += m_physics.overlap(entity1,entity2);
+            }
+        }
+    }
 
 // // ------------------------------- Projectile collisions -------------------------------------------------------------------------
 
@@ -513,11 +544,6 @@ void Scene_Play::sCollision() {
 }
 
 void Scene_Play::sStatus() {
-    // if ( m_player->getLinkEntity() ){
-    //     m_player->getComponent<CInputs>().canShoot = true;
-    // } else {
-    //     m_player->getComponent<CInputs>().canShoot = false;
-    // }
     if ( m_ECS.getComponent<CHealth>(m_player).HP <= 0 ){
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
     }
@@ -909,6 +935,7 @@ void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
+    m_ECS.addComponent<CLoot>(entity);
 }
 
 void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
@@ -921,7 +948,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 48});
-    // m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos, m_player);
+    m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
