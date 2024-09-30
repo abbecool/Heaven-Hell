@@ -32,7 +32,7 @@
 *.lai
 *.la
 *.agit 
-*.lib
+# *.lib
 
 # Executables
 *.exe
