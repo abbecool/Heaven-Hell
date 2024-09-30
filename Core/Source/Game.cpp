@@ -59,10 +59,6 @@ int Game::framerate(){
 
 void Game::run()
 {
-    // std::chrono::steady_clock::time_point current_frame = std::chrono::steady_clock::now();
-    // std::chrono::steady_clock::time_point next_frame;
-    // std::chrono::duration time_diff;
-
     std::chrono::steady_clock::time_point current_frame = std::chrono::steady_clock::now();
     std::chrono::steady_clock::time_point next_frame;
     std::chrono::steady_clock::time_point last_fps_update = current_frame;
@@ -84,7 +80,7 @@ void Game::run()
         SDL_RenderPresent( m_renderer );
         m_currentFrame++;
 
-        std::this_thread::sleep_until(next_frame);
+        // std::this_thread::sleep_until(next_frame);
 
         auto frame_time = std::chrono::steady_clock::now() - current_frame;
         auto frame_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(frame_time).count();
