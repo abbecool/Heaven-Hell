@@ -32,7 +32,8 @@
 *.lai
 *.la
 *.agit 
-# *.lib
+*.lib
+*.vcxproj
 
 # Executables
 *.exe
