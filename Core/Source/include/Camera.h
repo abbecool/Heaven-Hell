@@ -15,7 +15,7 @@ class Camera {
     int shakeTimeElapsed;
     float panSpeed;
     int panTimeElapsed;
-    float i;
+    int i;
     bool panInitPause;
     bool m_cameraPause;
     Vec2 panPos = Vec2{0,0};

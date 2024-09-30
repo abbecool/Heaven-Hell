@@ -33,7 +33,7 @@ class Scene_Play : public Scene
     bool cameraFollow = true;
     float cameraZoom = 1;
     bool m_drawTextures = true;
-    bool m_drawCollision = true;
+    bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
     bool m_newGame;
 
@@ -56,7 +56,7 @@ class Scene_Play : public Scene
     void spawnWeapon(Vec2 pos );
     void spawnProjectile(EntityID player, Vec2 vel);
     void spawnCoin(Vec2 pos, const size_t layer);
-    void spawnSmallEnemy(Vec2 pos, const size_t layer);
+    void spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
 
     void spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     void spawnCloud     (const Vec2 pos, bool movable, const int frame);

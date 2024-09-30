@@ -89,7 +89,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include;C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include\SDL2;C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\include;C:\Users\albin\projects\privat\Heaven-Hell\Core\Source\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

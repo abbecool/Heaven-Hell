@@ -34,11 +34,9 @@ Texture     mountain_dual_sheet         assets/images/dual_sheets/mountain_dual_
 Texture     dirt_dual_sheet             assets/images/dual_sheets/dirt_dual_sheet.png
 Texture     cloud_dual_sheet            assets/images/dual_sheets/cloud_dual_sheet.png
 Texture     lava_dual_sheet             assets/images/dual_sheets/lava_dual_sheet.png
-Texture     level0                      assets/images/levels/level0.png
+Texture     levelStartingArea           assets/images/levels/levelStartingArea.png
 Texture     level1                      assets/images/levels/level1.png
 Texture     level2                      assets/images/levels/level2.png
-Texture     level3                      assets/images/levels/level3.png
-Texture     level4                      assets/images/levels/level4.png
 Texture     title_screen                assets/images/title_screen.png
 Texture     shadow                      assets/images/shadow.png
 Texture     wizIdle                     assets/images/wizIdle.png
@@ -61,7 +59,8 @@ Texture     rooterWalkW                 assets/images/smallEnemy-sheetW.png
 Texture     rooterWalkN                 assets/images/smallEnemy-sheetN.png
 Texture     rooterWalkE                 assets/images/smallEnemy-sheetE.png
 Texture     rooter                      assets/images/rooter-sheet.png
-Texture     staff                      assets/images/staff.png
+Texture     goblin                      assets/images/goblin-sheet.png
+Texture     staff                       assets/images/staff.png
 
 Font        minecraft                   assets/fonts/Minecraft.ttf
 
@@ -97,11 +96,9 @@ Animation   devil                       devil                       1   100   1 
 Animation   fireball                    fireball                    4   15    4  1
 Animation   fireball_explode            fireball_explode            3   5     3  1
 Animation   fireball_create             fireball_create             3   15    3  1
-Animation   level0                      level0                      1   100   1  1
+Animation   levelStartingArea           levelStartingArea           1   100   1  1
 Animation   level1                      level1                      1   100   1  1
 Animation   level2                      level2                      1   100   1  1
-Animation   level3                      level3                      1   100   1  1
-Animation   level4                      level4                      1   100   1  1
 Animation   title_screen                title_screen                1   100   1  1
 Animation   shadow                      shadow                      1   100   1  1
 Animation   wizIdle                     wizIdle                     4   20    1  1
@@ -124,6 +121,7 @@ Animation   rooterWalkW                 rooterWalkW                 4   20    1 
 Animation   rooterWalkN                 rooterWalkN                 4   20    1  1
 Animation   rooterWalkE                 rooterWalkE                 4   20    1  1
 Animation   rooter                      rooter                      4   20    4  5
+Animation   goblin                      goblin                      4   20    4  5
 
 Animation   grass_dual_sheet            grass_dual_sheet            1   100   4     7   
 Animation   water_dual_sheet            water_dual_sheet            1   100   4     7  

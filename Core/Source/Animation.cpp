@@ -26,19 +26,19 @@ Animation::Animation(
     m_currentCol(0)
 {
     m_size = Vec2((float)getTextureSize().x / cols, (float)getTextureSize().y / rows);
-    setSrcRect( 0, 0,  (int)m_size.x, (int)m_size.y );
+    setSrcRect( 0, 0,  m_size.x, m_size.y );
 }
 
 // update the animation to show the next frame, depending on its speed
 // animation loops when it reaches the end
 void Animation::update() {
     m_currentFrame++;
-    int animFrame = (int)(m_currentFrame / m_speed) % m_frameCount;
+    size_t animFrame = (m_currentFrame / m_speed) % m_frameCount;
     setSrcRect(
-        (m_currentCol+animFrame) * (int)m_size.x,
-        m_currentRow * (int)m_size.y,
-        (int)m_size.x,
-        (int)m_size.y
+        (m_currentCol+animFrame) * m_size.x,
+        m_currentRow * m_size.y,
+        m_size.x,
+        m_size.y
     );
 }
 
@@ -90,14 +90,14 @@ void Animation::setSrcRect(const int x, const int y, const int w, const int h)
 
 void Animation::setDestRect(Vec2 pos)   
 {
-    m_destRect.x = (int)pos.x;
-    m_destRect.y = (int)pos.y;
+    m_destRect.x = pos.x;
+    m_destRect.y = pos.y;
 }
 
 void Animation::setDestSize(Vec2 size)   
 {
-    m_destRect.w = (int)size.x;
-    m_destRect.h = (int)size.y;
+    m_destRect.w = size.x;
+    m_destRect.h = size.y;
 }
 
 void Animation::setDestRect(const int x, const int y, const int w, const int h)   
@@ -118,25 +118,25 @@ void Animation::setTexture(SDL_Texture *tex) {
 }
 
 void Animation::setTile(Vec2 grid) {
-    m_currentCol = (int)grid.x;
-    m_currentRow = (int)grid.y;
+    m_currentCol = grid.x;
+    m_currentRow = grid.y;
 }
 
 SDL_Point Animation::getTextureSize()
 {
-    SDL_Point size{};
+    SDL_Point size;
     SDL_QueryTexture(m_texture, NULL, NULL, &size.x, &size.y);
     return size;
 }
 
-void Animation::setAngle(float angle) {
+void Animation::setAngle(double angle) {
     m_angle = angle;
 }
 
 void Animation::setScale(Vec2 scale) {
     m_scale = scale;
-    m_destRect.w = (int)( m_srcRect.w * scale.x );
-    m_destRect.h = (int)( m_srcRect.h * scale.y );
+    m_destRect.w = m_srcRect.w * scale.x;
+    m_destRect.h = m_srcRect.h * scale.y;
 }
 
 void Animation::setCurrentFrame(size_t frame){

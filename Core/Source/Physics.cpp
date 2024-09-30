@@ -5,17 +5,12 @@
 #include <cstdlib>
 #include <memory>
 
-bool Physics::isCollided(Entity a, Entity b)
+bool Physics::isCollided(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBox b2)
 {
-    if (a.getID() == b.getID())
-    {
-        return false;
-    }
-    
-    Vec2 aSize = a.getComponent<CBoundingBox>().size;
-    Vec2 bSize = b.getComponent<CBoundingBox>().size;
-    Vec2 aPos = a.getComponent<CTransform>().pos - a.getComponent<CBoundingBox>().halfSize;
-    Vec2 bPos = b.getComponent<CTransform>().pos - b.getComponent<CBoundingBox>().halfSize;
+    Vec2 aSize = b1.size;
+    Vec2 bSize = b2.size;
+    Vec2 aPos = t1.pos - b1.halfSize;
+    Vec2 bPos = t2.pos - b2.halfSize;
 
     bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
     bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
@@ -42,14 +37,14 @@ bool Physics::isStandingIn(Entity a, Entity b)
     return (x_overlap && y_overlap);
 }
 
-Vec2 Physics::overlap(Entity a, Entity b)
+Vec2 Physics::overlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBox b2)
 {    
-    Vec2 aSize = a.getComponent<CBoundingBox>().halfSize;
-    Vec2 bSize = b.getComponent<CBoundingBox>().halfSize;
-    Vec2 aPos = a.getComponent<CTransform>().pos - a.getComponent<CBoundingBox>().halfSize;
-    Vec2 bPos = b.getComponent<CTransform>().pos - b.getComponent<CBoundingBox>().halfSize;
-    Vec2 aPrevPos = a.getComponent<CTransform>().prevPos - a.getComponent<CBoundingBox>().halfSize;
-    Vec2 bPrevPos = b.getComponent<CTransform>().prevPos - b.getComponent<CBoundingBox>().halfSize;
+    Vec2 aSize = b1.halfSize;
+    Vec2 bSize = b2.halfSize;
+    Vec2 aPos = t1.pos - b1.halfSize;
+    Vec2 bPos = t2.pos - b2.halfSize;
+    Vec2 aPrevPos = t1.prevPos - b1.halfSize;
+    Vec2 bPrevPos = t2.prevPos - b2.halfSize;
 
     Vec2 delta          =   ( (aPos       + aSize) - (bPos      + bSize) ).abs_elem();
     Vec2 prevDelta      =   ( (aPrevPos   + aSize) - (bPrevPos  + bSize) ).abs_elem();
@@ -99,7 +94,7 @@ Vec2 Physics::getOverlap(Entity a, Entity b) {
 Vec2 Physics::knockback(CKnockback& knockback){
     knockback.timeElapsed += 16;
     if (knockback.timeElapsed < knockback.duration) {
-        return knockback.direction.norm()*(float)knockback.magnitude/(float)(knockback.duration/16);
+        return knockback.direction.norm()*knockback.magnitude/(knockback.duration/16);
     } else {
         // Reset the  when the duration is over
         knockback.duration = 0;

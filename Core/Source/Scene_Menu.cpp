@@ -47,44 +47,44 @@ Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, Entity entity) {
     Vec2 eScale;
     switch ((int)eSize.y) {
         case 270:
-            eScale.x = 0.15f;
-            eScale.y = 0.18f;
+            eScale.x = 0.15;
+            eScale.y = 0.18;
             break;
         case 225:
-            eScale.x = 0.18f;
-            eScale.y = 0.18f;
+            eScale.x = 0.18;
+            eScale.y = 0.18;
             break;
         case 192:
-            eScale.x = 1.0f;
-            eScale.y = 1.0f;
-            eSize.x = 64.0f;
-            eSize.y = 64.0f;
+            eScale.x = 1;
+            eScale.y = 1;
+            eSize.x = 64;
+            eSize.y = 64;
             break;
         case 128:
-            eScale.x = 2.0f;
-            eScale.y = 2.0f;
-            eSize.x = 32.0f;
-            eSize.y = 32.0f;
+            eScale.x = 2;
+            eScale.y = 2;
+            eSize.x = 32;
+            eSize.y = 32;
             break;
         case 64:
-            eScale.x = 1.0f;
-            eScale.y = 1.0f;
+            eScale.x = 1.0;
+            eScale.y = 1.0;
             break;
         case 32:
-            eScale.x = 2.0f;
-            eScale.y = 2.0f;
+            eScale.x = 2.0;
+            eScale.y = 2.0;
             break;
         case 16:
-            eScale.x = 4.0f;
-            eScale.y = 4.0f;
+            eScale.x = 4.0;
+            eScale.y = 4.0;
             break;
         case 24:
-            eScale.x = 2.0f;
-            eScale.y = 2.0f;
+            eScale.x = 2.0;
+            eScale.y = 2.0;
             break; 
         default:
-            eScale.x = 1.0f;
-            eScale.y = 1.0f;
+            eScale.x = 1.0;
+            eScale.y = 1.0;
     }
     
     offset = (m_gridSize - eSize * eScale) / 2.0;
@@ -108,11 +108,11 @@ void Scene_Menu::loadMenu(){
     Entity entity1 = {entityId1, &m_ECS};
     entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
     entity1.addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
-    entity1.getComponent<CTransform>().scale = Vec2{1.2f, 1.2f};
+    entity1.getComponent<CTransform>().scale = Vec2{1.2, 1.2};
     entity1.addComponent<CName>("game_title");
 
-    spawnButton(Vec2 {64*3.2f,64*8.1f}, "button_unpressed", "new", "NEW GAME");
-    spawnButton(Vec2 {64*3.2f,64*9.7f}, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2 {64*3.2,64*8.1}, "button_unpressed", "new", "NEW GAME");
+    spawnButton(Vec2 {64*3.2,64*9.7}, "button_unpressed", "continue", "CONTINUE");
 
     // m_ECS.update();
     // m_ECS.sort();
@@ -186,9 +186,9 @@ void Scene_Menu::sDoAction(const Action& action) {
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
                         m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y - 8;
                         if ( name == "new" ){
-                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
+                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
                         } else if ( name == "continue" ){
-                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", false));
+                            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", false));
                         }
                     }
                 }
@@ -265,11 +265,11 @@ void Scene_Menu::sRender() {
             auto dialog = m_ECS.getComponent<CDialog>(e);
             auto Bbox = m_ECS.getComponent<CBoundingBox>(e);
 
-            SDL_Rect texRect{};
-            texRect.x = (int)(dialog.pos.x - Bbox.halfSize.x * 0.9f);
-            texRect.y = (int)(dialog.pos.y - Bbox.halfSize.y * 0.8f);
-            texRect.w = (int)(dialog.size.x * 0.9f);
-            texRect.h = (int)(dialog.size.y * 0.8f);
+            SDL_Rect texRect;
+            texRect.x = dialog.pos.x - Bbox.halfSize.x*0.9;
+            texRect.y = dialog.pos.y - Bbox.halfSize.y*0.8;
+            texRect.w = dialog.size.x*0.9;
+            texRect.h = dialog.size.y*0.8;
 
             SDL_RenderCopyEx(
                     m_game->renderer(), 

@@ -10,11 +10,11 @@ public:
     SDL_Sprite(SDL_Texture* texture);
     ~SDL_Sprite();
 
-    void setDestPosition(int x, int y);
+    void setDestPosition(float x, float y);
     SDL_Rect* getDestRect();
-    void setSrcPosition(int x, int y, int w, int h);
+    void setSrcPosition(float x, float y, float w, float h);
     SDL_Rect* getSrcRect();
-    void setRotation(float angle);
+    void setRotation(double angle);
     void setScale(float scaleX, float scaleY);
     SDL_Texture* getTexture();
     void render(SDL_Renderer* renderer);
@@ -23,7 +23,7 @@ private:
     SDL_Texture* texture;
     SDL_Rect srcRect;
     SDL_Rect destRect;
-    float rotation;
+    double rotation;
     SDL_FPoint center;
     float scaleX, scaleY;
 

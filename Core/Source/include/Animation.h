@@ -49,7 +49,7 @@ class Animation
     void setDestRect(const int x, const int y, const int w, const int h);
     void setDestRect(Vec2 pos);
     void setDestSize(Vec2 size);
-    void setAngle(float angle);
+    void setAngle(double angle);
     void setScale(Vec2 scale);
     void setTexture(SDL_Texture *tex);
     void setTile(Vec2 grid);

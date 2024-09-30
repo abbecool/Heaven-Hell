@@ -84,7 +84,7 @@ void Game::run()
         SDL_RenderPresent( m_renderer );
         m_currentFrame++;
 
-        // std::this_thread::sleep_until(next_frame);
+        std::this_thread::sleep_until(next_frame);
 
         auto frame_time = std::chrono::steady_clock::now() - current_frame;
         auto frame_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(frame_time).count();
@@ -99,7 +99,7 @@ void Game::run()
             double average_fps = 1000.0 / average_frame_time;
 
             // Print the average FPS followed by a carriage return
-            std::cout << "FPS: " << average_fps << "\r";
+            std::cout << "FPS: " << average_fps << ", Entities: " << currentScene()->m_ECS.getNumEntities() << "." << "\r";
             std::cout.flush();  // Ensure the output is displayed immediately
 
             // Reset counters for the next second

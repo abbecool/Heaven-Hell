@@ -162,15 +162,19 @@ class ECS
     friend class Entity;
 public:
 
-    ECS(){};   
+    ECS(){}  
 
     EntityID addEntity(){   
         return m_numEntities++;
-    };
+    }
+
+    void removeEntity(EntityID entity){
+        m_numEntities--;
+    }
 
     EntityID getNumEntities(){
         return m_numEntities;
-    }    
+    }
     
     // Add a component to an entity
     template<typename T, typename... Args>
@@ -182,7 +186,7 @@ public:
     // Remove a component from an entityId
     template <typename T>
     void removeComponent(EntityID entityId) {
-        getOrCreateComponentPool<T>().removeComponent(entityId);
+        getComponentPool<T>().removeComponent(entityId);
     }
 
     // Check if an entity has a component
@@ -232,7 +236,6 @@ public:
 
     template<typename T>
     std::vector<EntityID> view_sorted() {
-        std::cout << "test" << std::endl;
         // Get the component pool for the given type
         ComponentPool<T>& pool = getComponentPool<T>();
         auto& componentMap = pool.getPool();
@@ -256,28 +259,6 @@ public:
         });
 
         return entitiesWithComponent;  // Return the sorted vector of entity IDs
-    }
-    template<typename T>
-    std::vector<std::pair<EntityID, T*>> sortComponentPoolByLayer() {
-        auto& pool = getComponentPool<T>();  // Assume this returns an unordered_map<EntityID, T>
-
-        // Create a vector of pointers to components with their corresponding EntityID
-        std::vector<std::pair<EntityID, T*>> sortedComponents;
-
-        // Reserve space for efficiency
-        sortedComponents.reserve(pool.size());
-
-        // Populate the vector with entity-component pairs
-        for (auto& [entityID, component] : pool) {
-            sortedComponents.emplace_back(entityID, &component);
-        }
-
-        // Sort the vector based on the 'layer' property in the component
-        std::sort(sortedComponents.begin(), sortedComponents.end(), [](const auto& a, const auto& b) {
-            return a.second->layer < b.second->layer;  // Sorting by the layer property
-        });
-
-        return sortedComponents;  // Return sorted components
     }
 private:
     // Map to store component pools for each component type

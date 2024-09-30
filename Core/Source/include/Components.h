@@ -50,7 +50,7 @@ public:
     Vec2 vel = {0, 0};    
     Vec2 scale = {0.5, 0.5};    
     float angle = 0;
-    float speed = 0;
+    int speed = 0;
     bool isMovable = false;
     float tempo = 1.0f;
     CTransform() {}
@@ -59,7 +59,7 @@ public:
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
         : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, float spd, bool mvbl) 
+    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, int spd, bool mvbl) 
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
@@ -110,6 +110,17 @@ public:
             : animation(animation), repeat(r), layer(l){}
 };  
 
+class CTopLayer: public Component
+{
+public:
+    CTopLayer() {}
+};
+
+class CBottomLayer: public Component
+{
+public:
+    CBottomLayer() {}
+};
 class CState : public Component
 {
     public:
@@ -172,11 +183,16 @@ class CPathfind : public Component
 {
     public:    
     Vec2 target;
-    std::shared_ptr<Entity> target2;
 
     CPathfind() {}
-    CPathfind( Vec2 trg, std::shared_ptr<Entity> trg2 ) 
-        : target(trg), target2(trg2) {}
+    CPathfind( Vec2 trg) 
+        : target(trg){}
+};
+
+class CLoot : public Component
+{
+    public:
+    CLoot() {}
 };
 
 class CKnockback : public Component
