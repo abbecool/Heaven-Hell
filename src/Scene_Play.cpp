@@ -55,8 +55,21 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_1, "LEVEL1");
     registerAction(SDLK_5, "LEVEL5");
     registerAction(SDLK_u, "SAVE");
+
     loadConfig("config.txt");
     loadLevel(levelPath);
+    
+    spawnPlayer();
+    // spawnHUD();
+    spawnCoin(Vec2{64*15,64*12}, 4);
+    spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
+    spawnWeapon(Vec2{64*14 , 64*29});
+    spawnSmallEnemy(Vec2{64*15 , 64*9}, 3);
+    spawnSmallEnemy(Vec2{64*10 , 64*10}, 3);
+    spawnSmallEnemy(Vec2{64*20 , 64*12}, 3);
+    spawnSmallEnemy(Vec2{64*13 , 64*24}, 3);
+    spawnGoal(Vec2{64*23, 64*8}, false);
+    spawnGoal(Vec2{64*37, 64*47}, false);
 }
 
 void Scene_Play::loadConfig(const std::string& confPath){
@@ -153,18 +166,6 @@ void Scene_Play::loadLevel(const std::string& levelPath){
         }
     }
 
-    spawnPlayer();
-    // spawnHUD();
-    spawnCoin(Vec2{64*15,64*12}, 4);
-    spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
-    spawnWeapon(Vec2{64*14 , 64*29});
-    spawnSmallEnemy(Vec2{64*15 , 64*9}, 3);
-    spawnSmallEnemy(Vec2{64*10 , 64*10}, 3);
-    spawnSmallEnemy(Vec2{64*20 , 64*12}, 3);
-    spawnSmallEnemy(Vec2{64*13 , 64*24}, 3);
-    spawnGoal(Vec2{64*23, 64*8}, false);
-    spawnGoal(Vec2{64*37, 64*47}, false);
-
     m_ECS.update();
     // m_ECS.sort();
 }
@@ -192,7 +193,7 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if (action.name() == "SAVE"){
             saveGame("game_save.txt");
         } else if (action.name() == "LEVEL0") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level00.png", true));
         } else if (action.name() == "LEVEL1") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level1.png", true));
         } else if (action.name() == "LEVEL5") { 
@@ -272,7 +273,7 @@ void Scene_Play::update() {
         //     // memory leak, destroy 
         // }
         sCollision();
-        sStatus();
+        // sStatus();
         sAnimation();
     }
     sRender();
@@ -280,10 +281,14 @@ void Scene_Play::update() {
 
 void Scene_Play::sMovement() {
     // TODO: make a view reference
-    auto view = m_ECS.view<CTransform, CInputs>();
+    auto& view = m_ECS.view<CInputs>();
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& inputPool = m_ECS.getComponentPool<CInputs>();
     for (auto e : view){    
-        auto &transform = m_ECS.getComponent<CTransform>(e);
-        auto &inputs = m_ECS.getComponent<CInputs>(e);
+        auto &transform = transformPool.getComponent(e);
+        // auto &transform = m_ECS.getComponent<CTransform>(e);
+        auto &inputs = inputPool.getComponent(e);
+        // auto &inputs = m_ECS.getComponent<CInputs>(e);
 
         if ( e == m_player ){
             transform.vel = { 0,0 };
@@ -519,22 +524,28 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
-    auto view = m_ECS.view<CTransform, CState>();
+    auto& view = m_ECS.view<CState>();
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& statePool = m_ECS.getComponentPool<CState>();
+    auto& animationPool = m_ECS.getComponentPool<CAnimation>();
     for ( auto e : view ){
-        if( view.getComponent<CTransform>(e).vel.isnull() ) {
+        auto& transform = transformPool.getComponent(e);
+        auto& state = statePool.getComponent(e);
+        auto& animation = animationPool.getComponent(e).animation;
+        if( transform.vel.isnull() ) {
             changePlayerStateTo(e, PlayerState::STAND);
-        } else if( view.getComponent<CTransform>(e).vel.mainDir().x > 0 ) {
+        } else if( transform.vel.mainDir().x > 0 ) {
             changePlayerStateTo(e, PlayerState::RUN_RIGHT);
-        } else if(view.getComponent<CTransform>(e).vel.mainDir().x < 0) {
+        } else if(transform.vel.mainDir().x < 0) {
             changePlayerStateTo(e, PlayerState::RUN_LEFT);
-        } else if(view.getComponent<CTransform>(e).vel.mainDir().y > 0) {
+        } else if(transform.vel.mainDir().y > 0) {
             changePlayerStateTo(e, PlayerState::RUN_DOWN);
-        } else if(view.getComponent<CTransform>(e).vel.mainDir().y < 0) {
+        } else if(transform.vel.mainDir().y < 0) {
             changePlayerStateTo(e, PlayerState::RUN_UP);
         }
         // // change player animation
-        if (view.getComponent<CState>(e).changeAnimate) {
-            m_ECS.getComponent<CAnimation>(e).animation.setRow((int)m_ECS.getComponent<CState>(e).state);
+        if (state.changeAnimate) {
+            animation.setRow((int)state.state);
         }
     }
 
@@ -549,10 +560,11 @@ void Scene_Play::sAnimation() {
         // }
     // }
 
-    auto &view2 = m_ECS.view<CAnimation>();
+    auto& view2 = m_ECS.view<CAnimation>();
+    // auto& animationPool = m_ECS.getComponentPool<CAnimation>();
     for ( auto e : view2 ){
-        // auto& animation = m_ECS.getComponent<CAnimation>(e);
-        auto& animation = view2.getComponent(e);
+        auto& animation = animationPool.getComponent(e);
+        // auto& animation = animationPool.getComponent(e);
         if (animation.animation.hasEnded() && !animation.repeat) {
             // if (m_ECS.getComponent<CName>(e).name == "Dragon") {
             //     m_ECS.addComponent<CAnimation>(e, m_game->assets().getAnimation("snoring_dragon"), true);
@@ -572,12 +584,17 @@ void Scene_Play::sRender() {
 
     if (m_drawTextures){
         // auto viewSorted = m_ECS.view_sorted<CAnimation>();
-        auto view = m_ECS.view<CAnimation>();
+
+        auto& view = m_ECS.view<CAnimation>();
+        auto& transformPool = m_ECS.getComponentPool<CTransform>();
+        auto& animationPool = m_ECS.getComponentPool<CAnimation>();
+        // auto& shadowPool = m_ECS.getComponentPool<CShadow>();
         for (auto e : view){
         // for (auto e : viewSorted){
                 
-            auto& transform = m_ECS.getComponent<CTransform>(e);
-            auto& animation = m_ECS.getComponent<CAnimation>(e).animation;
+            auto& transform = transformPool.getComponent(e);
+            // auto& animation = view.getComponent(e).animation;
+            auto& animation = animationPool.getComponent(e).animation;
 
             // Adjust the entity's position based on the camera position
             Vec2 adjustedPos = transform.pos - m_camera.position;
@@ -585,16 +602,16 @@ void Scene_Play::sRender() {
 
             // }
 
-            if ( m_ECS.hasComponent<CShadow>(e) ){
-                auto& shadow = m_ECS.getComponent<CShadow>(e);
+            // if ( m_ECS.hasComponent<CShadow>(e) ){
+            //     auto& shadow = shadowPool.getComponent(e);
 
-                // Set the destination rectangle for rendering
-                shadow.animation.setScale(transform.scale*cameraZoom);
-                shadow.animation.setAngle(transform.angle);
-                shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
+            //     // Set the destination rectangle for rendering
+            //     shadow.animation.setScale(transform.scale*cameraZoom);
+            //     shadow.animation.setAngle(transform.angle);
+            //     shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
                 
-                spriteRender(shadow.animation);
-            } 
+            //     spriteRender(shadow.animation);
+            // } 
 
             animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
@@ -602,87 +619,92 @@ void Scene_Play::sRender() {
             
             spriteRender(animation);
 
-            if (m_ECS.hasComponent<CHealth>(e) && e != m_player){
-                if ( (int)m_currentFrame - m_ECS.getComponent<CHealth>(e).damage_frame < m_ECS.getComponent<CHealth>(e).heart_frames) {
+            // if (m_ECS.hasComponent<CHealth>(e) && e != m_player){
+            //     if ( (int)m_currentFrame - m_ECS.getComponent<CHealth>(e).damage_frame < m_ECS.getComponent<CHealth>(e).heart_frames) {
 
-                    Animation animation;
-                    auto hearts = float(m_ECS.getComponent<CHealth>(e).HP)/2;
+            //         Animation animation;
+            //         auto hearts = float(m_ECS.getComponent<CHealth>(e).HP)/2;
 
-                    for (int i = 1; i <= m_ECS.getComponent<CHealth>(e).HP_max/2; i++)
-                    {   
-                        if ( hearts >= i ){
-                            animation = m_ECS.getComponent<CHealth>(e).animation_full;
-                        } else if ( i-hearts == 0.5f ){
-                            animation = m_ECS.getComponent<CHealth>(e).animation_half;
-                        } else{
-                            animation = m_ECS.getComponent<CHealth>(e).animation_empty;
-                        }
+            //         for (int i = 1; i <= m_ECS.getComponent<CHealth>(e).HP_max/2; i++)
+            //         {   
+            //             if ( hearts >= i ){
+            //                 animation = m_ECS.getComponent<CHealth>(e).animation_full;
+            //             } else if ( i-hearts == 0.5f ){
+            //                 animation = m_ECS.getComponent<CHealth>(e).animation_half;
+            //             } else{
+            //                 animation = m_ECS.getComponent<CHealth>(e).animation_empty;
+            //             }
 
-                        animation.setScale(Vec2{2, 2}*cameraZoom);
-                        animation.setDestRect(Vec2{
-                            adjustedPos.x + (float)(i-1-(float)m_ECS.getComponent<CHealth>(e).HP_max/4)*animation.getSize().x*animation.getScale().x, 
-                            adjustedPos.y - m_ECS.getComponent<CAnimation>(e).animation.getSize().y * m_ECS.getComponent<CAnimation>(e).animation.getScale().y / 2
-                        });
-                        spriteRender(animation);
-                    }
-                }
-            }
+            //             animation.setScale(Vec2{2, 2}*cameraZoom);
+            //             animation.setDestRect(Vec2{
+            //                 adjustedPos.x + (float)(i-1-(float)m_ECS.getComponent<CHealth>(e).HP_max/4)*animation.getSize().x*animation.getScale().x, 
+            //                 adjustedPos.y - m_ECS.getComponent<CAnimation>(e).animation.getSize().y * m_ECS.getComponent<CAnimation>(e).animation.getScale().y / 2
+            //             });
+            //             spriteRender(animation);
+            //         }
+            //     }
+            // }
         }
         // Attemp to render coin balance in corner.
 
-        SDL_Rect texRect;
-        texRect.x = 0;
-        texRect.y = 96;
-        texRect.h = 128;
-        texRect.w = 128;
+        // SDL_Rect texRect;
+        // texRect.x = 0;
+        // texRect.y = 96;
+        // texRect.h = 128;
+        // texRect.w = 128;
 
-        SDL_RenderCopyEx(
-            m_game->renderer(), 
-            m_game->assets().getTexture("coin_front"), 
-            nullptr, 
-            &texRect,
-            0,
-            NULL,
-            SDL_FLIP_NONE
-        );
+        // SDL_RenderCopyEx(
+        //     m_game->renderer(), 
+        //     m_game->assets().getTexture("coin_front"), 
+        //     nullptr, 
+        //     &texRect,
+        //     0,
+        //     NULL,
+        //     SDL_FLIP_NONE
+        // );
 
-        Animation animation;
-        auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP)/2;
+        // Animation animation;
+        // auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP)/2;
 
-        for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max/2; i++)
-        {   
-            if ( hearts >= i ){
-                animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
-            } else if ( i-hearts == 0.5f ){
-                animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
-            } else{
-                animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
-            }
+        // for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max/2; i++)
+        // {   
+        //     if ( hearts >= i ){
+        //         animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
+        //     } else if ( i-hearts == 0.5f ){
+        //         animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
+        //     } else{
+        //         animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
+        //     }
 
-            animation.setScale(Vec2{4, 4});
-            animation.setDestRect(Vec2{(float)(i-1)*animation.getSize().x*animation.getScale().x, 0});
+        //     animation.setScale(Vec2{4, 4});
+        //     animation.setDestRect(Vec2{(float)(i-1)*animation.getSize().x*animation.getScale().x, 0});
 
-            spriteRender(animation);
-        }
+        //     spriteRender(animation);
+        // }
     }
 
     if (m_drawCollision){
-        auto view = m_ECS.view<CTransform, CBoundingBox>();
+        auto& view = m_ECS.view<CBoundingBox>();
+        auto& transformPool = m_ECS.getComponentPool<CTransform>();
+        auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
         for (auto e : view){      
-            auto transform = view.getComponent<CTransform>(e);
-            auto box = view.getComponent<CBoundingBox>(e);
+            auto &transform = transformPool.getComponent(e);
+            auto &box = BboxPool.getComponent(e);
+            // auto &transform = m_ECS.getComponent<CTransform>(e);
+            // auto &box = m_ECS.getComponent<CBoundingBox>(e);
 
             // Adjust the collision box position based on the camera position
             SDL_Rect collisionRect;
-            collisionRect.x = static_cast<int>(transform.pos.x - box.halfSize.x - m_camera.position.x);
-            collisionRect.y = static_cast<int>(transform.pos.y - box.halfSize.y - m_camera.position.y);
-            collisionRect.w = static_cast<int>(box.size.x);
-            collisionRect.h = static_cast<int>(box.size.y);
+            collisionRect.x = (int)(transform.pos.x - box.halfSize.x - m_camera.position.x);
+            collisionRect.y = (int)(transform.pos.y - box.halfSize.y - m_camera.position.y);
+            collisionRect.w = (int)(box.size.x);
+            collisionRect.h = (int)(box.size.y);
 
             SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
             SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
         }
     }
+
     // SDL_Rect rect;
     // rect.x = 0;
     // rect.y = 0;
@@ -741,6 +763,7 @@ void Scene_Play::spawnPlayer(){
 
     m_ECS.addComponent<CName>(entityID, "wiz");
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("demon"), true, 3);
+    m_ECS.addComponent<CTopLayer>(entityID);
     m_ECS.addComponent<CShadow>(entityID, m_game->assets().getAnimation("shadow"), false);
 
     m_ECS.addComponent<CInputs>(entityID);
@@ -852,6 +875,7 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     auto entity = m_ECS.addEntity();
     // creator->setLinkEntity(entity);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, 3);
+    m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
     m_ECS.addComponent<CDamage>(entity, m_ECS.getComponent<CDamage>(creator).damage, m_ECS.getComponent<CDamage>(creator).speed); // damage speed 6 = frames between attacking
@@ -875,6 +899,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CName>(entity, "rooter");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("rooter"), true, 3);
+    m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
@@ -907,9 +932,10 @@ void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, 
         EntityID entity = m_ECS.addEntity();
         m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, 10);
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});                           
+        m_ECS.addComponent<CBottomLayer>(entity);
         Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
         m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{4, 4}, 0, false);
-        m_ECS.addComponent<CName>(entity, tile);
+        // m_ECS.addComponent<CName>(entity, tile);
     }
 }
 

@@ -99,7 +99,7 @@ void Game::run()
             double average_fps = 1000.0 / average_frame_time;
 
             // Print the average FPS followed by a carriage return
-            std::cout << "FPS: " << average_fps << "\r";
+            std::cout << "FPS: " << average_fps << ". With " << currentScene()->m_ECS.getNumEntities() << " entities." << "\r";
             std::cout.flush();  // Ensure the output is displayed immediately
 
             // Reset counters for the next second

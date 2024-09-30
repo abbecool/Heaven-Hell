@@ -16,7 +16,6 @@ class Scene
     protected:
 
     Game* m_game = nullptr;  
-    ECS m_ECS;
     ActionMap m_actionMap;
     bool m_pause = false;
     bool m_hasEnded = false;
@@ -26,6 +25,7 @@ class Scene
     virtual void onEnd() = 0;
 
     public:
+    ECS m_ECS;
 
     Scene();
     Scene(Game* game);
