@@ -6,6 +6,14 @@
 *.lo
 *.o
 *.obj
+*.sarif
+*.tlog
+*.log
+*.recipe
+*.idb
+*.pdb
+*.ini
+*.ilk
 
 # Precompiled Headers
 *.gch
@@ -14,7 +22,7 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
-# *.dll
+*.dll
 
 # Fortran module files
 *.mod
@@ -22,17 +30,23 @@
 
 # Compiled Static libraries
 *.lai
-# *.la
-# *.a
+*.la
+*.agit 
 *.lib
+*.vcxproj
 
 # Executables
 *.exe
 *.out
 *.app
 
+# # Build dirs
+Binaries/*
+!Binaries/.gitkeep
+
 # Test scripts
 test_*
 
-# vsc settings
-.vscode
+# Env settings
+.vscode/
+.vs/
