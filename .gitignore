@@ -51,3 +51,4 @@ test_*
 .vscode/
 .vs/
 Core/Core.vcxproj
+Game.sln
