@@ -80,7 +80,7 @@ void Game::run()
         SDL_RenderPresent( m_renderer );
         m_currentFrame++;
 
-        // std::this_thread::sleep_until(next_frame);
+         std::this_thread::sleep_until(next_frame);
 
         auto frame_time = std::chrono::steady_clock::now() - current_frame;
         auto frame_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(frame_time).count();
