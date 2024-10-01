@@ -60,9 +60,9 @@ void Scene_Play::init(const std::string& levelPath) {
     loadLevel(levelPath);
     
     spawnPlayer();
-    spawnCoin(Vec2{64*15,64*12}, 4);
-    spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
-    spawnWeapon(Vec2{64*14 , 64*29});
+    spawnCoin(Vec2{64*8,64*12}, 4);
+    // spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
+    spawnWeapon(Vec2{64*5 , 64*13});
     spawnSmallEnemy(Vec2{64*15 , 64*9}, 3, "rooter");
     spawnSmallEnemy(Vec2{64*10 , 64*10}, 3, "rooter");
     spawnSmallEnemy(Vec2{64*20 , 64*12}, 3, "goblin");
@@ -809,10 +809,12 @@ void Scene_Play::spawnWeapon(Vec2 pos){
     auto entity = m_ECS.addEntity();
 
     m_ECS.addComponent<CTransform>(entity, pos, Vec2{0,0}, Vec2{4, 4}, 0, 0, true);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {32, 32});
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
+    m_ECS.addComponent<CTopLayer>(entity);
+    m_ECS.addComponent<CLoot>(entity);
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
-    m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
+    // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
