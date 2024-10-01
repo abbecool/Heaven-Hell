@@ -10,3 +10,4 @@ Get both to their goals without them getting stuck or dying.
 This version of the game is a top-down RPG 
 -----------------------------------------------------
 Here you play as a XXX who is in charge of deciding who gets to go to heaven and who goes to hell (Skärselden)
+Add trees, chop down a tree leaving a tree stump, cast a spell/poison on the tree stump to turn it into a rooter!
