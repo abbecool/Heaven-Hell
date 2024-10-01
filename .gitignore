@@ -50,3 +50,4 @@ test_*
 # Env settings
 .vscode/
 .vs/
+Core/Core.vcxproj
