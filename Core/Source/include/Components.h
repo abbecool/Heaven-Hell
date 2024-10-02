@@ -19,13 +19,22 @@ enum struct PlayerState {
     RUN_LEFT = 4
 };
 
-class Entity;
+using EntityID = uint32_t;
 class ScriptableEntity;
 
 class Component
 {
     public:
         bool has = false;
+};
+
+class CParent : public Component
+{
+public:
+    EntityID parent;
+    Vec2 relativePos = {0,0};
+    CParent(EntityID p) : parent(p){}
+    CParent(EntityID p, Vec2 relPos) : parent(p), relativePos(relPos) {}
 };
 
 class CInputs : public Component

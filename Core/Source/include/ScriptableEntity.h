@@ -1,21 +1,21 @@
 #pragma once
 
-// #include "Entity.h"
+#include "Entity.h"
 #include <memory>
 #include <iostream>
 
 class ScriptableEntity{
     public:
         virtual ~ScriptableEntity() {}
-        // template<typename T>
-        // T& getComponent(){
-        //     return m_entity.getComponent<T>();
-        // }
-    protected:
-        virtual void OnCreateFunction() {}
-        virtual void OnDestroyFunction() {}
-        virtual void OnUpdateFunction() {}
+        template<typename T>
+        T& getComponent(){
+            return m_entity.getComponent<T>();
+        }
+        Entity m_entity; // private
+        virtual void OnCreateFunction() {} //protected
+        virtual void OnDestroyFunction() {} //protected
+        virtual void OnUpdateFunction() {} //protected
+    // protected:
     private:
-        // Entity m_entity();
         friend class Scene;
 };

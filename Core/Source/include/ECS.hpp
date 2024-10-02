@@ -18,6 +18,7 @@ using EntityID = uint32_t;
 class BaseComponentPool {
 public:
     virtual ~BaseComponentPool() = default;  // Virtual destructor to allow proper deletion
+    virtual void removeComponent(EntityID entityId){};
 };
 
 template<typename T>
@@ -33,7 +34,10 @@ public:
 
     // Remove a component from the pool
     void removeComponent(EntityID entityId) {
-        pool.erase(entityId);  // Remove the component if it exists
+        auto it = pool.find(entityId);
+        if (it != pool.end()) {
+            pool.erase(it);  // Erase element using the iterator to avoid invalidation issues
+        }
     }
 
     // Check if an entityId has the component
@@ -169,6 +173,9 @@ public:
     }
 
     void removeEntity(EntityID entity){
+        for (auto& [type, pool]: componentPools) {
+            pool->removeComponent(entity);
+        }
         m_numEntities--;
     }
 
@@ -207,8 +214,6 @@ public:
         return *reinterpret_cast<ComponentPool<T>*>(componentPools.at(typeIdx).get());
     }
 
-    // void removeEntity(EntityID id);
-    // template<typename T>
     void update(){
         // sort<T>();
     }

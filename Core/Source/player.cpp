@@ -16,8 +16,8 @@ public:
 
     void OnUpdateFunction()
     {
-        // auto& pos = getComponent<CTransform>().pos;
-        // pos.x -= 1;
+        auto& pos = getComponent<CTransform>().pos;
+        pos.x -= 1;
     }
 };
 

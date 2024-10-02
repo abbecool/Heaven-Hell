@@ -255,21 +255,22 @@ void Scene_Play::sDoAction(const Action& action) {
 void Scene_Play::update() {
     m_ECS.update();
     m_pause = m_camera.update(m_ECS.getComponent<CTransform>(m_player).pos, m_pause);
-    // m_pause = m_camera.update(Vec2{0,0}, m_pause);
     if (!m_pause) {
         sMovement();
         m_currentFrame++;
-        // if ( m_player->hasComponent<CScript>() ) {
-        //     auto& sc = m_player->getComponent<CScript>();
-        //     if ( !sc.Instance )
-        //     {
-        //             sc.Instance = sc.InstantiateScript();
-        //         sc.Instance->m_entity = m_player;
-        //         sc.Instance->OnCreateFunction();
-        //     }
-        //     sc.Instance->OnUpdateFunction();
+        auto& view = m_ECS.view<CScript>();
+        auto& scriptPool = m_ECS.getComponentPool<CScript>();
+        for ( auto e : view ) {
+            auto& sc = scriptPool.getComponent(e);
+            if ( !sc.Instance )
+            {
+                sc.Instance = sc.InstantiateScript();
+                sc.Instance->m_entity = {m_player, &m_ECS};
+                sc.Instance->OnCreateFunction();
+            }
+            sc.Instance->OnUpdateFunction();
         //     // memory leak, destroy 
-        // }
+        }
         sCollision();
         // sStatus();
         sAnimation();
@@ -304,40 +305,11 @@ void Scene_Play::sMovement() {
                 transform.tempo = 1.0f;
             }
         }
-        
-        // if ( m_ECS.getComponent<CName>(e).name == "Dragon"){
-
-        //     if (!(transform.vel.isnull()) && transform.isMovable ){
-        //         transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
-        //     } if (transform.pos != transform.prevPos){
-        //         transform.isMovable = false;
-        //     }
-        // }
-
         // Update position
         transform.prevPos = transform.pos;
         if (!(transform.vel.isnull()) && transform.isMovable ){
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
         }
-        // if ( m_ECS.hasComponent<CKnockback>(e) ){
-        //     transform.pos += m_physics.knockback(m_ECS.getComponent<CKnockback>(e));
-        //     if ( m_ECS.getComponent<CKnockback>(e).duration == 0 ){
-        //         m_ECS.removeComponent<CKnockback>(e);
-        //     }
-        // }
-
-        // if ( m_ECS.getLinkEntity() ){
-        //     m_ECS.getLinkEntity()->getComponent<CTransform>().pos = transform.pos;
-        //     if (m_ECS.getLinkEntity()->tag() == "Projectile"){
-        //         m_ECS.getLinkEntity()->getComponent<CTransform>().vel = getMousePosition()-m_player->getLinkEntity()->getComponent<CTransform>().pos+m_camera.position;
-        //         m_ECS.getLinkEntity()->getComponent<CTransform>().angle = m_ECS.getLinkEntity()->getComponent<CTransform>().vel.angle();
-        //     }
-        // }
-        // if ( m_camera.position.x-m_gridSize.x > transform.pos.x || m_camera.position.x+width()+m_gridSize.x < transform.pos.x || m_camera.position.y-m_gridSize.y > transform.pos.y || m_camera.position.y+height()+m_gridSize.y < transform.pos.y ) {
-            // e->setInCamera(false);
-        // } else {
-        //     e->setInCamera(true);
-        // }
     }
     auto& pathfindPool = m_ECS.getComponentPool<CPathfind>();
     auto& view1 = m_ECS.view<CPathfind>();
@@ -359,12 +331,19 @@ void Scene_Play::sMovement() {
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
         }
     }
-    
+
+    auto& parentPool = m_ECS.getComponentPool<CParent>();
+    auto& viewParent = m_ECS.view<CParent>();
+    for (auto e : viewParent)
+    {
+        auto& transform = transformPool.getComponent(e);
+        auto& parent = parentPool.getComponent(e);
+        transform.pos = transformPool.getComponent(parent.parent).pos + parent.relativePos;
+    }
 }
 
 void Scene_Play::sCollision() {
 // ------------------------------- Player collisions -------------------------------------------------------------------------
-
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
     auto& transformPlayer = transformPool.getComponent(m_player);
@@ -389,70 +368,6 @@ void Scene_Play::sCollision() {
         }
     }
 
-//     for ( auto w : m_entities.getEntities("Weapon") ) 
-//     {
-//         if ( m_physics.isCollided(m_player,w) )
-//         {
-//             m_player->setLinkEntity(w);
-//         }
-//     }
-
-//     for ( auto e : m_entities.getEntities("Enemy")){
-//         if ( m_physics.isCollided(m_player, e) )
-//         {
-//             e->movePosition(m_physics.overlap(e,m_player));
-//             if ( m_player->takeDamage(e, m_currentFrame) ){
-//                 m_camera.startShake(5, 50);
-//             }
-//         }
-//     }
-
-//     for ( auto c : m_entities.getEntities("Coin") ) 
-//     {
-//         if ( m_physics.isCollided(m_player,c) ) 
-//         {
-//             c->kill();
-//         }
-//     }
-
-//     for ( auto w : m_entities.getEntities("Water") ) 
-//     {
-//         if ( m_physics.isStandingIn(m_player,w) )
-//         {
-//             m_player->getComponent<CHealth>().HP = 0;
-//         }
-//     }
-
-//     for ( auto l : m_entities.getEntities("Lava") ) 
-//     {
-//         if ( m_physics.isStandingIn(m_player,l) )
-//         {
-//             m_player->getComponent<CHealth>().HP = 0;
-//         }
-//     }
-
-//     for ( auto d : m_entities.getEntities("Dragon") ) 
-//     {
-//         if ( m_physics.isCollided(m_player,d) && d->hasComponent<CDamage>() )
-//         {
-//             m_player->movePosition(m_physics.overlap(m_player,d)*15);
-//             m_player->takeDamage(d, m_currentFrame);
-//             d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
-//         }
-//     }
-
-//     for ( auto g : m_entities.getEntities("Goal") ) 
-//     {
-//         if ( m_physics.isCollided(m_player,g) )
-//         {
-//             if ( g->getComponent<CAnimation>().animation.getName() != "checkpoint_wave" ) {
-//             g->addComponent<CAnimation>(m_game->assets().getAnimation("checkpoint_wave"), true);
-//             saveGame("game_save.txt");
-//             } 
-//         }
-//     }
-
-
 // // ------------------------------- Enemy collisions -------------------------------------------------------------------------
 
     auto& viewP = m_ECS.view<CPathfind>();
@@ -470,67 +385,6 @@ void Scene_Play::sCollision() {
             }
         }
     }
-
-// // ------------------------------- Projectile collisions -------------------------------------------------------------------------
-
-//     for ( auto p : m_entities.getEntities("Projectile") )
-//     {
-//         for ( auto o :  m_entities.getEntities("Obstacle") )
-//         {
-//             if (m_physics.isCollided(p,o))
-//             {
-//                 if ( p->getComponent<CTransform>().isMovable )
-//                 {
-//                     p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
-//                     p->getComponent<CTransform>().isMovable = false;
-//                 }
-//             }
-//         }
-
-//         for ( auto e :  m_entities.getEntities("Enemy") )
-//         {
-//             if (m_physics.isCollided(p,e))
-//             {
-//                 if (e->hasComponent<CHealth>() && p->hasComponent<CDamage>())
-//                 {
-//                     e->takeDamage(p, m_currentFrame);
-//                 }
-//                 if ( p->getComponent<CTransform>().isMovable )
-//                 {
-//                     p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
-//                     p->getComponent<CTransform>().isMovable = false;
-//                     p->removeComponent<CDamage>();
-//                 }
-//                 if ( e->getComponent<CHealth>().HP <= 0 )
-//                 {
-//                     spawnCoin(e->getComponent<CTransform>().pos, 4);
-//                     e->kill();
-//                 }
-//             }
-//         }
-
-//         for ( auto d :  m_entities.getEntities("Dragon") )
-//         {
-//             if (m_physics.isCollided(p,d))
-//             {
-//                 if (d->hasComponent<CHealth>() && p->hasComponent<CDamage>())
-//                 {
-//                     d->takeDamage(p, m_currentFrame);
-//                     d->addComponent<CAnimation>(m_game->assets().getAnimation("waking_dragon"), false);
-//                 }
-//                 if ( p->getComponent<CTransform>().isMovable )
-//                 {
-//                     p->addComponent<CAnimation>(m_game->assets().getAnimation("fireball_explode"), false);
-//                     p->getComponent<CTransform>().isMovable = false;
-//                     p->removeComponent<CDamage>();
-//                 }
-//                 if ( d->getComponent<CHealth>().HP <= 0 )
-//                 {
-//                     d->kill();
-//                 }
-//             }
-//         }
-//     }
 }
 
 void Scene_Play::sStatus() {
@@ -802,19 +656,20 @@ void Scene_Play::spawnPlayer(){
     m_ECS.addComponent<CDamage>(entityID, m_playerConfig.DAMAGE, 180);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     // entity->addComponent<CWeapon>(m_game->assets().getAnimation("staff"), 1, 10, 64);
-    // m_ECS.addComponent<CScript>(entityID).Bind<PlayerController>();
+    m_ECS.addComponent<CScript>(entityID).Bind<PlayerController>();
 }
 
 void Scene_Play::spawnWeapon(Vec2 pos){
     auto entity = m_ECS.addEntity();
 
     m_ECS.addComponent<CTransform>(entity, pos, Vec2{0,0}, Vec2{4, 4}, 0, 0, true);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
+    // m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
     m_ECS.addComponent<CTopLayer>(entity);
-    m_ECS.addComponent<CLoot>(entity);
+    // m_ECS.addComponent<CLoot>(entity);
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
+    m_ECS.addComponent<CParent>(entity, m_player, Vec2{32, -16});
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
