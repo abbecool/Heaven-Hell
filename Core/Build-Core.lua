@@ -12,6 +12,7 @@ project "Core"
    {
       "Source"
       "Source/include"
+      "Source/scripts"
    }
 
    targetdir ("../Binaries/" .. OutputDir .. "/%{prj.name}")
