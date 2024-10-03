@@ -13,6 +13,7 @@
 #include "RandomArray.h"
 
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 
 #include <iostream>
 #include <string>
@@ -271,6 +272,7 @@ void Scene_Play::update() {
         sCollision();
         // sStatus();
         sAnimation();
+        sAudio();
     }
     sRender();
 }
@@ -356,6 +358,7 @@ void Scene_Play::sCollision() {
             m_ECS.removeComponent<CBoundingBox>(e);
             m_ECS.removeComponent<CLoot>(e);
             m_ECS.addComponent<CParent>(e, m_player, Vec2{32, -16});
+            Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
 
         }
     }
@@ -610,6 +613,13 @@ void Scene_Play::spriteRender(Animation &animation){
         NULL,
         SDL_FLIP_NONE
     );
+}
+
+void Scene_Play::sAudio(){
+    if( Mix_PlayingMusic() == 0 )
+    {
+        Mix_PlayMusic(m_game->assets().getMusic("music"), -1);
+    }
 }
 
 void Scene_Play::spawnPlayer(){

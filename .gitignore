@@ -52,3 +52,6 @@ test_*
 .vs/
 Core/Core.vcxproj
 Game.sln
+
+# FMOD
+Core/assets/audio/FMOD/*

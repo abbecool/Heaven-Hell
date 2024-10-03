@@ -31,6 +31,7 @@ void Game::init(const std::string & pathImages, const std::string & pathText){
     m_renderer = SDL_CreateRenderer( m_window, -1 , SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
     TTF_Init();
+    Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 );
 
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
     changeScene("Menu", std::make_shared<Scene_Menu>(this));

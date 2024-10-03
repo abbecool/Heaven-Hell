@@ -76,6 +76,7 @@ class Scene_Play : public Scene
     void sAnimation();
     void sRender();
     void spriteRender(Animation &animation);
+    void sAudio();
 
     void sDoAction(const Action&);
     void onEnd();
