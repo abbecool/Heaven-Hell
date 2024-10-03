@@ -40,6 +40,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_a, "LEFT");
     registerAction(SDLK_d, "RIGHT");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
+    registerAction(SDLK_SPACE , "ATTACK");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
@@ -215,12 +216,12 @@ void Scene_Play::sDoAction(const Action& action) {
         if (action.name() == "CTRL") {
             m_ECS.getComponent<CInputs>(m_player).ctrl = true;
         }
-        // if (action.name() == "ATTACK"){
-        //     if ( m_player->getComponent<CInputs>().canShoot ){
-        //         m_player->getComponent<CInputs>().shoot = true;
-        //         spawnProjectile(m_player->getLinkEntity(), getMousePosition()-m_player->getLinkEntity()->getComponent<CTransform>().pos+m_camera.position);
-        //     }
-        // }
+        if (action.name() == "ATTACK"){
+            if ( m_ECS.getComponent<CInputs>(m_player).canShoot || true){
+                m_ECS.getComponent<CInputs>(m_player).shoot = true;
+                spawnProjectile(m_player, getMousePosition()-m_ECS.getComponent<CTransform>(m_player).pos+m_camera.position);
+            }
+        }
     }
     else if (action.type() == "END") {
         if (action.name() == "DOWN") {
