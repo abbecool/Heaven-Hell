@@ -211,16 +211,21 @@ public:
     template <typename T>
     ComponentPool<T>& getComponentPool() {
         std::type_index typeIdx(typeid(T));
-        return *reinterpret_cast<ComponentPool<T>*>(componentPools.at(typeIdx).get());
+        return *reinterpret_cast<ComponentPool<T>*>(componentPools.at(typeIdx).get());        
     }
 
-    void update(){
-        // sort<T>();
+    template <typename T>
+    ComponentPool<T>& getOrCreateComponentPool() {
+        std::type_index typeIdx(typeid(T));
+        if (componentPools.find(typeIdx) == componentPools.end()) {
+            componentPools[typeIdx] = std::make_unique<ComponentPool<T>>();
+        }
+        return *reinterpret_cast<ComponentPool<T>*>(componentPools[typeIdx].get());
     }
 
     template<typename T>
     ComponentPool<T>& view(){
-        return getComponentPool<T>();
+        return getOrCreateComponentPool<T>();
     };
 
     template<typename T, typename Other>
@@ -238,45 +243,8 @@ public:
         }
         return viewCache;
     }
-
-    template<typename T>
-    std::vector<EntityID> view_sorted() {
-        // Get the component pool for the given type
-        ComponentPool<T>& pool = getComponentPool<T>();
-        auto& componentMap = pool.getPool();
-
-        // Create a vector of entity IDs
-        std::vector<EntityID> entitiesWithComponent;
-        
-        // Reserve space to avoid reallocation if pool size is known
-        entitiesWithComponent.reserve(pool.size());
-
-        // Iterate through the pool and collect the entity IDs
-        for (const auto& [entityID, component] : componentMap) {
-            entitiesWithComponent.push_back(entityID);
-        }
-
-        // Sort the vector of entity IDs based on the 'layer' property in the component
-        std::sort(entitiesWithComponent.begin(), entitiesWithComponent.end(), [&](EntityID a, EntityID b) {
-            const auto& componentA = componentMap.at(a);  // Access the components only once per entity
-            const auto& componentB = componentMap.at(b);
-            return componentA.layer > componentB.layer;
-        });
-
-        return entitiesWithComponent;  // Return the sorted vector of entity IDs
-    }
+ 
 private:
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
-    // BasicView<Component, Component> viewCache;
-    // BaseComponentPool viewCache;
-    // Helper to get or create the component pool for a specific type
-    template <typename T>
-    ComponentPool<T>& getOrCreateComponentPool() {
-        std::type_index typeIdx(typeid(T));
-        if (componentPools.find(typeIdx) == componentPools.end()) {
-            componentPools[typeIdx] = std::make_unique<ComponentPool<T>>();
-        }
-        return *reinterpret_cast<ComponentPool<T>*>(componentPools[typeIdx].get());
-    }
 };

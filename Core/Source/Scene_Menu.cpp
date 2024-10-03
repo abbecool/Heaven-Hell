@@ -94,28 +94,24 @@ Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, Entity entity) {
 
 void Scene_Menu::loadMenu(){
     // spawnTitleScreen
-    // spawnLevel(Vec2 {float(width()/2),float(height()/2)}, "title_screen");
-    // size_t layer = 10;
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true, 9);
+    entity.addComponent<CBottomLayer>();
     entity.addComponent<CTransform>(Vec2 {float(width()/2),float(height()/2)},Vec2 {0, 0}, false);
     entity.getComponent<CTransform>().scale = Vec2{1, 1};
     entity.addComponent<CName>("title_screen");
 
-    // layer = 9;
     EntityID entityId1 = m_ECS.addEntity();
     Entity entity1 = {entityId1, &m_ECS};
     entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
+    entity1.addComponent<CTopLayer>();
     entity1.addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
     entity1.getComponent<CTransform>().scale = Vec2{1.2, 1.2};
     entity1.addComponent<CName>("game_title");
 
     spawnButton(Vec2 {64*3.2,64*8.1}, "button_unpressed", "new", "NEW GAME");
     spawnButton(Vec2 {64*3.2,64*9.7}, "button_unpressed", "continue", "CONTINUE");
-
-    // m_ECS.update();
-    // m_ECS.sort();
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
@@ -134,8 +130,8 @@ void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const
 {   
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (m_game->assets().getAnimation(unpressed), true, 5);
-    // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
+    entity.addComponent<CTopLayer>();
     entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
     entity.getComponent<CTransform>().scale = Vec2{3,3};
     entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*3);
@@ -211,7 +207,6 @@ void Scene_Menu::sDoAction(const Action& action) {
 }
 
 void Scene_Menu::update() {
-    m_ECS.update();
     sAnimation();
     sRender();
 }
@@ -236,7 +231,7 @@ void Scene_Menu::sRender() {
     SDL_RenderClear(m_game->renderer());
 
     if (m_drawTextures){
-        auto view = m_ECS.view_sorted<CAnimation>();
+        auto view = m_ECS.view<CBottomLayer>();
         for (auto e : view)
         {        
             auto& transform = m_ECS.getComponent<CTransform>(e);
@@ -260,8 +255,32 @@ void Scene_Menu::sRender() {
                 SDL_FLIP_NONE
             );
         }
-        auto view1 = m_ECS.view<CDialog>();
-        for (auto e : view1){
+        auto view1 = m_ECS.view<CTopLayer>();
+        for (auto e : view1)
+        {        
+            auto& transform = m_ECS.getComponent<CTransform>(e);
+            auto& animation = m_ECS.getComponent<CAnimation>(e).animation;
+
+            // Adjust the entity's position based on the camera position
+            Vec2 adjustedPos = transform.pos;
+
+            // Set the destination rectangle for rendering
+            animation.setScale(transform.scale*cameraZoom);
+            animation.setDestRect(adjustedPos - animation.getDestSize()/2);
+            animation.setAngle(transform.angle);
+            
+            SDL_RenderCopyEx(
+                m_game->renderer(), 
+                animation.getTexture(), 
+                animation.getSrcRect(), 
+                animation.getDestRect(),
+                animation.getAngle(),
+                NULL,
+                SDL_FLIP_NONE
+            );
+        }
+        auto view2 = m_ECS.view<CDialog>();
+        for (auto e : view2){
             auto dialog = m_ECS.getComponent<CDialog>(e);
             auto Bbox = m_ECS.getComponent<CBoundingBox>(e);
 

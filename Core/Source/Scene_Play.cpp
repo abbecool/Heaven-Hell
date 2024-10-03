@@ -163,9 +163,6 @@ void Scene_Play::loadLevel(const std::string& levelPath){
             }
         }
     }
-
-    m_ECS.update();
-    // m_ECS.sort();
 }
 
 void Scene_Play::sDoAction(const Action& action) {
@@ -253,7 +250,6 @@ void Scene_Play::sDoAction(const Action& action) {
 }
 
 void Scene_Play::update() {
-    m_ECS.update();
     m_pause = m_camera.update(m_ECS.getComponent<CTransform>(m_player).pos, m_pause);
     if (!m_pause) {
         sMovement();
@@ -332,8 +328,8 @@ void Scene_Play::sMovement() {
         }
     }
 
-    auto& parentPool = m_ECS.getComponentPool<CParent>();
     auto& viewParent = m_ECS.view<CParent>();
+    auto& parentPool = m_ECS.getOrCreateComponentPool<CParent>();
     for (auto e : viewParent)
     {
         auto& transform = transformPool.getComponent(e);
@@ -355,7 +351,11 @@ void Scene_Play::sCollision() {
         auto& Bbox = BboxPool.getComponent(e);
         if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
         {
-            m_ECS.removeEntity(e);
+            // m_ECS.removeEntity(e);
+            m_ECS.removeComponent<CBoundingBox>(e);
+            m_ECS.removeComponent<CLoot>(e);
+            m_ECS.addComponent<CParent>(e, m_player, Vec2{32, -16});
+
         }
     }
     auto &view = m_ECS.view<CBoundingBox>();
@@ -663,13 +663,12 @@ void Scene_Play::spawnWeapon(Vec2 pos){
     auto entity = m_ECS.addEntity();
 
     m_ECS.addComponent<CTransform>(entity, pos, Vec2{0,0}, Vec2{4, 4}, 0, 0, true);
-    // m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
     m_ECS.addComponent<CTopLayer>(entity);
-    // m_ECS.addComponent<CLoot>(entity);
+    m_ECS.addComponent<CLoot>(entity);
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
-    // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
-    m_ECS.addComponent<CParent>(entity, m_player, Vec2{32, -16});
+    m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
