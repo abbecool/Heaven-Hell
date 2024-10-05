@@ -272,7 +272,7 @@ void Scene_Play::update() {
         sCollision();
         // sStatus();
         sAnimation();
-        sAudio();
+        // sAudio();
     }
     sRender();
 }
@@ -358,7 +358,7 @@ void Scene_Play::sCollision() {
             m_ECS.removeComponent<CBoundingBox>(e);
             m_ECS.removeComponent<CLoot>(e);
             m_ECS.addComponent<CParent>(e, m_player, Vec2{32, -16});
-            Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
+            // Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
 
         }
     }
@@ -385,15 +385,43 @@ void Scene_Play::sCollision() {
             auto& Bbox2 = BboxPool.getComponent(e2);
             if (m_physics.isCollided(transform1, Bbox1, transform2, Bbox2))
             {
-                m_ECS.getComponent<CTransform>(e1).pos += m_physics.overlap(transform1, Bbox1, transform2, Bbox2);
+                transformPool.getComponent(e1).pos += m_physics.overlap(transform1, Bbox1, transform2, Bbox2);
+            }
+        }
+    }
+    auto& viewProj = m_ECS.view<CProjectileState>();
+    auto& viewHealth = m_ECS.view<CHealth>();
+    for ( auto projectileID : viewProj)
+    {
+        auto& transformProjectile = transformPool.getComponent(projectileID);
+        auto& BboxProjectile = BboxPool.getComponent(projectileID);
+        for ( auto enemyID : viewHealth)
+        {
+            auto& transformEnemy = transformPool.getComponent(enemyID);
+            auto& BboxEnemy = BboxPool.getComponent(enemyID);
+            if (m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
+            {
+                m_ECS.removeEntity(projectileID);
+                auto& health = viewHealth.getComponent(enemyID);
+                health.HP--;
+                health.damage_frame = m_currentFrame;
             }
         }
     }
 }
 
 void Scene_Play::sStatus() {
-    if ( m_ECS.getComponent<CHealth>(m_player).HP <= 0 ){
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+    // if ( m_ECS.getComponent<CHealth>(m_player).HP <= 0 ){
+    auto& viewHealth = m_ECS.getComponentPool<CHealth>();
+    for ( auto entityID : viewHealth)
+    {
+        if ( m_player == entityID ){
+                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+        }
+        if (viewHealth.getComponent(entityID).HP == 0)
+        {
+            m_ECS.removeEntity(entityID);
+        }
     }
 }
 
@@ -456,15 +484,15 @@ void Scene_Play::sRender() {
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     SDL_RenderClear(m_game->renderer());
 
-    if (m_drawTextures){
+    if (m_drawTextures)
+    {
         // auto viewSorted = m_ECS.view_sorted<CAnimation>();
 
         auto& view = m_ECS.view<CBottomLayer>();
         auto& transformPool = m_ECS.getComponentPool<CTransform>();
         auto& animationPool = m_ECS.getComponentPool<CAnimation>();
-        for (auto e : view){
-        // for (auto e : viewSorted){
-                
+        for (auto e : view)
+        {                
             auto& transform = transformPool.getComponent(e);
             auto& animation = animationPool.getComponent(e).animation;
 
@@ -490,32 +518,37 @@ void Scene_Play::sRender() {
             animation.setDestRect(adjustedPos - animation.getDestSize()/2);
             
             spriteRender(animation);
+        }
+        auto& viewHealth = m_ECS.getComponentPool<CHealth>();
+        for ( auto entityID : viewHealth )
+        {
+            auto& health = viewHealth.getComponent(entityID);
+            if ( (int)m_currentFrame - health.damage_frame < health.heart_frames) {
 
-            // if (m_ECS.hasComponent<CHealth>(e) && e != m_player){
-            //     if ( (int)m_currentFrame - m_ECS.getComponent<CHealth>(e).damage_frame < m_ECS.getComponent<CHealth>(e).heart_frames) {
+                auto& transform = transformPool.getComponent(entityID);
+                Vec2 adjustedPos = transform.pos - m_camera.position;
 
-            //         Animation animation;
-            //         auto hearts = float(m_ECS.getComponent<CHealth>(e).HP)/2;
+                Animation animation;
+                auto hearts = float(health.HP)/2;
 
-            //         for (int i = 1; i <= m_ECS.getComponent<CHealth>(e).HP_max/2; i++)
-            //         {   
-            //             if ( hearts >= i ){
-            //                 animation = m_ECS.getComponent<CHealth>(e).animation_full;
-            //             } else if ( i-hearts == 0.5f ){
-            //                 animation = m_ECS.getComponent<CHealth>(e).animation_half;
-            //             } else{
-            //                 animation = m_ECS.getComponent<CHealth>(e).animation_empty;
-            //             }
+                for (int i = 1; i <= health.HP_max/2; i++)
+                {   
+                    if ( hearts >= i ){
+                        animation = health.animation_full;
+                    } else if ( i-hearts == 0.5f ){
+                        animation = health.animation_half;
+                    } else{
+                        animation = health.animation_empty;
+                    }
 
-            //             animation.setScale(Vec2{2, 2}*cameraZoom);
-            //             animation.setDestRect(Vec2{
-            //                 adjustedPos.x + (float)(i-1-(float)m_ECS.getComponent<CHealth>(e).HP_max/4)*animation.getSize().x*animation.getScale().x, 
-            //                 adjustedPos.y - m_ECS.getComponent<CAnimation>(e).animation.getSize().y * m_ECS.getComponent<CAnimation>(e).animation.getScale().y / 2
-            //             });
-            //             spriteRender(animation);
-            //         }
-            //     }
-            // }
+                    animation.setScale(Vec2{2, 2}*cameraZoom);
+                    animation.setDestRect(Vec2{
+                        adjustedPos.x + (float)(i-1-(float)health.HP_max/4)*animation.getSize().x*animation.getScale().x, 
+                        adjustedPos.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
+                    });
+                    spriteRender(animation);
+                }
+            }
         }
         // Attemp to render coin balance in corner.
 
@@ -615,12 +648,12 @@ void Scene_Play::spriteRender(Animation &animation){
     );
 }
 
-void Scene_Play::sAudio(){
-    if( Mix_PlayingMusic() == 0 )
-    {
-        Mix_PlayMusic(m_game->assets().getMusic("music"), -1);
-    }
-}
+// void Scene_Play::sAudio(){
+//     if( Mix_PlayingMusic() == 0 )
+//     {
+//         Mix_PlayMusic(m_game->assets().getMusic("music"), -1);
+//     }
+// }
 
 void Scene_Play::spawnPlayer(){
 
@@ -666,7 +699,6 @@ void Scene_Play::spawnPlayer(){
 
     m_ECS.addComponent<CDamage>(entityID, m_playerConfig.DAMAGE, 180);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-    // entity->addComponent<CWeapon>(m_game->assets().getAnimation("staff"), 1, 10, 64);
     m_ECS.addComponent<CScript>(entityID).Bind<PlayerController>();
 }
 
