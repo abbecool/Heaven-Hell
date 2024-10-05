@@ -270,9 +270,9 @@ void Scene_Play::update() {
         //     // memory leak, destroy 
         }
         sCollision();
-        // sStatus();
+        sStatus();
         sAnimation();
-        // sAudio();
+        sAudio();
     }
     sRender();
 }
@@ -354,14 +354,25 @@ void Scene_Play::sCollision() {
         auto& Bbox = BboxPool.getComponent(e);
         if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
         {
-            // m_ECS.removeEntity(e);
+            m_ECS.removeEntity(e);
+            Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
+        }
+    }
+
+    auto& viewWeapon = m_ECS.getComponentPool<CWeapon>();
+    for (auto e : viewWeapon ){
+        auto& transform = transformPool.getComponent(e);
+        auto& Bbox = BboxPool.getComponent(e);
+        if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
+        {
             m_ECS.removeComponent<CBoundingBox>(e);
-            m_ECS.removeComponent<CLoot>(e);
+            m_ECS.removeComponent<CWeapon>(e);
             m_ECS.addComponent<CParent>(e, m_player, Vec2{32, -16});
-            // Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
+            Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
 
         }
     }
+
     auto &view = m_ECS.view<CBoundingBox>();
     for (auto e : view ){
         auto& transform = transformPool.getComponent(e);
@@ -415,11 +426,11 @@ void Scene_Play::sStatus() {
     auto& viewHealth = m_ECS.getComponentPool<CHealth>();
     for ( auto entityID : viewHealth)
     {
-        if ( m_player == entityID ){
-                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
-        }
-        if (viewHealth.getComponent(entityID).HP == 0)
+        if (viewHealth.getComponent(entityID).HP <= 0)
         {
+            if ( m_player == entityID ){
+                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+            }
             m_ECS.removeEntity(entityID);
         }
     }
@@ -648,12 +659,12 @@ void Scene_Play::spriteRender(Animation &animation){
     );
 }
 
-// void Scene_Play::sAudio(){
-//     if( Mix_PlayingMusic() == 0 )
-//     {
-//         Mix_PlayMusic(m_game->assets().getMusic("music"), -1);
-//     }
-// }
+void Scene_Play::sAudio(){
+    if( Mix_PlayingMusic() == 0 )
+    {
+        Mix_PlayMusic(m_game->assets().getMusic("music"), -1);
+    }
+}
 
 void Scene_Play::spawnPlayer(){
 
@@ -708,10 +719,10 @@ void Scene_Play::spawnWeapon(Vec2 pos){
     m_ECS.addComponent<CTransform>(entity, pos, Vec2{0,0}, Vec2{4, 4}, 0, 0, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
     m_ECS.addComponent<CTopLayer>(entity);
-    m_ECS.addComponent<CLoot>(entity);
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
+    m_ECS.addComponent<CWeapon>(entity);
 }
 
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){

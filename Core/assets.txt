@@ -134,3 +134,6 @@ Animation   bridge                      bridge                      1   100   4 
 Texture     demon                       assets/images/demon-sheet.png
 Animation   demon                       demon                       4   40    4  5
 Animation   staff                       staff                       1   100   1  1
+
+Audio       test                        assets/audio/mixkit-winning-a-coin-video-game-2069.wav
+Music       music                       assets/audio/music_lvl_02_electronic_layer_01.ogg
