@@ -148,9 +148,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
                 spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
             }
             else{
-                if (pixel == "cloud") {
-                    spawnCloud(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
-                } else if (pixel == "lava") {
+                if (pixel == "lava") {
                     spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava", textureIndex);
                 } else if (pixel == "water") {
                     spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
@@ -218,10 +216,7 @@ void Scene_Play::sDoAction(const Action& action) {
             m_ECS.getComponent<CInputs>(m_player).ctrl = true;
         }
         if (action.name() == "ATTACK"){
-            if ( m_ECS.getComponent<CInputs>(m_player).canShoot || true){
-                m_ECS.getComponent<CInputs>(m_player).shoot = true;
-                spawnProjectile(m_player, getMousePosition()-m_ECS.getComponent<CTransform>(m_player).pos+m_camera.position);
-            }
+            spawnProjectile(m_player, getMousePosition()-m_ECS.getComponent<CTransform>(m_player).pos+m_camera.position);
         }
     }
     else if (action.type() == "END") {
@@ -238,15 +233,21 @@ void Scene_Play::sDoAction(const Action& action) {
         } if (action.name() == "CTRL") {
             m_ECS.getComponent<CInputs>(m_player).ctrl = false;
         } if (action.name() == "ATTACK") {
-            m_ECS.getComponent<CInputs>(m_player).canShoot = false;
-            // if ( m_player->getLinkEntity() ){
-            //     if ( m_player->getLinkEntity()->getLinkEntity()->getComponent<CProjectileState>().state == "Free" ){
-            //         m_player->getLinkEntity()->getLinkEntity()->getComponent<CTransform>().isMovable = true; 
-            //         m_player->getLinkEntity()->removeLinkEntity();
-            //     } else {
-            //         m_player->getLinkEntity()->getLinkEntity()->kill();
-            //     }
-            // }
+            if ( m_ECS.hasComponent<CProjectile>(m_player) )
+            {
+                EntityID projectileID = m_ECS.getComponent<CProjectile>(m_player).projectileID;
+                m_ECS.removeComponent<CProjectile>(m_player);
+                m_ECS.removeComponent<CParent>(projectileID);
+                if ( m_ECS.getComponent<CProjectileState>(projectileID).state == "Ready" )
+                {
+                    m_ECS.getComponent<CTransform>(projectileID).isMovable = true;
+                    m_ECS.getComponent<CProjectileState>(projectileID).state = "Free";
+                    m_ECS.getComponent<CTransform>(projectileID).vel = getMousePosition()-m_ECS.getComponent<CTransform>(m_player).pos+m_camera.position;
+                    m_ECS.getComponent<CTransform>(projectileID).angle = m_ECS.getComponent<CTransform>(projectileID).vel.angle();
+                } else {
+                    m_ECS.removeEntity(projectileID);
+                }
+            }
         }
     }
 }
@@ -280,9 +281,24 @@ void Scene_Play::update() {
 void Scene_Play::sMovement() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
 
+    auto& pathfindPool = m_ECS.getComponentPool<CPathfind>();
+    auto& view1 = m_ECS.view<CPathfind>();
+    for (auto e : view1)
+    {
+        auto& transform = transformPool.getComponent(e);
+        auto& pathfind = pathfindPool.getComponent(e);
+        Vec2& target = pathfind.target;
+        if ((target - transform.pos).length() < 64*2) {
+            transform.vel = target - transform.pos;
+        } else {
+            transform.vel = Vec2 {0,0};
+        }
+        target = transformPool.getComponent(m_player).pos;
+    }
+
     auto& inputPool = m_ECS.getComponentPool<CInputs>();
-    auto& view = m_ECS.view<CInputs>();
-    for (auto e : view){    
+    auto& viewInputs = m_ECS.view<CInputs>();
+    for (auto e : viewInputs){    
         auto &transform = transformPool.getComponent(e);
         auto &inputs = inputPool.getComponent(e);
 
@@ -304,32 +320,24 @@ void Scene_Play::sMovement() {
                 transform.tempo = 1.0f;
             }
         }
+    }
+    auto& viewTransform = m_ECS.view<CTransform>();
+    for (auto e : viewTransform){    
+        auto &transform = transformPool.getComponent(e);
+        
         // Update position
         transform.prevPos = transform.pos;
         if (!(transform.vel.isnull()) && transform.isMovable ){
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
         }
     }
-    auto& pathfindPool = m_ECS.getComponentPool<CPathfind>();
-    auto& view1 = m_ECS.view<CPathfind>();
-    for (auto e : view1)
-    {
-        auto& transform = transformPool.getComponent(e);
-        auto& pathfind = pathfindPool.getComponent(e);
-        Vec2& target = pathfind.target;
-        if ((target - transform.pos).length() < 64*2) {
-            transform.vel = target - transform.pos;
-        } else {
-            transform.vel = Vec2 {0,0};
-        }
-        target = transformPool.getComponent(m_player).pos;
-
-         // Update position
-        transform.prevPos = transform.pos;
-        if (!(transform.vel.isnull()) && transform.isMovable ){
-            transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
-        }
-    }
+    
+    // if ( m_ECS.hasComponent<CProjectile>(m_player) )
+    // {
+    //     EntityID projectileID = m_ECS.getComponent<CProjectile>(m_player).projectileID;
+    //     m_ECS.getComponent<CTransform>(projectileID).vel = getMousePosition()-m_ECS.getComponent<CTransform>(m_player).pos+m_camera.position;
+    //     m_ECS.getComponent<CTransform>(projectileID).angle = m_ECS.getComponent<CTransform>(projectileID).vel.angle();
+    // }
 
     auto& viewParent = m_ECS.view<CParent>();
     auto& parentPool = m_ECS.getOrCreateComponentPool<CParent>();
@@ -349,7 +357,7 @@ void Scene_Play::sCollision() {
     auto& BboxPlayer = BboxPool.getComponent(m_player);
 
     auto& viewLoot = m_ECS.getComponentPool<CLoot>();
-    for (auto e : viewLoot ){
+    for ( auto e : viewLoot ){
         auto& transform = transformPool.getComponent(e);
         auto& Bbox = BboxPool.getComponent(e);
         if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
@@ -360,7 +368,7 @@ void Scene_Play::sCollision() {
     }
 
     auto& viewWeapon = m_ECS.getComponentPool<CWeapon>();
-    for (auto e : viewWeapon ){
+    for ( auto e : viewWeapon ){
         auto& transform = transformPool.getComponent(e);
         auto& Bbox = BboxPool.getComponent(e);
         if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
@@ -373,8 +381,8 @@ void Scene_Play::sCollision() {
         }
     }
 
-    auto &view = m_ECS.view<CBoundingBox>();
-    for (auto e : view ){
+    auto &viewImmovable = m_ECS.view<CImmovable>();
+    for ( auto e : viewImmovable ){
         auto& transform = transformPool.getComponent(e);
         auto& Bbox = BboxPool.getComponent(e);
         if (m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox))
@@ -383,10 +391,10 @@ void Scene_Play::sCollision() {
         }
     }
 
-// // ------------------------------- Enemy collisions -------------------------------------------------------------------------
+// ------------------------------- Enemy collisions -------------------------------------------------------------------------
 
     auto& viewP = m_ECS.view<CPathfind>();
-    for (auto e1 : viewP)
+    for ( auto e1 : viewP )
     {
         auto& transform1 = transformPool.getComponent(e1);
         auto& Bbox1 = BboxPool.getComponent(e1);
@@ -400,14 +408,17 @@ void Scene_Play::sCollision() {
             }
         }
     }
+
+// ------------------------------- Projectile collisions ---------------------------------------------------------------------
     auto& viewProj = m_ECS.view<CProjectileState>();
     auto& viewHealth = m_ECS.view<CHealth>();
-    for ( auto projectileID : viewProj)
+    for ( auto projectileID : viewProj )
     {
         auto& transformProjectile = transformPool.getComponent(projectileID);
         auto& BboxProjectile = BboxPool.getComponent(projectileID);
-        for ( auto enemyID : viewHealth)
-        {
+        for ( auto enemyID : viewHealth )
+        {   
+            if (enemyID == m_player ) {continue;}
             auto& transformEnemy = transformPool.getComponent(enemyID);
             auto& BboxEnemy = BboxPool.getComponent(enemyID);
             if (m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
@@ -462,16 +473,16 @@ void Scene_Play::sAnimation() {
         }
     }
 
-    // auto view1 = m_ECS.view<CAnimation, CProjectileState>();
-    // for ( auto e : view1 ) {
-        // if ( view1.getComponent<CProjectileState>(e).state == "Create" ) {
-        //     if ( view1.getComponent<CAnimation>(e).animation.hasEnded() ) {
-        //         view1.getComponent<CProjectileState>(e).state = "Free";
-        //         // view1.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("fireball");
-        //         m_camera.startShake(4, 100);
-        //     }
-        // }
-    // }
+    auto& viewProjectileState = m_ECS.view<CProjectileState>();
+    for ( auto e : viewProjectileState ) {
+        if ( viewProjectileState.getComponent(e).state == "Create" ) {
+            if ( m_ECS.getComponent<CAnimation>(e).animation.hasEnded() ) {
+                viewProjectileState.getComponent(e).state = "Ready";
+                m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("fireball");
+                m_camera.startShake(4, 50);
+            }
+        }
+    }
 
     auto& view2 = m_ECS.view<CAnimation>();
     // auto& animationPool = m_ECS.getComponentPool<CAnimation>();
@@ -497,12 +508,10 @@ void Scene_Play::sRender() {
 
     if (m_drawTextures)
     {
-        // auto viewSorted = m_ECS.view_sorted<CAnimation>();
-
-        auto& view = m_ECS.view<CBottomLayer>();
+        auto& viewBottom = m_ECS.view<CBottomLayer>();
         auto& transformPool = m_ECS.getComponentPool<CTransform>();
         auto& animationPool = m_ECS.getComponentPool<CAnimation>();
-        for (auto e : view)
+        for (auto e : viewBottom)
         {                
             auto& transform = transformPool.getComponent(e);
             auto& animation = animationPool.getComponent(e).animation;
@@ -512,29 +521,36 @@ void Scene_Play::sRender() {
             // if (cameraZoom != 1) {
 
             // }
-
-            // if ( m_ECS.hasComponent<CShadow>(e) ){
-            //     auto& shadow = shadowPool.getComponent(e);
-
-            //     // Set the destination rectangle for rendering
-            //     shadow.animation.setScale(transform.scale*cameraZoom);
-            //     shadow.animation.setAngle(transform.angle);
-            //     shadow.animation.setDestRect(adjustedPos - shadow.animation.getDestSize()/2);
-                
-            //     spriteRender(shadow.animation);
-            // } 
-
             animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
             animation.setDestRect(adjustedPos - animation.getDestSize()/2);
             
             spriteRender(animation);
         }
+
+        auto& viewTop = m_ECS.view<CTopLayer>();
+        auto& transformPool2 = m_ECS.getComponentPool<CTransform>();
+        auto& animationPool2 = m_ECS.getComponentPool<CAnimation>();
+        for (auto e : viewTop){
+                
+            auto& transform = transformPool2.getComponent(e);
+            auto& animation = animationPool2.getComponent(e).animation;
+
+            Vec2 adjustedPos = transform.pos - m_camera.position;
+
+            animation.setScale(transform.scale*cameraZoom);
+            animation.setAngle(transform.angle);
+            animation.setDestRect(adjustedPos - animation.getDestSize()/2);
+            
+            spriteRender(animation);
+        }    
+
         auto& viewHealth = m_ECS.getComponentPool<CHealth>();
         for ( auto entityID : viewHealth )
-        {
+        {   
+            if ( entityID == m_player ){continue;}
             auto& health = viewHealth.getComponent(entityID);
-            if ( (int)m_currentFrame - health.damage_frame < health.heart_frames) {
+            if ( (int)m_currentFrame - health.damage_frame < health.heart_frames ) {
 
                 auto& transform = transformPool.getComponent(entityID);
                 Vec2 adjustedPos = transform.pos - m_camera.position;
@@ -579,40 +595,24 @@ void Scene_Play::sRender() {
         //     SDL_FLIP_NONE
         // );
 
-        // Animation animation;
-        // auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP)/2;
+        Animation animation;
+        auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP)/2;
 
-        // for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max/2; i++)
-        // {   
-        //     if ( hearts >= i ){
-        //         animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
-        //     } else if ( i-hearts == 0.5f ){
-        //         animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
-        //     } else{
-        //         animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
-        //     }
+        for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max/2; i++)
+        {   
+            if ( hearts >= i ){
+                animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
+            } else if ( i-hearts == 0.5f ){
+                animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
+            } else{
+                animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
+            }
 
-        //     animation.setScale(Vec2{4, 4});
-        //     animation.setDestRect(Vec2{(float)(i-1)*animation.getSize().x*animation.getScale().x, 0});
+            animation.setScale(Vec2{4, 4});
+            animation.setDestRect(Vec2{(float)(i-1)*animation.getSize().x*animation.getScale().x, 0});
 
-        //     spriteRender(animation);
-        // }
-        auto& view2 = m_ECS.view<CTopLayer>();
-        auto& transformPool2 = m_ECS.getComponentPool<CTransform>();
-        auto& animationPool2 = m_ECS.getComponentPool<CAnimation>();
-        for (auto e : view2){
-                
-            auto& transform = transformPool2.getComponent(e);
-            auto& animation = animationPool2.getComponent(e).animation;
-
-            Vec2 adjustedPos = transform.pos - m_camera.position;
-
-            animation.setScale(transform.scale*cameraZoom);
-            animation.setAngle(transform.angle);
-            animation.setDestRect(adjustedPos - animation.getDestSize()/2);
-            
             spriteRender(animation);
-        }    
+        }
     }
     
     if (m_drawCollision){
@@ -622,8 +622,6 @@ void Scene_Play::sRender() {
         for (auto e : view){      
             auto &transform = transformPool.getComponent(e);
             auto &box = BboxPool.getComponent(e);
-            // auto &transform = m_ECS.getComponent<CTransform>(e);
-            // auto &box = m_ECS.getComponent<CBoundingBox>(e);
 
             // Adjust the collision box position based on the camera position
             SDL_Rect collisionRect;
@@ -730,13 +728,7 @@ void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
-}
-
-void Scene_Play::spawnCloud(const Vec2 pos, bool movable, const int frame){
-    auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
+    m_ECS.addComponent<CImmovable>(entity);
 }
 
 void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
@@ -815,7 +807,6 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
 {
     auto entity = m_ECS.addEntity();
-    // creator->setLinkEntity(entity);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400, false);
@@ -823,7 +814,8 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     m_ECS.addComponent<CDamage>(entity, m_ECS.getComponent<CDamage>(creator).damage, m_ECS.getComponent<CDamage>(creator).speed); // damage speed 6 = frames between attacking
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CProjectileState>(entity, "Create");
-    // m_entities.sort();
+    m_ECS.addComponent<CParent>(entity, m_player);
+    m_ECS.addComponent<CProjectile>(m_player, entity);
 }
 
 void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)

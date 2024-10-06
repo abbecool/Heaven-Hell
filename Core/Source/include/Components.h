@@ -37,6 +37,14 @@ public:
     CParent(EntityID p, Vec2 relPos) : parent(p), relativePos(relPos) {}
 };
 
+class CProjectile : public Component
+{
+public:
+    EntityID projectileID;
+    CProjectile(EntityID p) : projectileID(p){}
+};
+
+
 class CInputs : public Component
 {
 public:
@@ -74,12 +82,18 @@ public:
 
 class CBoundingBox : public Component
 {
-    public:
-        Vec2 size;
-        Vec2 halfSize;
-        CBoundingBox() {}
-        CBoundingBox(const Vec2& s) 
-            : size(s), halfSize(s/2.0) {}
+public:
+    Vec2 size;
+    Vec2 halfSize;
+    CBoundingBox() {}
+    CBoundingBox(const Vec2& s) 
+        : size(s), halfSize(s/2.0) {}
+};
+
+class CImmovable : public Component
+{
+public:
+    CImmovable(){}    
 };
 
 class CHealth: public Component
@@ -158,7 +172,6 @@ class CName : public Component
 class CShadow: public Component
 {
 public:
-    // SDL_Sprite sprite;
     Animation animation;
     size_t size;
     CShadow() {}
