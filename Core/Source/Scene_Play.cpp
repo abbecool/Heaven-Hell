@@ -8,7 +8,8 @@
 #include "Level_Loader.h"
 #include "Camera.h"
 #include "ScriptableEntity.h"
-#include "player.cpp"
+#include "scripts/player.cpp"
+#include "scripts/rooter.cpp"
 
 #include "RandomArray.h"
 
@@ -266,7 +267,7 @@ void Scene_Play::update() {
             if ( !sc.Instance )
             {
                 sc.Instance = sc.InstantiateScript();
-                sc.Instance->m_entity = {m_player, &m_ECS};
+                sc.Instance->m_entity = {e, &m_ECS};
                 sc.Instance->OnCreateFunction();
             }
             sc.Instance->OnUpdateFunction();
@@ -420,7 +421,7 @@ void Scene_Play::sCollision() {
             auto& Bbox = BboxPool.getComponent(e);
             if (m_physics.isCollided(transform1, Bbox1, transform, Bbox))
             {
-                m_ECS.getComponent<CTransform>(m_player).pos += m_physics.overlap(transform1, Bbox1, transform, Bbox);
+                m_ECS.getComponent<CTransform>(e1).pos += m_physics.overlap(transform1, Bbox1, transform, Bbox);
             }
         }
     }
@@ -455,6 +456,7 @@ void Scene_Play::sStatus() {
     {
         if (viewHealth.getComponent(entityID).HP <= 0)
         {
+            spawnCoin(m_ECS.getComponent<CTransform>(entityID).pos, 4);
             if ( m_player == entityID ){
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
             }
@@ -708,8 +710,6 @@ void Scene_Play::spawnPlayer(){
             }
         }
     }
-    std::cout << pos_x << std::endl;
-    std::cout << pos_y << std::endl;
     Vec2 pos = Vec2{64*(float)pos_x, 64*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entityID);
 
@@ -746,7 +746,7 @@ void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
-    // m_ECS.addComponent<CImmovable>(entity);
+    m_ECS.addComponent<CImmovable>(entity);
 }
 
 void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
@@ -810,7 +810,7 @@ void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int fra
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
-    // m_ECS.addComponent<CImmovable>(entity);
+    m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
 }
 
@@ -866,6 +866,8 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
     m_ECS.addComponent<CDamage>(entity, 1, 60);
+    m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
+
 }
 
 void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
