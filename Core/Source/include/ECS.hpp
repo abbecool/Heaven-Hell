@@ -199,7 +199,7 @@ public:
     // Check if an entity has a component
     template <typename T>
     bool hasComponent(EntityID entityId) {
-        return getComponentPool<T>().hasComponent(entityId);
+        return getOrCreateComponentPool<T>().hasComponent(entityId);
     }
 
     // Get a component from an entity

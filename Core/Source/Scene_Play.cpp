@@ -215,8 +215,9 @@ void Scene_Play::sDoAction(const Action& action) {
         if (action.name() == "CTRL") {
             m_ECS.getComponent<CInputs>(m_player).ctrl = true;
         }
-        if (action.name() == "ATTACK"){
-            spawnProjectile(m_player, getMousePosition()-m_ECS.getComponent<CTransform>(m_player).pos+m_camera.position);
+        if (action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)){
+            EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
+            spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position + Vec2{16,-16});
         }
     }
     else if (action.type() == "END") {
@@ -232,17 +233,18 @@ void Scene_Play::sDoAction(const Action& action) {
             m_ECS.getComponent<CInputs>(m_player).shift = false;
         } if (action.name() == "CTRL") {
             m_ECS.getComponent<CInputs>(m_player).ctrl = false;
-        } if (action.name() == "ATTACK") {
-            if ( m_ECS.hasComponent<CProjectile>(m_player) )
+        } if (action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)) {
+            EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
+            if ( m_ECS.hasComponent<CProjectile>(weaponID) )
             {
-                EntityID projectileID = m_ECS.getComponent<CProjectile>(m_player).projectileID;
-                m_ECS.removeComponent<CProjectile>(m_player);
+                EntityID projectileID = m_ECS.getComponent<CProjectile>(weaponID).projectileID;
+                m_ECS.removeComponent<CProjectile>(weaponID);
                 m_ECS.removeComponent<CParent>(projectileID);
                 if ( m_ECS.getComponent<CProjectileState>(projectileID).state == "Ready" )
                 {
                     m_ECS.getComponent<CTransform>(projectileID).isMovable = true;
                     m_ECS.getComponent<CProjectileState>(projectileID).state = "Free";
-                    m_ECS.getComponent<CTransform>(projectileID).vel = getMousePosition()-m_ECS.getComponent<CTransform>(m_player).pos+m_camera.position;
+                    m_ECS.getComponent<CTransform>(projectileID).vel = getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position;
                     m_ECS.getComponent<CTransform>(projectileID).angle = m_ECS.getComponent<CTransform>(projectileID).vel.angle();
                 } else {
                     m_ECS.removeEntity(projectileID);
@@ -375,6 +377,7 @@ void Scene_Play::sCollision() {
         {
             m_ECS.removeComponent<CBoundingBox>(e);
             m_ECS.removeComponent<CWeapon>(e);
+            m_ECS.addComponent<CWeaponChild>(m_player, e);
             m_ECS.addComponent<CParent>(e, m_player, Vec2{32, -16});
             Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
 
@@ -405,6 +408,19 @@ void Scene_Play::sCollision() {
             if (m_physics.isCollided(transform1, Bbox1, transform2, Bbox2))
             {
                 transformPool.getComponent(e1).pos += m_physics.overlap(transform1, Bbox1, transform2, Bbox2);
+            }
+        }
+        if (m_physics.isCollided(transform1, Bbox1, transformPlayer, BboxPlayer))
+            {
+                transformPool.getComponent(e1).pos += m_physics.overlap(transform1, Bbox1, transformPlayer, BboxPlayer);
+            }
+        auto &viewImmovable = m_ECS.view<CImmovable>();
+        for ( auto e : viewImmovable ){
+            auto& transform = transformPool.getComponent(e);
+            auto& Bbox = BboxPool.getComponent(e);
+            if (m_physics.isCollided(transform1, Bbox1, transform, Bbox))
+            {
+                m_ECS.getComponent<CTransform>(m_player).pos += m_physics.overlap(transform1, Bbox1, transform, Bbox);
             }
         }
     }
@@ -692,6 +708,8 @@ void Scene_Play::spawnPlayer(){
             }
         }
     }
+    std::cout << pos_x << std::endl;
+    std::cout << pos_y << std::endl;
     Vec2 pos = Vec2{64*(float)pos_x, 64*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entityID);
 
@@ -728,7 +746,7 @@ void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
-    m_ECS.addComponent<CImmovable>(entity);
+    // m_ECS.addComponent<CImmovable>(entity);
 }
 
 void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
@@ -783,6 +801,7 @@ void Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int fram
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
+    m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
 }
 
@@ -791,6 +810,7 @@ void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int fra
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
+    // m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
 }
 
@@ -799,6 +819,7 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("bridge"), true, 3);
     m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(frame % 4), (float)(int)(frame / 4)});
+    m_ECS.addComponent<CTopLayer>(entity);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
@@ -814,8 +835,8 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     m_ECS.addComponent<CDamage>(entity, m_ECS.getComponent<CDamage>(creator).damage, m_ECS.getComponent<CDamage>(creator).speed); // damage speed 6 = frames between attacking
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CProjectileState>(entity, "Create");
-    m_ECS.addComponent<CParent>(entity, m_player);
-    m_ECS.addComponent<CProjectile>(m_player, entity);
+    m_ECS.addComponent<CParent>(entity, creator);
+    m_ECS.addComponent<CProjectile>(creator, entity);
 }
 
 void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)

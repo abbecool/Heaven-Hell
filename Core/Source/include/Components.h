@@ -244,6 +244,13 @@ public:
     CWeapon(const Animation& animation, int damage, int speed, int range)
                 : animation(animation), damage(damage), speed(speed), range(range){}
 };
+class CWeaponChild: public Component
+{
+public:
+    EntityID weaponID;
+    CWeaponChild(EntityID wID)
+                : weaponID(wID){}
+};
 
 class CScript: public Component
 {

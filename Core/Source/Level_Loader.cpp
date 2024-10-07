@@ -166,42 +166,42 @@ std::unordered_map<std::string, int> LevelLoader::createDualGrid(
             int textureIndex = -1;  // Initialize textureIndex
 
             if (numTiles == 4) {
-                textureIndex = 6; // All quadrants are tiles
+                textureIndex = 10; // All quadrants are tiles
             } else if (numTiles == 3) {
-                if (tileQ[0] != tile) textureIndex = 10;
-                if (tileQ[1] != tile) textureIndex = 7;
-                if (tileQ[2] != tile) textureIndex = 2;
-                if (tileQ[3] != tile) textureIndex = 5;
+                if (tileQ[0] != tile) textureIndex = 14;
+                if (tileQ[1] != tile) textureIndex = 11;
+                if (tileQ[2] != tile) textureIndex = 6;
+                if (tileQ[3] != tile) textureIndex = 9;
             } else if (numTiles == 2) {
-                if (tileQ[0] != tile && tileQ[1] != tile) textureIndex = 9;
-                if (tileQ[1] != tile && tileQ[2] != tile) textureIndex = 11;
-                if (tileQ[2] != tile && tileQ[3] != tile) textureIndex = 3;
-                if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 1;
-                if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 4;
-                if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 14; 
+                if (tileQ[0] != tile && tileQ[1] != tile) textureIndex = 13;
+                if (tileQ[1] != tile && tileQ[2] != tile) textureIndex = 15;
+                if (tileQ[2] != tile && tileQ[3] != tile) textureIndex = 7;
+                if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 5;
+                if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 8;
+                if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 2; 
                 if (uniqueStrings.size() == 3 && (tile == "grass")) {
-                    if (tileQ[0] == tile && tileQ[1] == tile) textureIndex = 19;
-                    if (tileQ[1] == tile && tileQ[2] == tile) textureIndex = 17;
-                    if (tileQ[2] == tile && tileQ[3] == tile) textureIndex = 16;
-                    if (tileQ[3] == tile && tileQ[0] == tile) textureIndex = 18;
+                    if (tileQ[0] == tile && tileQ[1] == tile) textureIndex = 16;
+                    if (tileQ[1] == tile && tileQ[2] == tile) textureIndex = 18;
+                    if (tileQ[2] == tile && tileQ[3] == tile) textureIndex = 17;
+                    if (tileQ[3] == tile && tileQ[0] == tile) textureIndex = 19;
                 }
             } else if (numTiles == 1) {
-                if (tileQ[0] == tile) textureIndex = 0;
-                if (tileQ[1] == tile) textureIndex = 13;
-                if (tileQ[2] == tile) textureIndex = 8;
-                if (tileQ[3] == tile) textureIndex = 15;
+                if (tileQ[0] == tile) textureIndex = 4;
+                if (tileQ[1] == tile) textureIndex = 1;
+                if (tileQ[2] == tile) textureIndex = 12;
+                if (tileQ[3] == tile) textureIndex = 3;
                 if (uniqueStrings.size() == 3 && (tile == "grass")) {
-                    if (tileQ[0] == tile && tileQ[2] == tileQ[3]) textureIndex = 20;
-                    if (tileQ[0] == tile && tileQ[1] == tileQ[2]) textureIndex = 25;
+                    if (tileQ[0] == tile && tileQ[2] == tileQ[3]) textureIndex = 21;
+                    if (tileQ[0] == tile && tileQ[1] == tileQ[2]) textureIndex = 23;
 
-                    if (tileQ[1] == tile && tileQ[0] == tileQ[3]) textureIndex = 23;
-                    if (tileQ[1] == tile && tileQ[2] == tileQ[3]) textureIndex = 24;
+                    if (tileQ[1] == tile && tileQ[0] == tileQ[3]) textureIndex = 20;
+                    if (tileQ[1] == tile && tileQ[2] == tileQ[3]) textureIndex = 22;
 
-                    if (tileQ[2] == tile && tileQ[0] == tileQ[1]) textureIndex = 22;
-                    if (tileQ[2] == tile && tileQ[0] == tileQ[3]) textureIndex = 27;
+                    if (tileQ[2] == tile && tileQ[0] == tileQ[1]) textureIndex = 24;
+                    if (tileQ[2] == tile && tileQ[0] == tileQ[3]) textureIndex = 26;
 
-                    if (tileQ[3] == tile && tileQ[1] == tileQ[2]) textureIndex = 21;
-                    if (tileQ[3] == tile && tileQ[0] == tileQ[1]) textureIndex = 26;
+                    if (tileQ[3] == tile && tileQ[1] == tileQ[2]) textureIndex = 25;
+                    if (tileQ[3] == tile && tileQ[0] == tileQ[1]) textureIndex = 27;
                 }
             }
 
