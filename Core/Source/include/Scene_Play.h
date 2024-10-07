@@ -13,7 +13,7 @@ class Scene_Play : public Scene
 {
     struct PlayerConfig
     {
-        size_t x, y;
+        int x, y;
         float SPEED, MAXSPEED;
         int HP, DAMAGE;
     };

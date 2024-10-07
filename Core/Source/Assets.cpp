@@ -51,6 +51,7 @@ void Assets::addAnimation(const std::string& name, Animation animation) {
 }
 
 const Animation& Assets::getAnimation(const std::string& name) const {
+    std::cout << name << std::endl;
     return m_animations.at(name);
 }
 

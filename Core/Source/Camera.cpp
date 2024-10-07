@@ -97,21 +97,22 @@ bool Camera::startPan(float speed, int duration, Vec2 pos, bool pause) {
 }
 
 void Camera::panCamera(){
+    Vec2 panVelocity = (panPos - panStartPos).norm()*(float)i* panSpeed / 60;
     if (panDuration > 0) {
-        if ( ( ( panPos-(panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60) ).length() > 32 ) & !( panTimeElapsed >= panDuration ) ) {
+        if ( ( (panPos-(panStartPos + panVelocity)).length() > 32) && !(panTimeElapsed >= panDuration) ) {
             i++;
         } else {
             panTimeElapsed += 16; // Assuming 60 FPS, increase time (16ms per frame)
         }
         if ( panTimeElapsed >= panDuration ) {
-            if ( ( panStartPos-(panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60) ).length() > 32 ) {
+            if ( ( panStartPos-(panStartPos + panVelocity) ).length() > 32 ) {
                 i--;
             } else {
                 panDuration = 0;
                 m_cameraPause = panInitPause;
             }
         }
-        position = panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60;
+        position = panStartPos + panVelocity;
     }
 }
 

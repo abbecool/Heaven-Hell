@@ -329,6 +329,5 @@
     <ClCompile Include="Source\scripts\rooter.cpp">
       <Filter>scripts</Filter>
     </ClCompile>
-    <ClCompile Include="Source\player.cpp" />
   </ItemGroup>
 </Project>

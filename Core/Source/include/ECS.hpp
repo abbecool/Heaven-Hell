@@ -1,8 +1,7 @@
 #pragma once
 
-// #include "ScriptableEntity.h"
 #include "Components.h"
-// #include "Entity.h"
+
 #include <iostream>
 #include <unordered_map>
 #include <map>
@@ -19,6 +18,7 @@ class BaseComponentPool {
 public:
     virtual ~BaseComponentPool() = default;  // Virtual destructor to allow proper deletion
     virtual void removeComponent(EntityID entityId){};
+    std::vector<EntityID> entitiesToRemove;
 };
 
 template<typename T>
@@ -40,18 +40,32 @@ public:
         }
     }
 
+    void queueRemoveEntity(EntityID entity) {
+        entitiesToRemove.push_back(entity);
+    }
+
     // Check if an entityId has the component
     bool hasComponent(EntityID entityId) const {
-        return pool.find(entityId) != pool.end();  // Check if the entityId is in the pool
+        if (pool.empty()) {
+            return false;  // Safeguard against checking an empty pool
+        }
+
+        auto it = pool.find(entityId);
+        if (it == pool.end()) {
+            return false;  // Component not found for this entity
+        }
+
+        return true;  // Component exists for this entity
     }
 
     // Retrieve the component for an entityId
     T& getComponent(EntityID entityId) {
         return pool.at(entityId);  // Returns a reference to the component
-    }   
-    T& find(EntityID entityId) {
-        return *pool.find(entityId);
-    }
+    } 
+
+    // T& find(EntityID entityId) {
+    //     return *pool.find(entityId);
+    // }
 
     // Custom iterator for range-based for loops
     class Iterator {
@@ -101,6 +115,7 @@ public:
 
 private:
     std::unordered_map<EntityID, T> pool;  // Map of components indexed by EntityID
+
 };
 
 template<typename T, typename Other> 
@@ -174,9 +189,38 @@ public:
 
     void removeEntity(EntityID entity){
         for (auto& [type, pool]: componentPools) {
-            pool->removeComponent(entity);
+            if (pool != nullptr) {
+                pool->removeComponent(entity);
+            }
         }
         m_numEntities--;
+    }
+
+    void queueRemoveEntity(EntityID entity) {
+        m_entitiesToRemove.push_back(entity);
+    }
+
+    template<typename T>
+    void queueRemoveComponent(EntityID entity) {
+        auto& pool = getOrCreateComponentPool<T>();
+        pool.queueRemoveEntity(entity);
+    }
+
+    void update(){
+        for (auto e : m_entitiesToRemove) {
+            removeEntity(e);
+        }
+        m_entitiesToRemove.clear();
+
+        for (auto& [type, pool] : componentPools) {
+            if (pool != nullptr) {
+                auto& entitiesToRemove = pool->entitiesToRemove;
+                for (auto e : entitiesToRemove) {
+                    pool->removeComponent(e);
+                }
+                entitiesToRemove.clear();
+            }
+        }
     }
 
     EntityID getNumEntities(){
@@ -247,4 +291,5 @@ public:
 private:
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
+    std::vector<EntityID> m_entitiesToRemove;
 };

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-// #include <Sprite.h>
 #include "Vec2.h"
 #include <string>
 class Animation

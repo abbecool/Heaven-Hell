@@ -67,7 +67,7 @@ public:
     Vec2 vel = {0, 0};    
     Vec2 scale = {0.5, 0.5};    
     float angle = 0;
-    int speed = 0;
+    float speed = 0;
     bool isMovable = false;
     float tempo = 1.0f;
     CTransform() {}
@@ -76,7 +76,7 @@ public:
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
         : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, int spd, bool mvbl) 
+    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, float spd, bool mvbl) 
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
@@ -99,13 +99,13 @@ public:
 class CHealth: public Component
 {
 public:
-    int HP;
-    int HP_max;
+    int HP = 6;
+    int HP_max = 6;
     Animation animation_full;
     Animation animation_half;
     Animation animation_empty;
-    int heart_frames;
-    int damage_frame = 0;
+    int heart_frames = 30;
+    size_t damage_frame = 0;
     std::unordered_set<std::string> HPType;
     CHealth() {}
     CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)

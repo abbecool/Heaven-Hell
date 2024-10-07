@@ -239,8 +239,8 @@ void Scene_Play::sDoAction(const Action& action) {
             if ( m_ECS.hasComponent<CProjectile>(weaponID) )
             {
                 EntityID projectileID = m_ECS.getComponent<CProjectile>(weaponID).projectileID;
-                m_ECS.removeComponent<CProjectile>(weaponID);
-                m_ECS.removeComponent<CParent>(projectileID);
+                m_ECS.queueRemoveComponent<CProjectile>(weaponID);
+                m_ECS.queueRemoveComponent<CParent>(projectileID);
                 if ( m_ECS.getComponent<CProjectileState>(projectileID).state == "Ready" )
                 {
                     m_ECS.getComponent<CTransform>(projectileID).isMovable = true;
@@ -248,7 +248,7 @@ void Scene_Play::sDoAction(const Action& action) {
                     m_ECS.getComponent<CTransform>(projectileID).vel = getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position;
                     m_ECS.getComponent<CTransform>(projectileID).angle = m_ECS.getComponent<CTransform>(projectileID).vel.angle();
                 } else {
-                    m_ECS.removeEntity(projectileID);
+                    m_ECS.queueRemoveEntity(projectileID);
                 }
             }
         }
@@ -256,6 +256,7 @@ void Scene_Play::sDoAction(const Action& action) {
 }
 
 void Scene_Play::update() {
+    m_ECS.update();
     m_pause = m_camera.update(m_ECS.getComponent<CTransform>(m_player).pos, m_pause);
     if (!m_pause) {
         sMovement();
@@ -365,7 +366,7 @@ void Scene_Play::sCollision() {
         auto& Bbox = BboxPool.getComponent(e);
         if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
         {
-            m_ECS.removeEntity(e);
+            m_ECS.queueRemoveEntity(e);
             Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
         }
     }
@@ -376,8 +377,8 @@ void Scene_Play::sCollision() {
         auto& Bbox = BboxPool.getComponent(e);
         if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
         {
-            m_ECS.removeComponent<CBoundingBox>(e);
-            m_ECS.removeComponent<CWeapon>(e);
+            m_ECS.queueRemoveComponent<CBoundingBox>(e);
+            m_ECS.queueRemoveComponent<CWeapon>(e);
             m_ECS.addComponent<CWeaponChild>(m_player, e);
             m_ECS.addComponent<CParent>(e, m_player, Vec2{32, -16});
             Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
@@ -440,7 +441,7 @@ void Scene_Play::sCollision() {
             auto& BboxEnemy = BboxPool.getComponent(enemyID);
             if (m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
             {
-                m_ECS.removeEntity(projectileID);
+                m_ECS.queueRemoveEntity(projectileID);
                 auto& health = viewHealth.getComponent(enemyID);
                 health.HP--;
                 health.damage_frame = m_currentFrame;
@@ -460,7 +461,7 @@ void Scene_Play::sStatus() {
             if ( m_player == entityID ){
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
             }
-            m_ECS.removeEntity(entityID);
+            m_ECS.queueRemoveEntity(entityID);
         }
     }
 }
@@ -568,7 +569,7 @@ void Scene_Play::sRender() {
         {   
             if ( entityID == m_player ){continue;}
             auto& health = viewHealth.getComponent(entityID);
-            if ( (int)m_currentFrame - health.damage_frame < health.heart_frames ) {
+            if ( (int)(m_currentFrame - health.damage_frame) < health.heart_frames ) {
 
                 auto& transform = transformPool.getComponent(entityID);
                 Vec2 adjustedPos = transform.pos - m_camera.position;
@@ -687,14 +688,10 @@ void Scene_Play::spawnPlayer(){
     auto entityID = m_ECS.addEntity();
     m_player = entityID;
 
-    int pos_x;
-    int pos_y;
-    int hp;
-    if (m_newGame){
-        pos_x = m_playerConfig.x;
-        pos_y = m_playerConfig.y;
-        hp = m_playerConfig.HP;
-    } else {
+    int pos_x = m_playerConfig.x;
+    int pos_y = m_playerConfig.y;
+    int hp = m_playerConfig.HP;
+    if (!m_newGame){
         std::ifstream file("game_save.txt");
         if (!file) {
             std::cerr << "Could not load game_save.txt file!\n";
@@ -713,7 +710,7 @@ void Scene_Play::spawnPlayer(){
     Vec2 pos = Vec2{64*(float)pos_x, 64*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entityID);
 
-    m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0, m_playerConfig.SPEED, true);
+    m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, m_playerConfig.SPEED, true);
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
 
     m_ECS.addComponent<CName>(entityID, "wiz");
@@ -732,7 +729,7 @@ void Scene_Play::spawnPlayer(){
 void Scene_Play::spawnWeapon(Vec2 pos){
     auto entity = m_ECS.addEntity();
 
-    m_ECS.addComponent<CTransform>(entity, pos, Vec2{0,0}, Vec2{4, 4}, 0, 0, true);
+    m_ECS.addComponent<CTransform>(entity, pos, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CName>(entity, "staff");
@@ -744,7 +741,7 @@ void Scene_Play::spawnWeapon(Vec2 pos){
 void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
     m_ECS.addComponent<CImmovable>(entity);
 }
@@ -754,7 +751,7 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(ani), true, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0.0f, movable);
     m_ECS.addComponent<CHealth>(entity, (int)10, (int)10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {""};
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{96, 96});
@@ -767,14 +764,14 @@ void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
     auto entity = m_ECS.addEntity();
     // std::vector<int> ranArray = generateRandomArray(1, m_ECS.getNumEntities(), 0, 15);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0.0f, false);
 }
 
 void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0.0f, false);
 }
 
 void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
@@ -783,7 +780,7 @@ void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
     m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("checkpoint_idle"), true, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{4,4}, 0, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{4,4}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
 }
 
@@ -792,7 +789,7 @@ void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("m_texture_key"), true, 3);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {1, 1}, 0, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {1, 1}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
 }
 
@@ -821,7 +818,7 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(frame % 4), (float)(int)(frame / 4)});
     m_ECS.addComponent<CTopLayer>(entity);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
 }
 
@@ -830,7 +827,7 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, 3);
     m_ECS.addComponent<CTopLayer>(entity);
-    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400, false);
+    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
     m_ECS.addComponent<CDamage>(entity, m_ECS.getComponent<CDamage>(creator).damage, m_ECS.getComponent<CDamage>(creator).speed); // damage speed 6 = frames between attacking
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
@@ -845,7 +842,7 @@ void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
     m_ECS.addComponent<CLoot>(entity);
@@ -859,7 +856,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0, 150, true);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 150.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 48});
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
@@ -887,13 +884,12 @@ void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, 
             tile = "mountain";  // Change the tile name for "obstacle"
         }
 
-        // auto entity = m_entities.addEntity("DualTile", layer);
         EntityID entity = m_ECS.addEntity();
         m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, 10);
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});                           
         m_ECS.addComponent<CBottomLayer>(entity);
         Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-        m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{4, 4}, 0, false);
+        m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{4, 4}, 0.0f, false);
         // m_ECS.addComponent<CName>(entity, tile);
     }
 }
@@ -939,44 +935,44 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, EntityID entity) {
     Vec2 eScale;
     switch ((int)eSize.y) {
         case 270:
-            eScale.x = 0.15;
-            eScale.y = 0.18;
+            eScale.x = 0.15f;
+            eScale.y = 0.18f;
             break;
         case 225:
-            eScale.x = 0.18;
-            eScale.y = 0.18;
+            eScale.x = 0.18f;
+            eScale.y = 0.18f;
             break;
         case 192:
-            eScale.x = 1;
-            eScale.y = 1;
-            eSize.x = 64;
-            eSize.y = 64;
+            eScale.x = 1.0f;
+            eScale.y = 1.0f;
+            eSize.x = 64.0f;
+            eSize.y = 64.0f;
             break;
         case 128:
-            eScale.x = 2;
-            eScale.y = 2;
-            eSize.x = 32;
-            eSize.y = 32;
+            eScale.x = 2.0f;
+            eScale.y = 2.0f;
+            eSize.x = 32.0f;
+            eSize.y = 32.0f;
             break;
         case 64:
-            eScale.x = 1.0;
-            eScale.y = 1.0;
+            eScale.x = 1.0f;
+            eScale.y = 1.0f;
             break;
         case 32:
-            eScale.x = 2.0;
-            eScale.y = 2.0;
+            eScale.x = 2.0f;
+            eScale.y = 2.0f;
             break;
         case 16:
-            eScale.x = 4.0;
-            eScale.y = 4.0;
+            eScale.x = 4.0f;
+            eScale.y = 4.0f;
             break;
         case 24:
-            eScale.x = 2.0;
-            eScale.y = 2.0;
+            eScale.x = 2.0f;
+            eScale.y = 2.0f;
             break; 
         default:
-            eScale.x = 1.0;
-            eScale.y = 1.0;
+            eScale.x = 1.0f;
+            eScale.y = 1.0f;
     }
     
     offset = (m_gridSize - eSize * eScale) / 2.0;

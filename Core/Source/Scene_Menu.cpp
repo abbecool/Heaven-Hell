@@ -47,12 +47,12 @@ Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, Entity entity) {
     Vec2 eScale;
     switch ((int)eSize.y) {
         case 270:
-            eScale.x = 0.15;
-            eScale.y = 0.18;
+            eScale.x = 0.15f;
+            eScale.y = 0.18f;
             break;
         case 225:
-            eScale.x = 0.18;
-            eScale.y = 0.18;
+            eScale.x = 0.18f;
+            eScale.y = 0.18f;
             break;
         case 192:
             eScale.x = 1;
@@ -67,24 +67,24 @@ Vec2 Scene_Menu::gridToMidPixel(float gridX, float gridY, Entity entity) {
             eSize.y = 32;
             break;
         case 64:
-            eScale.x = 1.0;
-            eScale.y = 1.0;
+            eScale.x = 1.0f;
+            eScale.y = 1.0f;
             break;
         case 32:
-            eScale.x = 2.0;
-            eScale.y = 2.0;
+            eScale.x = 2.0f;
+            eScale.y = 2.0f;
             break;
         case 16:
-            eScale.x = 4.0;
-            eScale.y = 4.0;
+            eScale.x = 4.0f;
+            eScale.y = 4.0f;
             break;
         case 24:
-            eScale.x = 2.0;
-            eScale.y = 2.0;
+            eScale.x = 2.0f;
+            eScale.y = 2.0f;
             break; 
         default:
-            eScale.x = 1.0;
-            eScale.y = 1.0;
+            eScale.x = 1.0f;
+            eScale.y = 1.0f;
     }
     
     offset = (m_gridSize - eSize * eScale) / 2.0;
@@ -107,11 +107,11 @@ void Scene_Menu::loadMenu(){
     entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
     entity1.addComponent<CTopLayer>();
     entity1.addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
-    entity1.getComponent<CTransform>().scale = Vec2{1.2, 1.2};
+    entity1.getComponent<CTransform>().scale = Vec2{1.2f, 1.2f};
     entity1.addComponent<CName>("game_title");
 
-    spawnButton(Vec2 {64*3.2,64*8.1}, "button_unpressed", "new", "NEW GAME");
-    spawnButton(Vec2 {64*3.2,64*9.7}, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2 {64*3.2f,64*8.1f}, "button_unpressed", "new", "NEW GAME");
+    spawnButton(Vec2 {64*3.2f,64*9.7f}, "button_unpressed", "continue", "CONTINUE");
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
@@ -279,16 +279,16 @@ void Scene_Menu::sRender() {
                 SDL_FLIP_NONE
             );
         }
-        auto view2 = m_ECS.view<CDialog>();
+        auto& view2 = m_ECS.view<CDialog>();
         for (auto e : view2){
-            auto dialog = m_ECS.getComponent<CDialog>(e);
-            auto Bbox = m_ECS.getComponent<CBoundingBox>(e);
+            auto& dialog = m_ECS.getComponent<CDialog>(e);
+            auto& Bbox = m_ECS.getComponent<CBoundingBox>(e);
 
             SDL_Rect texRect;
-            texRect.x = dialog.pos.x - Bbox.halfSize.x*0.9;
-            texRect.y = dialog.pos.y - Bbox.halfSize.y*0.8;
-            texRect.w = dialog.size.x*0.9;
-            texRect.h = dialog.size.y*0.8;
+            texRect.x = (int)(dialog.pos.x - Bbox.halfSize.x * 0.9f);
+            texRect.y = (int)(dialog.pos.y - Bbox.halfSize.y * 0.8f);
+            texRect.w = (int)(dialog.size.x * 0.9f);
+            texRect.h = (int)(dialog.size.y * 0.8f);
 
             SDL_RenderCopyEx(
                     m_game->renderer(), 
@@ -303,7 +303,7 @@ void Scene_Menu::sRender() {
     }
 
     if (m_drawCollision){
-        auto view2 = m_ECS.view<CBoundingBox>();
+        auto& view2 = m_ECS.view<CBoundingBox>();
         for (auto e : view2){
             auto& transform = m_ECS.getComponent<CTransform>(e);
             auto& box = m_ECS.getComponent<CBoundingBox>(e);
