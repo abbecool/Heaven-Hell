@@ -13,8 +13,13 @@
 #include <typeindex>
 #include <functional>
 #include <cassert>
+#include <bitset>
 
 using EntityID = uint32_t;
+using ComponentType = uint8_t;
+const ComponentType MAX_COMPONENTS = 32;
+using Signature = std::bitset<MAX_COMPONENTS>;
+
 
 class ECS
 {
@@ -128,9 +133,10 @@ public:
         }
         return viewCache;
     }
- 
+
 private:
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
+    std::unordered_map<EntityID, Signature> signaturePool;
     std::vector<EntityID> m_entitiesToRemove;
 };

@@ -61,22 +61,22 @@ public:
 
     // Retrieve the component for an entityId
     T& getComponent(EntityID entityId) {
-        assert(!pool.empty() && "Pool is empty!");  // Safeguard against checking an empty pool
-        // if (pool.empty()){
-        //     std::cout << "empty pool" << std::endl;
-        // }
+        std::string typeName = typeid(T).name();
+        
+        // Check if pool is empty
+        if (pool.empty()) {
+            throw std::runtime_error("Pool is empty! Type: " + typeName);
+        }
 
-        assert((pool.find(entityId) != pool.end()) && "Component not found for this entity!");  // Component not found for this entity
-        // if (pool.find(entityId) == pool.end()){
-        //     std::cout << "Component not found for entityId: " << entityId 
-        //             << " in pool of type: " << typeid(T).name() << std::endl;
-        // }
-        return pool.at(entityId);  // Returns a reference to the component
-    } 
+        // Check if the entity exists in the pool
+        auto it = pool.find(entityId);
+        if (it == pool.end()) {
+            throw std::runtime_error("Component not found for this entity! Type: " + typeName);
+        }
 
-    // T& find(EntityID entityId) {
-    //     return *pool.find(entityId);
-    // }
+        // If everything is fine, return the component
+        return it->second;
+    }
 
     // Custom iterator for range-based for loops
     class Iterator {

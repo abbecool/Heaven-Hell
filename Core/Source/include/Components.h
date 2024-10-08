@@ -4,13 +4,13 @@
 #include <memory>
 #include <unordered_set>
 #include <functional>
-// #include "ScriptableEntity.h"
 
 // set a flag: flag |= (int)PlayerState
 // unset a flag: flag &= ~(int)PlayerState
 // flipping a flag: flag ^= (int)PlayerState
 // checking if a flag set: return (flag & (int)PlayerState) == (int)PlayerState
 // checking multiple flags set: return (flag &(int)PlayerState) != 0
+
 enum struct PlayerState {
     STAND = 0,
     RUN_DOWN = 1,
@@ -22,13 +22,7 @@ enum struct PlayerState {
 using EntityID = uint32_t;
 class ScriptableEntity;
 
-class Component
-{
-    public:
-        bool has = false;
-};
-
-class CParent : public Component
+struct CParent
 {
 public:
     EntityID parent;
@@ -37,7 +31,7 @@ public:
     CParent(EntityID p, Vec2 relPos) : parent(p), relativePos(relPos) {}
 };
 
-class CProjectile : public Component
+struct CProjectile
 {
 public:
     EntityID projectileID;
@@ -45,7 +39,7 @@ public:
 };
 
 
-class CInputs : public Component
+struct CInputs
 {
 public:
     bool up         = false;
@@ -59,7 +53,7 @@ public:
     CInputs() {};
 };
 
-class CTransform : public Component
+struct CTransform
 {
 public:
     Vec2 pos;    
@@ -80,7 +74,7 @@ public:
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
-class CBoundingBox : public Component
+struct CBoundingBox
 {
 public:
     Vec2 size;
@@ -90,13 +84,13 @@ public:
         : size(s), halfSize(s/2.0) {}
 };
 
-class CImmovable : public Component
+struct CImmovable
 {
 public:
     CImmovable(){}    
 };
 
-class CHealth: public Component
+struct CHealth
 {
 public:
     int HP = 6;
@@ -111,7 +105,7 @@ public:
     CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
         : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(hrt_frms){}
 };
-class CKey: public Component
+struct CKey
 {
 public:
     std::string unlocks;
@@ -120,7 +114,7 @@ public:
         : unlocks(unlcks) {}
 };
 
-class CAnimation: public Component
+struct CAnimation
 {
 public:
     Animation animation;
@@ -133,43 +127,43 @@ public:
             : animation(animation), repeat(r), layer(l){}
 };  
 
-class CTopLayer: public Component
+struct CTopLayer
 {
 public:
     CTopLayer() {}
 };
 
-class CBottomLayer: public Component
+struct CBottomLayer
 {
 public:
     CBottomLayer() {}
 };
-class CState : public Component
+struct CState
 {
-    public:
+public:
     PlayerState state;
     PlayerState preState; 
     bool changeAnimate = false;
     CState() {}
     CState(const PlayerState s) : state(s), preState(s) {}
 }; 
-class CProjectileState : public Component
+struct CProjectileState
 {
-    public:
+public:
     std::string state;
     bool changeAnimate = false;
     CProjectileState() {}
     CProjectileState(std::string state ) : state(state) {}
 }; 
-class CName : public Component
+struct CName
 {
-    public:
+public:
     std::string name;
     CName() {}
     CName(const std::string nm) : name(nm) {}
 }; 
 
-class CShadow: public Component
+struct CShadow
 {
 public:
     Animation animation;
@@ -179,9 +173,9 @@ public:
                 : animation(animation), size(sz){}
 };  
 
-class CDamage : public Component
+struct CDamage
 {
-    public:
+public:
     int damage, speed, lastAttackFrame;
     std::unordered_set<std::string> damageType;
     CDamage() {}
@@ -189,9 +183,9 @@ class CDamage : public Component
     CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), speed(spd), lastAttackFrame(-spd), damageType(dmgType) {}
 }; 
 
-class CDialog : public Component
+struct CDialog
 {
-    public:    
+public:    
     Vec2 pos;
     Vec2 size;
     SDL_Texture * dialog;
@@ -201,9 +195,9 @@ class CDialog : public Component
         : pos(p), size(sz), dialog(dia){}
 };
 
-class CPathfind : public Component
+struct CPathfind
 {
-    public:    
+public:    
     Vec2 target;
 
     CPathfind() {}
@@ -211,15 +205,15 @@ class CPathfind : public Component
         : target(trg){}
 };
 
-class CLoot : public Component
+struct CLoot
 {
-    public:
+public:
     CLoot() {}
 };
 
-class CKnockback : public Component
+struct CKnockback
 {
-    public:    
+public:    
     int duration;
     int magnitude;
     int timeElapsed = 0;
@@ -230,7 +224,7 @@ class CKnockback : public Component
         : duration(dur), magnitude(mag), direction(dir) {}
 };
 
-class CWeapon: public Component
+struct CWeapon
 {
 public:
     Animation animation;
@@ -244,7 +238,7 @@ public:
     CWeapon(const Animation& animation, int damage, int speed, int range)
                 : animation(animation), damage(damage), speed(speed), range(range){}
 };
-class CWeaponChild: public Component
+struct CWeaponChild
 {
 public:
     EntityID weaponID;
@@ -252,7 +246,7 @@ public:
                 : weaponID(wID){}
 };
 
-class CScript: public Component
+struct CScript
 {
 public:
     ScriptableEntity* Instance = nullptr;
