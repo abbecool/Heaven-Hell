@@ -11,6 +11,31 @@
 // checking if a flag set: return (flag & (int)PlayerState) == (int)PlayerState
 // checking multiple flags set: return (flag &(int)PlayerState) != 0
 
+// Define masks for each component (bit positions) - Ordered from basic to complex
+constexpr Signature CTransformMask          = 1 << 0; // 00000001, Bit 0
+constexpr Signature CBoundingBoxMask        = 1 << 1; // 00000010, Bit 1
+constexpr Signature CHealthMask             = 1 << 2; // 00000100, Bit 2
+constexpr Signature CInputsMask             = 1 << 3; // 00001000, Bit 3
+constexpr Signature CAnimationMask          = 1 << 4; // 00010000, Bit 4
+constexpr Signature CStateMask              = 1 << 5; // 00100000, Bit 5
+constexpr Signature CParentMask             = 1 << 6; // 01000000, Bit 6
+constexpr Signature CShadowMask             = 1 << 7; // 10000000, Bit 7
+constexpr Signature CImmovableMask          = 1 << 8; // Bit 8
+constexpr Signature CWeaponMask             = 1 << 9; // Bit 9
+constexpr Signature CKnockbackMask          = 1 << 10; // Bit 10
+constexpr Signature CProjectileMask         = 1 << 11; // Bit 11
+constexpr Signature CProjectileStateMask    = 1 << 12; // Bit 12
+constexpr Signature CKeyMask                = 1 << 13; // Bit 13
+constexpr Signature CLootMask               = 1 << 14; // Bit 14
+constexpr Signature CDamageMask             = 1 << 15; // Bit 15
+constexpr Signature CWeaponChildMask        = 1 << 16; // Bit 16
+constexpr Signature CDialogMask             = 1 << 17; // Bit 17
+constexpr Signature CPathfindMask           = 1 << 18; // Bit 18
+constexpr Signature CTopLayerMask           = 1 << 19; // Bit 19
+constexpr Signature CBottomLayerMask        = 1 << 20; // Bit 20
+constexpr Signature CScriptMask             = 1 << 21; // Bit 21
+
+
 enum struct PlayerState {
     STAND = 0,
     RUN_DOWN = 1,

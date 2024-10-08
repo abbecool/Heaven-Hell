@@ -14,6 +14,7 @@
 #include <functional>
 #include <cassert>
 #include <bitset>
+#include <cstdint>
 
 using EntityID = uint32_t;
 using ComponentType = uint8_t;
@@ -48,7 +49,7 @@ public:
 
     template<typename T>
     void queueRemoveComponent(EntityID entity) {
-        auto& pool = getOrCreateComponentPool<T>();
+        auto& pool = getComponentPool<T>();
         pool.queueRemoveEntity(entity);
     }
 
@@ -137,6 +138,53 @@ public:
 private:
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
-    std::unordered_map<EntityID, Signature> signaturePool;
+    SignaturePool signaturePool;
     std::vector<EntityID> m_entitiesToRemove;
 };
+
+
+using Signature = uint32_t;  // Signature is a uint8_t (8 bits, one bit per component)
+
+class SignaturePool {
+public:
+    // Add or update the signature for a given entity
+    void setSignature(EntityID entity, Signature signature) {
+        signatures[entity] = signature;
+    }
+
+    // Get the signature of a specific entity
+    Signature getSignature(EntityID entity) const {
+        return signatures.at(entity);
+    }
+
+    // Remove the signature for a given entity
+    void removeSignature(EntityID entity) {
+        signatures.erase(entity);
+    }
+
+    void addComponentToMask(EntityID entity, Signature componentMask) {
+        // Retrieve the current signature of the entity
+        Signature currentSignature = getSignature(entity);
+
+        // Set the bit for the new component using bitwise OR
+        currentSignature |= componentMask;
+
+        // Update the entity's signature in the signature pool
+        setSignature(entity, currentSignature);
+    }
+
+    // Function to get all entities matching a given component signature
+    std::vector<EntityID> getEntitiesWithSignature(Signature componentSignature) const {
+        std::vector<EntityID> matchingEntities;
+        for (const auto& [entity, signature] : signatures) {
+            if ((signature & componentSignature) == componentSignature) {
+                matchingEntities.push_back(entity);
+            }
+        }
+        return matchingEntities;
+    }
+
+private:
+    std::unordered_map<EntityID, Signature> signatures;
+};
+
