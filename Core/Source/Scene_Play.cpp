@@ -444,7 +444,6 @@ void Scene_Play::sCollision() {
                 if (m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
                 {
                     m_ECS.queueRemoveEntity(projectileID);
-                    std::cout << "remove projectile" << std::endl;
                     auto& health = viewHealth.getComponent(enemyID);
                     health.HP--;
                     health.damage_frame = m_currentFrame;
@@ -829,7 +828,6 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
 {
     auto entity = m_ECS.addEntity();
-    std::cout << "Projectile: " << entity << "!" << std::endl;
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400.0f, false);
@@ -844,7 +842,6 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
 void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();
-    std::cout << "Coin: " << entity << "!" << std::endl;
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -857,7 +854,6 @@ void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
 {
     auto entity = m_ECS.addEntity();
-    std::cout << type << ": " << entity << "!" << std::endl;
     m_ECS.addComponent<CName>(entity, type);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(type), true, 3);
     m_ECS.addComponent<CTopLayer>(entity);
