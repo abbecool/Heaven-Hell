@@ -63,9 +63,9 @@ void Scene_Play::init(const std::string& levelPath) {
     loadLevel(levelPath);
     
     spawnPlayer();
-    spawnCoin(Vec2{64*8,64*12}, 4);
+    spawnCoin(Vec2{64*46,64*10}, 4);
     // spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
-    spawnWeapon(Vec2{64*5 , 64*13});
+    spawnWeapon(Vec2{64*50 , 64*13});
     spawnSmallEnemy(Vec2{64*15 , 64*9}, 3, "rooter");
     spawnSmallEnemy(Vec2{64*10 , 64*10}, 3, "rooter");
     spawnSmallEnemy(Vec2{64*20 , 64*12}, 3, "goblin");
@@ -436,15 +436,19 @@ void Scene_Play::sCollision() {
         auto& BboxProjectile = BboxPool.getComponent(projectileID);
         for ( auto enemyID : viewHealth )
         {   
-            if (enemyID == m_player ) {continue;}
-            auto& transformEnemy = transformPool.getComponent(enemyID);
-            auto& BboxEnemy = BboxPool.getComponent(enemyID);
-            if (m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
+            if (enemyID != m_player ) 
             {
-                m_ECS.queueRemoveEntity(projectileID);
-                auto& health = viewHealth.getComponent(enemyID);
-                health.HP--;
-                health.damage_frame = m_currentFrame;
+                // continue;
+                auto& transformEnemy = transformPool.getComponent(enemyID);
+                auto& BboxEnemy = BboxPool.getComponent(enemyID);
+                if (m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
+                {
+                    m_ECS.queueRemoveEntity(projectileID);
+                    std::cout << "remove projectile" << std::endl;
+                    auto& health = viewHealth.getComponent(enemyID);
+                    health.HP--;
+                    health.damage_frame = m_currentFrame;
+                }
             }
         }
     }
@@ -825,6 +829,7 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
 {
     auto entity = m_ECS.addEntity();
+    std::cout << "Projectile: " << entity << "!" << std::endl;
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400.0f, false);
@@ -839,6 +844,7 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
 void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();
+    std::cout << "Coin: " << entity << "!" << std::endl;
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -851,6 +857,7 @@ void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
 {
     auto entity = m_ECS.addEntity();
+    std::cout << type << ": " << entity << "!" << std::endl;
     m_ECS.addComponent<CName>(entity, type);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(type), true, 3);
     m_ECS.addComponent<CTopLayer>(entity);
