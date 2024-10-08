@@ -61,21 +61,23 @@ public:
 
     // Retrieve the component for an entityId
     T& getComponent(EntityID entityId) {
-        std::string typeName = typeid(T).name();
+        //std::string typeName = typeid(T).name();
         
-        // Check if pool is empty
-        if (pool.empty()) {
-            throw std::runtime_error("Pool is empty! Type: " + typeName);
-        }
+        //// Check if pool is empty
+        //if (pool.empty()) {
+        //    throw std::runtime_error("Pool is empty! Type: " + typeName);
+        //}
 
-        // Check if the entity exists in the pool
-        auto it = pool.find(entityId);
-        if (it == pool.end()) {
-            throw std::runtime_error("Component not found for this entity! Type: " + typeName);
-        }
+        //// Check if the entity exists in the pool
+        //auto it = pool.find(entityId);
+        //if (it == pool.end()) {
+        //    throw std::runtime_error("Component not found for this entity! Type: " + typeName);
+        //}
 
-        // If everything is fine, return the component
-        return it->second;
+        //// If everything is fine, return the component
+        //return it->second;
+
+        return pool.at(entityId);
     }
 
     // Custom iterator for range-based for loops

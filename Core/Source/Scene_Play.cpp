@@ -243,6 +243,7 @@ void Scene_Play::sDoAction(const Action& action) {
                 m_ECS.queueRemoveComponent<CParent>(projectileID);
                 if ( m_ECS.getComponent<CProjectileState>(projectileID).state == "Ready" )
                 {
+                    m_ECS.addComponent<CBoundingBox>(projectileID, Vec2{12, 12});
                     m_ECS.getComponent<CTransform>(projectileID).isMovable = true;
                     m_ECS.getComponent<CProjectileState>(projectileID).state = "Free";
                     m_ECS.getComponent<CTransform>(projectileID).vel = getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position;
@@ -428,17 +429,18 @@ void Scene_Play::sCollision() {
     }
 
 // ------------------------------- Projectile collisions ---------------------------------------------------------------------
-    auto& viewProj = m_ECS.view<CProjectileState>();
+    // auto& viewProj = m_ECS.view<CProjectileState>();
     auto& viewHealth = m_ECS.view<CHealth>();
-    for ( auto projectileID : viewProj )
+    std::vector<EntityID> viewBbox = m_ECS.signatureView<CBoundingBox, CHealth>();
+    std::vector<EntityID> viewSignature = m_ECS.signatureView<CProjectileState, CBoundingBox>();
+    for ( auto projectileID : viewSignature )
     {
         auto& transformProjectile = transformPool.getComponent(projectileID);
         auto& BboxProjectile = BboxPool.getComponent(projectileID);
-        for ( auto enemyID : viewHealth )
+        for ( auto enemyID : viewBbox )
         {   
             if (enemyID != m_player ) 
             {
-                // continue;
                 auto& transformEnemy = transformPool.getComponent(enemyID);
                 auto& BboxEnemy = BboxPool.getComponent(enemyID);
                 if (m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
@@ -831,7 +833,7 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400.0f, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
+    // m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
     m_ECS.addComponent<CDamage>(entity, m_ECS.getComponent<CDamage>(creator).damage, m_ECS.getComponent<CDamage>(creator).speed); // damage speed 6 = frames between attacking
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CProjectileState>(entity, "Create");

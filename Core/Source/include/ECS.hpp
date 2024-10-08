@@ -17,10 +17,115 @@
 #include <cstdint>
 
 using EntityID = uint32_t;
-using ComponentType = uint8_t;
+using ComponentType = uint32_t;
 const ComponentType MAX_COMPONENTS = 32;
 using Signature = std::bitset<MAX_COMPONENTS>;
 
+
+// Define masks for each component (bit positions) - Ordered from basic to complex
+constexpr Signature CTransformMask          = 1 << 0; // 00000001, Bit 0
+constexpr Signature CBoundingBoxMask        = 1 << 1; // 00000010, Bit 1
+constexpr Signature CHealthMask             = 1 << 2; // 00000100, Bit 2
+constexpr Signature CInputsMask             = 1 << 3; // 00001000, Bit 3
+constexpr Signature CAnimationMask          = 1 << 4; // 00010000, Bit 4
+constexpr Signature CStateMask              = 1 << 5; // 00100000, Bit 5
+constexpr Signature CParentMask             = 1 << 6; // 01000000, Bit 6
+constexpr Signature CShadowMask             = 1 << 7; // 10000000, Bit 7
+constexpr Signature CImmovableMask          = 1 << 8; // Bit 8
+constexpr Signature CWeaponMask             = 1 << 9; // Bit 9
+constexpr Signature CKnockbackMask          = 1 << 10; // Bit 10
+constexpr Signature CProjectileMask         = 1 << 11; // Bit 11
+constexpr Signature CProjectileStateMask    = 1 << 12; // Bit 12
+constexpr Signature CLootMask               = 1 << 13; // Bit 13
+constexpr Signature CDamageMask             = 1 << 14; // Bit 14
+constexpr Signature CWeaponChildMask        = 1 << 15; // Bit 15
+constexpr Signature CDialogMask             = 1 << 16; // Bit 16
+constexpr Signature CPathfindMask           = 1 << 17; // Bit 17
+constexpr Signature CTopLayerMask           = 1 << 18; // Bit 18
+constexpr Signature CBottomLayerMask        = 1 << 19; // Bit 19
+constexpr Signature CScriptMask             = 1 << 20; // Bit 20
+
+class SignaturePool {
+public:
+
+    SignaturePool() {}
+    // Add or update the signature for a given entity
+    void setSignature(EntityID entity, Signature signature) {
+        signatures[entity] = signature;
+    }
+
+    // Get the signature of a specific entity
+    Signature getSignature(EntityID entity) const {
+        return signatures.at(entity);
+    }
+
+    // Remove the signature for a given entity
+    void removeSignature(EntityID entity) {
+        signatures.erase(entity);
+    }
+
+    template<typename T>
+    void addComponentToMask(EntityID entity) {
+        Signature componentMask = getComponentMask<T>();
+        // Retrieve the current signature of the entity
+        Signature currentSignature = getSignature(entity);
+
+        // Set the bit for the new component using bitwise OR
+        currentSignature |= componentMask;
+
+        // Update the entity's signature in the signature pool
+        setSignature(entity, currentSignature);
+    }
+
+    template<typename T>
+    Signature getComponentMask() {
+        return componentMaskMap[typeid(T)];
+    }
+
+    // Function to get all entities matching a given component signature for any number of components
+    template<typename... Components>
+    std::vector<EntityID> getEntitiesWithSignature() {
+        // Combine all component masks using bitwise OR
+        Signature combinedMask = (getComponentMask<Components>() | ...);
+
+        std::vector<EntityID> matchingEntities;
+
+        // Iterate through all entities and check their signatures
+        for (const auto& [entity, signature] : signatures) {
+            // Check if the entity matches the combined component mask
+            if ((signature & combinedMask) == combinedMask) {
+                matchingEntities.push_back(entity);
+            }
+        }
+        return matchingEntities;
+    }
+
+private:
+    std::unordered_map<EntityID, Signature> signatures;
+    std::unordered_map<std::type_index, Signature> componentMaskMap = {
+        { typeid(CTransform), CTransformMask },
+        { typeid(CBoundingBox), CBoundingBoxMask },
+        { typeid(CHealth), CHealthMask },
+        { typeid(CInputs), CInputsMask },
+        { typeid(CAnimation), CAnimationMask },
+        { typeid(CState), CStateMask },
+        { typeid(CParent), CParentMask },
+        { typeid(CShadow), CShadowMask },
+        { typeid(CImmovable), CImmovableMask },
+        { typeid(CWeapon), CWeaponMask },
+        { typeid(CKnockback), CKnockbackMask },
+        { typeid(CProjectile), CProjectileMask },
+        { typeid(CProjectileState), CProjectileStateMask },
+        { typeid(CLoot), CLootMask },
+        { typeid(CDamage), CDamageMask },
+        { typeid(CWeaponChild), CWeaponChildMask },
+        { typeid(CDialog), CDialogMask },
+        { typeid(CPathfind), CPathfindMask },
+        { typeid(CTopLayer), CTopLayerMask },
+        { typeid(CBottomLayer), CBottomLayerMask },
+        { typeid(CScript), CScriptMask }
+    };
+};
 
 class ECS
 {
@@ -31,16 +136,18 @@ public:
     ECS(){}  
 
     EntityID addEntity(){   
-        return m_numEntities++;
+        m_numEntities++;
+        m_signaturePool.setSignature(m_numEntities, 0);
+        return m_numEntities;
     }
 
     void removeEntity(EntityID entity){
-        for (auto& [type, pool]: componentPools) {
+        for (auto& [type, pool]: m_componentPools) {
             if (pool != nullptr) {
                 pool->removeComponent(entity);
             }
         }
-        // m_numEntities--;
+        m_signaturePool.removeSignature(entity);
     }
 
     void queueRemoveEntity(EntityID entity) {
@@ -51,6 +158,11 @@ public:
     void queueRemoveComponent(EntityID entity) {
         auto& pool = getComponentPool<T>();
         pool.queueRemoveEntity(entity);
+
+        Signature currentSignature = m_signaturePool.getSignature(entity);
+        Signature componentMask = m_signaturePool.getComponentMask<T>();
+        currentSignature &= ~componentMask;  // Clear the bit for the component
+        m_signaturePool.setSignature(entity, currentSignature);
     }
 
     void update(){
@@ -59,7 +171,7 @@ public:
         }
         m_entitiesToRemove.clear();
 
-        for (auto& [type, pool] : componentPools) {
+        for (auto& [type, pool] : m_componentPools) {
             if (pool != nullptr) {
                 auto& entitiesToRemove = pool->entitiesToRemove;
                 for (auto e : entitiesToRemove) {
@@ -78,6 +190,7 @@ public:
     template<typename T, typename... Args>
     T& addComponent(EntityID entity, Args &&... args) {
         auto& pool = getOrCreateComponentPool<T>();
+        m_signaturePool.addComponentToMask<T>(entity);
         return pool.addComponent(entity, T(std::forward<Args>(args)...));
     };
 
@@ -102,16 +215,16 @@ public:
     template <typename T>
     ComponentPool<T>& getComponentPool() {
         std::type_index typeIdx(typeid(T));
-        return *reinterpret_cast<ComponentPool<T>*>(componentPools.at(typeIdx).get());        
+        return *reinterpret_cast<ComponentPool<T>*>(m_componentPools.at(typeIdx).get());        
     }
 
     template <typename T>
     ComponentPool<T>& getOrCreateComponentPool() {
         std::type_index typeIdx(typeid(T));
-        if (componentPools.find(typeIdx) == componentPools.end()) {
-            componentPools[typeIdx] = std::make_unique<ComponentPool<T>>();
+        if (m_componentPools.find(typeIdx) == m_componentPools.end()) {
+            m_componentPools[typeIdx] = std::make_unique<ComponentPool<T>>();
         }
-        return *reinterpret_cast<ComponentPool<T>*>(componentPools[typeIdx].get());
+        return *reinterpret_cast<ComponentPool<T>*>(m_componentPools[typeIdx].get());
     }
 
     template<typename T>
@@ -135,56 +248,23 @@ public:
         return viewCache;
     }
 
+    template<typename... Components>
+    std::vector<EntityID> signatureView(){
+        // // Get references to all the component pools
+        // auto componentPools = std::make_tuple(getComponentPool<Components>()...);
+        
+        // // Get all the component pool sizes
+        // std::array<std::size_t, sizeof...(Components)> poolSizes = { getComponentPool<Components>().size()... };
+
+        // // Find the index of the smallest pool size
+        // auto smallestPoolIndex = std::min_element(poolSizes.begin(), poolSizes.end()) - poolSizes.begin();
+
+        return m_signaturePool.getEntitiesWithSignature<Components...>();
+    }
+
 private:
     // Map to store component pools for each component type
-    std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> componentPools;
-    SignaturePool signaturePool;
+    std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> m_componentPools;
+    SignaturePool m_signaturePool;
     std::vector<EntityID> m_entitiesToRemove;
 };
-
-
-using Signature = uint32_t;  // Signature is a uint8_t (8 bits, one bit per component)
-
-class SignaturePool {
-public:
-    // Add or update the signature for a given entity
-    void setSignature(EntityID entity, Signature signature) {
-        signatures[entity] = signature;
-    }
-
-    // Get the signature of a specific entity
-    Signature getSignature(EntityID entity) const {
-        return signatures.at(entity);
-    }
-
-    // Remove the signature for a given entity
-    void removeSignature(EntityID entity) {
-        signatures.erase(entity);
-    }
-
-    void addComponentToMask(EntityID entity, Signature componentMask) {
-        // Retrieve the current signature of the entity
-        Signature currentSignature = getSignature(entity);
-
-        // Set the bit for the new component using bitwise OR
-        currentSignature |= componentMask;
-
-        // Update the entity's signature in the signature pool
-        setSignature(entity, currentSignature);
-    }
-
-    // Function to get all entities matching a given component signature
-    std::vector<EntityID> getEntitiesWithSignature(Signature componentSignature) const {
-        std::vector<EntityID> matchingEntities;
-        for (const auto& [entity, signature] : signatures) {
-            if ((signature & componentSignature) == componentSignature) {
-                matchingEntities.push_back(entity);
-            }
-        }
-        return matchingEntities;
-    }
-
-private:
-    std::unordered_map<EntityID, Signature> signatures;
-};
-
