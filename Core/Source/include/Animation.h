@@ -48,13 +48,13 @@ class Animation
     void setDestRect(const int x, const int y, const int w, const int h);
     void setDestRect(Vec2 pos);
     void setDestSize(Vec2 size);
-    void setAngle(double angle);
+    void setAngle(float angle);
     void setScale(Vec2 scale);
     void setTexture(SDL_Texture *tex);
     void setTile(Vec2 grid);
     SDL_Point getTextureSize();
     Vec2 getDestSize();
-    float getAngle();
+    float getAngle() const;
     void setCurrentFrame(size_t frame);
     size_t frames();
     };
