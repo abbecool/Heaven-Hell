@@ -431,13 +431,14 @@ void Scene_Play::sCollision() {
 // ------------------------------- Projectile collisions ---------------------------------------------------------------------
     // auto& viewProj = m_ECS.view<CProjectileState>();
     auto& viewHealth = m_ECS.view<CHealth>();
-    std::vector<EntityID> viewBbox = m_ECS.signatureView<CBoundingBox, CHealth>();
-    std::vector<EntityID> viewSignature = m_ECS.signatureView<CProjectileState, CBoundingBox>();
-    for ( auto projectileID : viewSignature )
+    std::vector<EntityID> viewSignatureBbox             = m_ECS.signatureView<CBoundingBox, CHealth>();
+    std::vector<EntityID> viewSignatureImmovable        = m_ECS.signatureView<CImmovable>();
+    std::vector<EntityID> viewSignatureProjectileState  = m_ECS.signatureView<CProjectileState, CBoundingBox>();
+    for ( auto projectileID : viewSignatureProjectileState )
     {
         auto& transformProjectile = transformPool.getComponent(projectileID);
         auto& BboxProjectile = BboxPool.getComponent(projectileID);
-        for ( auto enemyID : viewBbox )
+        for ( auto enemyID : viewSignatureBbox )
         {   
             if (enemyID != m_player ) 
             {
@@ -445,11 +446,32 @@ void Scene_Play::sCollision() {
                 auto& BboxEnemy = BboxPool.getComponent(enemyID);
                 if (m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
                 {
-                    m_ECS.queueRemoveEntity(projectileID);
+                    auto& animation     = m_ECS.getComponent<CAnimation>(projectileID);
+                    animation.animation = m_game->assets().getAnimation("fireball_explode");
+                    animation.repeat    = false;
+                    transformProjectile.isMovable = false;
+                    m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
+                    m_ECS.queueRemoveComponent<CDamage>(projectileID);
+                    // m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
                     auto& health = viewHealth.getComponent(enemyID);
                     health.HP--;
                     health.damage_frame = m_currentFrame;
                 }
+            }
+        }
+        for ( auto enemyID : viewSignatureImmovable )
+        {   
+            auto& transformObstacle = transformPool.getComponent(enemyID);
+            auto& BboxObstacle = BboxPool.getComponent(enemyID);
+            if (m_physics.isCollided(transformProjectile, BboxProjectile, transformObstacle, BboxObstacle))
+            {
+                auto& animation     = m_ECS.getComponent<CAnimation>(projectileID);
+                animation.animation = m_game->assets().getAnimation("fireball_explode");
+                animation.repeat    = false;
+                transformProjectile.isMovable = false;
+                m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
+                m_ECS.queueRemoveComponent<CDamage>(projectileID);
+                // m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
             }
         }
     }
@@ -473,6 +495,7 @@ void Scene_Play::sStatus() {
 
 void Scene_Play::sAnimation() {
     auto& view = m_ECS.view<CState>();
+    // auto view = m_ECS.signatureView<CState, CAnimation>();
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& statePool = m_ECS.getComponentPool<CState>();
     auto& animationPool = m_ECS.getComponentPool<CAnimation>();
@@ -503,26 +526,21 @@ void Scene_Play::sAnimation() {
             if ( m_ECS.getComponent<CAnimation>(e).animation.hasEnded() ) {
                 viewProjectileState.getComponent(e).state = "Ready";
                 m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("fireball");
+                m_ECS.getComponent<CAnimation>(e).repeat = true;
                 m_camera.startShake(4, 50);
             }
         }
     }
 
     auto& view2 = m_ECS.view<CAnimation>();
-    // auto& animationPool = m_ECS.getComponentPool<CAnimation>();
     for ( auto e : view2 ){
         auto& animation = animationPool.getComponent(e);
-        // auto& animation = animationPool.getComponent(e);
         if (animation.animation.hasEnded() && !animation.repeat) {
-            // if (m_ECS.getComponent<CName>(e).name == "Dragon") {
-            //     m_ECS.addComponent<CAnimation>(e, m_game->assets().getAnimation("snoring_dragon"), true);
-            // } else {
-            //     // e->kill();
-            // }
+            m_ECS.queueRemoveEntity(e);
+        } else{
+            animation.animation.update();
         }
-        animation.animation.update();
     }
-    // }
 }
 
 void Scene_Play::sRender() {

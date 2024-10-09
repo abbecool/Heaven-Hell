@@ -44,6 +44,7 @@ constexpr Signature CPathfindMask           = 1 << 17; // Bit 17
 constexpr Signature CTopLayerMask           = 1 << 18; // Bit 18
 constexpr Signature CBottomLayerMask        = 1 << 19; // Bit 19
 constexpr Signature CScriptMask             = 1 << 20; // Bit 20
+constexpr Signature CVelocityMask           = 1 << 21; // Bit 21
 
 class SignaturePool {
 public:
@@ -51,17 +52,17 @@ public:
     SignaturePool() {}
     // Add or update the signature for a given entity
     void setSignature(EntityID entity, Signature signature) {
-        signatures[entity] = signature;
+        m_signatures[entity] = signature;
     }
 
     // Get the signature of a specific entity
     Signature getSignature(EntityID entity) const {
-        return signatures.at(entity);
+        return m_signatures.at(entity);
     }
 
     // Remove the signature for a given entity
     void removeSignature(EntityID entity) {
-        signatures.erase(entity);
+        m_signatures.erase(entity);
     }
 
     template<typename T>
@@ -91,7 +92,8 @@ public:
         std::vector<EntityID> matchingEntities;
 
         // Iterate through all entities and check their signatures
-        for (const auto& [entity, signature] : signatures) {
+        for (const auto& [entity, signature] : m_signatures) {
+            // Signature entitySignature = getSignature(entity);
             // Check if the entity matches the combined component mask
             if ((signature & combinedMask) == combinedMask) {
                 matchingEntities.push_back(entity);
@@ -101,7 +103,7 @@ public:
     }
 
 private:
-    std::unordered_map<EntityID, Signature> signatures;
+    std::unordered_map<EntityID, Signature> m_signatures;
     std::unordered_map<std::type_index, Signature> componentMaskMap = {
         { typeid(CTransform), CTransformMask },
         { typeid(CBoundingBox), CBoundingBoxMask },
@@ -123,7 +125,8 @@ private:
         { typeid(CPathfind), CPathfindMask },
         { typeid(CTopLayer), CTopLayerMask },
         { typeid(CBottomLayer), CBottomLayerMask },
-        { typeid(CScript), CScriptMask }
+        { typeid(CScript), CScriptMask },
+        { typeid(CVelocity), CVelocityMask },
     };
 };
 
@@ -250,7 +253,7 @@ public:
 
     template<typename... Components>
     std::vector<EntityID> signatureView(){
-        // // Get references to all the component pools
+        // // // Get references to all the component pools
         // auto componentPools = std::make_tuple(getComponentPool<Components>()...);
         
         // // Get all the component pool sizes

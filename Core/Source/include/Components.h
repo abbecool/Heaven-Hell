@@ -24,7 +24,6 @@ class ScriptableEntity;
 
 struct CParent
 {
-public:
     EntityID parent;
     Vec2 relativePos = {0,0};
     CParent(EntityID p) : parent(p){}
@@ -33,7 +32,6 @@ public:
 
 struct CProjectile
 {
-public:
     EntityID projectileID;
     CProjectile(EntityID p) : projectileID(p){}
 };
@@ -41,7 +39,6 @@ public:
 
 struct CInputs
 {
-public:
     bool up         = false;
     bool down       = false;
     bool left       = false;
@@ -55,7 +52,6 @@ public:
 
 struct CTransform
 {
-public:
     Vec2 pos;    
     Vec2 prevPos;
     Vec2 vel = {0, 0};    
@@ -74,9 +70,16 @@ public:
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
+struct CVelocity
+{
+    Vec2 vel = {0, 0};    
+    float angle = 0;
+    float speed = 0;
+    float tempo = 1.0f;
+};
+
 struct CBoundingBox
 {
-public:
     Vec2 size;
     Vec2 halfSize;
     CBoundingBox() {}
@@ -86,13 +89,11 @@ public:
 
 struct CImmovable
 {
-public:
     CImmovable(){}    
 };
 
 struct CHealth
 {
-public:
     int HP = 6;
     int HP_max = 6;
     Animation animation_full;
@@ -107,7 +108,6 @@ public:
 };
 struct CKey
 {
-public:
     std::string unlocks;
     CKey() {}
     CKey(const std::string & unlcks)
@@ -116,9 +116,8 @@ public:
 
 struct CAnimation
 {
-public:
     Animation animation;
-    bool repeat = false;
+    bool repeat = true;
     int layer = 5;
     CAnimation() {}
     CAnimation(const Animation& animation, bool r)
@@ -129,18 +128,15 @@ public:
 
 struct CTopLayer
 {
-public:
     CTopLayer() {}
 };
 
 struct CBottomLayer
 {
-public:
     CBottomLayer() {}
 };
 struct CState
 {
-public:
     PlayerState state;
     PlayerState preState; 
     bool changeAnimate = false;
@@ -149,7 +145,6 @@ public:
 }; 
 struct CProjectileState
 {
-public:
     std::string state;
     bool changeAnimate = false;
     CProjectileState() {}
@@ -157,7 +152,6 @@ public:
 }; 
 struct CName
 {
-public:
     std::string name;
     CName() {}
     CName(const std::string nm) : name(nm) {}
@@ -165,7 +159,6 @@ public:
 
 struct CShadow
 {
-public:
     Animation animation;
     size_t size;
     CShadow() {}
@@ -175,7 +168,6 @@ public:
 
 struct CDamage
 {
-public:
     int damage, speed, lastAttackFrame;
     std::unordered_set<std::string> damageType;
     CDamage() {}
@@ -184,8 +176,7 @@ public:
 }; 
 
 struct CDialog
-{
-public:    
+{    
     Vec2 pos;
     Vec2 size;
     SDL_Texture * dialog;
@@ -196,8 +187,7 @@ public:
 };
 
 struct CPathfind
-{
-public:    
+{    
     Vec2 target;
 
     CPathfind() {}
@@ -207,13 +197,11 @@ public:
 
 struct CLoot
 {
-public:
     CLoot() {}
 };
 
 struct CKnockback
-{
-public:    
+{    
     int duration;
     int magnitude;
     int timeElapsed = 0;
@@ -226,7 +214,6 @@ public:
 
 struct CWeapon
 {
-public:
     Animation animation;
     int damage;
     int speed;
@@ -240,7 +227,6 @@ public:
 };
 struct CWeaponChild
 {
-public:
     EntityID weaponID;
     CWeaponChild(EntityID wID)
                 : weaponID(wID){}
@@ -248,7 +234,6 @@ public:
 
 struct CScript
 {
-public:
     ScriptableEntity* Instance = nullptr;
 
     ScriptableEntity* (*InstantiateScript)();
