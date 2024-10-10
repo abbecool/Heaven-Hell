@@ -429,11 +429,10 @@ void Scene_Play::sCollision() {
     }
 
 // ------------------------------- Projectile collisions ---------------------------------------------------------------------
-    // auto& viewProj = m_ECS.view<CProjectileState>();
-    auto& viewHealth = m_ECS.view<CHealth>();
-    std::vector<EntityID> viewSignatureBbox             = m_ECS.signatureView<CAnimation, CBoundingBox, CHealth>();
-    std::vector<EntityID> viewSignatureImmovable        = m_ECS.signatureView<CAnimation, CImmovable, CTransform>();
-    std::vector<EntityID> viewSignatureProjectileState  = m_ECS.signatureView<CAnimation, CBoundingBox, CProjectileState>();
+    auto& healthPool = m_ECS.getComponentPool<CHealth>();
+    std::vector<EntityID> viewSignatureBbox             = m_ECS.signatureView<CBoundingBox, CHealth>();
+    std::vector<EntityID> viewSignatureImmovable        = m_ECS.signatureView<CBoundingBox, CImmovable>();
+    std::vector<EntityID> viewSignatureProjectileState  = m_ECS.signatureView<CBoundingBox, CProjectileState>();
     for ( auto projectileID : viewSignatureProjectileState )
     {
         auto& transformProjectile = transformPool.getComponent(projectileID);
@@ -453,7 +452,7 @@ void Scene_Play::sCollision() {
                     m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
                     m_ECS.queueRemoveComponent<CDamage>(projectileID);
                     // m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
-                    auto& health = viewHealth.getComponent(enemyID);
+                    auto& health = healthPool.getComponent(enemyID);
                     health.HP--;
                     health.damage_frame = m_currentFrame;
                 }
@@ -494,7 +493,7 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
-    auto& view = m_ECS.view<CState>();
+    auto view = m_ECS.signatureView<CState, CAnimation, CTransform>();
     // auto view = m_ECS.signatureView<CState, CAnimation>();
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& statePool = m_ECS.getComponentPool<CState>();
@@ -520,13 +519,16 @@ void Scene_Play::sAnimation() {
         }
     }
 
-    auto& viewProjectileState = m_ECS.view<CProjectileState>();
+    auto viewProjectileState = m_ECS.signatureView<CProjectileState, CAnimation>();
+    auto& projectileStatePool = m_ECS.getComponentPool<CProjectileState>();
     for ( auto e : viewProjectileState ) {
-        if ( viewProjectileState.getComponent(e).state == "Create" ) {
-            if ( m_ECS.getComponent<CAnimation>(e).animation.hasEnded() ) {
-                viewProjectileState.getComponent(e).state = "Ready";
-                m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("fireball");
-                m_ECS.getComponent<CAnimation>(e).repeat = true;
+        auto& animation = animationPool.getComponent(e);
+        auto& projectileState = projectileStatePool.getComponent(e);
+        if ( projectileState.state == "Create" ) {
+            if ( animation.animation.hasEnded() ) {
+                projectileState.state = "Ready";
+                animation.animation = m_game->assets().getAnimation("fireball");
+                animation.repeat = true;
                 m_camera.startShake(4, 50);
             }
         }
