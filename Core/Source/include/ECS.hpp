@@ -253,30 +253,24 @@ public:
         return viewCache;
     }
 
+    // View method to get entities with signature
     template<typename... Components>
     std::vector<EntityID> signatureView() {
-        // Retrieve the component pools for the given components and store them in a tuple
-        auto componentPools = std::make_tuple(getOrCreateComponentPool<Components>()...);
+        // Store pool sizes and pointers
+        std::vector<std::pair<std::size_t, BaseComponentPool*>> poolData;
 
-        // Calculate the sizes of the component pools in one line using std::apply and a lambda
-        auto poolSizes = std::apply([](auto&... pools) {
-            // ((std::cout << "Component type: " << typeid(typename std::decay<decltype(pools)>::type).name() 
-            //             << ", Size: " << pools.size() << std::endl), ...);
-            return std::vector<std::size_t>{ pools.size()... };
-        }, componentPools);
+        // Get the sizes and store them in vector
+        (poolData.emplace_back(getOrCreateComponentPool<Components>().size(), &getOrCreateComponentPool<Components>()), ...);
 
-        for ( std::size_t elem : poolSizes ){
-            std::cout << "Size: " << elem << std::endl;;
-        }
-        
-        // Find the index of the smallest pool size
-        auto smallestPoolIndex = std::distance(poolSizes.begin(), std::min_element(poolSizes.begin(), poolSizes.end()));
+        // Find the smallest pool
+        auto smallestPool = *std::min_element(poolData.begin(), poolData.end(),
+                                              [](const auto& a, const auto& b) { return a.first < b.first; });
 
-        // Access the smallest component pool based on the index using std::get
-        auto& smallestPool = std::get<smallestPoolIndex>(componentPools);
+        std::cout << smallestPool << std::endl;
 
-        // Pass the smallest pool directly to getEntitiesWithSignature
+        // Call getEntitiesWithSignature using the smallest pool
         return m_signaturePool.getEntitiesWithSignature<Components...>();
+        // return m_signaturePool.getEntitiesWithSignature<Components...>(*reinterpret_cast<ComponentPool<std::decay_t<decltype(*smallestPool.second)>>*>(smallestPool.second));
     }
 
 
