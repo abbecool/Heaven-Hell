@@ -431,9 +431,9 @@ void Scene_Play::sCollision() {
 // ------------------------------- Projectile collisions ---------------------------------------------------------------------
     // auto& viewProj = m_ECS.view<CProjectileState>();
     auto& viewHealth = m_ECS.view<CHealth>();
-    std::vector<EntityID> viewSignatureBbox             = m_ECS.signatureView<CBoundingBox, CHealth>();
-    std::vector<EntityID> viewSignatureImmovable        = m_ECS.signatureView<CImmovable>();
-    std::vector<EntityID> viewSignatureProjectileState  = m_ECS.signatureView<CProjectileState, CBoundingBox>();
+    std::vector<EntityID> viewSignatureBbox             = m_ECS.signatureView<CAnimation, CBoundingBox, CHealth>();
+    std::vector<EntityID> viewSignatureImmovable        = m_ECS.signatureView<CAnimation, CImmovable, CTransform>();
+    std::vector<EntityID> viewSignatureProjectileState  = m_ECS.signatureView<CAnimation, CBoundingBox, CProjectileState>();
     for ( auto projectileID : viewSignatureProjectileState )
     {
         auto& transformProjectile = transformPool.getComponent(projectileID);

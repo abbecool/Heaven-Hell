@@ -15,6 +15,8 @@
 #include <cassert>
 #include <bitset>
 #include <cstdint>
+#include <tuple>
+#include <algorithm>
 
 using EntityID = uint32_t;
 using ComponentType = uint32_t;
@@ -252,18 +254,31 @@ public:
     }
 
     template<typename... Components>
-    std::vector<EntityID> signatureView(){
-        // // // Get references to all the component pools
-        // auto componentPools = std::make_tuple(getComponentPool<Components>()...);
+    std::vector<EntityID> signatureView() {
+        // Retrieve the component pools for the given components and store them in a tuple
+        auto componentPools = std::make_tuple(getOrCreateComponentPool<Components>()...);
+
+        // Calculate the sizes of the component pools in one line using std::apply and a lambda
+        auto poolSizes = std::apply([](auto&... pools) {
+            // ((std::cout << "Component type: " << typeid(typename std::decay<decltype(pools)>::type).name() 
+            //             << ", Size: " << pools.size() << std::endl), ...);
+            return std::vector<std::size_t>{ pools.size()... };
+        }, componentPools);
+
+        for ( std::size_t elem : poolSizes ){
+            std::cout << "Size: " << elem << std::endl;;
+        }
         
-        // // Get all the component pool sizes
-        // std::array<std::size_t, sizeof...(Components)> poolSizes = { getComponentPool<Components>().size()... };
+        // Find the index of the smallest pool size
+        auto smallestPoolIndex = std::distance(poolSizes.begin(), std::min_element(poolSizes.begin(), poolSizes.end()));
 
-        // // Find the index of the smallest pool size
-        // auto smallestPoolIndex = std::min_element(poolSizes.begin(), poolSizes.end()) - poolSizes.begin();
+        // Access the smallest component pool based on the index using std::get
+        auto& smallestPool = std::get<smallestPoolIndex>(componentPools);
 
+        // Pass the smallest pool directly to getEntitiesWithSignature
         return m_signaturePool.getEntitiesWithSignature<Components...>();
     }
+
 
 private:
     // Map to store component pools for each component type

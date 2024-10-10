@@ -118,7 +118,7 @@ public:
         return Iterator(pool.end());
     }
 
-    size_t size() const {
+    size_t size() {
     return pool.size();
     }
     
