@@ -99,12 +99,12 @@ struct CHealth
     Animation animation_full;
     Animation animation_half;
     Animation animation_empty;
-    int heart_frames = 30;
+    int i_frames = 30;
     size_t damage_frame = 0;
     std::unordered_set<std::string> HPType;
     CHealth() {}
     CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
-        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(hrt_frms){}
+        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), i_frames(hrt_frms){}
 };
 struct CKey
 {
@@ -168,7 +168,8 @@ struct CShadow
 
 struct CDamage
 {
-    int damage, speed, lastAttackFrame;
+    int damage, speed;
+    size_t lastAttackFrame;
     std::unordered_set<std::string> damageType;
     CDamage() {}
     CDamage(int dmg, int spd) : damage(dmg), speed(spd), lastAttackFrame(-spd) {}
@@ -204,8 +205,8 @@ struct CKnockback
 {    
     int duration;
     int magnitude;
-    int timeElapsed = 0;
     Vec2 direction;
+    int timeElapsed = 0;
 
     CKnockback() {}
     CKnockback( int dur, int mag, Vec2 dir) 

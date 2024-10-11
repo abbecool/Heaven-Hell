@@ -275,8 +275,8 @@ void Scene_Play::update() {
             sc.Instance->OnUpdateFunction();
         //     // memory leak, destroy 
         }
-        sCollision();
         sStatus();
+        sCollision();
         sAnimation();
         sAudio();
     }
@@ -287,18 +287,17 @@ void Scene_Play::sMovement() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
 
     auto& pathfindPool = m_ECS.getComponentPool<CPathfind>();
-    auto& view1 = m_ECS.view<CPathfind>();
-    for (auto e : view1)
+    auto viewPathfind = m_ECS.signatureView<CPathfind, CTransform>();
+    for (auto e : viewPathfind)
     {
         auto& transform = transformPool.getComponent(e);
         auto& pathfind = pathfindPool.getComponent(e);
-        Vec2& target = pathfind.target;
-        if ((target - transform.pos).length() < 64*2) {
-            transform.vel = target - transform.pos;
+        if ((pathfind.target - transform.pos).length() < 64*2) {
+            transform.vel = pathfind.target - transform.pos;
         } else {
             transform.vel = Vec2 {0,0};
         }
-        target = transformPool.getComponent(m_player).pos;
+        pathfind.target = transformPool.getComponent(m_player).pos;
     }
 
     auto& inputPool = m_ECS.getComponentPool<CInputs>();
@@ -326,6 +325,18 @@ void Scene_Play::sMovement() {
             }
         }
     }
+
+    auto viewKnockback = m_ECS.signatureView<CKnockback, CTransform>();
+    auto& knockbackPool = m_ECS.getComponentPool<CKnockback>();
+    for (auto entityKnockback : viewKnockback){    
+        auto &transform = transformPool.getComponent(entityKnockback);
+        auto& knockback = knockbackPool.getComponent(entityKnockback);
+        transform.vel += m_physics.knockback(knockback);
+        if (knockback.duration <= 0){
+            m_ECS.queueRemoveComponent<CKnockback>(entityKnockback);
+        }
+    }       
+
     auto& viewTransform = m_ECS.view<CTransform>();
     for (auto e : viewTransform){    
         auto &transform = transformPool.getComponent(e);
@@ -400,30 +411,31 @@ void Scene_Play::sCollision() {
 // ------------------------------- Enemy collisions -------------------------------------------------------------------------
 
     auto& viewP = m_ECS.view<CPathfind>();
-    for ( auto e1 : viewP )
+    for ( auto enemy : viewP )
     {
-        auto& transform1 = transformPool.getComponent(e1);
-        auto& Bbox1 = BboxPool.getComponent(e1);
-        for (auto e2 : viewP)
+        auto& transformEnemy = transformPool.getComponent(enemy);
+        auto& BboxEnemy = BboxPool.getComponent(enemy);
+        for (auto enemy2 : viewP)
         {
-            auto& transform2 = transformPool.getComponent(e2);
-            auto& Bbox2 = BboxPool.getComponent(e2);
-            if (m_physics.isCollided(transform1, Bbox1, transform2, Bbox2))
+            auto& transformEnemy2 = transformPool.getComponent(enemy2);
+            auto& BboxEnemy2 = BboxPool.getComponent(enemy2);
+            if (m_physics.isCollided(transformEnemy, BboxEnemy, transformEnemy2, BboxEnemy2))
             {
-                transformPool.getComponent(e1).pos += m_physics.overlap(transform1, Bbox1, transform2, Bbox2);
+                transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transformEnemy2, BboxEnemy2);
             }
         }
-        if (m_physics.isCollided(transform1, Bbox1, transformPlayer, BboxPlayer))
+        if (m_physics.isCollided(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer))
             {
-                transformPool.getComponent(e1).pos += m_physics.overlap(transform1, Bbox1, transformPlayer, BboxPlayer);
+                transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer);
+                // m_ECS.addComponent<CKnockback>(m_player, 120, 10, transformEnemy.vel);
             }
         auto &viewImmovable = m_ECS.view<CImmovable>();
         for ( auto e : viewImmovable ){
             auto& transform = transformPool.getComponent(e);
             auto& Bbox = BboxPool.getComponent(e);
-            if (m_physics.isCollided(transform1, Bbox1, transform, Bbox))
+            if (m_physics.isCollided(transformEnemy, BboxEnemy, transform, Bbox))
             {
-                m_ECS.getComponent<CTransform>(e1).pos += m_physics.overlap(transform1, Bbox1, transform, Bbox);
+                m_ECS.getComponent<CTransform>(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transform, Bbox);
             }
         }
     }
@@ -477,17 +489,51 @@ void Scene_Play::sCollision() {
 }
 
 void Scene_Play::sStatus() {
-    // if ( m_ECS.getComponent<CHealth>(m_player).HP <= 0 ){
-    auto& viewHealth = m_ECS.getComponentPool<CHealth>();
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+
+    auto viewHealth = m_ECS.signatureView<CHealth>();
+    auto& healthPool = m_ECS.getComponentPool<CHealth>();
     for ( auto entityID : viewHealth)
     {
-        if (viewHealth.getComponent(entityID).HP <= 0)
+        auto& health = healthPool.getComponent(entityID);
+        auto& transform = transformPool.getComponent(entityID);
+        if (health.HP <= 0)
         {
-            spawnCoin(m_ECS.getComponent<CTransform>(entityID).pos, 4);
+            spawnCoin(transform.pos, 4);
             if ( m_player == entityID ){
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
             }
             m_ECS.queueRemoveEntity(entityID);
+        }
+    }
+    auto viewDamage = m_ECS.signatureView<CDamage, CBoundingBox, CTransform>();
+    auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
+    auto& damagePool = m_ECS.getComponentPool<CDamage>();
+    // for ( auto& [transformDamage, bboxDamage, damage] : viewDamage)
+    for ( auto entityDamage : viewDamage)
+    {
+        auto& transformDamage = transformPool.getComponent(entityDamage);
+        auto& bboxDamage = BboxPool.getComponent(entityDamage);
+        auto& damage = damagePool.getComponent(entityDamage);
+        // for ( auto& [transformHealth, bboxHealth, health] : viewHealth)
+        for ( auto entityHealth : viewHealth )
+        {
+            if ( entityDamage == entityHealth ){continue;}
+
+            auto& transforHealth = transformPool.getComponent(entityHealth);
+            auto& bboxHealth = BboxPool.getComponent(entityHealth);
+            auto& health = healthPool.getComponent(entityHealth);
+            if ( m_physics.isCollided(transformDamage, bboxDamage, transforHealth, bboxHealth) )
+            {
+                std::cout << m_currentFrame << " " << health.damage_frame << " " << health.i_frames << std::endl;
+                if ( m_currentFrame > health.damage_frame + health.i_frames ) {continue;} // i_frames number of frames have not passed yet. 
+                std::cout << "deal damage" << std::endl;
+                // int damageMultiplier = 1;
+                // m_ECS.addComponent<CKnockback>(entityHealth, 100*(int)(damage.damage*damageMultiplier), 32*(int)(damage.damage*damageMultiplier), transformDamage.vel);
+                // health.HP = health.HP-(int)(damage.damage*damageMultiplier);
+                // health.damage_frame = (int)m_currentFrame;
+                // damage.lastAttackFrame = (int)m_currentFrame;
+            }
         }
     }
 }
@@ -594,7 +640,7 @@ void Scene_Play::sRender() {
         {   
             if ( entityID == m_player ){continue;}
             auto& health = viewHealth.getComponent(entityID);
-            if ( (int)(m_currentFrame - health.damage_frame) < health.heart_frames ) {
+            if ( (int)(m_currentFrame - health.damage_frame) < health.i_frames ) {
 
                 auto& transform = transformPool.getComponent(entityID);
                 Vec2 adjustedPos = transform.pos - m_camera.position;
