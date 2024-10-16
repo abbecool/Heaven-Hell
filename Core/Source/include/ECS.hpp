@@ -191,6 +191,10 @@ public:
     EntityID getNumEntities(){
         return m_numEntities;
     }
+
+    Signature getSignature(EntityID entity){
+        return m_signaturePool.getSignature(entity);
+    }
     
     // Add a component to an entity
     template<typename T, typename... Args>

@@ -16,14 +16,14 @@ public:
 
     void OnUpdateFunction()
     {
-        auto& pos = getComponent<CTransform>().pos;
-        pos.x += 1;
+        // auto& pos = getComponent<CTransform>().pos;
+        // pos.x += 1;
     }
 
     void OnCollisionFunction()
     {
-        auto& pos = getComponent<CTransform>().pos;
-        pos.x += 1;
+        // auto& pos = getComponent<CTransform>().pos;
+        // pos.x += 1;
     }
 };
 

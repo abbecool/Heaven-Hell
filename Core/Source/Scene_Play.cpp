@@ -65,10 +65,10 @@ void Scene_Play::init(const std::string& levelPath) {
     spawnPlayer();
     spawnCoin(Vec2{64*46,64*10}, 4);
     // spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
-    spawnWeapon(Vec2{64*50 , 64*13});
-    spawnSmallEnemy(Vec2{64*15 , 64*9}, 3, "rooter");
-    spawnSmallEnemy(Vec2{64*10 , 64*10}, 3, "rooter");
-    spawnSmallEnemy(Vec2{64*20 , 64*12}, 3, "goblin");
+    spawnWeapon(Vec2{64*47 , 64*8});
+    spawnSmallEnemy(Vec2{64*45 , 64*9}, 3, "rooter");
+    spawnSmallEnemy(Vec2{64*40 , 64*10}, 3, "rooter");
+    spawnSmallEnemy(Vec2{64*50 , 64*12}, 3, "goblin");
     //spawnGoal(Vec2{64*23, 64*8}, false);
     //spawnGoal(Vec2{64*37, 64*47}, false);
 }
@@ -515,24 +515,24 @@ void Scene_Play::sStatus() {
         auto& transformDamage = transformPool.getComponent(entityDamage);
         auto& bboxDamage = BboxPool.getComponent(entityDamage);
         auto& damage = damagePool.getComponent(entityDamage);
+        Signature damageSignature = m_ECS.getSignature(entityDamage);
         // for ( auto& [transformHealth, bboxHealth, health] : viewHealth)
         for ( auto entityHealth : viewHealth )
         {
             if ( entityDamage == entityHealth ){continue;}
-
+            if ( (entityHealth == m_player) && ((damageSignature & CProjectileStateMask) == CProjectileStateMask) ){continue;}
+            
             auto& transforHealth = transformPool.getComponent(entityHealth);
             auto& bboxHealth = BboxPool.getComponent(entityHealth);
             auto& health = healthPool.getComponent(entityHealth);
             if ( m_physics.isCollided(transformDamage, bboxDamage, transforHealth, bboxHealth) )
             {
-                std::cout << m_currentFrame << " " << health.damage_frame << " " << health.i_frames << std::endl;
-                if ( m_currentFrame > health.damage_frame + health.i_frames ) {continue;} // i_frames number of frames have not passed yet. 
-                std::cout << "deal damage" << std::endl;
-                // int damageMultiplier = 1;
-                // m_ECS.addComponent<CKnockback>(entityHealth, 100*(int)(damage.damage*damageMultiplier), 32*(int)(damage.damage*damageMultiplier), transformDamage.vel);
-                // health.HP = health.HP-(int)(damage.damage*damageMultiplier);
-                // health.damage_frame = (int)m_currentFrame;
-                // damage.lastAttackFrame = (int)m_currentFrame;
+                if ( (int)( m_currentFrame - health.damage_frame) < health.i_frames ) {continue;} // i_frames number of frames have not passed yet. 
+                int damageMultiplier = 1;
+                m_ECS.addComponent<CKnockback>(entityHealth, 100*(int)(damage.damage*damageMultiplier), 32*(int)(damage.damage*damageMultiplier), transformDamage.vel);
+                health.HP = health.HP-(int)(damage.damage*damageMultiplier);
+                health.damage_frame = m_currentFrame;
+                damage.lastAttackFrame = m_currentFrame;
             }
         }
     }
@@ -792,7 +792,7 @@ void Scene_Play::spawnPlayer(){
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
 
-    m_ECS.addComponent<CDamage>(entityID, m_playerConfig.DAMAGE, 180);
+    // m_ECS.addComponent<CDamage>(entityID, m_playerConfig.DAMAGE, 180);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.addComponent<CScript>(entityID).Bind<PlayerController>();
 }
@@ -805,7 +805,7 @@ void Scene_Play::spawnWeapon(Vec2 pos){
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
-    m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
+    // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
 }
 
@@ -900,7 +900,7 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400.0f, false);
     // m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
-    m_ECS.addComponent<CDamage>(entity, m_ECS.getComponent<CDamage>(creator).damage, m_ECS.getComponent<CDamage>(creator).speed); // damage speed 6 = frames between attacking
+    m_ECS.addComponent<CDamage>(entity, 1, 180); // damage speed 6 = frames between attacking
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CProjectileState>(entity, "Create");
     m_ECS.addComponent<CParent>(entity, creator);
