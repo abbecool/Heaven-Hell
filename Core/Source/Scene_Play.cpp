@@ -529,10 +529,9 @@ void Scene_Play::sStatus() {
             {
                 if ( (int)( m_currentFrame - health.damage_frame) < health.i_frames ) {continue;} // i_frames number of frames have not passed yet. 
                 int damageMultiplier = 1;
-                m_ECS.addComponent<CKnockback>(entityHealth, 100*(int)(damage.damage*damageMultiplier), 32*(int)(damage.damage*damageMultiplier), transformDamage.vel);
+                m_ECS.addComponent<CKnockback>(entityHealth, 64, 1024, transformDamage.vel);
                 health.HP = health.HP-(int)(damage.damage*damageMultiplier);
                 health.damage_frame = m_currentFrame;
-                damage.lastAttackFrame = m_currentFrame;
             }
         }
     }
@@ -785,7 +784,7 @@ void Scene_Play::spawnPlayer(){
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
 
     m_ECS.addComponent<CName>(entityID, "wiz");
-    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("demon"), true, 3);
+    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, 3);
     m_ECS.addComponent<CTopLayer>(entityID);
     m_ECS.addComponent<CShadow>(entityID, m_game->assets().getAnimation("shadow"), false);
 

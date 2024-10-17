@@ -168,12 +168,11 @@ struct CShadow
 
 struct CDamage
 {
-    int damage, speed;
-    size_t lastAttackFrame;
+    int damage, speed, duration;
     std::unordered_set<std::string> damageType;
     CDamage() {}
-    CDamage(int dmg, int spd) : damage(dmg), speed(spd), lastAttackFrame(-spd) {}
-    CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), speed(spd), lastAttackFrame(-spd), damageType(dmgType) {}
+    CDamage(int dmg, int spd) : damage(dmg), speed(spd), duration(60) {}
+    CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), speed(spd), duration(60), damageType(dmgType) {}
 }; 
 
 struct CDialog
