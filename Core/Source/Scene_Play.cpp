@@ -70,8 +70,7 @@ void Scene_Play::init(const std::string& levelPath) {
     spawnSmallEnemy(Vec2{64*22 , 64*25}, 3, "rooter");
     spawnSmallEnemy(Vec2{64*3 , 64*22}, 3, "goblin");
     spawnSmallEnemy(Vec2{64*29 , 64*47}, 3, "goblin");
-    //spawnGoal(Vec2{64*23, 64*8}, false);
-    //spawnGoal(Vec2{64*37, 64*47}, false);
+    spawnCampfire(Vec2{64*44, 64*33});
 }
 
 void Scene_Play::loadConfig(const std::string& confPath){
@@ -807,7 +806,8 @@ void Scene_Play::spawnPlayer(){
 void Scene_Play::spawnWeapon(Vec2 pos){
     auto entity = m_ECS.addEntity();
 
-    m_ECS.addComponent<CTransform>(entity, pos, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CName>(entity, "staff");
@@ -852,22 +852,13 @@ void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0.0f, false);
 }
 
-void Scene_Play::spawnGoal(const Vec2 pos, bool movable)
+void Scene_Play::spawnCampfire(const Vec2 pos)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("checkpoint_idle"), true, 3);
+    m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("campfire"), true, 3);
     m_ECS.addComponent<CTopLayer>(entity);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{4,4}, 0.0f, movable);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
-}
-
-void Scene_Play::spawnKey(const Vec2 pos, const std::string playerToUnlock, bool movable)
-{
-    auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("m_texture_key"), true, 3);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {1, 1}, 0.0f, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
 }
 

@@ -59,14 +59,13 @@ class Scene_Play : public Scene
     void spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
 
     void spawnObstacle  (const Vec2 pos, bool movable, const int frame );
-    void spawnCloud     (const Vec2 pos, bool movable, const int frame);
     void spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
     void spawnGrass     (const Vec2 pos, const int frame);
     void spawnDirt      (const Vec2 pos, const int frame);
-    void spawnGoal      (const Vec2 pos, bool movable);
+    void spawnCampfire  (const Vec2 pos);
     void spawnKey       (const Vec2 pos, const std::string, bool movable);
     void spawnWater     (const Vec2 pos, const std::string tag, const int frame );
-    void spawnDualTiles  (const Vec2 pos, std::unordered_map<std::string, int> tileIndex );
+    void spawnDualTiles (const Vec2 pos, std::unordered_map<std::string, int> tileIndex );
     void spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     void spawnBridge    (const Vec2 pos, const int frame );
 
