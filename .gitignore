@@ -40,6 +40,9 @@
 *.out
 *.app
 
+# Large audio files
+*.wav
+
 # # Build dirs
 Binaries/*
 !Binaries/.gitkeep
