@@ -26,7 +26,7 @@ void Camera::movement(Vec2 playerPos){
     auto gridX = m_gridSize.x;
     auto gridY = m_gridSize.y;
 
-    if (m_cameraFollow){
+    if (!m_cameraFollow){
         originalPosition = playerPos - Vec2(width / 2, height / 2);
         if (originalPosition.x + (float)width > gridX*levelX){ originalPosition.x = gridX*levelX - (float)width;}     // right wall
         if (originalPosition.x < 0){originalPosition.x = 0;}      // left wall 

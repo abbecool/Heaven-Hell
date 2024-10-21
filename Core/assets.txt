@@ -135,5 +135,6 @@ Texture     demon                       assets/images/demon-sheet.png
 Animation   demon                       demon                       4   40    4  5
 Animation   staff                       staff                       1   100   1  1
 
-Audio       test                        assets/audio/mixkit-winning-a-coin-video-game-2069.wav
-Music       music                       assets/audio/music_lvl_02_electronic_layer_01.ogg
+Audio       loot_pickup                 assets/audio/loot_pickup.wav
+Audio       enemy_death                 assets/audio/enemy_death.wav
+Music       AbbeGameTrack1              assets/audio/AbbeGameTrack1ogg.ogg

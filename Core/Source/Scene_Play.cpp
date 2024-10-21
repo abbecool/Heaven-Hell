@@ -63,12 +63,13 @@ void Scene_Play::init(const std::string& levelPath) {
     loadLevel(levelPath);
     
     spawnPlayer();
-    spawnCoin(Vec2{64*46,64*10}, 4);
+    spawnCoin(Vec2{64*24,64*17}, 4);
     // spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
-    spawnWeapon(Vec2{64*47 , 64*8});
-    spawnSmallEnemy(Vec2{64*45 , 64*9}, 3, "rooter");
-    spawnSmallEnemy(Vec2{64*40 , 64*10}, 3, "rooter");
-    spawnSmallEnemy(Vec2{64*50 , 64*12}, 3, "goblin");
+    spawnWeapon(Vec2{64*22 , 64*33});
+    spawnSmallEnemy(Vec2{64*32 , 64*13}, 3, "rooter");
+    spawnSmallEnemy(Vec2{64*22 , 64*25}, 3, "rooter");
+    spawnSmallEnemy(Vec2{64*3 , 64*22}, 3, "goblin");
+    spawnSmallEnemy(Vec2{64*29 , 64*47}, 3, "goblin");
     //spawnGoal(Vec2{64*23, 64*8}, false);
     //spawnGoal(Vec2{64*37, 64*47}, false);
 }
@@ -155,9 +156,9 @@ void Scene_Play::loadLevel(const std::string& levelPath){
                     spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
                 } else if (pixel == "bridge") {
                     if ( std::find(neighborsTags.begin(), neighborsTags.end(), "water") != neighborsTags.end() ){
-                        spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                        // spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
                     } else if ( std::find(neighborsTags.begin(), neighborsTags.end(), "lava") != neighborsTags.end() ){
-                        spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                        // spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
                     }
                     spawnBridge(Vec2 {64*(float)x,64*(float)y}, textureIndex);
                 }
@@ -260,27 +261,25 @@ void Scene_Play::update() {
     m_ECS.update();
     m_pause = m_camera.update(m_ECS.getComponent<CTransform>(m_player).pos, m_pause);
     if (!m_pause) {
+        sScripting();
         sMovement();
-        m_currentFrame++;
-        auto& view = m_ECS.view<CScript>();
-        auto& scriptPool = m_ECS.getComponentPool<CScript>();
-        for ( auto e : view ) {
-            auto& sc = scriptPool.getComponent(e);
-            if ( !sc.Instance )
-            {
-                sc.Instance = sc.InstantiateScript();
-                sc.Instance->m_entity = {e, &m_ECS};
-                sc.Instance->OnCreateFunction();
-            }
-            sc.Instance->OnUpdateFunction();
-        //     // memory leak, destroy 
-        }
         sStatus();
         sCollision();
         sAnimation();
         sAudio();
+        m_currentFrame++;
     }
     sRender();
+}
+
+void Scene_Play::sScripting() {
+    auto view = m_ECS.signatureView<CScript>();
+    auto& scriptPool = m_ECS.getComponentPool<CScript>();
+    for ( auto e : view ) {
+        auto& sc = scriptPool.getComponent(e);
+        sc.Instance->OnUpdateFunction();
+        // memory leak, destroy
+    }
 }
 
 void Scene_Play::sMovement() {
@@ -379,7 +378,7 @@ void Scene_Play::sCollision() {
         if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
         {
             m_ECS.queueRemoveEntity(e);
-            Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
+            Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
         }
     }
 
@@ -393,7 +392,7 @@ void Scene_Play::sCollision() {
             m_ECS.queueRemoveComponent<CWeapon>(e);
             m_ECS.addComponent<CWeaponChild>(m_player, e);
             m_ECS.addComponent<CParent>(e, m_player, Vec2{32, -16});
-            Mix_PlayChannel(-1, m_game->assets().getAudio("test"), 0);
+            Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
 
         }
     }
@@ -504,6 +503,8 @@ void Scene_Play::sStatus() {
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
             }
             m_ECS.queueRemoveEntity(entityID);
+            Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
+
         }
     }
     auto viewDamage = m_ECS.signatureView<CDamage, CBoundingBox, CTransform>();
@@ -749,7 +750,8 @@ void Scene_Play::spriteRender(Animation &animation){
 void Scene_Play::sAudio(){
     if( Mix_PlayingMusic() == 0 )
     {
-        Mix_PlayMusic(m_game->assets().getMusic("music"), -1);
+        // Mix_PlayChannel(-1, m_game->assets().getAudio("AbbeGameTrack1"), 0);
+        Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1"), -1);
     }
 }
 
@@ -783,8 +785,8 @@ void Scene_Play::spawnPlayer(){
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, m_playerConfig.SPEED, true);
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
 
-    m_ECS.addComponent<CName>(entityID, "wiz");
-    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, 3);
+    m_ECS.addComponent<CName>(entityID, "demon");
+    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("demon"), true, 3);
     m_ECS.addComponent<CTopLayer>(entityID);
     m_ECS.addComponent<CShadow>(entityID, m_game->assets().getAnimation("shadow"), false);
 
@@ -793,7 +795,13 @@ void Scene_Play::spawnPlayer(){
 
     // m_ECS.addComponent<CDamage>(entityID, m_playerConfig.DAMAGE, 180);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+
     m_ECS.addComponent<CScript>(entityID).Bind<PlayerController>();
+    auto& scriptPool = m_ECS.getComponentPool<CScript>();
+    auto& sc = scriptPool.getComponent(entityID);    
+    sc.Instance = sc.InstantiateScript();
+    sc.Instance->m_entity = {entityID, &m_ECS};
+    sc.Instance->OnCreateFunction();
 }
 
 void Scene_Play::spawnWeapon(Vec2 pos){
@@ -889,7 +897,7 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     m_ECS.addComponent<CTopLayer>(entity);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0.0f, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
+    // m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
 }
 
 void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
@@ -933,8 +941,13 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
     m_ECS.addComponent<CDamage>(entity, 1, 60);
-    m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
 
+    m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
+    auto& scriptPool = m_ECS.getComponentPool<CScript>();
+    auto& sc = scriptPool.getComponent(entity);    
+    sc.Instance = sc.InstantiateScript();
+    sc.Instance->m_entity = {entity, &m_ECS};
+    sc.Instance->OnCreateFunction();
 }
 
 void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)

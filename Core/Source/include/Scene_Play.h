@@ -70,6 +70,7 @@ class Scene_Play : public Scene
     void spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     void spawnBridge    (const Vec2 pos, const int frame );
 
+    void sScripting();
     void sMovement();
     void sCollision();
     void sStatus();
