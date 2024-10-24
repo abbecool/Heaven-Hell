@@ -1003,52 +1003,51 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, EntityID entity) {
     if ( m_ECS.hasComponent<CAnimation>(entity) ){
         eSize = m_ECS.getComponent<CAnimation>(entity).animation.getSize();
     } else {
-        eSize = m_gridSize/2;
+        eSize = m_gridSize/4;
     }
     
-    Vec2 eScale;
-    switch ((int)eSize.y) {
-        case 270:
-            eScale.x = 0.15f;
-            eScale.y = 0.18f;
-            break;
-        case 225:
-            eScale.x = 0.18f;
-            eScale.y = 0.18f;
-            break;
-        case 192:
-            eScale.x = 1.0f;
-            eScale.y = 1.0f;
-            eSize.x = 64.0f;
-            eSize.y = 64.0f;
-            break;
-        case 128:
-            eScale.x = 2.0f;
-            eScale.y = 2.0f;
-            eSize.x = 32.0f;
-            eSize.y = 32.0f;
-            break;
-        case 64:
-            eScale.x = 1.0f;
-            eScale.y = 1.0f;
-            break;
-        case 32:
-            eScale.x = 2.0f;
-            eScale.y = 2.0f;
-            break;
-        case 16:
-            eScale.x = 4.0f;
-            eScale.y = 4.0f;
-            break;
-        case 24:
-            eScale.x = 2.0f;
-            eScale.y = 2.0f;
-            break; 
-        default:
-            eScale.x = 1.0f;
-            eScale.y = 1.0f;
-    }
-    
+    Vec2 eScale = {4.0f, 4.0f};
+    // switch ((int)eSize.y) {
+    //     case 270:
+    //         eScale.x = 0.15f;
+    //         eScale.y = 0.18f;
+    //         break;
+    //     case 225:
+    //         eScale.x = 0.18f;
+    //         eScale.y = 0.18f;
+    //         break;
+    //     case 192:
+    //         eScale.x = 1.0f;
+    //         eScale.y = 1.0f;
+    //         eSize.x = 64.0f;
+    //         eSize.y = 64.0f;
+    //         break;
+    //     case 128:
+    //         eScale.x = 2.0f;
+    //         eScale.y = 2.0f;
+    //         eSize.x = 32.0f;
+    //         eSize.y = 32.0f;
+    //         break;
+    //     case 64:
+    //         eScale.x = 1.0f;
+    //         eScale.y = 1.0f;
+    //         break;
+    //     case 32:
+    //         eScale.x = 2.0f;
+    //         eScale.y = 2.0f;
+    //         break;
+    //     case 16:
+    //         eScale.x = 4.0f;
+    //         eScale.y = 4.0f;
+    //         break;
+    //     case 24:
+    //         eScale.x = 2.0f;
+    //         eScale.y = 2.0f;
+    //         break; 
+    //     default:
+    //         eScale.x = 1.0f;
+    //         eScale.y = 1.0f;
+    // }
     offset = (m_gridSize - eSize * eScale) / 2.0;
 
     return grid + m_gridSize / 2 - offset;
