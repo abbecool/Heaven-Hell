@@ -489,8 +489,18 @@ void Scene_Play::sCollision() {
 void Scene_Play::sStatus() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
 
-    auto viewHealth = m_ECS.signatureView<CHealth>();
+    auto viewLifespan = m_ECS.signatureView<CLifespan>();
+    auto& lifespanPool = m_ECS.getComponentPool<CLifespan>();
     auto& healthPool = m_ECS.getComponentPool<CHealth>();
+    for ( auto entityID : viewLifespan)
+    {
+        auto& lifespan = lifespanPool.getComponent(entityID).lifespan;
+        auto& health = healthPool.getComponent(entityID);
+
+        health.HP = (lifespan <= 0) ? 0 : health.HP;
+    }
+
+    auto viewHealth = m_ECS.signatureView<CHealth>();
     for ( auto entityID : viewHealth)
     {
         auto& health = healthPool.getComponent(entityID);
@@ -800,6 +810,7 @@ void Scene_Play::spawnPlayer(){
     auto& sc = scriptPool.getComponent(entityID);    
     sc.Instance = sc.InstantiateScript();
     sc.Instance->m_entity = {entityID, &m_ECS};
+    sc.Instance->m_ECS = &m_ECS;
     sc.Instance->OnCreateFunction();
 }
 

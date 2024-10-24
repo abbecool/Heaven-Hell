@@ -106,6 +106,13 @@ struct CHealth
     CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
         : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), i_frames(hrt_frms){}
 };
+
+struct CLifespan
+{
+    int lifespan;
+    CLifespan(int lf) : lifespan(lf){}
+};
+
 struct CKey
 {
     std::string unlocks;

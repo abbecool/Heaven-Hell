@@ -26,6 +26,25 @@ public:
         //     transform.vel = Vec2 {0,0};
         // }
         // pathfind.target = transformPool.getComponent(m_player).pos;
+        OnAttackFunction();
+    }
+
+    void OnAttackFunction()
+    {
+
+        // if can attack and sees enemy
+        // spawn damage area
+        
+        Vec2 target = getComponent<CPathfind>().target;
+        if ( target.length() < 3*64 )
+        {
+            EntityID damageAreaID = m_ECS->addEntity();
+            m_ECS->addComponent<CTransform>(damageAreaID, getComponent<CTransform>().pos + Vec2{32,0});
+            m_ECS->addComponent<CBoundingBox>(damageAreaID, Vec2{16, 16});
+            m_ECS->addComponent<CDamage>(damageAreaID, 1, 60*3);
+            m_ECS->addComponent<CLifespan>(damageAreaID, 60);
+        }
+        
     }
 
     void OnCollisionFunction()
