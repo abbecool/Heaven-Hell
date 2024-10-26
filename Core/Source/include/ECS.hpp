@@ -49,6 +49,7 @@ constexpr Signature CBottomLayerMask        = 1 << 19; // Bit 19
 constexpr Signature CScriptMask             = 1 << 20; // Bit 20
 constexpr Signature CVelocityMask           = 1 << 21; // Bit 21
 constexpr Signature CLifespanMask           = 1 << 22; // Bit 22
+constexpr Signature CAttackMask             = 1 << 23; // Bit 23
 
 class SignaturePool {
 public:
@@ -132,6 +133,7 @@ private:
         { typeid(CScript), CScriptMask },
         { typeid(CVelocity), CVelocityMask },
         { typeid(CLifespan), CLifespanMask },
+        { typeid(CAttack), CAttackMask },
     };
 };
 

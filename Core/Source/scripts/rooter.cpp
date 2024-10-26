@@ -35,12 +35,15 @@ public:
         // if can attack and sees enemy
         // spawn damage area
         
+        auto& transform = getComponent<CTransform>();
+        auto& attack = getComponent<CAttack>();
+        
         Vec2 target = getComponent<CPathfind>().target;
-        if ( target.length() < 3*64 )
+        if ( abs((target-transform.pos).length()) < 3*64)
         {
             EntityID damageAreaID = m_ECS->addEntity();
-            m_ECS->addComponent<CTransform>(damageAreaID, getComponent<CTransform>().pos + Vec2{32,0});
-            m_ECS->addComponent<CBoundingBox>(damageAreaID, Vec2{16, 16});
+            m_ECS->addComponent<CTransform>(damageAreaID, transform.pos + Vec2{32,0});
+            m_ECS->addComponent<CBoundingBox>(damageAreaID, Vec2{16, 16}, 0, 0, 255);
             m_ECS->addComponent<CDamage>(damageAreaID, 1, 60*3);
             m_ECS->addComponent<CLifespan>(damageAreaID, 60);
         }

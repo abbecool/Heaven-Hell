@@ -82,9 +82,12 @@ struct CBoundingBox
 {
     Vec2 size;
     Vec2 halfSize;
+    Uint8 red, green, blue;
     CBoundingBox() {}
     CBoundingBox(const Vec2& s) 
-        : size(s), halfSize(s/2.0) {}
+        : size(s), halfSize(s/2.0), red(255), green(255), blue(255) {}
+    CBoundingBox(const Vec2& s, const Uint8 r, const Uint8 g, const Uint8 b) 
+        : size(s), halfSize(s/2.0), red(r), green(g), blue(b) {}
 };
 
 struct CImmovable
@@ -173,13 +176,22 @@ struct CShadow
                 : animation(animation), size(sz){}
 };  
 
+struct CAttack
+{
+    int damage = 1;
+    int speed = 120;
+    int duration = 30;
+    CAttack() {}
+    CAttack(int dmg, int spd, int dur) : damage(dmg), speed(spd), duration(dur) {}
+};
+
 struct CDamage
 {
-    int damage, speed, duration;
+    int damage, duration;
     std::unordered_set<std::string> damageType;
     CDamage() {}
-    CDamage(int dmg, int spd) : damage(dmg), speed(spd), duration(60) {}
-    CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), speed(spd), duration(60), damageType(dmgType) {}
+    CDamage(int dmg, int spd) : damage(dmg), duration(60) {}
+    CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), duration(60), damageType(dmgType) {}
 }; 
 
 struct CDialog

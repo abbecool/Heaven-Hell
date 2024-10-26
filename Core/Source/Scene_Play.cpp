@@ -218,7 +218,7 @@ void Scene_Play::sDoAction(const Action& action) {
         }
         if (action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)){
             EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
-            spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position + Vec2{16,-16});
+            spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position );
         }
     }
     else if (action.type() == "END") {
@@ -491,16 +491,18 @@ void Scene_Play::sStatus() {
 
     auto viewLifespan = m_ECS.signatureView<CLifespan>();
     auto& lifespanPool = m_ECS.getComponentPool<CLifespan>();
-    auto& healthPool = m_ECS.getComponentPool<CHealth>();
     for ( auto entityID : viewLifespan)
-    {
+    {   
         auto& lifespan = lifespanPool.getComponent(entityID).lifespan;
-        auto& health = healthPool.getComponent(entityID);
-
-        health.HP = (lifespan <= 0) ? 0 : health.HP;
+        lifespan--;
+        if ( lifespan <= 0)
+        {
+            m_ECS.queueRemoveEntity(entityID);
+        }
     }
 
     auto viewHealth = m_ECS.signatureView<CHealth>();
+    auto& healthPool = m_ECS.getComponentPool<CHealth>();
     for ( auto entityID : viewHealth)
     {
         auto& health = healthPool.getComponent(entityID);
@@ -729,7 +731,7 @@ void Scene_Play::sRender() {
             collisionRect.w = (int)(box.size.x);
             collisionRect.h = (int)(box.size.y);
 
-            SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
+            SDL_SetRenderDrawColor(m_game->renderer(), box.red, box.green, box.blue, 255);
             SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
         }
     }
@@ -845,7 +847,7 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     m_ECS.getComponent<CHealth>(entity).HPType = {""};
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{96, 96});
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
-    m_ECS.addComponent<CDamage>(entity, 2, 30);
+    // m_ECS.addComponent<CDamage>(entity, 2, 30);
 }
 
 void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
@@ -942,13 +944,15 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
-    m_ECS.addComponent<CDamage>(entity, 1, 60);
+    // m_ECS.addComponent<CDamage>(entity, 1, 60);
+    m_ECS.addComponent<CAttack>(entity, 1, 120, 30);
 
     m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
     auto& scriptPool = m_ECS.getComponentPool<CScript>();
     auto& sc = scriptPool.getComponent(entity);    
     sc.Instance = sc.InstantiateScript();
     sc.Instance->m_entity = {entity, &m_ECS};
+    sc.Instance->m_ECS = &m_ECS;
     sc.Instance->OnCreateFunction();
 }
 
