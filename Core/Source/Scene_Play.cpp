@@ -300,7 +300,7 @@ void Scene_Play::sMovement() {
 
     auto& inputPool = m_ECS.getComponentPool<CInputs>();
     auto& viewInputs = m_ECS.view<CInputs>();
-    for (auto e : viewInputs){    
+    for (auto e : viewInputs){
         auto &transform = transformPool.getComponent(e);
         auto &inputs = inputPool.getComponent(e);
 
@@ -329,7 +329,7 @@ void Scene_Play::sMovement() {
     for (auto entityKnockback : viewKnockback){    
         auto &transform = transformPool.getComponent(entityKnockback);
         auto& knockback = knockbackPool.getComponent(entityKnockback);
-        transform.vel += m_physics.knockback(knockback);
+        transform.pos += m_physics.knockback(knockback);
         if (knockback.duration <= 0){
             m_ECS.queueRemoveComponent<CKnockback>(entityKnockback);
         }
@@ -488,7 +488,7 @@ void Scene_Play::sCollision() {
 
 void Scene_Play::sStatus() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
-
+  
     auto viewLifespan = m_ECS.signatureView<CLifespan>();
     auto& lifespanPool = m_ECS.getComponentPool<CLifespan>();
     for ( auto entityID : viewLifespan)
@@ -512,10 +512,10 @@ void Scene_Play::sStatus() {
             spawnCoin(transform.pos, 4);
             if ( m_player == entityID ){
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+            } else {
+                m_ECS.queueRemoveEntity(entityID);
+                Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
             }
-            m_ECS.queueRemoveEntity(entityID);
-            Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
-
         }
     }
     auto viewDamage = m_ECS.signatureView<CDamage, CBoundingBox, CTransform>();
@@ -539,11 +539,12 @@ void Scene_Play::sStatus() {
             auto& health = healthPool.getComponent(entityHealth);
             if ( m_physics.isCollided(transformDamage, bboxDamage, transforHealth, bboxHealth) )
             {
-                if ( (int)( m_currentFrame - health.damage_frame) < health.i_frames ) {continue;} // i_frames number of frames have not passed yet. 
-                int damageMultiplier = 1;
-                m_ECS.addComponent<CKnockback>(entityHealth, 64, 1024, transformDamage.vel);
-                health.HP = health.HP-(int)(damage.damage*damageMultiplier);
-                health.damage_frame = m_currentFrame;
+                if ( (int)(m_currentFrame-health.damage_frame) > health.i_frames ) {
+                    int damageMultiplier = 1;
+                    m_ECS.addComponent<CKnockback>(entityHealth, 50, 64, transformDamage.pos-transforHealth.pos);
+                    health.HP = health.HP-(int)(damage.damage*damageMultiplier);
+                    health.damage_frame = m_currentFrame;
+                }
             }
         }
     }
@@ -803,6 +804,7 @@ void Scene_Play::spawnPlayer(){
 
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
+    // m_ECS.addComponent<CKnockback>(entityID, 100, 64, Vec2{-1, 0});
 
     // m_ECS.addComponent<CDamage>(entityID, m_playerConfig.DAMAGE, 180);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
@@ -911,7 +913,7 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400.0f, false);
     // m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
-    m_ECS.addComponent<CDamage>(entity, 1, 180); // damage speed 6 = frames between attacking
+    m_ECS.addComponent<CDamage>(entity, 1); // damage speed 6 = frames between attacking
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CProjectileState>(entity, "Create");
     m_ECS.addComponent<CParent>(entity, creator);
@@ -945,7 +947,7 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
     // m_ECS.addComponent<CDamage>(entity, 1, 60);
-    m_ECS.addComponent<CAttack>(entity, 1, 120, 30);
+    m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*64, Vec2{32,32});
 
     m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
     auto& scriptPool = m_ECS.getComponentPool<CScript>();

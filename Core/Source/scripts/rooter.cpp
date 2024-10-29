@@ -37,15 +37,18 @@ public:
         
         auto& transform = getComponent<CTransform>();
         auto& attack = getComponent<CAttack>();
+        attack.attackTimer--;
         
         Vec2 target = getComponent<CPathfind>().target;
-        if ( abs((target-transform.pos).length()) < 3*64)
+        if ( abs((target-transform.pos).length()) < (float)attack.range && (attack.attackTimer <= 0))
         {
             EntityID damageAreaID = m_ECS->addEntity();
-            m_ECS->addComponent<CTransform>(damageAreaID, transform.pos + Vec2{32,0});
-            m_ECS->addComponent<CBoundingBox>(damageAreaID, Vec2{16, 16}, 0, 0, 255);
-            m_ECS->addComponent<CDamage>(damageAreaID, 1, 60*3);
-            m_ECS->addComponent<CLifespan>(damageAreaID, 60);
+            m_ECS->addComponent<CTransform>(damageAreaID, transform.pos );
+            m_ECS->addComponent<CParent>(damageAreaID, m_entity.getID(), (target-transform.pos).norm(64));
+            m_ECS->addComponent<CBoundingBox>(damageAreaID, attack.area, 0, 0, 255);
+            m_ECS->addComponent<CDamage>(damageAreaID, attack.damage);
+            m_ECS->addComponent<CLifespan>(damageAreaID, attack.duration);
+            attack.attackTimer = attack.speed;
         }
         
     }

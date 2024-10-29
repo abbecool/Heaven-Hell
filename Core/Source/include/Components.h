@@ -180,18 +180,21 @@ struct CAttack
 {
     int damage = 1;
     int speed = 120;
+    int attackTimer = 120;
     int duration = 30;
+    int range = 3*64;
+    Vec2 area = {16, 16};
     CAttack() {}
-    CAttack(int dmg, int spd, int dur) : damage(dmg), speed(spd), duration(dur) {}
+    CAttack(int dmg, int spd, int dur, int rg, Vec2 ae) : damage(dmg), speed(spd), attackTimer(spd), duration(dur), range(rg), area(ae){}
 };
 
 struct CDamage
 {
-    int damage, duration;
+    int damage;
     std::unordered_set<std::string> damageType;
     CDamage() {}
-    CDamage(int dmg, int spd) : damage(dmg), duration(60) {}
-    CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), duration(60), damageType(dmgType) {}
+    CDamage(int dmg) : damage(dmg) {}
+    CDamage(int dmg, std::unordered_set<std::string> dmgType) : damage(dmg), damageType(dmgType) {}
 }; 
 
 struct CDialog

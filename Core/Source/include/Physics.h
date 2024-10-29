@@ -10,7 +10,7 @@ class Physics
         bool isCollided(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBox b2);
         bool isStandingIn(Entity entity1, Entity entity2);
         Vec2 overlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBox b2);
-        Vec2 getOverlap(Entity a, Entity b);
+        Vec2 calculateOverlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBox b2);
         Vec2 knockback(CKnockback& knockback);
 
 };
