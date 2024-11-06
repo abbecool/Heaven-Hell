@@ -45,7 +45,6 @@ Texture     wizWalkS                    assets/images/wizWalkS.png
 Texture     wizWalkE                    assets/images/wizWalkE.png
 Texture     wizWalkN                    assets/images/wizWalkN.png
 Texture     wizWalkW                    assets/images/wizWalkW.png
-Texture     wiz                         assets/images/wiz-sheet.png
 Texture     level0_screenshot           assets/images/level0_screenshot.png
 Texture     button_unpressed            assets/images/buttons/button_unpressed.png
 Texture     button_pressed              assets/images/buttons/button_pressed.png
@@ -59,9 +58,13 @@ Texture     rooterWalkS                 assets/images/smallEnemy-sheet.png
 Texture     rooterWalkW                 assets/images/smallEnemy-sheetW.png
 Texture     rooterWalkN                 assets/images/smallEnemy-sheetN.png
 Texture     rooterWalkE                 assets/images/smallEnemy-sheetE.png
-Texture     rooter                      assets/images/rooter-sheet.png
-Texture     goblin                      assets/images/goblin-sheet.png
+
 Texture     staff                       assets/images/staff.png
+Texture     demon                       assets/images/demon-sheet.png
+Texture     wiz                         assets/images/wiz-sheet.png
+Texture     dwarf                       assets/images/dwarf-sheet.png
+Texture     goblin                      assets/images/goblin-sheet.png
+Texture     rooter                      assets/images/rooter-sheet.png
 
 Font        minecraft                   assets/fonts/Minecraft.ttf
 
@@ -107,7 +110,6 @@ Animation   wizWalkS                    wizWalkS                    4   10    1 
 Animation   wizWalkE                    wizWalkE                    4   10    1  1
 Animation   wizWalkN                    wizWalkN                    4   10    1  1
 Animation   wizWalkW                    wizWalkW                    4   10    1  1
-Animation   wiz                         wiz                         4   10    4  5
 Animation   level0_screenshot           level0_screenshot           1   100   1  1
 Animation   button_unpressed            button_unpressed            1   100   1  1
 Animation   button_pressed              button_pressed              1   100   1  1
@@ -121,6 +123,10 @@ Animation   rooterWalkS                 rooterWalkS                 4   20    1 
 Animation   rooterWalkW                 rooterWalkW                 4   20    1  1
 Animation   rooterWalkN                 rooterWalkN                 4   20    1  1
 Animation   rooterWalkE                 rooterWalkE                 4   20    1  1
+
+Animation   demon                       demon                       4   40    4  5
+Animation   wiz                         wiz                         4   10    4  5
+Animation   dwarf                       dwarf                       6   7     6  5
 Animation   rooter                      rooter                      4   20    4  5
 Animation   goblin                      goblin                      4   20    4  5
 
@@ -132,8 +138,6 @@ Animation   cloud_dual_sheet            cloud_dual_sheet            1   100   4 
 Animation   lava_dual_sheet             lava_dual_sheet             1   100   4     4  
 Animation   bridge                      bridge                      1   100   4     4
 
-Texture     demon                       assets/images/demon-sheet.png
-Animation   demon                       demon                       4   40    4  5
 Animation   staff                       staff                       1   100   1  1
 Animation   campfire                    campfire                    6   10    6  1
 
