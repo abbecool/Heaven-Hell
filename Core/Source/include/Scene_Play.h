@@ -27,6 +27,7 @@ class Scene_Play : public Scene
     Camera m_camera;
     Vec2 cameraPos;
     LevelLoader m_levelLoader;
+    std::shared_ptr<Scene> m_inventory_scene;
     const Vec2 m_gridSize = { 64, 64 };
     Vec2 m_levelSize;
     Vec2 m_mousePosition;

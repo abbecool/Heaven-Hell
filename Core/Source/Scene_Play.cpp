@@ -34,6 +34,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
 {
     init(m_levelPath);
     m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
+    // m_inventory_scene = std::shared_ptr<Scene_Inventory>;
 }
 
 void Scene_Play::init(const std::string& levelPath) {
