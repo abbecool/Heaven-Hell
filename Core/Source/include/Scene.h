@@ -11,6 +11,11 @@ class Game;
 
 typedef std::map<int, std::string> ActionMap;
 
+struct MouseState {
+    Vec2 pos = {0,0};
+    int scroll = 0;
+};
+
 class Scene
 {
     protected:
@@ -21,6 +26,8 @@ class Scene
     bool m_hasEnded = false;
     size_t m_currentFrame = 0;
     Vec2 m_mousePosition;
+    int m_mouseScroll;
+    MouseState m_mouseState;
 
     virtual void onEnd() = 0;
 
@@ -46,5 +53,8 @@ class Scene
     ActionMap& getActionMap();
 
     void updateMousePosition(Vec2 pos);
+    void updateMouseScroll(int scroll);
+
     Vec2 getMousePosition();
+    MouseState getMouseState();
 };

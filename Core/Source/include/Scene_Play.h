@@ -4,6 +4,7 @@
 #include "Physics.h"
 #include "Camera.h"
 #include "Scene.h"
+#include "Scene_Inventory.h"
 #include "Level_Loader.h"
 #include <memory>
 #include <unordered_map>
@@ -27,7 +28,7 @@ class Scene_Play : public Scene
     Camera m_camera;
     Vec2 cameraPos;
     LevelLoader m_levelLoader;
-    std::shared_ptr<Scene> m_inventory_scene;
+    std::shared_ptr<Scene_Inventory> m_inventory_scene;
     const Vec2 m_gridSize = { 64, 64 };
     Vec2 m_levelSize;
     Vec2 m_mousePosition;
@@ -36,6 +37,7 @@ class Scene_Play : public Scene
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
+    bool m_inventoryOpen = false;
     bool m_newGame;
 
     std::unordered_map<std::string, std::unordered_set<std::string>> m_damageToEnemyMap = {

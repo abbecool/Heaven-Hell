@@ -66,6 +66,8 @@ Texture     dwarf                       assets/images/dwarf-sheet.png
 Texture     goblin                      assets/images/goblin-sheet.png
 Texture     rooter                      assets/images/rooter-sheet.png
 
+Texture     inventory                   assets/images/inventory.png
+
 Font        minecraft                   assets/fonts/Minecraft.ttf
 
 Animation   snoring_dragon              sleeping_dragon             4   60  4   1
@@ -140,6 +142,7 @@ Animation   bridge                      bridge                      1   100   4 
 
 Animation   staff                       staff                       1   100   1  1
 Animation   campfire                    campfire                    6   10    6  1
+Animation   inventory                   inventory                   1   100    1  1
 
 Audio       loot_pickup                 assets/audio/loot_pickup.wav
 Audio       enemy_death                 assets/audio/enemy_death.wav
