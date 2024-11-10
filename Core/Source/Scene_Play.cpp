@@ -1,5 +1,6 @@
 #include "Scene_Menu.h"
 #include "Scene_Play.h"
+#include "Scene_Inventory.h"
 #include "Sprite.h"
 #include "Assets.h"
 #include "Game.h"
@@ -22,18 +23,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
-// """
-// std::map<std::string, void (Scene_Play::*)()> funcMap;
-// 
-// for loop dropings a map from string to spawnXXX function will be needed
-// 
-// """
-
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), m_levelPath(levelPath), m_newGame(newGame)
 {
     init(m_levelPath);
     m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
+    m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
 }
 
 void Scene_Play::init(const std::string& levelPath) {
@@ -41,11 +36,16 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_s, "DOWN");
     registerAction(SDLK_a, "LEFT");
     registerAction(SDLK_d, "RIGHT");
+    registerAction(SDLK_e, "INVENTORY");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
+    registerAction(SDL_MOUSEWHEEL , "ATTACK");
+    registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
     registerAction(SDLK_SPACE , "ATTACK");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
+    registerAction(SDLK_u, "SAVE");
+
     registerAction(SDLK_f, "CAMERA FOLLOW");
     registerAction(SDLK_z, "CAMERA PAN");
     registerAction(SDLK_PLUS, "ZOOM IN");
@@ -57,7 +57,6 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_0, "LEVEL0");
     registerAction(SDLK_1, "LEVEL1");
     registerAction(SDLK_2, "LEVEL2");
-    registerAction(SDLK_u, "SAVE");
 
     loadConfig("config.txt");
     loadLevel(levelPath);
@@ -167,74 +166,75 @@ void Scene_Play::loadLevel(const std::string& levelPath){
 }
 
 void Scene_Play::sDoAction(const Action& action) {
-    if (action.type() == "START") {
-        if (action.name() == "TOGGLE_TEXTURE") {
+    if ( action.type() == "START") {
+        if ( action.name() == "TOGGLE_TEXTURE") {
             m_drawTextures = !m_drawTextures; 
-        } else if (action.name() == "TOGGLE_COLLISION") { 
+        } else if ( action.name() == "TOGGLE_COLLISION") { 
             m_drawCollision = !m_drawCollision; 
-        } else if (action.name() == "TOGGLE_GRID") { 
+        } else if ( action.name() == "TOGGLE_GRID") { 
             m_drawDrawGrid = !m_drawDrawGrid; 
-        } else if (action.name() == "PAUSE") { 
-            setPaused(!m_pause);
-        } else if (action.name() == "QUIT") { 
-            onEnd();
-        } else if (action.name() == "ZOOM IN"){
+        } else if ( action.name() == "PAUSE") { 
+            setPaused( !m_pause || m_inventoryOpen );
+        } else if ( action.name() == "QUIT") { 
+            if ( m_inventoryOpen ) {
+                m_inventoryOpen = false;
+                setPaused( !m_pause || m_inventoryOpen );
+            } else {
+                onEnd();
+            }
+        } else if ( action.name() == "INVENTORY") { 
+            m_inventoryOpen = !m_inventoryOpen;
+            setPaused( !m_pause || m_inventoryOpen );
+        } else if ( action.name() == "SCROLL"){
+            if ( m_inventoryOpen )
+            {
+                m_inventory_scene->Scroll(m_mouseState.scroll);
+            }
+            else
+            {
+                m_inventory_scene->Scroll(m_mouseState.scroll);
+            }
+        } else if ( action.name() == "ZOOM IN"){
             m_camera.setCameraZoom(Vec2 {2, 2});
-        } else if (action.name() == "ZOOM OUT"){
+        } else if ( action.name() == "ZOOM OUT"){
             m_camera.setCameraZoom(Vec2{0.5, 0.5});
-        } else if (action.name() == "CAMERA FOLLOW"){
+        } else if ( action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
-        } else if (action.name() == "CAMERA PAN"){
+        } else if ( action.name() == "CAMERA PAN"){
             m_pause = m_camera.startPan(2048, 1000, Vec2 {(float)(64*52+32 - width()/2), (float)(64*44+32 - height()/2)}, m_pause);
-        } else if (action.name() == "SAVE"){
+        } else if ( action.name() == "SAVE"){
             saveGame("game_save.txt");
-        } else if (action.name() == "LEVEL0") { 
+        } else if ( action.name() == "LEVEL0") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
-        } else if (action.name() == "LEVEL1") { 
+        } else if ( action.name() == "LEVEL1") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level1.png", true));
-        }else if (action.name() == "LEVEL2") {
+        }else if ( action.name() == "LEVEL2") {
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level2.png", true));
-        } else if (action.name() == "RESET") { 
+        } else if ( action.name() == "RESET") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
         }
 
-        if (action.name() == "UP") {
-            m_ECS.getComponent<CInputs>(m_player).up = true;
-        }
-        if (action.name() == "DOWN") {
-            m_ECS.getComponent<CInputs>(m_player).down = true; 
-        }
-        if (action.name() == "LEFT") {
-            m_ECS.getComponent<CInputs>(m_player).left = true;
-        }
-        if (action.name() == "RIGHT") {
-            m_ECS.getComponent<CInputs>(m_player).right = true;
-        }
-        if (action.name() == "SHIFT") {
-            m_ECS.getComponent<CInputs>(m_player).shift = true;
-        }
-        if (action.name() == "CTRL") {
-            m_ECS.getComponent<CInputs>(m_player).ctrl = true;
-        }
-        if (action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)){
+        if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = true; }
+        if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = true;  }
+        if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = true; }
+        if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = true; }
+        if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = true; }
+        if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
+
+        if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)){
             EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
             spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position );
         }
     }
-    else if (action.type() == "END") {
-        if (action.name() == "DOWN") {
-            m_ECS.getComponent<CInputs>(m_player).down = false;
-        } if (action.name() == "UP") {
-            m_ECS.getComponent<CInputs>(m_player).up = false;
-        } if (action.name() == "LEFT") {
-            m_ECS.getComponent<CInputs>(m_player).left = false;
-        } if (action.name() == "RIGHT") {
-            m_ECS.getComponent<CInputs>(m_player).right = false;
-        } if (action.name() == "SHIFT") {
-            m_ECS.getComponent<CInputs>(m_player).shift = false;
-        } if (action.name() == "CTRL") {
-            m_ECS.getComponent<CInputs>(m_player).ctrl = false;
-        } if (action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)) {
+    else if ( action.type() == "END") {
+        if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = false; }
+        if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = false; }
+        if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = false; }
+        if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = false; }
+        if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = false; }
+        if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
+
+        if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)) {
             EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
             if ( m_ECS.hasComponent<CProjectile>(weaponID) )
             {
@@ -269,6 +269,9 @@ void Scene_Play::update() {
         m_currentFrame++;
     }
     sRender();
+    m_inventory_scene->update();
+    // if ( m_inventoryOpen ) {
+    // }
 }
 
 void Scene_Play::sScripting() {
