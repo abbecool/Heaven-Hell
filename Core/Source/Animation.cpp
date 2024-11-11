@@ -88,6 +88,12 @@ void Animation::setSrcRect(const int x, const int y, const int w, const int h)
     m_srcRect.h = h;
 }
 
+void Animation::setSrcSize(Vec2 size)   
+{
+    m_srcRect.w = size.x;
+    m_srcRect.h = size.y;
+}
+
 void Animation::setDestRect(Vec2 pos)   
 {
     m_destRect.x = (int)pos.x;

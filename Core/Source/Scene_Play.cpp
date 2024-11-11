@@ -184,6 +184,7 @@ void Scene_Play::sDoAction(const Action& action) {
             }
         } else if ( action.name() == "INVENTORY") { 
             m_inventoryOpen = !m_inventoryOpen;
+            m_inventory_scene->toggleInventory();
             setPaused( !m_pause || m_inventoryOpen );
         } else if ( action.name() == "SCROLL"){
             if ( m_inventoryOpen )

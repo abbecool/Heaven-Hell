@@ -10,10 +10,11 @@ class Scene_Inventory : public Scene
     protected:
     EntityID m_item;
     Vec2 m_mousePosition;
-    Vec2 m_inventoryPos = {0, 0};
-    Vec2 m_inventorySize = {3, 1};
-    bool m_drawTextures;
-    bool m_drawCollision;
+    Vec2 m_inventorySize = {4, 2};
+    Vec2 m_inventoryPos = Vec2{m_game->getWidth()-m_inventorySize.x*128, 256};
+    bool m_drawTextures = false;
+    bool m_drawCollision = false;
+    bool m_open = false;
 
     void init();
     // void saveGame(const std::string& filename);
@@ -37,4 +38,5 @@ class Scene_Inventory : public Scene
     Scene_Inventory(Game* play);
     void update();
     void Scroll(int scroll);
+    void toggleInventory();
 };

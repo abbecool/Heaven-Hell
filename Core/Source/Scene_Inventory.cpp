@@ -56,11 +56,19 @@ void Scene_Inventory::update() {
 }
 
 void Scene_Inventory::sRender() {
-
-    Animation inventoryAnimation = m_game->assets().getAnimation("inventory");
-    inventoryAnimation.setScale({4, 4});
-    inventoryAnimation.setDestRect(m_inventoryPos);
-    spriteRender(inventoryAnimation);
+    if ( m_open ) 
+    {
+        Animation inventoryAnimation = m_game->assets().getAnimation("inventory_open");
+        inventoryAnimation.setSrcSize(m_inventorySize*32);
+        inventoryAnimation.setScale({4, 4});
+        inventoryAnimation.setDestRect(m_inventoryPos + Vec2{-16, 16});
+        spriteRender(inventoryAnimation);
+    }
+    Animation hotbar = m_game->assets().getAnimation("inventory_open");
+    hotbar.setSrcSize(Vec2{4,1}*32);
+    hotbar.setScale({4, 4});
+    hotbar.setDestRect( Vec2{m_game->getWidth()-hotbar.getDestSize().x, 0} + Vec2{-16, 16});
+    spriteRender(hotbar);
 
     auto view = m_ECS.view<CTransform, CAnimation>();
     auto& transformPool2 = m_ECS.getComponentPool<CTransform>();
@@ -71,7 +79,7 @@ void Scene_Inventory::sRender() {
         auto& transform = transformPool2.getComponent(eID);
         auto& animation = animationPool2.getComponent(eID).animation;
 
-        Vec2 adjustedPos = m_inventoryPos + Vec2{64, 64} + transform.pos*128;
+        Vec2 adjustedPos = Vec2{m_game->getWidth()-hotbar.getDestSize().x, 0} + Vec2{64, 64} + transform.pos*128 + Vec2{-16, 16};
 
         animation.setScale(transform.scale);
         animation.setAngle(transform.angle);
@@ -126,3 +134,8 @@ void Scene_Inventory::Scroll(int scroll)
 }
 
 void Scene_Inventory::onEnd() {}
+
+void Scene_Inventory::toggleInventory()
+{
+    m_open = !m_open;
+}

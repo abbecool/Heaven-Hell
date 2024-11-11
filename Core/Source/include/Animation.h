@@ -45,6 +45,7 @@ class Animation
     SDL_Rect* getSrcRect();
     SDL_Rect* getDestRect();
     void setSrcRect(const int x, const int y, const int w, const int h);
+    void setSrcSize(Vec2 size);
     void setDestRect(const int x, const int y, const int w, const int h);
     void setDestRect(Vec2 pos);
     void setDestSize(Vec2 size);
