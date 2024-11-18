@@ -247,6 +247,7 @@ struct CWeapon
     CWeapon(const Animation& animation, int damage, int speed, int range)
                 : animation(animation), damage(damage), speed(speed), range(range){}
 };
+
 struct CWeaponChild
 {
     EntityID weaponID;

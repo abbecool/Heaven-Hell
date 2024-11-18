@@ -801,8 +801,8 @@ void Scene_Play::spawnPlayer(){
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, m_playerConfig.SPEED, true);
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
 
-    m_ECS.addComponent<CName>(entityID, "dwarf");
-    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("dwarf"), true, 3);
+    m_ECS.addComponent<CName>(entityID, "wiz");
+    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, 3);
     m_ECS.addComponent<CTopLayer>(entityID);
     m_ECS.addComponent<CShadow>(entityID, m_game->assets().getAnimation("shadow"), false);
 
