@@ -217,36 +217,52 @@ std::unordered_map<std::string, int> LevelLoader::createDualGrid( std::vector<st
     return tileTextureMap;
 }
 
-void LevelLoader::loadChunk()
+EntityID LevelLoader::loadChunk(Vec2 chunk)
 {
-    m_scene->m_loadedChunks.push_back(m_scene->m_currentChunk);
+    EntityID chunkID = m_scene->m_ECS.addEntity();
+    m_scene->m_ECS.addComponent<CChunk>(chunkID, chunk);
+    // m_scene->m_ECS.addComponent<CChildren>(chunkID);
+    std::vector<EntityID> chunkChildren;
+
     // Process the pixels
-    for (int y = m_scene->m_currentChunk.x*m_scene->m_chunkSize.x; y < (m_scene->m_currentChunk.x+1)*m_scene->m_chunkSize.x; ++y) {
-        for (int x = m_scene->m_currentChunk.y*m_scene->m_chunkSize.y; x < (m_scene->m_currentChunk.y+1)*m_scene->m_chunkSize.y; ++x) {
+    for (int y = chunk.y*m_scene->m_chunkSize.y; y < (chunk.y+1)*m_scene->m_chunkSize.y; ++y) 
+    {
+        for (int x = chunk.x*m_scene->m_chunkSize.x; x < (chunk.x+1)*m_scene->m_chunkSize.x; ++x) 
+        {
             const std::string& pixel = m_scene->m_pixelMatrix[y][x];
             std::vector<bool> neighbors = neighborCheck(m_scene->m_pixelMatrix, pixel, x, y, m_width, m_height);
             std::vector<std::string> neighborsTags = neighborTag(m_scene->m_pixelMatrix, pixel, x, y, m_width, m_height);
             int textureIndex = getObstacleTextureIndex(neighbors);
             std::unordered_map<std::string, int> tileIndex = createDualGrid(m_scene->m_pixelMatrix, x, y);
-            m_scene->spawnDualTiles(Vec2 {64*(float)x - 32, 64*(float)y - 32},  tileIndex);
+            std::vector<EntityID> ids = m_scene->spawnDualTiles(Vec2 {64*(float)x - 32, 64*(float)y - 32},  tileIndex);
+            chunkChildren.insert(chunkChildren.end(), ids.begin(), ids.end());
 
             if (pixel == "obstacle") {
-                m_scene->spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
+                EntityID id = m_scene->spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
+                chunkChildren.push_back(id);
             }
-            else{
-                if (pixel == "lava") {
-                    m_scene->spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava", textureIndex);
-                } else if (pixel == "water") {
-                    m_scene->spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
-                } else if (pixel == "bridge") {
-                    if ( std::find(neighborsTags.begin(), neighborsTags.end(), "water") != neighborsTags.end() ){
-                        // m_scene->spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                    } else if ( std::find(neighborsTags.begin(), neighborsTags.end(), "lava") != neighborsTags.end() ){
-                        // m_scene->spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                    }
-                    m_scene->spawnBridge(Vec2 {64*(float)x,64*(float)y}, textureIndex);
+            else
+            {
+                if (pixel == "lava") 
+                {
+                    EntityID id = m_scene->spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava", textureIndex);
+                    chunkChildren.push_back(id);
+                } 
+                else if (pixel == "water") 
+                {
+                    EntityID id = m_scene->spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
+                    chunkChildren.push_back(id);
+                // } else if (pixel == "bridge") {
+                //     if ( std::find(neighborsTags.begin(), neighborsTags.end(), "water") != neighborsTags.end() ){
+                //         // EntityID id = m_scene->spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                //     } else if ( std::find(neighborsTags.begin(), neighborsTags.end(), "lava") != neighborsTags.end() ){
+                //         // EntityID id = m_scene->spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                //     }
+                //     EntityID id = m_scene->spawnBridge(Vec2 {64*(float)x,64*(float)y}, textureIndex);
                 }
             }
         }
     }
+    m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern = chunkChildren;
+    return chunkID;
 }

@@ -39,4 +39,6 @@ public:
     float angle() const;
     Vec2 mainDir() const;
     Vec2 toInt();
+    bool smaller(Vec2 rhs);
+    bool greater(Vec2 rhs);
 };

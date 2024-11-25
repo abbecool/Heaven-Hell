@@ -124,7 +124,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     SDL_UnlockSurface(loadedSurface);
     SDL_FreeSurface(loadedSurface);
     m_levelLoader.init(this, WIDTH_PIX, HEIGHT_PIX);
-    m_levelLoader.loadChunk();
+    m_levelLoader.loadChunk(m_currentChunk);
 
 }
 
@@ -220,9 +220,11 @@ void Scene_Play::sDoAction(const Action& action) {
     }
 }
 
-void Scene_Play::update() {
+void Scene_Play::update() 
+{
     m_pause = m_camera.update(m_ECS.getComponent<CTransform>(m_player).pos, m_pause);
-    if (!m_pause) {
+    if (!m_pause) 
+    {
         sLoader();
         sScripting();
         sMovement();
@@ -235,26 +237,49 @@ void Scene_Play::update() {
     sRender();
     m_ECS.update();
     m_inventory_scene->update();
-    // if ( m_inventoryOpen ) {
-    // }
 }
 
 void Scene_Play::sLoader()
 {
     m_currentChunk = ( ( (m_ECS.getComponent<CTransform>(m_player).pos / m_gridSize).toInt() ) / m_chunkSize ).toInt();
-    // std::cout << m_currentChunk.x << " " << m_currentChunk.y << std::endl;
-    if (std::find(m_loadedChunks.begin(), m_loadedChunks.end(), m_currentChunk) == m_loadedChunks.end())
+    for (int dx = -1; dx <= 1; ++dx) 
     {
-        std::cout << "chuck not loaded" << std::endl;
-        m_levelLoader.loadChunk();
+        for (int dy = -1; dy <= 1; ++dy) 
+        {
+            Vec2 neighborChunk = {m_currentChunk.x + dx, m_currentChunk.y + dy};
+            if ( neighborChunk.smaller(Vec2{0,0}) || neighborChunk.greater(m_levelSize/m_chunkSize) )
+            {
+                continue;
+            }
+            if (std::find(m_loadedChunks.begin(), m_loadedChunks.end(), neighborChunk) == m_loadedChunks.end())
+            {
+                EntityID chunkID = m_levelLoader.loadChunk(neighborChunk);
+                m_loadedChunkIDs.push_back(chunkID);
+                m_loadedChunks.push_back(neighborChunk);
+            }
+        }
     }
-    m_previousChunk = m_currentChunk;
+
+    while (m_loadedChunks.size() > 12)
+    {
+        EntityID chunkID = m_loadedChunkIDs[0];
+        m_loadedChunks.erase(m_loadedChunks.begin());
+        m_loadedChunkIDs.erase(m_loadedChunkIDs.begin());
+        m_ECS.queueRemoveEntity(chunkID);
+        std::vector<EntityID> chunkChildren =  m_ECS.getComponent<CChunk>(chunkID).chunkChildern;
+        for ( EntityID id : chunkChildren )
+        {
+            m_ECS.queueRemoveEntity(id);
+        }
+    }
 }
 
-void Scene_Play::sScripting() {
+void Scene_Play::sScripting() 
+{
     auto view = m_ECS.signatureView<CScript>();
     auto& scriptPool = m_ECS.getComponentPool<CScript>();
-    for ( auto e : view ) {
+    for ( auto e : view ) 
+    {
         auto& sc = scriptPool.getComponent(e);
         sc.Instance->OnUpdateFunction();
         // memory leak, destroy
@@ -324,6 +349,7 @@ void Scene_Play::sMovement() {
         if (!(transform.vel.isnull()) && transform.isMovable ){
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
         }
+        
     }
 
     auto& viewParent = m_ECS.view<CParent>();
@@ -741,7 +767,7 @@ void Scene_Play::sAudio(){
     }
 }
 
-void Scene_Play::spawnPlayer(){
+EntityID Scene_Play::spawnPlayer(){
 
     auto entityID = m_ECS.addEntity();
     m_player = entityID;
@@ -790,9 +816,10 @@ void Scene_Play::spawnPlayer(){
     sc.Instance->m_entity = {entityID, &m_ECS};
     sc.Instance->m_ECS = &m_ECS;
     sc.Instance->OnCreateFunction();
+    return entityID;
 }
 
-void Scene_Play::spawnWeapon(Vec2 pos){
+EntityID Scene_Play::spawnWeapon(Vec2 pos){
     auto entity = m_ECS.addEntity();
 
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
@@ -803,17 +830,19 @@ void Scene_Play::spawnWeapon(Vec2 pos){
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
+    return entity;
 }
 
-void Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
+EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
     m_ECS.addComponent<CImmovable>(entity);
+    return entity;
 }
 
-void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
+EntityID Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(ani), true, 3);
     m_ECS.addComponent<CTopLayer>(entity);
@@ -824,24 +853,27 @@ void Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &an
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{96, 96});
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
     // m_ECS.addComponent<CDamage>(entity, 2, 30);
+    return entity;
 }
 
-void Scene_Play::spawnGrass(const Vec2 pos, const int frame)
+EntityID Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     // std::vector<int> ranArray = generateRandomArray(1, m_ECS.getNumEntities(), 0, 15);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0.0f, false);
+    return entity;
 }
 
-void Scene_Play::spawnDirt(const Vec2 pos, const int frame)
+EntityID Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0.0f, false);
+    return entity;
 }
 
-void Scene_Play::spawnCampfire(const Vec2 pos)
+EntityID Scene_Play::spawnCampfire(const Vec2 pos)
 {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("campfire"), true, 3);
@@ -849,27 +881,30 @@ void Scene_Play::spawnCampfire(const Vec2 pos)
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
+    return entity;
 }
 
-void Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
+EntityID Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
     m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
+    return entity;
 }
 
-void Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
+EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
     m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
+    return entity;
 }
 
-void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
+EntityID Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("bridge"), true, 3);
@@ -878,9 +913,10 @@ void Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0.0f, false);
     // m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
+    return entity;
 }
 
-void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
+EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
 {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, 3);
@@ -892,9 +928,10 @@ void Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     m_ECS.addComponent<CProjectileState>(entity, "Create");
     m_ECS.addComponent<CParent>(entity, creator);
     m_ECS.addComponent<CProjectile>(creator, entity);
+    return entity;
 }
 
-void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
+EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, 3);
@@ -904,9 +941,10 @@ void Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
     m_ECS.addComponent<CLoot>(entity);
+    return entity;
 }
 
-void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
+EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
 {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CName>(entity, type);
@@ -930,10 +968,12 @@ void Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
     sc.Instance->m_entity = {entity, &m_ECS};
     sc.Instance->m_ECS = &m_ECS;
     sc.Instance->OnCreateFunction();
+    return entity;
 }
 
-void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
+std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
 {   
+    std::vector<EntityID> entityIDs;
     for (const auto& [tileKey, textureIndex] : tileTextureMap) {
         std::string tile = tileKey;
         int layer = 10;
@@ -950,6 +990,7 @@ void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, 
         }
 
         EntityID entity = m_ECS.addEntity();
+        entityIDs.push_back(entity);
         m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, 10);
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});                           
         m_ECS.addComponent<CBottomLayer>(entity);
@@ -957,6 +998,7 @@ void Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, 
         m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{4, 4}, 0.0f, false);
         // m_ECS.addComponent<CName>(entity, tile);
     }
+    return entityIDs;
 }
 
 void Scene_Play::changePlayerStateTo(EntityID entity, PlayerState s) {

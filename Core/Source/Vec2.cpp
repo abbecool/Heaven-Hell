@@ -142,3 +142,13 @@ Vec2 Vec2::toInt()
     y = floorf(y);
     return Vec2{x,y};
 }
+
+bool Vec2::smaller(Vec2 rhs)
+{
+    return ( x < rhs.x || y < rhs.y );
+}
+
+bool Vec2::greater(Vec2 rhs)
+{
+    return ( x >= rhs.x || y >= rhs.y );
+}

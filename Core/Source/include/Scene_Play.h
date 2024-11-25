@@ -28,10 +28,10 @@ class Scene_Play : public Scene
     Physics m_physics;
     Camera m_camera;
     Vec2 cameraPos;
-    Vec2 m_currentChunk = Vec2{0, 1};
-    Vec2 m_previousChunk = m_currentChunk;
-    Vec2 m_chunkSize = Vec2{32, 32};
+    Vec2 m_currentChunk = Vec2{1, 0};
+    Vec2 m_chunkSize = Vec2{16, 16};
     std::vector<Vec2> m_loadedChunks;
+    std::vector<EntityID> m_loadedChunkIDs;
     LevelLoader m_levelLoader;
     std::shared_ptr<Scene_Inventory> m_inventory_scene;
     const Vec2 m_gridSize = { 64, 64 };
@@ -61,22 +61,22 @@ class Scene_Play : public Scene
     Vec2 gridToMidPixel(float, float, EntityID);
 
     // void spawnHUD();
-    void spawnPlayer();
-    void spawnWeapon(Vec2 pos );
-    void spawnProjectile(EntityID player, Vec2 vel);
-    void spawnCoin(Vec2 pos, const size_t layer);
-    void spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
+    EntityID spawnPlayer();
+    EntityID spawnWeapon(Vec2 pos );
+    EntityID spawnProjectile(EntityID player, Vec2 vel);
+    EntityID spawnCoin(Vec2 pos, const size_t layer);
+    EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
 
-    void spawnObstacle  (const Vec2 pos, bool movable, const int frame );
-    void spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
-    void spawnGrass     (const Vec2 pos, const int frame);
-    void spawnDirt      (const Vec2 pos, const int frame);
-    void spawnCampfire  (const Vec2 pos);
-    void spawnKey       (const Vec2 pos, const std::string, bool movable);
-    void spawnWater     (const Vec2 pos, const std::string tag, const int frame );
-    void spawnDualTiles (const Vec2 pos, std::unordered_map<std::string, int> tileIndex );
-    void spawnLava      (const Vec2 pos, const std::string tag, const int frame );
-    void spawnBridge    (const Vec2 pos, const int frame );
+    EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
+    EntityID spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
+    EntityID spawnGrass     (const Vec2 pos, const int frame);
+    EntityID spawnDirt      (const Vec2 pos, const int frame);
+    EntityID spawnCampfire  (const Vec2 pos);
+    EntityID spawnKey       (const Vec2 pos, const std::string, bool movable);
+    EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
+    EntityID spawnLava      (const Vec2 pos, const std::string tag, const int frame );
+    EntityID spawnBridge    (const Vec2 pos, const int frame );
+    std::vector<EntityID> spawnDualTiles (const Vec2 pos, std::unordered_map<std::string, int> tileIndex );
 
     void sLoader();
     void sScripting();

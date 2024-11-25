@@ -269,3 +269,11 @@ struct CScript
     }
 
 };
+
+struct CChunk
+{
+    Vec2 chunkPos;
+    std::vector<EntityID> chunkChildern;
+    CChunk(Vec2 cPos)
+            : chunkPos(cPos){}
+};
