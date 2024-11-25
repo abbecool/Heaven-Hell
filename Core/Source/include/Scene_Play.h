@@ -27,6 +27,9 @@ class Scene_Play : public Scene
     Physics m_physics;
     Camera m_camera;
     Vec2 cameraPos;
+    Vec2 m_currentChunk = Vec2{0, 1};
+    Vec2 m_chunkSize = Vec2{32, 32};
+    std::vector<Vec2> m_loadedChunks;
     LevelLoader m_levelLoader;
     std::shared_ptr<Scene_Inventory> m_inventory_scene;
     const Vec2 m_gridSize = { 64, 64 };
@@ -72,6 +75,7 @@ class Scene_Play : public Scene
     void spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     void spawnBridge    (const Vec2 pos, const int frame );
 
+    void sLoader();
     void sScripting();
     void sMovement();
     void sCollision();

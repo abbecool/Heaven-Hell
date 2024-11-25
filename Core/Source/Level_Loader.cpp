@@ -119,11 +119,7 @@ std::vector<std::vector<std::string>> LevelLoader::createPixelMatrix(Uint32* pix
 }
 
 
-std::unordered_map<std::string, int> LevelLoader::createDualGrid(
-    std::vector<std::vector<std::string>>& pixelMatrix, 
-    int x, int y, 
-    const int HEIGHT_PIX, 
-    const int WIDTH_PIX) 
+std::unordered_map<std::string, int> LevelLoader::createDualGrid( std::vector<std::vector<std::string>>& pixelMatrix,  int x, int y) 
 {
     std::vector<std::string> tileQ(4, "");
     std::unordered_map<std::string, int> tileTextureMap;

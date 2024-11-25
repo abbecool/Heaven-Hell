@@ -41,6 +41,11 @@ Vec2 Vec2::operator/ (const float val) const
     return Vec2 {x / val, y / val};
 }
 
+Vec2 Vec2::operator/ (const Vec2 & rhs) const
+{
+    return Vec2 {x/rhs.x, y/rhs.y};
+}
+
 Vec2 Vec2::operator- (const Vec2 & rhs) const
 {
     return Vec2 {x - rhs.x, y - rhs.y};
@@ -130,3 +135,10 @@ Vec2 Vec2::mainDir() const {
             return Vec2{0, y};
         }
     }
+
+Vec2 Vec2::toInt()
+{
+    x = floorf(x);
+    y = floorf(y);
+    return Vec2{x,y};
+}
