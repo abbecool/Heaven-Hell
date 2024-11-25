@@ -21,6 +21,7 @@ class Scene_Play : public Scene
 
     protected:
 
+    friend class LevelLoader;
     EntityID m_player;
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
@@ -28,6 +29,7 @@ class Scene_Play : public Scene
     Camera m_camera;
     Vec2 cameraPos;
     Vec2 m_currentChunk = Vec2{0, 1};
+    Vec2 m_previousChunk = m_currentChunk;
     Vec2 m_chunkSize = Vec2{32, 32};
     std::vector<Vec2> m_loadedChunks;
     LevelLoader m_levelLoader;
@@ -42,6 +44,7 @@ class Scene_Play : public Scene
     bool m_drawDrawGrid = false;
     bool m_inventoryOpen = false;
     bool m_newGame;
+    std::vector<std::vector<std::string>> m_pixelMatrix;
 
     std::unordered_map<std::string, std::unordered_set<std::string>> m_damageToEnemyMap = {
         {"fire", {"grass"}},

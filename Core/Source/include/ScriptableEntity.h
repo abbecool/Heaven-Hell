@@ -20,5 +20,5 @@ class ScriptableEntity{
         virtual void OnCollisionFunction() {} //protected
     // protected:
     private:
-        friend class Scene;
+        // friend class Scene;
 };

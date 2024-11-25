@@ -63,7 +63,6 @@ void Scene_Play::init(const std::string& levelPath) {
     
     spawnPlayer();
     spawnCoin(Vec2{64*24,64*17}, 4);
-    // spawnDragon(Vec2{64*52 , 64*44}, false, "snoring_dragon");
     spawnWeapon(Vec2{64*22 , 64*33});
     spawnSmallEnemy(Vec2{64*32 , 64*13}, 3, "rooter");
     spawnSmallEnemy(Vec2{64*22 , 64*25}, 3, "rooter");
@@ -119,41 +118,14 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     const int HEIGHT_PIX = loadedSurface->h;
     const int WIDTH_PIX = loadedSurface->w;
     m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
-    std::vector<std::vector<std::string>> pixelMatrix = m_levelLoader.createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
+    m_pixelMatrix = m_levelLoader.createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
 
     // Unlock and free the surface
     SDL_UnlockSurface(loadedSurface);
     SDL_FreeSurface(loadedSurface);
+    m_levelLoader.init(this, WIDTH_PIX, HEIGHT_PIX);
+    m_levelLoader.loadChunk();
 
-    // Process the pixels
-    for (int y = m_currentChunk.x*m_chunkSize.x; y < (m_currentChunk.x+1)*m_chunkSize.x; ++y) {
-        for (int x = m_currentChunk.y*m_chunkSize.y; x < (m_currentChunk.y+1)*m_chunkSize.y; ++x) {
-            const std::string& pixel = pixelMatrix[y][x];
-            std::vector<bool> neighbors = m_levelLoader.neighborCheck(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
-            std::vector<std::string> neighborsTags = m_levelLoader.neighborTag(pixelMatrix, pixel, x, y, WIDTH_PIX, HEIGHT_PIX);
-            int textureIndex = m_levelLoader.getObstacleTextureIndex(neighbors);
-            std::unordered_map<std::string, int> tileIndex = m_levelLoader.createDualGrid(pixelMatrix, x, y);
-            spawnDualTiles(Vec2 {64*(float)x - 32, 64*(float)y - 32},  tileIndex);
-
-            if (pixel == "obstacle") {
-                spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
-            }
-            else{
-                if (pixel == "lava") {
-                    spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava", textureIndex);
-                } else if (pixel == "water") {
-                    spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
-                } else if (pixel == "bridge") {
-                    if ( std::find(neighborsTags.begin(), neighborsTags.end(), "water") != neighborsTags.end() ){
-                        // spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                    } else if ( std::find(neighborsTags.begin(), neighborsTags.end(), "lava") != neighborsTags.end() ){
-                        // spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                    }
-                    spawnBridge(Vec2 {64*(float)x,64*(float)y}, textureIndex);
-                }
-            }
-        }
-    }
 }
 
 void Scene_Play::sDoAction(const Action& action) {
@@ -269,7 +241,14 @@ void Scene_Play::update() {
 
 void Scene_Play::sLoader()
 {
-
+    m_currentChunk = ( ( (m_ECS.getComponent<CTransform>(m_player).pos / m_gridSize).toInt() ) / m_chunkSize ).toInt();
+    // std::cout << m_currentChunk.x << " " << m_currentChunk.y << std::endl;
+    if (std::find(m_loadedChunks.begin(), m_loadedChunks.end(), m_currentChunk) == m_loadedChunks.end())
+    {
+        std::cout << "chuck not loaded" << std::endl;
+        m_levelLoader.loadChunk();
+    }
+    m_previousChunk = m_currentChunk;
 }
 
 void Scene_Play::sScripting() {
@@ -356,8 +335,6 @@ void Scene_Play::sMovement() {
         transform.pos = transformPool.getComponent(parent.parent).pos + parent.relativePos;
     }
 
-    m_currentChunk = ( ( (m_ECS.getComponent<CTransform>(m_player).pos / m_gridSize).toInt() ) / m_chunkSize ).toInt();
-    std::cout << m_currentChunk.x << " " << m_currentChunk.y << std::endl;
 }
 
 void Scene_Play::sCollision() {

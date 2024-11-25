@@ -17,6 +17,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
+void LevelLoader::init(Scene_Play* scene, const int width, const int height)
+{
+    m_scene = scene;
+    m_width = width;
+    m_height = height;
+}
 
 std::vector<bool> LevelLoader::neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
     std::vector<std::string> friendlyPixels(1, "");
@@ -211,100 +217,36 @@ std::unordered_map<std::string, int> LevelLoader::createDualGrid( std::vector<st
     return tileTextureMap;
 }
 
+void LevelLoader::loadChunk()
+{
+    m_scene->m_loadedChunks.push_back(m_scene->m_currentChunk);
+    // Process the pixels
+    for (int y = m_scene->m_currentChunk.x*m_scene->m_chunkSize.x; y < (m_scene->m_currentChunk.x+1)*m_scene->m_chunkSize.x; ++y) {
+        for (int x = m_scene->m_currentChunk.y*m_scene->m_chunkSize.y; x < (m_scene->m_currentChunk.y+1)*m_scene->m_chunkSize.y; ++x) {
+            const std::string& pixel = m_scene->m_pixelMatrix[y][x];
+            std::vector<bool> neighbors = neighborCheck(m_scene->m_pixelMatrix, pixel, x, y, m_width, m_height);
+            std::vector<std::string> neighborsTags = neighborTag(m_scene->m_pixelMatrix, pixel, x, y, m_width, m_height);
+            int textureIndex = getObstacleTextureIndex(neighbors);
+            std::unordered_map<std::string, int> tileIndex = createDualGrid(m_scene->m_pixelMatrix, x, y);
+            m_scene->spawnDualTiles(Vec2 {64*(float)x - 32, 64*(float)y - 32},  tileIndex);
 
-// int LevelLoader::createDualGrid1(std::vector<std::vector<std::string>> pixelMatrix, int x, int y, const int HEIGHT_PIX, const int WIDTH_PIX) {
-//     std::vector<std::string> tileQ = std::vector<std::string>(4, "");
-//     int textureIndex;
-//     tileQ[1] = pixelMatrix[y][x];   //Q4
-//     if (x>0)        {tileQ[0] = pixelMatrix[y][x-1];}    else {tileQ[0] = pixelMatrix[y][x];}  // Q3
-//     if (y>0)        {tileQ[2] = pixelMatrix[y-1][x];}    else {tileQ[2] = pixelMatrix[y][x];}  // Q1
-//     if (x>0 && y>0) {tileQ[3] = pixelMatrix[y-1][x-1];}  else {tileQ[3] = pixelMatrix[y][x];}  // Q2
-
-//     std::unordered_map<std::string, std::unordered_set<std::string>> friendlyNeighbors = {
-//         {"grass", {"key", "goal", "player_God", "dragon"}},
-//         {"dirt", {"key", "goal", "player_Devil", "dragon"}}
-//     };
-            
-//     for (std::string tile : {"grass", "dirt", "water", "lava", "cloud", "obstacle", "bridge"})
-//     {
-//         if ( std::find(tileQ.begin(), tileQ.end(), "bridge") != tileQ.end() ){
-
-//             if ( std::find(tileQ.begin(), tileQ.end(), "water") != tileQ.end() ){
-//                 std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
-//                     return (str == "bridge" ) ? "water" : str;
-//                 });
-//             } else if ( std::find(tileQ.begin(), tileQ.end(), "lava") != tileQ.end() ){
-//                     std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
-//                     return (str == "bridge" ) ? "lava" : str;
-//                 });
-//             } else {
-//                 std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](const std::string& str) {
-//                     return (str == "bridge" ) ? "" : str;
-//                 });
-//             }
-//         }
-        
-//          // Transform the vector based on friendly neighbors for the current tile type
-//         std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [&](const std::string& str) {
-//             // Check if the current string is a friendly neighbor for the current tile
-//             if (friendlyNeighbors[tile].count(str)) {
-//                 return tile; // Replace it with the current tile
-//             }
-//             return str; // Keep the original if it's not a friendly neighbor
-//         });
-
-//         int numTiles = std::count(tileQ.begin(), tileQ.end(), tile);
-//         std::unordered_set<std::string> uniqueStrings(tileQ.begin(), tileQ.end());
-//         if (numTiles > 0){
-//             if (numTiles == 4) {
-//                 textureIndex = 6; // All quadrants are tiles
-//             } else if (numTiles == 3) {
-//                 if (tileQ[0] != tile) textureIndex = 10;
-//                 if (tileQ[1] != tile) textureIndex = 7;
-//                 if (tileQ[2] != tile) textureIndex = 2;
-//                 if (tileQ[3] != tile) textureIndex = 5;
-//             } else if (numTiles == 2) {
-//                 if (tileQ[0] != tile && tileQ[1] != tile) textureIndex = 9;
-//                 if (tileQ[1] != tile && tileQ[2] != tile) textureIndex = 11;
-//                 if (tileQ[2] != tile && tileQ[3] != tile) textureIndex = 3;
-//                 if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 1;
-//                 if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 4;
-//                 if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 14; 
-//                 if (uniqueStrings.size() == 3 && (tile == "grass")){
-//                     if (tileQ[0] == tile && tileQ[1] == tile) textureIndex = 19;
-//                     if (tileQ[1] == tile && tileQ[2] == tile) textureIndex = 17;
-//                     if (tileQ[2] == tile && tileQ[3] == tile) textureIndex = 16;
-//                     if (tileQ[3] == tile && tileQ[0] == tile) textureIndex = 18;
-//                 }
-//             } if (numTiles == 1) {
-//                 if (tileQ[0] == tile) textureIndex = 0;
-//                 if (tileQ[1] == tile) textureIndex = 13;
-//                 if (tileQ[2] == tile) textureIndex = 8;
-//                 if (tileQ[3] == tile) textureIndex = 15;
-//                 if (uniqueStrings.size() == 3 && (tile == "grass")){
-//                     if (tileQ[0] == tile && tileQ[2] == tileQ[3]) textureIndex = 20;
-//                     if (tileQ[0] == tile && tileQ[1] == tileQ[2]) textureIndex = 25;
-
-//                     if (tileQ[1] == tile && tileQ[0] == tileQ[3]) textureIndex = 23;
-//                     if (tileQ[1] == tile && tileQ[2] == tileQ[3]) textureIndex = 24;
-
-//                     if (tileQ[2] == tile && tileQ[0] == tileQ[1]) textureIndex = 22;
-//                     if (tileQ[2] == tile && tileQ[0] == tileQ[3]) textureIndex = 27;
-
-//                     if (tileQ[3] == tile && tileQ[1] == tileQ[2]) textureIndex = 21;
-//                     if (tileQ[3] == tile && tileQ[0] == tileQ[1]) textureIndex = 26;
-//                 }
-//             }
-//             // if (tile != ""){
-//             //     spawnDualTile(Vec2 {64*(float)x-32, 64*(float)y-32}, tile, textureIndex);
-//             // }
-//             return textureIndex;
-//         }
-//     }
-// }
-
-
-// 1  Q4
-// 0  Q3
-// 2  Q1
-// 3  Q2
+            if (pixel == "obstacle") {
+                m_scene->spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
+            }
+            else{
+                if (pixel == "lava") {
+                    m_scene->spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava", textureIndex);
+                } else if (pixel == "water") {
+                    m_scene->spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
+                } else if (pixel == "bridge") {
+                    if ( std::find(neighborsTags.begin(), neighborsTags.end(), "water") != neighborsTags.end() ){
+                        // m_scene->spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                    } else if ( std::find(neighborsTags.begin(), neighborsTags.end(), "lava") != neighborsTags.end() ){
+                        // m_scene->spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
+                    }
+                    m_scene->spawnBridge(Vec2 {64*(float)x,64*(float)y}, textureIndex);
+                }
+            }
+        }
+    }
+}
