@@ -1,5 +1,6 @@
 #include "Vec2.h"
 #include <cmath>
+#include <iostream>
 
 Vec2::Vec2(){}
 
@@ -151,4 +152,9 @@ bool Vec2::smaller(Vec2 rhs)
 bool Vec2::greater(Vec2 rhs)
 {
     return ( x >= rhs.x || y >= rhs.y );
+}
+
+void Vec2::print()
+{
+    std::cout << x << " " << y << std::endl;
 }

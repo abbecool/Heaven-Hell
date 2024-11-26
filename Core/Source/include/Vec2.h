@@ -41,4 +41,5 @@ public:
     Vec2 toInt();
     bool smaller(Vec2 rhs);
     bool greater(Vec2 rhs);
+    void print();
 };
