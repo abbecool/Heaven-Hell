@@ -36,7 +36,8 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_s, "DOWN");
     registerAction(SDLK_a, "LEFT");
     registerAction(SDLK_d, "RIGHT");
-    registerAction(SDLK_e, "INVENTORY");
+    registerAction(SDLK_i, "INVENTORY");
+    registerAction(SDLK_e, "USE");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
     registerAction(SDL_MOUSEWHEEL , "ATTACK");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
@@ -156,7 +157,14 @@ void Scene_Play::sDoAction(const Action& action) {
             }
             else
             {
-                m_inventory_scene->Scroll(m_mouseState.scroll);
+                if (m_mouseState.scroll > 0)
+                {
+                    cameraZoom *= 2;
+                }
+                if (m_mouseState.scroll < 0)
+                {
+                    cameraZoom *= .5;
+                }
             }
         } else if ( action.name() == "ZOOM IN"){
             m_camera.setCameraZoom(Vec2 {2, 2});
@@ -247,6 +255,7 @@ void Scene_Play::sLoader()
         for (int dy = -1; dy <= 1; ++dy) 
         {
             Vec2 neighborChunk = {m_currentChunk.x + dx, m_currentChunk.y + dy};
+            // neighborChunk = m_currentChunk;
             if ( neighborChunk.smaller(Vec2{0,0}) || neighborChunk.greater(m_levelSize/m_chunkSize) )
             {
                 continue;
@@ -607,7 +616,11 @@ void Scene_Play::sRender() {
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     SDL_RenderClear(m_game->renderer());
-
+    Vec2 screenCenter = m_camera.position + Vec2{(float)width(), (float)height()}/2;
+    Vec2 centerTile = (screenCenter/m_gridSize).toInt();
+    screenCenter.print("screenCenter");
+    centerTile.print("centerTile");
+    
     if (m_drawTextures)
     {
         auto& viewBottom = m_ECS.view<CBottomLayer>();
@@ -619,13 +632,16 @@ void Scene_Play::sRender() {
             auto& animation = animationPool.getComponent(e).animation;
 
             // Adjust the entity's position based on the camera position
-            Vec2 adjustedPos = transform.pos - m_camera.position;
-            // if (cameraZoom != 1) {
-
-            // }
+            Vec2 adjustedPosition = transform.pos - m_camera.position;
+            if (cameraZoom != 1) 
+            {
+                auto temp = Vec2{64, 0}*((adjustedPosition/64).toInt()-centerTile);
+                (temp/64).print("temp");
+                adjustedPosition -= temp; 
+            }
             animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
-            animation.setDestRect(adjustedPos - animation.getDestSize()/2);
+            animation.setDestRect(adjustedPosition - animation.getDestSize()/2);
             
             spriteRender(animation);
         }

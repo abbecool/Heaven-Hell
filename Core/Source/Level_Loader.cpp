@@ -219,9 +219,6 @@ std::unordered_map<std::string, int> LevelLoader::createDualGrid( std::vector<st
 
 EntityID LevelLoader::loadChunk(Vec2 chunk)
 {
-    EntityID chunkID = m_scene->m_ECS.addEntity();
-    m_scene->m_ECS.addComponent<CChunk>(chunkID, chunk);
-    // m_scene->m_ECS.addComponent<CChildren>(chunkID);
     std::vector<EntityID> chunkChildren;
 
     // Process the pixels
@@ -263,6 +260,8 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             }
         }
     }
+    EntityID chunkID = m_scene->m_ECS.addEntity();
+    m_scene->m_ECS.addComponent<CChunk>(chunkID, chunk);
     m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern = chunkChildren;
     return chunkID;
 }

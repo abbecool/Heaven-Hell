@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 
 class Vec2
 {
@@ -41,5 +42,5 @@ public:
     Vec2 toInt();
     bool smaller(Vec2 rhs);
     bool greater(Vec2 rhs);
-    void print();
+    void print(std::string text);
 };
