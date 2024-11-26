@@ -60,16 +60,16 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_2, "LEVEL2");
 
     loadConfig("config.txt");
-    loadLevel(levelPath);
+    loadLevel(levelPath); 
     
     spawnPlayer();
-    spawnCoin(Vec2{64*24,64*17}, 4);
-    spawnWeapon(Vec2{64*22 , 64*33});
-    spawnSmallEnemy(Vec2{64*32 , 64*13}, 3, "rooter");
-    spawnSmallEnemy(Vec2{64*22 , 64*25}, 3, "rooter");
-    spawnSmallEnemy(Vec2{64*3 , 64*22}, 3, "goblin");
-    spawnSmallEnemy(Vec2{64*29 , 64*47}, 3, "goblin");
-    spawnCampfire(Vec2{64*44, 64*33});
+    spawnCoin(Vec2{26, 59}*m_gridSize, 4);
+    spawnWeapon(Vec2{49, 40}*m_gridSize);
+    spawnSmallEnemy(Vec2{29, 47}*m_gridSize, 3, "goblin");
+    spawnSmallEnemy(Vec2{11, 27}*m_gridSize, 3, "goblin");
+    spawnSmallEnemy(Vec2{54, 27}*m_gridSize, 3, "rooter");
+    spawnSmallEnemy(Vec2{89, 66}*m_gridSize, 3, "rooter");
+    spawnCampfire(Vec2{67, 36}*m_gridSize);
 }
 
 void Scene_Play::loadConfig(const std::string& confPath){
@@ -159,12 +159,15 @@ void Scene_Play::sDoAction(const Action& action) {
             {
                 if (m_mouseState.scroll > 0)
                 {
-                    cameraZoom *= 2;
+                    cameraZoom *= m_zoomStep;
+                    m_chunkSize = (m_chunkSize/m_zoomStep).toInt();
                 }
                 if (m_mouseState.scroll < 0)
                 {
-                    cameraZoom *= .5;
+                    cameraZoom /= m_zoomStep;
+                    m_chunkSize *= m_zoomStep;
                 }
+                m_levelLoader.clearChunks(0);
             }
         } else if ( action.name() == "ZOOM IN"){
             m_camera.setCameraZoom(Vec2 {2, 2});
@@ -269,18 +272,7 @@ void Scene_Play::sLoader()
         }
     }
 
-    while (m_loadedChunks.size() > 12)
-    {
-        EntityID chunkID = m_loadedChunkIDs[0];
-        m_loadedChunks.erase(m_loadedChunks.begin());
-        m_loadedChunkIDs.erase(m_loadedChunkIDs.begin());
-        m_ECS.queueRemoveEntity(chunkID);
-        std::vector<EntityID> chunkChildren =  m_ECS.getComponent<CChunk>(chunkID).chunkChildern;
-        for ( EntityID id : chunkChildren )
-        {
-            m_ECS.queueRemoveEntity(id);
-        }
-    }
+    m_levelLoader.clearChunks(12); // Will leave 12 chunks
 }
 
 void Scene_Play::sScripting() 
@@ -616,10 +608,7 @@ void Scene_Play::sRender() {
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     SDL_RenderClear(m_game->renderer());
-    Vec2 screenCenter = m_camera.position + Vec2{(float)width(), (float)height()}/2;
-    Vec2 centerTile = (screenCenter/m_gridSize).toInt();
-    screenCenter.print("screenCenter");
-    centerTile.print("centerTile");
+    Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
     
     if (m_drawTextures)
     {
@@ -633,12 +622,9 @@ void Scene_Play::sRender() {
 
             // Adjust the entity's position based on the camera position
             Vec2 adjustedPosition = transform.pos - m_camera.position;
-            if (cameraZoom != 1) 
-            {
-                auto temp = Vec2{64, 0}*((adjustedPosition/64).toInt()-centerTile);
-                (temp/64).print("temp");
-                adjustedPosition -= temp; 
-            }
+            auto distanceToCenter = adjustedPosition-screenCenter;
+            adjustedPosition += distanceToCenter*(cameraZoom-1);
+
             animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
             animation.setDestRect(adjustedPosition - animation.getDestSize()/2);
@@ -654,11 +640,13 @@ void Scene_Play::sRender() {
             auto& transform = transformPool2.getComponent(e);
             auto& animation = animationPool2.getComponent(e).animation;
 
-            Vec2 adjustedPos = transform.pos - m_camera.position;
+            Vec2 adjustedPosition = transform.pos - m_camera.position;
+            auto distanceToCenter = adjustedPosition-screenCenter;
+            adjustedPosition += distanceToCenter*(cameraZoom-1);
 
             animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
-            animation.setDestRect(adjustedPos - animation.getDestSize()/2);
+            animation.setDestRect(adjustedPosition - animation.getDestSize()/2);
             
             spriteRender(animation);
         }    

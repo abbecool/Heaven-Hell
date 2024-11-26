@@ -28,8 +28,9 @@ class Scene_Play : public Scene
     Physics m_physics;
     Camera m_camera;
     Vec2 cameraPos;
+    float m_zoomStep = 2;
     Vec2 m_currentChunk = Vec2{1, 0};
-    Vec2 m_chunkSize = Vec2{16, 16};
+    Vec2 m_chunkSize = Vec2{16, 12};
     std::vector<Vec2> m_loadedChunks;
     std::vector<EntityID> m_loadedChunkIDs;
     LevelLoader m_levelLoader;

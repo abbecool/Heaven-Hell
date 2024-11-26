@@ -18,4 +18,6 @@ class LevelLoader
         std::vector<std::vector<std::string>> createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
         std::unordered_map<std::string, int> createDualGrid(std::vector<std::vector<std::string>>& pixelMatrix, int x, int y);
         EntityID loadChunk(Vec2 chunk);
+        void removeChunk();
+        void clearChunks(int chunksLeft);
 };
