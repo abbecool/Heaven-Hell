@@ -659,7 +659,9 @@ void Scene_Play::sRender() {
             if ( (int)(m_currentFrame - health.damage_frame) < health.i_frames ) {
 
                 auto& transform = transformPool.getComponent(entityID);
-                Vec2 adjustedPos = transform.pos - m_camera.position;
+                Vec2 adjustedPosition = transform.pos - m_camera.position;
+                auto distanceToCenter = adjustedPosition-screenCenter;
+                adjustedPosition += distanceToCenter*(cameraZoom-1);
 
                 Animation animation;
                 auto hearts = float(health.HP)/2;
@@ -676,8 +678,8 @@ void Scene_Play::sRender() {
 
                     animation.setScale(Vec2{2, 2}*cameraZoom);
                     animation.setDestRect(Vec2{
-                        adjustedPos.x + (float)(i-1-(float)health.HP_max/4)*animation.getSize().x*animation.getScale().x, 
-                        adjustedPos.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
+                        adjustedPosition.x + (float)(i-1-(float)health.HP_max/4)*animation.getSize().x*animation.getScale().x, 
+                        adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
                     });
                     spriteRender(animation);
                 }
