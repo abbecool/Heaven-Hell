@@ -22,6 +22,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <algorithm>
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), m_levelPath(levelPath), m_newGame(newGame)
@@ -160,13 +161,14 @@ void Scene_Play::sDoAction(const Action& action) {
                 if (m_mouseState.scroll > 0)
                 {
                     cameraZoom *= m_zoomStep;
-                    m_chunkSize = (m_chunkSize/m_zoomStep).toInt();
                 }
                 if (m_mouseState.scroll < 0)
                 {
                     cameraZoom /= m_zoomStep;
-                    m_chunkSize *= m_zoomStep;
                 }
+                cameraZoom = std::max(0.25f, std::min(4.0f, cameraZoom) );
+                m_chunkSize = m_chunkSizeOriginal / cameraZoom;
+
                 m_levelLoader.clearChunks(0);
             }
         } else if ( action.name() == "ZOOM IN"){
