@@ -58,3 +58,5 @@ Game.sln
 
 # FMOD
 Core/assets/audio/FMOD/*
+
+Core/game_save.txt
