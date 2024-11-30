@@ -22,7 +22,10 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
 void Game::init(const std::string & pathImages, const std::string & pathText){
 
     SDL_Init(SDL_INIT_EVERYTHING);
-    m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    // SDL_GetCurrentDisplayMode(0, &DM);
+    // WIDTH = DM.w;
+    // HEIGHT = DM.h;
+    m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_SetWindowPosition(m_window, 0, 0);
     if ( NULL == m_window )
     {
@@ -129,6 +132,16 @@ int Game::getWidth()
 int Game::getHeight()
 {
     return HEIGHT;
+}
+
+void Game::setWidth(int width)
+{
+    WIDTH = width;
+}
+
+void Game::setHeight(int height)
+{
+    HEIGHT = height;
 }
 
 void Game::sUserInput()

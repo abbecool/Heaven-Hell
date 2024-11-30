@@ -160,21 +160,30 @@ void Scene_Play::sDoAction(const Action& action) {
             {
                 if (m_mouseState.scroll > 0)
                 {
-                    cameraZoom *= m_zoomStep;
+                    // cameraZoom *= m_zoomStep;
+                    cameraZoom += 0.25;
+                    // m_chunkSize = m_chunkSizeOriginal + Vec2{4,4};
                 }
                 if (m_mouseState.scroll < 0)
                 {
-                    cameraZoom /= m_zoomStep;
+                    // cameraZoom /= m_zoomStep;
+                    cameraZoom -= 0.25;
+                    // m_chunkSize = m_chunkSizeOriginal + Vec2{4,4};
                 }
-                cameraZoom = std::max(0.25f, std::min(4.0f, cameraZoom) );
-                m_chunkSize = m_chunkSizeOriginal / cameraZoom;
+                cameraZoom = std::max( 0.25f, std::min(4.0f, cameraZoom) );
+                std::cout << "cameraZoom: " << cameraZoom << std::endl;
 
-                m_levelLoader.clearChunks(0);
             }
         } else if ( action.name() == "ZOOM IN"){
-            m_camera.setCameraZoom(Vec2 {2, 2});
+            m_chunkSize += Vec2{4,4};
+            m_levelLoader.clearChunks(0);
+            m_chunkSize.print("m_chunkSize");
+            // m_camera.setCameraZoom(Vec2 {2, 2});
         } else if ( action.name() == "ZOOM OUT"){
-            m_camera.setCameraZoom(Vec2{0.5, 0.5});
+            m_chunkSize -= Vec2{4,4};
+            m_levelLoader.clearChunks(0);
+            m_chunkSize.print("m_chunkSize");
+            // m_camera.setCameraZoom(Vec2 {0.5, 0.5});
         } else if ( action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if ( action.name() == "CAMERA PAN"){
@@ -274,7 +283,7 @@ void Scene_Play::sLoader()
         }
     }
 
-    m_levelLoader.clearChunks(12); // Will leave 12 chunks
+    m_levelLoader.clearChunks(9); // Will leave 12 chunks
 }
 
 void Scene_Play::sScripting() 
@@ -627,7 +636,7 @@ void Scene_Play::sRender() {
             auto distanceToCenter = adjustedPosition-screenCenter;
             adjustedPosition += distanceToCenter*(cameraZoom-1);
 
-            animation.setScale(transform.scale*cameraZoom);
+            animation.setScale(Vec2{4, 4}*cameraZoom);
             animation.setAngle(transform.angle);
             animation.setDestRect(adjustedPosition - animation.getDestSize()/2);
             
@@ -646,7 +655,7 @@ void Scene_Play::sRender() {
             auto distanceToCenter = adjustedPosition-screenCenter;
             adjustedPosition += distanceToCenter*(cameraZoom-1);
 
-            animation.setScale(transform.scale*cameraZoom);
+            animation.setScale(Vec2{4, 4}*cameraZoom);
             animation.setAngle(transform.angle);
             animation.setDestRect(adjustedPosition - animation.getDestSize()/2);
             
@@ -678,7 +687,7 @@ void Scene_Play::sRender() {
                         animation = health.animation_empty;
                     }
 
-                    animation.setScale(Vec2{2, 2}*cameraZoom);
+                    animation.setScale(Vec2{4, 4}*cameraZoom);
                     animation.setDestRect(Vec2{
                         adjustedPosition.x + (float)(i-1-(float)health.HP_max/4)*animation.getSize().x*animation.getScale().x, 
                         adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
@@ -718,7 +727,7 @@ void Scene_Play::sRender() {
                 animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
             }
 
-            animation.setScale(Vec2{4, 4});
+            animation.setScale(Vec2{4,4});
             animation.setDestRect(Vec2{(float)(i-1)*animation.getSize().x*animation.getScale().x, 0});
 
             spriteRender(animation);
@@ -869,7 +878,7 @@ EntityID Scene_Play::spawnGrass(const Vec2 pos, const int frame)
     auto entity = m_ECS.addEntity();
     // std::vector<int> ranArray = generateRandomArray(1, m_ECS.getNumEntities(), 0, 15);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     return entity;
 }
 
@@ -877,7 +886,7 @@ EntityID Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{0.5, 0.5}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     return entity;
 }
 

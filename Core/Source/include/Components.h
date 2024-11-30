@@ -55,7 +55,7 @@ struct CTransform
     Vec2 pos;    
     Vec2 prevPos;
     Vec2 vel = {0, 0};    
-    Vec2 scale = {0.5, 0.5};    
+    Vec2 scale = {1, 1};    
     float angle = 0;
     float speed = 0;
     bool isMovable = false;

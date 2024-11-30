@@ -30,8 +30,8 @@ class Scene_Play : public Scene
     Vec2 cameraPos;
     float m_zoomStep = 2;
     Vec2 m_currentChunk = Vec2{1, 0};
-    Vec2 m_chunkSizeOriginal = Vec2{16, 16};
-    Vec2 m_chunkSize = Vec2{16, 16};
+    Vec2 m_chunkSizeOriginal = Vec2{28, 28};    
+    Vec2 m_chunkSize = Vec2{28, 28};
     std::vector<Vec2> m_loadedChunks;
     std::vector<EntityID> m_loadedChunkIDs;
     LevelLoader m_levelLoader;
@@ -40,7 +40,7 @@ class Scene_Play : public Scene
     Vec2 m_levelSize;
     Vec2 m_mousePosition;
     bool cameraFollow = true;
-    float cameraZoom = 1;
+    float cameraZoom = 0.75f;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;

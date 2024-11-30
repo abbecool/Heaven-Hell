@@ -269,14 +269,14 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
 void LevelLoader::removeChunk()
 {
     EntityID chunkID = m_scene->m_loadedChunkIDs[0];
-    m_scene->m_loadedChunks.erase(m_scene->m_loadedChunks.begin());
-    m_scene->m_loadedChunkIDs.erase(m_scene->m_loadedChunkIDs.begin());
-    m_scene->m_ECS.queueRemoveEntity(chunkID);
     std::vector<EntityID> chunkChildren =  m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern;
     for ( EntityID id : chunkChildren )
     {
         m_scene->m_ECS.queueRemoveEntity(id);
     }
+    m_scene->m_loadedChunks.erase(m_scene->m_loadedChunks.begin());
+    m_scene->m_loadedChunkIDs.erase(m_scene->m_loadedChunkIDs.begin());
+    m_scene->m_ECS.queueRemoveEntity(chunkID);
 }
 
 void LevelLoader::clearChunks(int chunksLeft)

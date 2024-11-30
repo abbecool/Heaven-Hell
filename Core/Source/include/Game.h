@@ -14,8 +14,9 @@ typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
 class Game
 {   
 protected:
-    const int WIDTH = 1920;
-    const int HEIGHT = 1080;
+    SDL_DisplayMode DM;
+    int WIDTH = 1920;
+    int HEIGHT = 1080;
 
     SDL_Window *m_window;
     SDL_Renderer *m_renderer;
@@ -51,4 +52,6 @@ public:
     Assets& assets(); 
     int getWidth();
     int getHeight();
+    void setWidth(int width);
+    void setHeight(int height);
 };
