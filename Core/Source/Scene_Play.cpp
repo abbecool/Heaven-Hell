@@ -115,13 +115,17 @@ void Scene_Play::loadLevel(const std::string& levelPath){
 
     // Lock the surface to access the pixels
     SDL_LockSurface(loadedSurface);
+    std::cout << "test0" << std::endl;
     Uint32* pixels = (Uint32*)loadedSurface->pixels;
+    std::cout << "test1" << std::endl;
 
     const int HEIGHT_PIX = loadedSurface->h;
     const int WIDTH_PIX = loadedSurface->w;
     m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
+    std::cout << "test2" << std::endl;
     m_pixelMatrix = m_levelLoader.createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
-
+    std::cout << "test3" << std::endl;
+    std::cout << m_pixelMatrix.size() << std::endl;
     // Unlock and free the surface
     SDL_UnlockSurface(loadedSurface);
     SDL_FreeSurface(loadedSurface);

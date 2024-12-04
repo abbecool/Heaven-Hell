@@ -7,7 +7,6 @@
 #include <ctime>
 #include <thread>
 
-
 #include "Game.h"
 #include "Assets.h"
 #include "Scene_Menu.h"
