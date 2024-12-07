@@ -64,9 +64,9 @@ void Scene_Play::init(const std::string& levelPath) {
     loadLevel(levelPath); 
     
     spawnPlayer();
-    spawnCoin(Vec2{26, 59}*m_gridSize, 4);
-    spawnWeapon(Vec2{49, 40}*m_gridSize);
-    spawnSmallEnemy(Vec2{29, 47}*m_gridSize, 3, "goblin");
+    spawnCoin(Vec2{345, 62}*m_gridSize, 4);
+    spawnWeapon(Vec2{364, 90}*m_gridSize);
+    spawnSmallEnemy(Vec2{330, 77}*m_gridSize, 3, "goblin");
     spawnSmallEnemy(Vec2{11, 27}*m_gridSize, 3, "goblin");
     spawnSmallEnemy(Vec2{54, 27}*m_gridSize, 3, "rooter");
     spawnSmallEnemy(Vec2{89, 66}*m_gridSize, 3, "rooter");
