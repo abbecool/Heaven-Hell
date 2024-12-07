@@ -164,15 +164,11 @@ void Scene_Play::sDoAction(const Action& action) {
             {
                 if (m_mouseState.scroll > 0)
                 {
-                    // cameraZoom *= m_zoomStep;
                     cameraZoom += 0.25;
-                    // m_chunkSize = m_chunkSizeOriginal + Vec2{4,4};
                 }
                 if (m_mouseState.scroll < 0)
                 {
-                    // cameraZoom /= m_zoomStep;
                     cameraZoom -= 0.25;
-                    // m_chunkSize = m_chunkSizeOriginal + Vec2{4,4};
                 }
                 cameraZoom = std::max( 0.25f, std::min(4.0f, cameraZoom) );
                 std::cout << "cameraZoom: " << cameraZoom << std::endl;
@@ -182,12 +178,10 @@ void Scene_Play::sDoAction(const Action& action) {
             m_chunkSize += Vec2{4,4};
             m_levelLoader.clearChunks(0);
             m_chunkSize.print("m_chunkSize");
-            // m_camera.setCameraZoom(Vec2 {2, 2});
         } else if ( action.name() == "ZOOM OUT"){
             m_chunkSize -= Vec2{4,4};
             m_levelLoader.clearChunks(0);
             m_chunkSize.print("m_chunkSize");
-            // m_camera.setCameraZoom(Vec2 {0.5, 0.5});
         } else if ( action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if ( action.name() == "CAMERA PAN"){
@@ -268,12 +262,11 @@ void Scene_Play::update()
 void Scene_Play::sLoader()
 {
     m_currentChunk = ( ( (m_ECS.getComponent<CTransform>(m_player).pos / m_gridSize).toInt() ) / m_chunkSize ).toInt();
-    for (int dx = -1; dx <= 1; ++dx) 
+    for (int dx = -3; dx <= 3; ++dx) 
     {
-        for (int dy = -1; dy <= 1; ++dy) 
+        for (int dy = -2; dy <= 2; ++dy) 
         {
             Vec2 neighborChunk = {m_currentChunk.x + dx, m_currentChunk.y + dy};
-            // neighborChunk = m_currentChunk;
             if ( neighborChunk.smaller(Vec2{0,0}) || neighborChunk.greater(m_levelSize/m_chunkSize) )
             {
                 continue;
@@ -287,7 +280,7 @@ void Scene_Play::sLoader()
         }
     }
 
-    m_levelLoader.clearChunks(9); // Will leave 12 chunks
+    m_levelLoader.clearChunks(35); // Will leave 12 chunks
 }
 
 void Scene_Play::sScripting() 
