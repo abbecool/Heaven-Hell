@@ -872,7 +872,6 @@ EntityID Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string
     m_ECS.addComponent<CHealth>(entity, (int)10, (int)10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {""};
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{96, 96});
-    m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
     return entity;
 }
 
@@ -960,7 +959,6 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
-    m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
     m_ECS.addComponent<CLoot>(entity);
     spawnShadow(entity, Vec2{0,0}, 0);
     return entity;
@@ -977,7 +975,6 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 150.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 48});
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
-    m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
 
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
