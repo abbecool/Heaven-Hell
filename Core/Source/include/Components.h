@@ -255,6 +255,19 @@ struct CWeaponChild
                 : weaponID(wID){}
 };
 
+struct CChild
+{
+
+    std::vector<std::tuple<EntityID, bool>> children;
+
+    EntityID childID;
+    bool removeOnDeath;
+    CChild(EntityID cID)
+                : childID(cID), removeOnDeath(true){}
+    CChild(EntityID cID, bool remove)
+                : childID(cID), removeOnDeath(remove){}
+};
+
 struct CScript
 {
     ScriptableEntity* Instance = nullptr;

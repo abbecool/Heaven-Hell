@@ -60,7 +60,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_1, "LEVEL1");
     registerAction(SDLK_2, "LEVEL2");
 
-    loadConfig("config.txt");
+    loadConfig("config_files/config.txt");
     loadLevel(levelPath); 
     
     spawnPlayer();
@@ -83,6 +83,12 @@ void Scene_Play::loadConfig(const std::string& confPath){
     while (file >> head) {
         if (head == "Player") {
             file >> m_playerConfig.x >> m_playerConfig.y >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.HP >> m_playerConfig.DAMAGE;           
+        }
+        else if (head == "Rooter") {
+            file >> m_rooterConfig.SPEED >> m_rooterConfig.ATTACK_SPEED >> m_rooterConfig.HP >> m_rooterConfig.DAMAGE;           
+        }
+        else if (head == "Goblin") {
+            file >> m_goblinConfig.SPEED >> m_goblinConfig.ATTACK_SPEED >> m_goblinConfig.HP >> m_goblinConfig.DAMAGE;           
         }
         else {
             std::cerr << "head to " << head << "\n";
@@ -115,17 +121,12 @@ void Scene_Play::loadLevel(const std::string& levelPath){
 
     // Lock the surface to access the pixels
     SDL_LockSurface(loadedSurface);
-    std::cout << "test0" << std::endl;
     Uint32* pixels = (Uint32*)loadedSurface->pixels;
-    std::cout << "test1" << std::endl;
 
     const int HEIGHT_PIX = loadedSurface->h;
     const int WIDTH_PIX = loadedSurface->w;
     m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
-    std::cout << "test2" << std::endl;
     m_pixelMatrix = m_levelLoader.createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
-    std::cout << "test3" << std::endl;
-    std::cout << m_pixelMatrix.size() << std::endl;
     // Unlock and free the surface
     SDL_UnlockSurface(loadedSurface);
     SDL_FreeSurface(loadedSurface);
@@ -171,23 +172,20 @@ void Scene_Play::sDoAction(const Action& action) {
                     cameraZoom -= 0.25;
                 }
                 cameraZoom = std::max( 0.25f, std::min(4.0f, cameraZoom) );
-                std::cout << "cameraZoom: " << cameraZoom << std::endl;
 
             }
         } else if ( action.name() == "ZOOM IN"){
             m_chunkSize += Vec2{4,4};
             m_levelLoader.clearChunks(0);
-            m_chunkSize.print("m_chunkSize");
         } else if ( action.name() == "ZOOM OUT"){
             m_chunkSize -= Vec2{4,4};
             m_levelLoader.clearChunks(0);
-            m_chunkSize.print("m_chunkSize");
         } else if ( action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if ( action.name() == "CAMERA PAN"){
             m_pause = m_camera.startPan(2048, 1000, Vec2 {(float)(64*52+32 - width()/2), (float)(64*44+32 - height()/2)}, m_pause);
         } else if ( action.name() == "SAVE"){
-            saveGame("game_save.txt");
+            saveGame("config_files/game_save.txt");
         } else if ( action.name() == "LEVEL0") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
         } else if ( action.name() == "LEVEL1") { 
@@ -620,9 +618,10 @@ void Scene_Play::sRender() {
     
     if (m_drawTextures)
     {
-        auto& viewBottom = m_ECS.view<CBottomLayer>();
         auto& transformPool = m_ECS.getComponentPool<CTransform>();
         auto& animationPool = m_ECS.getComponentPool<CAnimation>();
+        
+        auto& viewBottom = m_ECS.view<CBottomLayer>();
         for (auto e : viewBottom)
         {                
             auto& transform = transformPool.getComponent(e);
@@ -641,12 +640,10 @@ void Scene_Play::sRender() {
         }
 
         auto& viewTop = m_ECS.view<CTopLayer>();
-        auto& transformPool2 = m_ECS.getComponentPool<CTransform>();
-        auto& animationPool2 = m_ECS.getComponentPool<CAnimation>();
         for (auto e : viewTop){
                 
-            auto& transform = transformPool2.getComponent(e);
-            auto& animation = animationPool2.getComponent(e).animation;
+            auto& transform = transformPool.getComponent(e);
+            auto& animation = animationPool.getComponent(e).animation;
 
             Vec2 adjustedPosition = transform.pos - m_camera.position;
             auto distanceToCenter = adjustedPosition-screenCenter;
@@ -814,13 +811,12 @@ EntityID Scene_Play::spawnPlayer(){
     m_ECS.addComponent<CName>(entityID, "wiz");
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, 3);
     m_ECS.addComponent<CTopLayer>(entityID);
-    m_ECS.addComponent<CShadow>(entityID, m_game->assets().getAnimation("shadow"), false);
+    
+    spawnShadow(entityID, Vec2{0,0}, 0);
 
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
-    // m_ECS.addComponent<CKnockback>(entityID, 100, 64, Vec2{-1, 0});
 
-    // m_ECS.addComponent<CDamage>(entityID, m_playerConfig.DAMAGE, 180);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
 
     m_ECS.addComponent<CScript>(entityID).Bind<PlayerController>();
@@ -831,6 +827,16 @@ EntityID Scene_Play::spawnPlayer(){
     sc.Instance->m_ECS = &m_ECS;
     sc.Instance->OnCreateFunction();
     return entityID;
+}
+
+EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size){
+    auto shadowID = m_ECS.addEntity();
+    m_ECS.addComponent<CTransform>(shadowID);
+    m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
+    m_ECS.addComponent<CAnimation>(shadowID, m_game->assets().getAnimation("shadow"), true);
+    m_ECS.addComponent<CTopLayer>(shadowID);
+    m_ECS.addComponent<CChild>(parentID, shadowID, true);
+    return shadowID;
 }
 
 EntityID Scene_Play::spawnWeapon(Vec2 pos){
@@ -844,6 +850,7 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos){
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
+    spawnShadow(entity, Vec2{0,0}, 0);
     return entity;
 }
 
@@ -866,7 +873,6 @@ EntityID Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string
     m_ECS.getComponent<CHealth>(entity).HPType = {""};
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{96, 96});
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
-    // m_ECS.addComponent<CDamage>(entity, 2, 30);
     return entity;
 }
 
@@ -942,6 +948,7 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     m_ECS.addComponent<CProjectileState>(entity, "Create");
     m_ECS.addComponent<CParent>(entity, creator);
     m_ECS.addComponent<CProjectile>(creator, entity);
+    // spawnShadow(entity, Vec2{0,0}, 0);
     return entity;
 }
 
@@ -955,6 +962,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
     m_ECS.addComponent<CLoot>(entity);
+    spawnShadow(entity, Vec2{0,0}, 0);
     return entity;
 }
 
@@ -970,11 +978,12 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 48});
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
     m_ECS.addComponent<CShadow>(entity, m_game->assets().getAnimation("shadow"), false);
+
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
-    // m_ECS.addComponent<CDamage>(entity, 1, 60);
     m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*64, Vec2{32,32});
 
+    spawnShadow(entity, Vec2{0, 16}, 0);
     m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
     auto& scriptPool = m_ECS.getComponentPool<CScript>();
     auto& sc = scriptPool.getComponent(entity);    

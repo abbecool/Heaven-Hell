@@ -17,6 +17,7 @@ class Scene_Play : public Scene
         int x, y;
         float SPEED, MAXSPEED;
         int HP, DAMAGE;
+        int ATTACK_SPEED;
     };
 
     protected:
@@ -25,6 +26,8 @@ class Scene_Play : public Scene
     EntityID m_player;
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
+    PlayerConfig m_rooterConfig;
+    PlayerConfig m_goblinConfig;
     Physics m_physics;
     Camera m_camera;
     Vec2 cameraPos;
@@ -67,6 +70,7 @@ class Scene_Play : public Scene
     EntityID spawnProjectile(EntityID player, Vec2 vel);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
+    EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size);
 
     EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     EntityID spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);

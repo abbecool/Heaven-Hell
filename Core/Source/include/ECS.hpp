@@ -50,6 +50,7 @@ constexpr Signature CScriptMask             = 1 << 20; // Bit 20
 constexpr Signature CVelocityMask           = 1 << 21; // Bit 21
 constexpr Signature CLifespanMask           = 1 << 22; // Bit 22
 constexpr Signature CAttackMask             = 1 << 23; // Bit 23
+constexpr Signature CChildMask              = 1 << 24; // Bit 24
 
 class SignaturePool {
 public:
@@ -134,6 +135,7 @@ private:
         { typeid(CVelocity), CVelocityMask },
         { typeid(CLifespan), CLifespanMask },
         { typeid(CAttack), CAttackMask },
+        { typeid(CChild), CChildMask },
     };
 };
 
@@ -162,6 +164,14 @@ public:
 
     void queueRemoveEntity(EntityID entity) {
         m_entitiesToRemove.push_back(entity);
+        if ( hasComponent<CChild>(entity) )
+        {
+            if ( getComponent<CChild>(entity).removeOnDeath )
+            {
+                auto childID = getComponent<CChild>(entity).childID;
+                m_entitiesToRemove.push_back(childID);
+            }
+        }
     }
 
     template<typename T>

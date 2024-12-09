@@ -85,16 +85,12 @@ int LevelLoader::getObstacleTextureIndex(const std::vector<bool>& neighbors) {
 
 std::vector<std::vector<std::string>> LevelLoader::createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height) {
     std::vector<std::vector<std::string>> pixelMatrix(height, std::vector<std::string>(width, ""));
-    std::cout << "createPixelMatrix: pixelMatrix height: " << height << std::endl;
-    std::cout << "createPixelMatrix: pixelMatrix width: " << width << std::endl;
-    std::cout << "createPixelMatrix: pixelMatrix size: " << pixelMatrix.size() << std::endl;
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             Uint32 pixel = pixels[y * width + x];
 
             Uint8 r, g, b, a;
             SDL_GetRGBA(pixel, format, &r, &g, &b, &a);
-            // std::cout << "createPixelMatrix test1" << std::endl;
             
             if ((int)r == 192 && (int)g == 192 && (int)b == 192) {
                 pixelMatrix[y][x] = "obstacle";
@@ -123,11 +119,8 @@ std::vector<std::vector<std::string>> LevelLoader::createPixelMatrix(Uint32* pix
             } else {
                 pixelMatrix[y][x] = "unknown";
             }
-            // std::cout << "createPixelMatrix test2" << std::endl;
         }
     }
-    std::cout << "createPixelMatrix test3" << std::endl;
-
     return pixelMatrix;
 }
 

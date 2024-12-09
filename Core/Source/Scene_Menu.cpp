@@ -107,7 +107,7 @@ void Scene_Menu::loadMenu(){
     Entity entity1 = {entityId1, &m_ECS};
     entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
     entity1.addComponent<CTopLayer>();
-    Vec2 midGrid2 = gridToMidPixel(1250, 180, entity);
+    // Vec2 midGrid2 = gridToMidPixel(1250, 180, entity);
     entity1.addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
     entity1.getComponent<CTransform>().scale = Vec2{1.2f, 1.2f};
     entity1.addComponent<CName>("game_title");
