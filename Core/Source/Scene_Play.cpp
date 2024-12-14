@@ -817,7 +817,7 @@ EntityID Scene_Play::spawnPlayer(){
     int pos_y = m_playerConfig.y;
     int hp = m_playerConfig.HP;
     if (!m_newGame){
-        std::ifstream file("game_save.txt");
+        std::ifstream file("config_files/game_save.txt");
         if (!file) {
             std::cerr << "Could not load game_save.txt file!\n";
             exit(-1);
@@ -837,12 +837,12 @@ EntityID Scene_Play::spawnPlayer(){
 
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, m_playerConfig.SPEED, true);
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
-
+    int layer = 3;
     m_ECS.addComponent<CName>(entityID, "wiz");
-    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, 3);
+    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, layer);
     m_ECS.addComponent<CTopLayer>(entityID);
     
-    spawnShadow(entityID, Vec2{0,0}, 1);
+    spawnShadow(entityID, Vec2{0,0}, 1, layer+1);
 
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
@@ -859,7 +859,7 @@ EntityID Scene_Play::spawnPlayer(){
     return entityID;
 }
 
-EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size){
+EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer){
     auto shadowID = m_ECS.addEntity();
     m_ECS.addComponent<CTransform>(shadowID);
     m_ECS.getComponent<CTransform>(shadowID).scale *= size;
@@ -881,7 +881,7 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos){
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
-    spawnShadow(entity, Vec2{0,0}, 1);
+    spawnShadow(entity, Vec2{0,0}, 1, 2);
     return entity;
 }
 
@@ -894,7 +894,7 @@ EntityID Scene_Play::spawnTree(Vec2 pos, const size_t layer){
     m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("tree"), true, layer);
     m_ECS.addComponent<CImmovable>(entity);
-    spawnShadow(entity, Vec2{0,32}, 2);
+    spawnShadow(entity, Vec2{0,-16}, 3, layer+1);
     return entity;
 }
 
@@ -1004,7 +1004,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
     m_ECS.addComponent<CLoot>(entity);
-    spawnShadow(entity, Vec2{0,0}, 1);
+    spawnShadow(entity, Vec2{0,0}, 1, layer+1);
     return entity;
 }
 
@@ -1024,7 +1024,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
     m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*64, Vec2{32,32});
 
-    spawnShadow(entity, Vec2{0, 16}, 1);
+    spawnShadow(entity, Vec2{0, 16}, 1, layer+1);
     m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
     auto& scriptPool = m_ECS.getComponentPool<CScript>();
     auto& sc = scriptPool.getComponent(entity);    
