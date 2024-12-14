@@ -65,6 +65,36 @@ void Scene_Play::init(const std::string& levelPath) {
     
     spawnPlayer();
     spawnCoin(Vec2{345, 62}*m_gridSize, 4);
+    spawnTree(Vec2 {330, 80}*m_gridSize, 4);
+
+    spawnTree(Vec2 {395, 67}*m_gridSize, 4);
+    spawnTree(Vec2 {400, 67}*m_gridSize, 4);
+    spawnTree(Vec2 {396, 69}*m_gridSize, 4);
+    spawnTree(Vec2 {403, 68}*m_gridSize, 4);
+    spawnTree(Vec2 {406, 71}*m_gridSize, 4);
+    
+    spawnTree(Vec2 {399, 70}*m_gridSize, 4);
+    spawnTree(Vec2 {393, 71}*m_gridSize, 4);
+    spawnTree(Vec2 {400, 72}*m_gridSize, 4);
+    spawnTree(Vec2 {403, 72}*m_gridSize, 4);
+    spawnTree(Vec2 {406, 72}*m_gridSize, 4);
+
+    spawnTree(Vec2 {397, 73}*m_gridSize, 4);
+    spawnTree(Vec2 {401, 74}*m_gridSize, 4);
+    spawnTree(Vec2 {405, 75}*m_gridSize, 4);
+    spawnTree(Vec2 {408, 78}*m_gridSize, 4);
+
+    spawnTree(Vec2 {393, 79}*m_gridSize, 4);
+    spawnTree(Vec2 {396, 79}*m_gridSize, 4);
+    spawnTree(Vec2 {396, 81}*m_gridSize, 4);
+    spawnTree(Vec2 {394, 82}*m_gridSize, 4);
+    
+    spawnTree(Vec2 {398, 82}*m_gridSize, 4);
+    spawnTree(Vec2 {397, 93}*m_gridSize, 4);
+    spawnTree(Vec2 {395, 84}*m_gridSize, 4);
+    spawnTree(Vec2 {402, 85}*m_gridSize, 4);
+
+
     spawnWeapon(Vec2{364, 90}*m_gridSize);
     spawnSmallEnemy(Vec2{330, 77}*m_gridSize, 3, "goblin");
     spawnSmallEnemy(Vec2{11, 27}*m_gridSize, 3, "goblin");
@@ -632,7 +662,7 @@ void Scene_Play::sRender() {
             auto distanceToCenter = adjustedPosition-screenCenter;
             adjustedPosition += distanceToCenter*(cameraZoom-1);
 
-            animation.setScale(Vec2{4, 4}*cameraZoom);
+            animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
             animation.setDestRect(adjustedPosition - animation.getDestSize()/2);
             
@@ -649,7 +679,7 @@ void Scene_Play::sRender() {
             auto distanceToCenter = adjustedPosition-screenCenter;
             adjustedPosition += distanceToCenter*(cameraZoom-1);
 
-            animation.setScale(Vec2{4, 4}*cameraZoom);
+            animation.setScale(transform.scale*cameraZoom);
             animation.setAngle(transform.angle);
             animation.setDestRect(adjustedPosition - animation.getDestSize()/2);
             
@@ -681,7 +711,7 @@ void Scene_Play::sRender() {
                         animation = health.animation_empty;
                     }
 
-                    animation.setScale(Vec2{4, 4}*cameraZoom);
+                    animation.setScale(transform.scale*cameraZoom);
                     animation.setDestRect(Vec2{
                         adjustedPosition.x + (float)(i-1-(float)health.HP_max/4)*animation.getSize().x*animation.getScale().x, 
                         adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
@@ -812,7 +842,7 @@ EntityID Scene_Play::spawnPlayer(){
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, 3);
     m_ECS.addComponent<CTopLayer>(entityID);
     
-    spawnShadow(entityID, Vec2{0,0}, 0);
+    spawnShadow(entityID, Vec2{0,0}, 1);
 
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
@@ -832,6 +862,7 @@ EntityID Scene_Play::spawnPlayer(){
 EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size){
     auto shadowID = m_ECS.addEntity();
     m_ECS.addComponent<CTransform>(shadowID);
+    m_ECS.getComponent<CTransform>(shadowID).scale *= size;
     m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
     m_ECS.addComponent<CAnimation>(shadowID, m_game->assets().getAnimation("shadow"), true);
     m_ECS.addComponent<CTopLayer>(shadowID);
@@ -850,7 +881,20 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos){
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
-    spawnShadow(entity, Vec2{0,0}, 0);
+    spawnShadow(entity, Vec2{0,0}, 1);
+    return entity;
+}
+
+EntityID Scene_Play::spawnTree(Vec2 pos, const size_t layer){
+    auto entity = m_ECS.addEntity();
+
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 32});
+    m_ECS.addComponent<CTopLayer>(entity);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("tree"), true, layer);
+    m_ECS.addComponent<CImmovable>(entity);
+    spawnShadow(entity, Vec2{0,32}, 2);
     return entity;
 }
 
@@ -947,7 +991,7 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel)
     m_ECS.addComponent<CProjectileState>(entity, "Create");
     m_ECS.addComponent<CParent>(entity, creator);
     m_ECS.addComponent<CProjectile>(creator, entity);
-    // spawnShadow(entity, Vec2{0,0}, 0);
+    // spawnShadow(entity, Vec2{0,0}, 1);
     return entity;
 }
 
@@ -960,7 +1004,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
     m_ECS.addComponent<CLoot>(entity);
-    spawnShadow(entity, Vec2{0,0}, 0);
+    spawnShadow(entity, Vec2{0,0}, 1);
     return entity;
 }
 
@@ -980,7 +1024,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
     m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*64, Vec2{32,32});
 
-    spawnShadow(entity, Vec2{0, 16}, 0);
+    spawnShadow(entity, Vec2{0, 16}, 1);
     m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
     auto& scriptPool = m_ECS.getComponentPool<CScript>();
     auto& sc = scriptPool.getComponent(entity);    

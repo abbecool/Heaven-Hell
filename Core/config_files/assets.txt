@@ -58,6 +58,7 @@ Texture     rooterWalkS                 assets/images/smallEnemy-sheet.png
 Texture     rooterWalkW                 assets/images/smallEnemy-sheetW.png
 Texture     rooterWalkN                 assets/images/smallEnemy-sheetN.png
 Texture     rooterWalkE                 assets/images/smallEnemy-sheetE.png
+Texture     tree                        assets/images/tree.png
 
 Texture     staff                       assets/images/staff.png
 Texture     demon                       assets/images/demon-sheet.png
@@ -126,6 +127,7 @@ Animation   rooterWalkS                 rooterWalkS                 4   20    1 
 Animation   rooterWalkW                 rooterWalkW                 4   20    1  1
 Animation   rooterWalkN                 rooterWalkN                 4   20    1  1
 Animation   rooterWalkE                 rooterWalkE                 4   20    1  1
+Animation   tree                        tree                        1   100   1  1
 
 Animation   demon                       demon                       4   40    4  5
 Animation   wiz                         wiz                         4   10    4  5

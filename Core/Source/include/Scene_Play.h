@@ -66,11 +66,12 @@ class Scene_Play : public Scene
 
     // void spawnHUD();
     EntityID spawnPlayer();
-    EntityID spawnWeapon(Vec2 pos );
+    EntityID spawnWeapon(Vec2 pos);
     EntityID spawnProjectile(EntityID player, Vec2 vel);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size);
+    EntityID spawnTree(Vec2 pos, const size_t layer);
 
     EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     EntityID spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
