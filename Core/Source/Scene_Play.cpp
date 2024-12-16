@@ -635,7 +635,7 @@ void Scene_Play::sAnimation() {
         if (animation.animation.hasEnded() && !animation.repeat) {
             m_ECS.queueRemoveEntity(e);
         } else{
-            animation.animation.update();
+            animation.animation.update(m_currentFrame);
         }
     }
 }

@@ -31,11 +31,11 @@ Animation::Animation(
 
 // update the animation to show the next frame, depending on its speed
 // animation loops when it reaches the end
-void Animation::update() {
+void Animation::update(size_t currentFrame) {
     m_currentFrame++;
-    size_t animFrame = (m_currentFrame / m_speed) % m_frameCount;
+    size_t animFrame = (currentFrame / m_speed) % m_frameCount;
     setSrcRect(
-        (int)((m_currentCol + animFrame) * m_size.x),
+        (int)((m_currentCol + animFrame*(m_cols/m_frameCount)) * m_size.x),
         m_currentRow * (int)m_size.y,
         (int)m_size.x,
         (int)m_size.y

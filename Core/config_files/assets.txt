@@ -136,7 +136,7 @@ Animation   rooter                      rooter                      4   20    4 
 Animation   goblin                      goblin                      4   20    4  5
 
 Animation   grass_dual_sheet            grass_dual_sheet            1   100   4     7   
-Animation   water_dual_sheet            water_dual_sheet            1   100   4     7  
+Animation   water_dual_sheet            water_dual_sheet            4   50    16    7  
 Animation   mountain_dual_sheet         mountain_dual_sheet         1   100   4     4  
 Animation   dirt_dual_sheet             dirt_dual_sheet             1   100   4     4  
 Animation   cloud_dual_sheet            cloud_dual_sheet            1   100   4     4  

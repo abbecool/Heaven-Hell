@@ -35,7 +35,7 @@ class Animation
         int cols
     );
 
-    void update();
+    void update(size_t currentFrame);
     void setRow(int row);
     bool hasEnded() const;
     const std::string& getName() const;

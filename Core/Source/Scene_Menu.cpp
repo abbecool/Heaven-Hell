@@ -223,7 +223,7 @@ void Scene_Menu::update() {
 void Scene_Menu::sAnimation() {
     auto view = m_ECS.view<CAnimation>();
     for ( auto e : view){
-        m_ECS.getComponent<CAnimation>(e).animation.update();
+        m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
     }
 }
 
