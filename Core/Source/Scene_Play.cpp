@@ -56,9 +56,9 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_p, "PAUSE");
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
-    registerAction(SDLK_0, "LEVEL0");
-    registerAction(SDLK_1, "LEVEL1");
-    registerAction(SDLK_2, "LEVEL2");
+    registerAction(SDLK_1, "TP1");
+    registerAction(SDLK_2, "TP2");
+    registerAction(SDLK_3, "TP3");
 
     loadConfig("config_files/config.txt");
     loadLevel(levelPath); 
@@ -216,12 +216,12 @@ void Scene_Play::sDoAction(const Action& action) {
             m_pause = m_camera.startPan(2048, 1000, Vec2 {(float)(64*52+32 - width()/2), (float)(64*44+32 - height()/2)}, m_pause);
         } else if ( action.name() == "SAVE"){
             saveGame("config_files/game_save.txt");
-        } else if ( action.name() == "LEVEL0") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
-        } else if ( action.name() == "LEVEL1") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level1.png", true));
-        }else if ( action.name() == "LEVEL2") {
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level2.png", true));
+        } else if ( action.name() == "TP1") { 
+            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{460*64, 460*64};
+        } else if ( action.name() == "TP2") { 
+            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{292*64, 236*64};
+        }else if ( action.name() == "TP3") {
+            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*64, 181*64};
         } else if ( action.name() == "RESET") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
         }
@@ -439,7 +439,13 @@ void Scene_Play::sCollision() {
         auto& Bbox = BboxPool.getComponent(e);
         if (m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox))
         {
-            m_ECS.getComponent<CTransform>(m_player).pos += m_physics.overlap(transformPlayer, BboxPlayer, transform, Bbox);
+            Vec2 overlap = m_physics.overlap(transformPlayer, BboxPlayer, transform, Bbox);
+            if ( m_ECS.hasComponent<CChild>(m_player) )
+            {
+                EntityID childID = m_ECS.getComponent<CChild>(m_player).childID;
+                m_ECS.getComponent<CTransform>(childID).pos += overlap;
+            }      
+            m_ECS.getComponent<CTransform>(m_player).pos += overlap;
         }
     }
 
