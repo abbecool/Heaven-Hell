@@ -34,9 +34,14 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
 
 void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_w, "UP");
+    registerAction(SDLK_UP, "UP");
     registerAction(SDLK_s, "DOWN");
+    registerAction(SDLK_DOWN, "DOWN");
     registerAction(SDLK_a, "LEFT");
+    registerAction(SDLK_LEFT, "LEFT");
     registerAction(SDLK_d, "RIGHT");
+    registerAction(SDLK_RIGHT, "RIGHT");
+    
     registerAction(SDLK_i, "INVENTORY");
     registerAction(SDLK_e, "USE");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
