@@ -1033,9 +1033,10 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
 
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
-    m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*64, Vec2{32,32});
+    m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*64, Vec2{64,64});
 
     spawnShadow(entity, Vec2{0, 16}, 1, layer+1);
+
     m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
     auto& scriptPool = m_ECS.getComponentPool<CScript>();
     auto& sc = scriptPool.getComponent(entity);    
