@@ -71,7 +71,7 @@ class Scene_Play : public Scene
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
-    EntityID spawnTree(Vec2 pos, const size_t layer);
+    EntityID spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation);
 
     EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     EntityID spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);

@@ -70,34 +70,36 @@ void Scene_Play::init(const std::string& levelPath) {
     
     spawnPlayer();
     spawnCoin(Vec2{345, 62}*m_gridSize, 4);
-    spawnTree(Vec2 {330, 80}*m_gridSize, 4);
+    spawnDecoration(Vec2 {330, 80}*m_gridSize, Vec2 {24, 32}, 4, "tree");
 
-    spawnTree(Vec2 {395, 67}*m_gridSize, 4);
-    spawnTree(Vec2 {400, 67}*m_gridSize, 4);
-    spawnTree(Vec2 {396, 69}*m_gridSize, 4);
-    spawnTree(Vec2 {403, 68}*m_gridSize, 4);
-    spawnTree(Vec2 {406, 71}*m_gridSize, 4);
+    spawnDecoration(Vec2 {395, 67}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {400, 67}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {396, 69}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {403, 68}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {406, 71}*m_gridSize, Vec2 {24, 32}, 4, "tree");
     
-    spawnTree(Vec2 {399, 70}*m_gridSize, 4);
-    spawnTree(Vec2 {393, 71}*m_gridSize, 4);
-    spawnTree(Vec2 {400, 72}*m_gridSize, 4);
-    spawnTree(Vec2 {403, 72}*m_gridSize, 4);
-    spawnTree(Vec2 {406, 72}*m_gridSize, 4);
+    spawnDecoration(Vec2 {399, 70}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {393, 71}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {400, 72}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {403, 72}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {406, 72}*m_gridSize, Vec2 {24, 32}, 4, "tree");
 
-    spawnTree(Vec2 {397, 73}*m_gridSize, 4);
-    spawnTree(Vec2 {401, 74}*m_gridSize, 4);
-    spawnTree(Vec2 {405, 75}*m_gridSize, 4);
-    spawnTree(Vec2 {408, 78}*m_gridSize, 4);
+    spawnDecoration(Vec2 {397, 73}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {401, 74}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {405, 75}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {408, 78}*m_gridSize, Vec2 {24, 32}, 4, "tree");
 
-    spawnTree(Vec2 {393, 79}*m_gridSize, 4);
-    spawnTree(Vec2 {396, 79}*m_gridSize, 4);
-    spawnTree(Vec2 {396, 81}*m_gridSize, 4);
-    spawnTree(Vec2 {394, 82}*m_gridSize, 4);
+    spawnDecoration(Vec2 {393, 79}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {396, 79}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {396, 81}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {394, 82}*m_gridSize, Vec2 {24, 32}, 4, "tree");
     
-    spawnTree(Vec2 {398, 82}*m_gridSize, 4);
-    spawnTree(Vec2 {397, 93}*m_gridSize, 4);
-    spawnTree(Vec2 {395, 84}*m_gridSize, 4);
-    spawnTree(Vec2 {402, 85}*m_gridSize, 4);
+    spawnDecoration(Vec2 {398, 82}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {397, 93}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {395, 84}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+    spawnDecoration(Vec2 {402, 85}*m_gridSize, Vec2 {24, 32}, 4, "tree");
+
+    spawnDecoration(Vec2 {380, 80}*m_gridSize, Vec2 {56, 44}*4, 4, "House1");
 
 
     spawnWeapon(Vec2{364, 90}*m_gridSize);
@@ -896,14 +898,14 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos){
     return entity;
 }
 
-EntityID Scene_Play::spawnTree(Vec2 pos, const size_t layer){
+EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation){
     auto entity = m_ECS.addEntity();
 
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 32});
+    m_ECS.addComponent<CBoundingBox>(entity, collisionBox);
     m_ECS.addComponent<CTopLayer>(entity);
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("tree"), true, layer);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(animation), true, layer);
     m_ECS.addComponent<CImmovable>(entity);
     spawnShadow(entity, Vec2{0,-16}, 3, layer+1);
     return entity;
