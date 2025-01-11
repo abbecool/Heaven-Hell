@@ -2,6 +2,7 @@
 
 #include "Action.h"
 #include "ECS.hpp"
+#include "Renderer.hpp"
 #include "Game.h"
 
 #include <cstddef>
@@ -33,6 +34,7 @@ class Scene
 
     public:
     ECS m_ECS;
+    RendererManager m_rendererManager;
 
     Scene();
     Scene(Game* game);

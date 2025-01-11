@@ -273,6 +273,11 @@ void LevelLoader::removeChunk()
     for ( EntityID id : chunkChildren )
     {
         m_scene->m_ECS.queueRemoveEntity(id);
+        if ( m_scene->m_ECS.hasComponent<CAnimation>(id) )
+        {
+            uint8_t layer = m_scene->m_ECS.getComponent<CAnimation>(id).layer;
+            m_scene->m_rendererManager.removeEntityFromLayer(id, layer);
+        }
     }
     m_scene->m_loadedChunks.erase(m_scene->m_loadedChunks.begin());
     m_scene->m_loadedChunkIDs.erase(m_scene->m_loadedChunkIDs.begin());

@@ -664,120 +664,101 @@ void Scene_Play::sRender() {
         auto& transformPool = m_ECS.getComponentPool<CTransform>();
         auto& animationPool = m_ECS.getComponentPool<CAnimation>();
         
-        auto& viewBottom = m_ECS.view<CBottomLayer>();
-        for (auto e : viewBottom)
-        {                
+        auto layers = m_rendererManager.getLayers();
+        for (const auto& layer : layers)
+        {
+            for (const auto& e : layer)
+            {                
             auto& transform = transformPool.getComponent(e);
             auto& animation = animationPool.getComponent(e).animation;
 
             // Adjust the entity's position based on the camera position
             Vec2 adjustedPosition = transform.pos - m_camera.position;
-            auto distanceToCenter = adjustedPosition-screenCenter;
-            adjustedPosition += distanceToCenter*(cameraZoom-1);
+            auto distanceToCenter = adjustedPosition - screenCenter;
+            adjustedPosition += distanceToCenter * (cameraZoom - 1);
 
-            animation.setScale(transform.scale*cameraZoom);
+            animation.setScale(transform.scale * cameraZoom);
             animation.setAngle(transform.angle);
-            animation.setDestRect(adjustedPosition - animation.getDestSize()/2);
+            animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
             
             spriteRender(animation);
+            }
         }
 
-        auto& viewTop = m_ECS.view<CTopLayer>();
-        for (auto e : viewTop){
-                
-            auto& transform = transformPool.getComponent(e);
-            auto& animation = animationPool.getComponent(e).animation;
-
-            Vec2 adjustedPosition = transform.pos - m_camera.position;
-            auto distanceToCenter = adjustedPosition-screenCenter;
-            adjustedPosition += distanceToCenter*(cameraZoom-1);
-
-            animation.setScale(transform.scale*cameraZoom);
-            animation.setAngle(transform.angle);
-            animation.setDestRect(adjustedPosition - animation.getDestSize()/2);
-            
-            spriteRender(animation);
-        }    
-
         auto& viewHealth = m_ECS.getComponentPool<CHealth>();
-        for ( auto entityID : viewHealth )
+        for (auto entityID : viewHealth)
         {   
-            if ( entityID == m_player ){continue;}
+            if (entityID == m_player) { continue; }
             auto& health = viewHealth.getComponent(entityID);
-            if ( (int)(m_currentFrame - health.damage_frame) < health.i_frames ) {
-
+            if ((int)(m_currentFrame - health.damage_frame) < health.i_frames)
+            {
                 auto& transform = transformPool.getComponent(entityID);
                 Vec2 adjustedPosition = transform.pos - m_camera.position;
-                auto distanceToCenter = adjustedPosition-screenCenter;
-                adjustedPosition += distanceToCenter*(cameraZoom-1);
+                auto distanceToCenter = adjustedPosition - screenCenter;
+                adjustedPosition += distanceToCenter * (cameraZoom - 1);
 
                 Animation animation;
-                auto hearts = float(health.HP)/2;
+                auto hearts = float(health.HP) / 2;
 
-                for (int i = 1; i <= health.HP_max/2; i++)
+                for (int i = 1; i <= health.HP_max / 2; i++)
                 {   
-                    if ( hearts >= i ){
+                    if (hearts >= i)
+                    {
                         animation = health.animation_full;
-                    } else if ( i-hearts == 0.5f ){
+                    }
+                    else if (i - hearts == 0.5f)
+                    {
                         animation = health.animation_half;
-                    } else{
+                    }
+                    else
+                    {
                         animation = health.animation_empty;
                     }
 
-                    animation.setScale(transform.scale*cameraZoom);
+                    animation.setScale(transform.scale * cameraZoom);
                     animation.setDestRect(Vec2{
-                        adjustedPosition.x + (float)(i-1-(float)health.HP_max/4)*animation.getSize().x*animation.getScale().x, 
+                        adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
                         adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
                     });
                     spriteRender(animation);
                 }
             }
         }
-        // Attemp to render coin balance in corner.
-
-        // SDL_Rect texRect;
-        // texRect.x = 0;
-        // texRect.y = 96;
-        // texRect.h = 128;
-        // texRect.w = 128;
-
-        // SDL_RenderCopyEx(
-        //     m_game->renderer(), 
-        //     m_game->assets().getTexture("coin_front"), 
-        //     nullptr, 
-        //     &texRect,
-        //     0,
-        //     NULL,
-        //     SDL_FLIP_NONE
-        // );
 
         Animation animation;
-        auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP)/2;
+        auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP) / 2;
 
-        for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max/2; i++)
+        for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max / 2; i++)
         {   
-            if ( hearts >= i ){
+            if (hearts >= i)
+            {
                 animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
-            } else if ( i-hearts == 0.5f ){
+            }
+            else if (i - hearts == 0.5f)
+            {
                 animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
-            } else{
+            }
+            else
+            {
                 animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
             }
 
-            animation.setScale(Vec2{4,4});
-            animation.setDestRect(Vec2{(float)(i-1)*animation.getSize().x*animation.getScale().x, 0});
+            animation.setScale(Vec2{4, 4});
+            animation.setDestRect(Vec2{(float)(i - 1) * animation.getSize().x * animation.getScale().x, 0});
 
             spriteRender(animation);
         }
     }
     
-    if (m_drawCollision){
+    if (m_drawCollision)
+    {
         auto& view = m_ECS.view<CBoundingBox>();
         auto& transformPool = m_ECS.getComponentPool<CTransform>();
         auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
-        for (auto e : view){      
-            auto &transform = transformPool.getComponent(e);
-            auto &box = BboxPool.getComponent(e);
+        for (auto e : view)
+        {      
+            auto& transform = transformPool.getComponent(e);
+            auto& box = BboxPool.getComponent(e);
 
             // Adjust the collision box position based on the camera position
             SDL_Rect collisionRect;
@@ -790,15 +771,6 @@ void Scene_Play::sRender() {
             SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
         }
     }
-
-    // SDL_Rect rect;
-    // rect.x = 0;
-    // rect.y = 0;
-    // rect.w = width();
-    // rect.h = height();
-
-    // SDL_SetRenderDrawColor(m_game->renderer(), 20, 0, 50, 100);
-    // SDL_RenderFillRect(m_game->renderer(), &rect);
 }
 
 void Scene_Play::spriteRender(Animation &animation){
@@ -816,7 +788,6 @@ void Scene_Play::spriteRender(Animation &animation){
 void Scene_Play::sAudio(){
     if( Mix_PlayingMusic() == 0 )
     {
-        // Mix_PlayChannel(-1, m_game->assets().getAudio("AbbeGameTrack1"), 0);
         Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1"), -1);
     }
 }
@@ -850,9 +821,10 @@ EntityID Scene_Play::spawnPlayer(){
 
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, m_playerConfig.SPEED, true);
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
-    int layer = 3;
+    uint8_t layer = 10;
     m_ECS.addComponent<CName>(entityID, "wiz");
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, layer);
+    m_rendererManager.addEntityToLayer(entityID, layer);
     m_ECS.addComponent<CTopLayer>(entityID);
     
     spawnShadow(entityID, Vec2{0,0}, 1, layer+1);
@@ -1054,23 +1026,25 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
     std::vector<EntityID> entityIDs;
     for (const auto& [tileKey, textureIndex] : tileTextureMap) {
         std::string tile = tileKey;
-        int layer = 10;
+        uint8_t layer = 3;
         
         if (tile == "water") {
-            layer = layer - 1;
+            layer = layer + 1;
         } else if (tile == "lava") {
-            layer = layer - 1;
+            layer = layer + 1;
         } else if (tile == "cloud") {
-            layer = layer - 2;
+            layer = layer + 1;
         } else if (tile == "obstacle") {
-            layer = layer - 2;
+            layer = layer + 1;
             tile = "mountain";  // Change the tile name for "obstacle"
         }
 
         EntityID entity = m_ECS.addEntity();
         entityIDs.push_back(entity);
         m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, 10);
-        m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});                           
+        m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});   
+        m_rendererManager.addEntityToLayer(entity, layer);
+
         m_ECS.addComponent<CBottomLayer>(entity);
         Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
         m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{4, 4}, 0.0f, false);
