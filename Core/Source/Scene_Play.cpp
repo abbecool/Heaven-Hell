@@ -669,19 +669,22 @@ void Scene_Play::sRender() {
         {
             for (const auto& e : layer)
             {                
-            auto& transform = transformPool.getComponent(e);
-            auto& animation = animationPool.getComponent(e).animation;
+                if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e)) {
+                    continue;
+                }
+                auto& transform = transformPool.getComponent(e);
+                auto& animation = animationPool.getComponent(e).animation;
 
-            // Adjust the entity's position based on the camera position
-            Vec2 adjustedPosition = transform.pos - m_camera.position;
-            auto distanceToCenter = adjustedPosition - screenCenter;
-            adjustedPosition += distanceToCenter * (cameraZoom - 1);
+                // Adjust the entity's position based on the camera position
+                Vec2 adjustedPosition = transform.pos - m_camera.position;
+                auto distanceToCenter = adjustedPosition - screenCenter;
+                adjustedPosition += distanceToCenter * (cameraZoom - 1);
 
-            animation.setScale(transform.scale * cameraZoom);
-            animation.setAngle(transform.angle);
-            animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
-            
-            spriteRender(animation);
+                animation.setScale(transform.scale * cameraZoom);
+                animation.setAngle(transform.angle);
+                animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
+                
+                spriteRender(animation);
             }
         }
 
@@ -849,7 +852,7 @@ EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int l
     m_ECS.addComponent<CTransform>(shadowID);
     m_ECS.getComponent<CTransform>(shadowID).scale *= size;
     m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
-    m_ECS.addComponent<CAnimation>(shadowID, m_game->assets().getAnimation("shadow"), true);
+    m_ECS.addComponent<CAnimation>(shadowID, m_game->assets().getAnimation("shadow"), true, layer);
     m_ECS.addComponent<CTopLayer>(shadowID);
     m_ECS.addComponent<CChild>(parentID, shadowID, true);
     return shadowID;
@@ -1030,7 +1033,7 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
         
         if (tile == "water") {
             layer = layer + 1;
-        } else if (tile == "lava") {
+        } else if (tile == "dirt") {
             layer = layer + 1;
         } else if (tile == "cloud") {
             layer = layer + 1;

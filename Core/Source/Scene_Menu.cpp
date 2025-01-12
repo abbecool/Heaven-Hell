@@ -118,6 +118,7 @@ void Scene_Menu::loadMenu(){
     spawnButton(Vec2 {(float)width()-196.0f,196.0f }, "button_unpressed", "1080p", "1080p");
     spawnButton(Vec2 {(float)width()-196.0f,320.0f }, "button_unpressed", "1440p", "1440p");
     spawnButton(Vec2 {(float)width()-196.0f,428.0f }, "button_unpressed", "1440p Wide", "1440p Wide");
+    spawnButton(Vec2 {(float)width()-196.0f,536.0f }, "button_unpressed", "1440p Super wide", "1440p Super wide");
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
@@ -206,6 +207,10 @@ void Scene_Menu::sDoAction(const Action& action) {
                         } else if ( name == "1440p Wide" ){
                             SDL_SetWindowSize(m_game->window(), 3440, 1440);
                             m_game->setWidth(3440);
+                            m_game->setHeight(1440);
+                        } else if ( name == "1440p Super wide" ){
+                            SDL_SetWindowSize(m_game->window(), 5120, 1440);
+                            m_game->setWidth(5120);
                             m_game->setHeight(1440);
                         }
                     }

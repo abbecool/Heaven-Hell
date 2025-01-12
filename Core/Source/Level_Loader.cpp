@@ -234,7 +234,8 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             std::vector<EntityID> ids = m_scene->spawnDualTiles(Vec2 {64*(float)x - 32, 64*(float)y - 32},  tileIndex);
             chunkChildren.insert(chunkChildren.end(), ids.begin(), ids.end());
 
-            if (pixel == "obstacle") {
+            if (pixel == "obstacle") 
+            {
                 EntityID id = m_scene->spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
                 chunkChildren.push_back(id);
             }
@@ -275,7 +276,8 @@ void LevelLoader::removeChunk()
         m_scene->m_ECS.queueRemoveEntity(id);
         if ( m_scene->m_ECS.hasComponent<CAnimation>(id) )
         {
-            uint8_t layer = m_scene->m_ECS.getComponent<CAnimation>(id).layer;
+            auto layer = m_scene->m_ECS.getComponent<CAnimation>(id).layer;
+            // std::cout << "layer: " << layer << std::endl;
             m_scene->m_rendererManager.removeEntityFromLayer(id, layer);
         }
     }
