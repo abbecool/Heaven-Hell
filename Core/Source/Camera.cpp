@@ -26,15 +26,17 @@ void Camera::movement(Vec2 playerPos){
     auto gridX = m_gridSize.x;
     auto gridY = m_gridSize.y;
 
-    if (m_cameraFollow){
+    if (!m_cameraFollow){
         originalPosition = playerPos - Vec2(width / 2, height / 2);
         if (originalPosition.x + (float)width > gridX*levelX){ originalPosition.x = gridX*levelX - (float)width;}     // right wall
         if (originalPosition.x < 0){originalPosition.x = 0;}      // left wall 
         if (originalPosition.y + (float)height > gridY*levelY){ originalPosition.y = gridY*levelY - (float)height;}     // bottom wall
         if (originalPosition.y < 0){ originalPosition.y = 0;}     // top wall
     } else{
-        originalPosition = Vec2{   gridX*30*(int)((int)(playerPos.x)/(30*gridX)),
-                            gridY*17*(int)((int)(playerPos.y)/(17*gridY))};
+        // originalPosition = Vec2{   gridX*30*(int)((int)(playerPos.x)/(30*gridX)),
+                            // gridY*17*(int)((int)(playerPos.y)/(17*gridY))};
+        originalPosition = Vec2{   gridX*32*(int)((int)(playerPos.x)/(32*gridX)),
+                            gridY*32*(int)((int)(playerPos.y)/(32*gridY))};
     }
     position = originalPosition;
 }
@@ -97,21 +99,22 @@ bool Camera::startPan(float speed, int duration, Vec2 pos, bool pause) {
 }
 
 void Camera::panCamera(){
+    Vec2 panVelocity = (panPos - panStartPos).norm()*(float)i* panSpeed / 60;
     if (panDuration > 0) {
-        if ( ( ( panPos-(panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60) ).length() > 32 ) & !( panTimeElapsed >= panDuration ) ) {
+        if ( ( (panPos-(panStartPos + panVelocity)).length() > 32) && !(panTimeElapsed >= panDuration) ) {
             i++;
         } else {
             panTimeElapsed += 16; // Assuming 60 FPS, increase time (16ms per frame)
         }
         if ( panTimeElapsed >= panDuration ) {
-            if ( ( panStartPos-(panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60) ).length() > 32 ) {
+            if ( ( panStartPos-(panStartPos + panVelocity) ).length() > 32 ) {
                 i--;
             } else {
                 panDuration = 0;
                 m_cameraPause = panInitPause;
             }
         }
-        position = panStartPos + (panPos-panStartPos).norm()*i*panSpeed/60;
+        position = panStartPos + panVelocity;
     }
 }
 

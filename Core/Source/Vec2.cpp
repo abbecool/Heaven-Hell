@@ -41,6 +41,11 @@ Vec2 Vec2::operator/ (const float val) const
     return Vec2 {x / val, y / val};
 }
 
+Vec2 Vec2::operator/ (const Vec2 & rhs) const
+{
+    return Vec2 {x/rhs.x, y/rhs.y};
+}
+
 Vec2 Vec2::operator- (const Vec2 & rhs) const
 {
     return Vec2 {x - rhs.x, y - rhs.y};
@@ -120,7 +125,7 @@ Vec2 Vec2::abs_elem() const
 
 float Vec2::angle() const
 {
-    return std::atan2(y, x)* 180.0f / 3.14159265358979323846;
+    return std::atan2(y, x)* 180.0f / 3.14159265f;
 }
 
 Vec2 Vec2::mainDir() const {
@@ -130,3 +135,25 @@ Vec2 Vec2::mainDir() const {
             return Vec2{0, y};
         }
     }
+
+Vec2 Vec2::toInt()
+{
+    x = floorf(x);
+    y = floorf(y);
+    return Vec2{x,y};
+}
+
+bool Vec2::smaller(Vec2 rhs)
+{
+    return ( x < rhs.x || y < rhs.y );
+}
+
+bool Vec2::greater(Vec2 rhs)
+{
+    return ( x >= rhs.x || y >= rhs.y );
+}
+
+void Vec2::print(std::string text)
+{
+    std::cout << text << ": " << x << ", " << y << std::endl;
+}

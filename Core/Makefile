@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -I Source/include -Wall -g -MMD -MP
 
 # Linker flags
-LDFLAGS = -L Source/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
+LDFLAGS = -L Source/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 
 # Source directory
 SRC_DIR = Source

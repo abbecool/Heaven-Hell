@@ -4,13 +4,13 @@
 #include <memory>
 #include <unordered_set>
 #include <functional>
-// #include "ScriptableEntity.h"
 
 // set a flag: flag |= (int)PlayerState
 // unset a flag: flag &= ~(int)PlayerState
 // flipping a flag: flag ^= (int)PlayerState
 // checking if a flag set: return (flag & (int)PlayerState) == (int)PlayerState
 // checking multiple flags set: return (flag &(int)PlayerState) != 0
+
 enum struct PlayerState {
     STAND = 0,
     RUN_DOWN = 1,
@@ -19,18 +19,26 @@ enum struct PlayerState {
     RUN_LEFT = 4
 };
 
-class Entity;
+using EntityID = uint32_t;
 class ScriptableEntity;
 
-class Component
+struct CParent
 {
-    public:
-        bool has = false;
+    EntityID parent;
+    Vec2 relativePos = {0,0};
+    CParent(EntityID p) : parent(p){}
+    CParent(EntityID p, Vec2 relPos) : parent(p), relativePos(relPos) {}
 };
 
-class CInputs : public Component
+struct CProjectile
 {
-public:
+    EntityID projectileID;
+    CProjectile(EntityID p) : projectileID(p){}
+};
+
+
+struct CInputs
+{
     bool up         = false;
     bool down       = false;
     bool left       = false;
@@ -42,15 +50,14 @@ public:
     CInputs() {};
 };
 
-class CTransform : public Component
+struct CTransform
 {
-public:
     Vec2 pos;    
     Vec2 prevPos;
     Vec2 vel = {0, 0};    
-    Vec2 scale = {0.5, 0.5};    
+    Vec2 scale = {4, 4};    
     float angle = 0;
-    int speed = 0;
+    float speed = 0;
     bool isMovable = false;
     float tempo = 1.0f;
     CTransform() {}
@@ -59,49 +66,68 @@ public:
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
         : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, int spd, bool mvbl) 
+    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, float spd, bool mvbl) 
     : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
-class CBoundingBox : public Component
+struct CVelocity
 {
-    public:
-        Vec2 size;
-        Vec2 halfSize;
-        CBoundingBox() {}
-        CBoundingBox(const Vec2& s) 
-            : size(s), halfSize(s/2.0) {}
+    Vec2 vel = {0, 0};    
+    float angle = 0;
+    float speed = 0;
+    float tempo = 1.0f;
 };
 
-class CHealth: public Component
+struct CBoundingBox
 {
-public:
-    int HP;
-    int HP_max;
+    Vec2 size;
+    Vec2 halfSize;
+    Uint8 red, green, blue;
+    CBoundingBox() {}
+    CBoundingBox(const Vec2& s) 
+        : size(s), halfSize(s/2.0), red(255), green(255), blue(255) {}
+    CBoundingBox(const Vec2& s, const Uint8 r, const Uint8 g, const Uint8 b) 
+        : size(s), halfSize(s/2.0), red(r), green(g), blue(b) {}
+};
+
+struct CImmovable
+{
+    CImmovable(){}    
+};
+
+struct CHealth
+{
+    int HP = 6;
+    int HP_max = 6;
     Animation animation_full;
     Animation animation_half;
     Animation animation_empty;
-    int heart_frames;
-    int damage_frame = 0;
+    int i_frames = 30;
+    size_t damage_frame = 0;
     std::unordered_set<std::string> HPType;
     CHealth() {}
     CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
-        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), heart_frames(hrt_frms){}
+        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), i_frames(hrt_frms){}
 };
-class CKey: public Component
+
+struct CLifespan
 {
-public:
+    int lifespan;
+    CLifespan(int lf) : lifespan(lf){}
+};
+
+struct CKey
+{
     std::string unlocks;
     CKey() {}
     CKey(const std::string & unlcks)
         : unlocks(unlcks) {}
 };
 
-class CAnimation: public Component
+struct CAnimation
 {
-public:
     Animation animation;
-    bool repeat = false;
+    bool repeat = true;
     int layer = 5;
     CAnimation() {}
     CAnimation(const Animation& animation, bool r)
@@ -110,46 +136,39 @@ public:
             : animation(animation), repeat(r), layer(l){}
 };  
 
-class CTopLayer: public Component
+struct CTopLayer
 {
-public:
     CTopLayer() {}
 };
 
-class CBottomLayer: public Component
+struct CBottomLayer
 {
-public:
     CBottomLayer() {}
 };
-class CState : public Component
+struct CState
 {
-    public:
     PlayerState state;
     PlayerState preState; 
     bool changeAnimate = false;
     CState() {}
     CState(const PlayerState s) : state(s), preState(s) {}
 }; 
-class CProjectileState : public Component
+struct CProjectileState
 {
-    public:
     std::string state;
     bool changeAnimate = false;
     CProjectileState() {}
     CProjectileState(std::string state ) : state(state) {}
 }; 
-class CName : public Component
+struct CName
 {
-    public:
     std::string name;
     CName() {}
     CName(const std::string nm) : name(nm) {}
 }; 
 
-class CShadow: public Component
+struct CShadow
 {
-public:
-    // SDL_Sprite sprite;
     Animation animation;
     size_t size;
     CShadow() {}
@@ -157,19 +176,29 @@ public:
                 : animation(animation), size(sz){}
 };  
 
-class CDamage : public Component
+struct CAttack
 {
-    public:
-    int damage, speed, lastAttackFrame;
+    int damage = 1;
+    int speed = 120;
+    int attackTimer = 120;
+    int duration = 30;
+    int range = 3*64;
+    Vec2 area = {16, 16};
+    CAttack() {}
+    CAttack(int dmg, int spd, int dur, int rg, Vec2 ae) : damage(dmg), speed(spd), attackTimer(spd), duration(dur), range(rg), area(ae){}
+};
+
+struct CDamage
+{
+    int damage;
     std::unordered_set<std::string> damageType;
     CDamage() {}
-    CDamage(int dmg, int spd) : damage(dmg), speed(spd), lastAttackFrame(-spd) {}
-    CDamage(int dmg, int spd, std::unordered_set<std::string> dmgType) : damage(dmg), speed(spd), lastAttackFrame(-spd), damageType(dmgType) {}
+    CDamage(int dmg) : damage(dmg) {}
+    CDamage(int dmg, std::unordered_set<std::string> dmgType) : damage(dmg), damageType(dmgType) {}
 }; 
 
-class CDialog : public Component
-{
-    public:    
+struct CDialog
+{    
     Vec2 pos;
     Vec2 size;
     SDL_Texture * dialog;
@@ -179,9 +208,8 @@ class CDialog : public Component
         : pos(p), size(sz), dialog(dia){}
 };
 
-class CPathfind : public Component
-{
-    public:    
+struct CPathfind
+{    
     Vec2 target;
 
     CPathfind() {}
@@ -189,28 +217,25 @@ class CPathfind : public Component
         : target(trg){}
 };
 
-class CLoot : public Component
+struct CLoot
 {
-    public:
     CLoot() {}
 };
 
-class CKnockback : public Component
-{
-    public:    
+struct CKnockback
+{    
     int duration;
     int magnitude;
-    int timeElapsed = 0;
     Vec2 direction;
+    int timeElapsed = 0;
 
     CKnockback() {}
     CKnockback( int dur, int mag, Vec2 dir) 
         : duration(dur), magnitude(mag), direction(dir) {}
 };
 
-class CWeapon: public Component
+struct CWeapon
 {
-public:
     Animation animation;
     int damage;
     int speed;
@@ -223,9 +248,28 @@ public:
                 : animation(animation), damage(damage), speed(speed), range(range){}
 };
 
-class CScript: public Component
+struct CWeaponChild
 {
-public:
+    EntityID weaponID;
+    CWeaponChild(EntityID wID)
+                : weaponID(wID){}
+};
+
+struct CChild
+{
+
+    std::vector<std::tuple<EntityID, bool>> children;
+
+    EntityID childID;
+    bool removeOnDeath;
+    CChild(EntityID cID)
+                : childID(cID), removeOnDeath(true){}
+    CChild(EntityID cID, bool remove)
+                : childID(cID), removeOnDeath(remove){}
+};
+
+struct CScript
+{
     ScriptableEntity* Instance = nullptr;
 
     ScriptableEntity* (*InstantiateScript)();
@@ -237,4 +281,12 @@ public:
         DestroyInstanceScript = [](CScript* sc) { delete sc->Instance; sc->Instance = nullptr;};
     }
 
+};
+
+struct CChunk
+{
+    Vec2 chunkPos;
+    std::vector<EntityID> chunkChildern;
+    CChunk(Vec2 cPos)
+            : chunkPos(cPos){}
 };

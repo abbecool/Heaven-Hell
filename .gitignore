@@ -40,6 +40,9 @@
 *.out
 *.app
 
+# Large audio files
+*.wav
+
 # # Build dirs
 Binaries/*
 !Binaries/.gitkeep
@@ -52,3 +55,8 @@ test_*
 .vs/
 Core/Core.vcxproj
 Game.sln
+
+# FMOD
+Core/assets/audio/FMOD/*
+
+Core/game_save.txt

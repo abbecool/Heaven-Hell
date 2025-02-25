@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include "SDL2/SDL_image.h"
 #include "SDL2/SDL_ttf.h"
+#include <SDL2/SDL_mixer.h>
 
 Assets::Assets(){}
 
@@ -53,6 +54,32 @@ const Animation& Assets::getAnimation(const std::string& name) const {
     return m_animations.at(name);
 }
 
+void Assets::addAudio(const std::string& name, const std::string& path) {
+    const char *path_char = path.c_str(); 
+    Mix_Chunk* audio = Mix_LoadWAV(path_char);
+    if (audio == nullptr) {
+        std::cerr << "Failed to load audio! Mix_Error: " << Mix_GetError() << std::endl;
+    }
+    m_audios[name] = audio;
+}
+
+Mix_Chunk* Assets::getAudio(const std::string& name) const {
+    return m_audios.at(name);
+}
+
+void Assets::addMusic(const std::string& name, const std::string& path) {
+    const char *path_char = path.c_str(); 
+    Mix_Music* music = Mix_LoadMUS(path_char);
+    if (music == nullptr) {
+        std::cerr << "Failed to load music! Mix_Error: " << Mix_GetError() << std::endl;
+    }
+    m_music[name] = music;
+}
+
+Mix_Music* Assets::getMusic(const std::string& name) const {
+    return m_music.at(name);
+}
+
 void Assets::loadFromFile(const std::string & pathImages, const std::string & pathText, SDL_Renderer * ren) {
     std::ifstream file(pathImages);
     if (!file) {
@@ -66,20 +93,28 @@ void Assets::loadFromFile(const std::string & pathImages, const std::string & pa
             std::string path;
             file >> name >> path;
             addTexture(name, path, ren);
-        }
-        else if (head == "Font") {
+        } else if (head == "Font") {
             std::string font_name;
             std::string font_path;
             file >> font_name >> font_path;
             addFont(font_name, font_path);
-        }
-        else if (head == "Animation") {
+        } else if (head == "Animation") {
             std::string aniName;
             std::string texName;
             int frames, speed, rows, cols;
             file >> aniName >> texName >> frames >> speed >> cols >> rows;
             SDL_Texture* tex = getTexture(texName);
             addAnimation( aniName, Animation( aniName, tex, frames, speed, rows, cols) );            
+        } else if (head == "Audio") {
+            std::string audio_name;
+            std::string audio_path;
+            file >> audio_name >> audio_path;
+            addAudio(audio_name, audio_path);
+        } else if (head == "Music") {
+            std::string music_name;
+            std::string music_path;
+            file >> music_name >> music_path;
+            addMusic(music_name, music_path);
         }
         else {
             std::cerr << "head to " << head << "\n";

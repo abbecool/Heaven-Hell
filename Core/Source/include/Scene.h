@@ -2,6 +2,7 @@
 
 #include "Action.h"
 #include "ECS.hpp"
+#include "Renderer.hpp"
 #include "Game.h"
 
 #include <cstddef>
@@ -10,6 +11,11 @@
 class Game;
 
 typedef std::map<int, std::string> ActionMap;
+
+struct MouseState {
+    Vec2 pos = {0,0};
+    int scroll = 0;
+};
 
 class Scene
 {
@@ -21,11 +27,14 @@ class Scene
     bool m_hasEnded = false;
     size_t m_currentFrame = 0;
     Vec2 m_mousePosition;
+    int m_mouseScroll;
+    MouseState m_mouseState;
 
     virtual void onEnd() = 0;
 
     public:
     ECS m_ECS;
+    RendererManager m_rendererManager;
 
     Scene();
     Scene(Game* game);
@@ -36,7 +45,6 @@ class Scene
     virtual void sRender() = 0;
 
     virtual void doAction(const Action& action);
-    void simulate(const size_t frames);
     void registerAction(int inputKey, const std::string& actionName);
 
     int width() const;
@@ -47,5 +55,8 @@ class Scene
     ActionMap& getActionMap();
 
     void updateMousePosition(Vec2 pos);
+    void updateMouseScroll(int scroll);
+
     Vec2 getMousePosition();
+    MouseState getMouseState();
 };

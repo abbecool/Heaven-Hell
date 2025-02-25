@@ -27,13 +27,7 @@
     <ClInclude Include="Source\include\Components.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="Source\include\Components_new.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="Source\include\ECS.hpp">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\include\ECS_old.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="Source\include\Entity.h">
@@ -315,7 +309,6 @@
     <ClCompile Include="Source\Animation.cpp" />
     <ClCompile Include="Source\Assets.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
-    <ClCompile Include="Source\ECS.cpp" />
     <ClCompile Include="Source\Entity.cpp" />
     <ClCompile Include="Source\Game.cpp" />
     <ClCompile Include="Source\Level_Loader.cpp" />
@@ -336,6 +329,5 @@
     <ClCompile Include="Source\scripts\rooter.cpp">
       <Filter>scripts</Filter>
     </ClCompile>
-    <ClCompile Include="Source\player.cpp" />
   </ItemGroup>
 </Project>

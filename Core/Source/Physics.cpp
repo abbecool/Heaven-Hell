@@ -79,12 +79,12 @@ Vec2 Physics::overlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBo
     return move;
 }
 
-Vec2 Physics::getOverlap(Entity a, Entity b) {
+Vec2 Physics::calculateOverlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBox b2) {
     // todo: return the overlap rectangle size of the bouding boxes of enetity a and b
-    Vec2 posA = a.getComponent<CTransform>().pos;
-    Vec2 sizeA = a.getComponent<CBoundingBox>().halfSize;
-    Vec2 posB = b.getComponent<CTransform>().pos;
-    Vec2 sizeB = b.getComponent<CBoundingBox>().halfSize;
+    Vec2 posA = t1.pos;
+    Vec2 sizeA = b1.halfSize;
+    Vec2 posB = t2.pos;
+    Vec2 sizeB = b2.halfSize;
     Vec2 delta{ std::abs(posA.x - posB.x), std::abs(posA.y - posB.y) };
     float ox = sizeA.x + sizeB.x - delta.x;
     float oy = sizeA.y + sizeB.y - delta.y;
@@ -94,7 +94,7 @@ Vec2 Physics::getOverlap(Entity a, Entity b) {
 Vec2 Physics::knockback(CKnockback& knockback){
     knockback.timeElapsed += 16;
     if (knockback.timeElapsed < knockback.duration) {
-        return knockback.direction.norm()*knockback.magnitude/(knockback.duration/16);
+        return knockback.direction.norm( (float)knockback.magnitude ) / (float)(knockback.duration/16);
     } else {
         // Reset the  when the duration is over
         knockback.duration = 0;

@@ -26,19 +26,19 @@ Animation::Animation(
     m_currentCol(0)
 {
     m_size = Vec2((float)getTextureSize().x / cols, (float)getTextureSize().y / rows);
-    setSrcRect( 0, 0,  m_size.x, m_size.y );
+    setSrcRect( 0, 0, (int)m_size.x, (int)m_size.y );
 }
 
 // update the animation to show the next frame, depending on its speed
 // animation loops when it reaches the end
-void Animation::update() {
+void Animation::update(size_t currentFrame) {
     m_currentFrame++;
-    size_t animFrame = (m_currentFrame / m_speed) % m_frameCount;
+    size_t animFrame = (currentFrame / m_speed) % m_frameCount;
     setSrcRect(
-        (m_currentCol+animFrame) * m_size.x,
-        m_currentRow * m_size.y,
-        m_size.x,
-        m_size.y
+        (int)((m_currentCol + animFrame*(m_cols/m_frameCount)) * m_size.x),
+        m_currentRow * (int)m_size.y,
+        (int)m_size.x,
+        (int)m_size.y
     );
 }
 
@@ -72,7 +72,7 @@ SDL_Rect* Animation::getDestRect()
     return &m_destRect;
 }
 
-float Animation::getAngle()
+float Animation::getAngle() const
 {
     return m_angle;
 }
@@ -88,16 +88,22 @@ void Animation::setSrcRect(const int x, const int y, const int w, const int h)
     m_srcRect.h = h;
 }
 
+void Animation::setSrcSize(Vec2 size)   
+{
+    m_srcRect.w = size.x;
+    m_srcRect.h = size.y;
+}
+
 void Animation::setDestRect(Vec2 pos)   
 {
-    m_destRect.x = pos.x;
-    m_destRect.y = pos.y;
+    m_destRect.x = (int)pos.x;
+    m_destRect.y = (int)pos.y;
 }
 
 void Animation::setDestSize(Vec2 size)   
 {
-    m_destRect.w = size.x;
-    m_destRect.h = size.y;
+    m_destRect.w = (int)size.x;
+    m_destRect.h = (int)size.y;
 }
 
 void Animation::setDestRect(const int x, const int y, const int w, const int h)   
@@ -118,8 +124,8 @@ void Animation::setTexture(SDL_Texture *tex) {
 }
 
 void Animation::setTile(Vec2 grid) {
-    m_currentCol = grid.x;
-    m_currentRow = grid.y;
+    m_currentCol = (int)grid.x;
+    m_currentRow = (int)grid.y;
 }
 
 SDL_Point Animation::getTextureSize()
@@ -129,14 +135,14 @@ SDL_Point Animation::getTextureSize()
     return size;
 }
 
-void Animation::setAngle(double angle) {
+void Animation::setAngle(float angle) {
     m_angle = angle;
 }
 
 void Animation::setScale(Vec2 scale) {
     m_scale = scale;
-    m_destRect.w = m_srcRect.w * scale.x;
-    m_destRect.h = m_srcRect.h * scale.y;
+    m_destRect.w = m_srcRect.w * (int)scale.x;
+    m_destRect.h = m_srcRect.h * (int)scale.y;
 }
 
 void Animation::setCurrentFrame(size_t frame){

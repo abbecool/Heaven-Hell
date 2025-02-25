@@ -7,7 +7,6 @@
 #include <ctime>
 #include <thread>
 
-
 #include "Game.h"
 #include "Assets.h"
 #include "Scene_Menu.h"
@@ -22,7 +21,10 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
 void Game::init(const std::string & pathImages, const std::string & pathText){
 
     SDL_Init(SDL_INIT_EVERYTHING);
-    m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    // SDL_GetCurrentDisplayMode(0, &DM);
+    // WIDTH = DM.w;
+    // HEIGHT = DM.h;
+    m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_SetWindowPosition(m_window, 0, 0);
     if ( NULL == m_window )
     {
@@ -31,6 +33,7 @@ void Game::init(const std::string & pathImages, const std::string & pathText){
     m_renderer = SDL_CreateRenderer( m_window, -1 , SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
     TTF_Init();
+    Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 );
 
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
     changeScene("Menu", std::make_shared<Scene_Menu>(this));
@@ -40,11 +43,7 @@ std::shared_ptr<Scene> Game::currentScene() {
     return m_sceneMap[m_currentScene];
 }
 
-void Game::changeScene(
-    const std::string& sceneName,
-    std::shared_ptr<Scene> scene,
-    bool endCurrentScene
-) {
+void Game::changeScene( const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene ) {
     m_currentScene = sceneName;
     m_sceneMap[sceneName] = scene;
 }
@@ -80,13 +79,12 @@ void Game::run()
         SDL_RenderPresent( m_renderer );
         m_currentFrame++;
 
-         std::this_thread::sleep_until(next_frame);
-
         auto frame_time = std::chrono::steady_clock::now() - current_frame;
         auto frame_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(frame_time).count();
 
         accumulated_frame_time += frame_time_ms;
         frame_count++;
+         std::this_thread::sleep_until(next_frame);
 
         // Check if one second has passed
         if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(1))
@@ -95,7 +93,7 @@ void Game::run()
             double average_fps = 1000.0 / average_frame_time;
 
             // Print the average FPS followed by a carriage return
-            std::cout << "FPS: " << average_fps << ", Entities: " << currentScene()->m_ECS.getNumEntities() << "." << "\r";
+            std::cout << "FPS: " << (int)average_fps << ", Entities: " << currentScene()->m_ECS.getNumEntities() << "." << "\r";
             std::cout.flush();  // Ensure the output is displayed immediately
 
             // Reset counters for the next second
@@ -111,7 +109,6 @@ void Game::run()
 
 void Game::quit() {
     m_running = false;
-    // m_window.close();
 }
 
 void Game::update() {
@@ -136,6 +133,16 @@ int Game::getHeight()
     return HEIGHT;
 }
 
+void Game::setWidth(int width)
+{
+    WIDTH = width;
+}
+
+void Game::setHeight(int height)
+{
+    HEIGHT = height;
+}
+
 void Game::sUserInput()
 {
     SDL_Event event;
@@ -147,13 +154,10 @@ void Game::sUserInput()
             }
         if(event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
         { 
-            if (currentScene()->getActionMap().find(event.key.keysym.sym)
-                == currentScene()->getActionMap().end()) {
+            if (currentScene()->getActionMap().find(event.key.keysym.sym) == currentScene()->getActionMap().end()) {
                 continue;
             }
-            // determine start or end action by whether it was key press or release
             const std::string actionType = (event.type == SDL_KEYDOWN) ? "START" : "END";
-
             // look up the action and send the action to the scene
             currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.keysym.sym), actionType));
         }
@@ -162,14 +166,39 @@ void Game::sUserInput()
             if (currentScene()->getActionMap().find(event.button.button) == currentScene()->getActionMap().end()) {
                 continue;
             }
-            // determine start or end action by whether it was key press or release
             const std::string actionType = (event.type == SDL_MOUSEBUTTONDOWN ) ? "START" : "END";
-
-            // look up the action and send the action to the scene
+            // look up the action and send the action to the scene  
             currentScene()->doAction(Action(currentScene()->getActionMap().at(event.button.button), actionType));
         }
         if (event.type == SDL_MOUSEMOTION){
             currentScene()->updateMousePosition(Vec2{float(event.motion.x),float(event.motion.y)});
+        }
+
+        // Mouse scroll wheel handling
+        if (event.type == SDL_MOUSEWHEEL) 
+        {
+            const std::string actionType = (event.type == SDL_MOUSEBUTTONDOWN ) ? "START" : "END";
+            // currentScene()->doAction(Action(currentScene()->getActionMap().at(event.button.button), actionType));
+            currentScene()->updateMouseScroll(event.wheel.y);
+            // Determine scroll direction: up or down
+            if (currentScene()->getActionMap().find(event.wheel.direction) != currentScene()->getActionMap().end())
+            {
+                currentScene()->doAction(Action(currentScene()->getActionMap().at(event.wheel.direction), "START"));
+            }
+            // if (event.wheel.y > 0) // Scroll up
+            // {
+            //     if (currentScene()->getActionMap().find(event.wheel.direction) != currentScene()->getActionMap().end())
+            //     {
+            //         currentScene()->doAction(Action(currentScene()->getActionMap().at(event.wheel.direction), "START"));
+            //     }
+            // }
+            // else if (event.wheel.y < 0) // Scroll down
+            // {
+            //     if (currentScene()->getActionMap().find("SCROLL_DOWN") != currentScene()->getActionMap().end())
+            //     {
+            //         currentScene()->doAction(Action(currentScene()->getActionMap().at("SCROLL_DOWN"), "START"));
+            //     }
+            // }
         }
     }
 }

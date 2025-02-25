@@ -87,7 +87,7 @@
 
 // bool Entity::Entity::takeDamage(std::shared_ptr<Entity> attacker, size_t frame){
 //     auto attack = attacker->getComponent<CDamage>();
-//     if ((int)frame - getComponent<CHealth>().heart_frames > getComponent<CHealth>().damage_frame && (int)frame - getComponent<CHealth>().heart_frames > attack.lastAttackFrame){
+//     if ((int)frame - getComponent<CHealth>().i_frames > getComponent<CHealth>().damage_frame && (int)frame - getComponent<CHealth>().i_frames > attack.lastAttackFrame){
 //         float damageMultiplier = 1.0f;
 //         if ( !getComponent<CHealth>().HPType.empty() && !attack.damageType.empty() ) 
 //         {
