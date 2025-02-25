@@ -61,13 +61,15 @@ class Scene_Play : public Scene
     void init(const std::string&);
     void loadLevel(const std::string& path);
     void loadConfig(const std::string& path);
+    void loadMobsNItems(const std::string& path);
+
     void saveGame(const std::string& filename);
     Vec2 gridToMidPixel(float, float, EntityID);
 
     // void spawnHUD();
     EntityID spawnPlayer();
-    EntityID spawnWeapon(Vec2 pos);
-    EntityID spawnProjectile(EntityID player, Vec2 vel);
+    EntityID spawnWeapon(Vec2 pos, int layer);
+    EntityID spawnProjectile(EntityID player, Vec2 vel, int layer);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
@@ -77,12 +79,11 @@ class Scene_Play : public Scene
     EntityID spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
     EntityID spawnGrass     (const Vec2 pos, const int frame);
     EntityID spawnDirt      (const Vec2 pos, const int frame);
-    EntityID spawnCampfire  (const Vec2 pos);
-    EntityID spawnKey       (const Vec2 pos, const std::string, bool movable);
+    EntityID spawnCampfire  (const Vec2 pos, int layer);
     EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
     EntityID spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     EntityID spawnBridge    (const Vec2 pos, const int frame );
-    std::vector<EntityID> spawnDualTiles (const Vec2 pos, std::unordered_map<std::string, int> tileIndex );
+    std::vector<EntityID> spawnDualTiles (const Vec2 pos, std::unordered_map<std::string, int> tileIndex);
 
     void sLoader();
     void sScripting();
