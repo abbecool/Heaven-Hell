@@ -7,7 +7,7 @@
 // #include <tuple>
 // #include <algorithm>
 
-// Entity::Entity(const std::string& tag, const size_t id, const size_t layer)
+// Entity::Entity(const std::string& tag, const size_t id, uint8_t layer)
 //         : m_tag(tag), m_id(id), m_layer(layer){
 //             m_components = std::make_tuple( 
 //                     CTransform(),

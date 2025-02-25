@@ -120,12 +120,12 @@ public:
 
 // public:
 
-//     Entity(const std::string& tag, const size_t id, const size_t layer);
+//     Entity(const std::string& tag, const size_t id, uint8_t layer);
 //     bool isAlive() const;
 //     bool inCamera() const;
 //     void setInCamera(bool set);
 //     const std::string& tag() const;
-//     const size_t layer() const;
+//     uint8_t layer() const;
 //     const size_t id() const;
 //     const bool movable() const;
 //     void kill();

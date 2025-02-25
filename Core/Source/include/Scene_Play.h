@@ -61,17 +61,19 @@ class Scene_Play : public Scene
     void init(const std::string&);
     void loadLevel(const std::string& path);
     void loadConfig(const std::string& path);
+    void loadMobsNItems(const std::string& path);
     void saveGame(const std::string& filename);
     Vec2 gridToMidPixel(float, float, EntityID);
 
     // void spawnHUD();
     EntityID spawnPlayer();
+    EntityID spawnNPC(Vec2 pos, const std::string& type, const std::string& name, const std::string& animation, int hp, int speed);
     EntityID spawnWeapon(Vec2 pos);
-    EntityID spawnProjectile(EntityID player, Vec2 vel);
-    EntityID spawnCoin(Vec2 pos, const size_t layer);
-    EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
+    EntityID spawnProjectile(EntityID player, Vec2 vel, uint8_t layer);
+    EntityID spawnCoin(Vec2 pos, uint8_t layer);
+    EntityID spawnSmallEnemy(Vec2 pos, uint8_t layer, std::string type);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
-    EntityID spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation);
+    EntityID spawnDecoration(Vec2 pos, Vec2 collisionBox, uint8_t layer, std::string animation);
 
     EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     EntityID spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
