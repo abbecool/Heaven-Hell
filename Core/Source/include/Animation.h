@@ -35,7 +35,7 @@ class Animation
         int cols
     );
 
-    void update();
+    void update(size_t currentFrame);
     void setRow(int row);
     bool hasEnded() const;
     const std::string& getName() const;
@@ -45,6 +45,7 @@ class Animation
     SDL_Rect* getSrcRect();
     SDL_Rect* getDestRect();
     void setSrcRect(const int x, const int y, const int w, const int h);
+    void setSrcSize(Vec2 size);
     void setDestRect(const int x, const int y, const int w, const int h);
     void setDestRect(Vec2 pos);
     void setDestSize(Vec2 size);

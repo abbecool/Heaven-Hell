@@ -37,8 +37,18 @@ ActionMap& Scene::getActionMap() {
 
 void Scene::updateMousePosition(Vec2 pos){
     m_mousePosition = pos;
+    m_mouseState.pos = pos;
+}
+
+void Scene::updateMouseScroll(int scroll){
+    m_mouseScroll = scroll;
+    m_mouseState.scroll = scroll;
 }
 
 Vec2 Scene::getMousePosition(){
     return m_mousePosition;
+}
+
+MouseState Scene::getMouseState(){
+    return m_mouseState;
 }

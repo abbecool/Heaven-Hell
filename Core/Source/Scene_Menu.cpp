@@ -98,7 +98,8 @@ void Scene_Menu::loadMenu(){
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true, 9);
     entity.addComponent<CBottomLayer>();
-    entity.addComponent<CTransform>(Vec2 {float(width()/2),float(height()/2)},Vec2 {0, 0}, false);
+    Vec2 midGrid1 = gridToMidPixel(0, 0, entity);
+    entity.addComponent<CTransform>(midGrid1,Vec2 {0, 0}, false);
     entity.getComponent<CTransform>().scale = Vec2{1, 1};
     entity.addComponent<CName>("title_screen");
 
@@ -106,12 +107,18 @@ void Scene_Menu::loadMenu(){
     Entity entity1 = {entityId1, &m_ECS};
     entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
     entity1.addComponent<CTopLayer>();
+    // Vec2 midGrid2 = gridToMidPixel(1250, 180, entity);
     entity1.addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
     entity1.getComponent<CTransform>().scale = Vec2{1.2f, 1.2f};
     entity1.addComponent<CName>("game_title");
 
-    spawnButton(Vec2 {64*3.2f,64*8.1f}, "button_unpressed", "new", "NEW GAME");
-    spawnButton(Vec2 {64*3.2f,64*9.7f}, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2 {128.0f +0.0f,64*7.0f +38.4f}, "button_unpressed", "new", "NEW GAME");
+    spawnButton(Vec2 {128.0f +0.0f,64*9.0f +12.8f}, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2 {(float)width()-196.0f,64.0f }, "button_unpressed", "720p", "720p");
+    spawnButton(Vec2 {(float)width()-196.0f,196.0f }, "button_unpressed", "1080p", "1080p");
+    spawnButton(Vec2 {(float)width()-196.0f,320.0f }, "button_unpressed", "1440p", "1440p");
+    spawnButton(Vec2 {(float)width()-196.0f,428.0f }, "button_unpressed", "1440p Wide", "1440p Wide");
+    spawnButton(Vec2 {(float)width()-196.0f,536.0f }, "button_unpressed", "1440p Super wide", "1440p Super wide");
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
@@ -121,8 +128,8 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
     entity.addComponent<CAnimation> (m_game->assets().getAnimation(level), true, 9);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity.addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
-    entity.getComponent<CTransform>().scale = Vec2{3,3};
-    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*3);
+    // entity.getComponent<CTransform>().scale = Vec2{4,4};
+    // entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize());
     entity.addComponent<CName>(level);
 }
 
@@ -132,11 +139,12 @@ void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
     entity.addComponent<CTopLayer>();
-    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    entity.getComponent<CTransform>().scale = Vec2{3,3};
-    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*3);
+    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity.addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
+    entity.getComponent<CTransform>().scale = Vec2{4,4};
+    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*4);
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*3, m_game->assets().getTexture(dialog));
+    entity.addComponent<CDialog>(midGrid, entity.getComponent<CAnimation>().animation.getSize()*4, m_game->assets().getTexture(dialog));
 
 }
 
@@ -146,7 +154,6 @@ void Scene_Menu::sDoAction(const Action& action) {
             m_drawTextures = !m_drawTextures; 
         } else if (action.name() == "TOGGLE_COLLISION") { 
             m_drawCollision = !m_drawCollision; 
-            std::cout << "framerate: " << m_game->framerate() << std::endl;
         } else if (action.name() == "TOGGLE_GRID") { 
             m_drawDrawGrid = !m_drawDrawGrid; 
         } else if (action.name() == "SHOW COORDINATES") { 
@@ -185,23 +192,30 @@ void Scene_Menu::sDoAction(const Action& action) {
                             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
                         } else if ( name == "continue" ){
                             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", false));
+                        } else if ( name == "720p" ){
+                            SDL_SetWindowSize(m_game->window(), 1280, 720);
+                            m_game->setWidth(1280);
+                            m_game->setHeight(720);
+                        } else if ( name == "1080p" ){
+                            SDL_SetWindowSize(m_game->window(), 1920, 1080);
+                            m_game->setWidth(1920);
+                            m_game->setHeight(1080);
+                        } else if ( name == "1440p" ){
+                            SDL_SetWindowSize(m_game->window(), 2560, 1440);
+                            m_game->setWidth(2560);
+                            m_game->setHeight(1440);
+                        } else if ( name == "1440p Wide" ){
+                            SDL_SetWindowSize(m_game->window(), 3440, 1440);
+                            m_game->setWidth(3440);
+                            m_game->setHeight(1440);
+                        } else if ( name == "1440p Super wide" ){
+                            SDL_SetWindowSize(m_game->window(), 5120, 1440);
+                            m_game->setWidth(5120);
+                            m_game->setHeight(1440);
                         }
                     }
                 }
             }
-            // for (auto b : m_ECS.getEntities("Button")){
-            //     auto &transform = b->getComponent<CTransform>();
-            //     auto &Bbox = b->getComponent<CBoundingBox>();
-            //     if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
-            //         if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
-            //             if ( b->getComponent<CName>().name == "new" ){
-            //                 m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", true));
-            //             } else if ( b->getComponent<CName>().name == "continue" ){
-            //                 m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/level0.png", false));
-            //             }
-            //         }
-            //     }
-            // }
         }   
     }
 }
@@ -212,15 +226,9 @@ void Scene_Menu::update() {
 }
 
 void Scene_Menu::sAnimation() {
-    // for ( auto e : m_ECS.getEntities() ){
-    //     if (e->hasComponent<CAnimation>())
-    //     {
-    //         e->getComponent<CAnimation>().animation.update();
-    //     }
-    // }
     auto view = m_ECS.view<CAnimation>();
     for ( auto e : view){
-        m_ECS.getComponent<CAnimation>(e).animation.update();
+        m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
     }
 }
 

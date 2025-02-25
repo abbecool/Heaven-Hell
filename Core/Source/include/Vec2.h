@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 
 class Vec2
 {
@@ -18,6 +19,7 @@ public:
     Vec2 operator * (const Vec2 & rhs) const;
     Vec2 operator * (const float val) const;
     Vec2 operator / (const float val) const;
+    Vec2 operator / (const Vec2 & rhs) const;
     Vec2 operator % (const Vec2 & rhs) const;
     Vec2 operator % (const int val) const;
 
@@ -37,4 +39,8 @@ public:
     Vec2 norm(const float val) const;
     float angle() const;
     Vec2 mainDir() const;
+    Vec2 toInt();
+    bool smaller(Vec2 rhs);
+    bool greater(Vec2 rhs);
+    void print(std::string text);
 };

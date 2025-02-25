@@ -55,7 +55,7 @@ struct CTransform
     Vec2 pos;    
     Vec2 prevPos;
     Vec2 vel = {0, 0};    
-    Vec2 scale = {0.5, 0.5};    
+    Vec2 scale = {4, 4};    
     float angle = 0;
     float speed = 0;
     bool isMovable = false;
@@ -247,11 +247,25 @@ struct CWeapon
     CWeapon(const Animation& animation, int damage, int speed, int range)
                 : animation(animation), damage(damage), speed(speed), range(range){}
 };
+
 struct CWeaponChild
 {
     EntityID weaponID;
     CWeaponChild(EntityID wID)
                 : weaponID(wID){}
+};
+
+struct CChild
+{
+
+    std::vector<std::tuple<EntityID, bool>> children;
+
+    EntityID childID;
+    bool removeOnDeath;
+    CChild(EntityID cID)
+                : childID(cID), removeOnDeath(true){}
+    CChild(EntityID cID, bool remove)
+                : childID(cID), removeOnDeath(remove){}
 };
 
 struct CScript
@@ -267,4 +281,12 @@ struct CScript
         DestroyInstanceScript = [](CScript* sc) { delete sc->Instance; sc->Instance = nullptr;};
     }
 
+};
+
+struct CChunk
+{
+    Vec2 chunkPos;
+    std::vector<EntityID> chunkChildern;
+    CChunk(Vec2 cPos)
+            : chunkPos(cPos){}
 };
