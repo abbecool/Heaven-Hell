@@ -250,13 +250,6 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
                 {
                     EntityID id = m_scene->spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
                     chunkChildren.push_back(id);
-                // } else if (pixel == "bridge") {
-                //     if ( std::find(neighborsTags.begin(), neighborsTags.end(), "water") != neighborsTags.end() ){
-                //         // EntityID id = m_scene->spawnWater(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "water", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                //     } else if ( std::find(neighborsTags.begin(), neighborsTags.end(), "lava") != neighborsTags.end() ){
-                //         // EntityID id = m_scene->spawnLava(Vec2 {64*(float)x,64*(float)y}, "Background", m_levelLoader.getObstacleTextureIndex(m_levelLoader.neighborCheck(pixelMatrix, "lava", x, y, WIDTH_PIX, HEIGHT_PIX)));
-                //     }
-                //     EntityID id = m_scene->spawnBridge(Vec2 {64*(float)x,64*(float)y}, textureIndex);
                 }
             }
         }

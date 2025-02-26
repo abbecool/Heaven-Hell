@@ -51,6 +51,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "QUIT");
+    registerAction(SDLK_q, "SETTINGS");
     registerAction(SDLK_u, "SAVE");
 
     registerAction(SDLK_f, "CAMERA FOLLOW");
@@ -180,12 +181,18 @@ void Scene_Play::sDoAction(const Action& action) {
             m_drawDrawGrid = !m_drawDrawGrid; 
         } else if ( action.name() == "PAUSE") { 
             setPaused( !m_pause || m_inventoryOpen );
-        } else if ( action.name() == "QUIT") { 
-            if ( m_inventoryOpen ) {
-                m_inventoryOpen = false;
-                setPaused( !m_pause || m_inventoryOpen );
+        } else if ( action.name() == "QUIT") {
+            if (m_pause_scene != nullptr) {
+                m_pause_scene = nullptr;
             } else {
                 onEnd();
+            }
+        } else if ( action.name() == "SETTINGS") { 
+            togglePause();
+            if (m_pause_scene != nullptr) {
+                m_pause_scene = nullptr;
+            } else {
+                m_pause_scene = std::make_shared<Scene_Pause>(m_game);
             }
         } else if ( action.name() == "INVENTORY") { 
             m_inventoryOpen = !m_inventoryOpen;
@@ -290,6 +297,9 @@ void Scene_Play::update()
     sRender();
     m_ECS.update();
     m_inventory_scene->update();
+    if (m_pause_scene != nullptr) {
+        m_pause_scene->update();
+    }
 }
 
 void Scene_Play::sLoader()
@@ -1058,6 +1068,10 @@ void Scene_Play::onEnd() {
 
 void Scene_Play::setPaused(bool pause) {
     m_pause = pause;
+}
+
+void Scene_Play::togglePause() {
+    m_pause = !m_pause;
 }
 
 Vec2 Scene_Play::gridSize(){

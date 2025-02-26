@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Scene.h"
 #include "Scene_Inventory.h"
+#include "Scene_Pause.h"
 #include "Level_Loader.h"
 #include <memory>
 #include <unordered_map>
@@ -38,6 +39,7 @@ class Scene_Play : public Scene
     std::vector<EntityID> m_loadedChunkIDs;
     LevelLoader m_levelLoader;
     std::shared_ptr<Scene_Inventory> m_inventory_scene;
+    std::shared_ptr<Scene_Pause> m_pause_scene;
     const Vec2 m_gridSize = { 64, 64 };
     Vec2 m_levelSize;
     Vec2 m_mousePosition;
@@ -98,6 +100,7 @@ class Scene_Play : public Scene
     void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
+    void togglePause();
     void changePlayerStateTo(EntityID entity, PlayerState s);
 
     public:
