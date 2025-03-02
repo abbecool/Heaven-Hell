@@ -59,4 +59,5 @@ class Scene
 
     Vec2 getMousePosition();
     MouseState getMouseState();
+    // void DestroySubScene();
 };

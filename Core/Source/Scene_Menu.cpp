@@ -128,8 +128,6 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
     entity.addComponent<CAnimation> (m_game->assets().getAnimation(level), true, 9);
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity.addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
-    // entity.getComponent<CTransform>().scale = Vec2{4,4};
-    // entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize());
     entity.addComponent<CName>(level);
 }
 

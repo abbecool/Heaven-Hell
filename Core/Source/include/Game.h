@@ -4,6 +4,8 @@
 
 #include "Scene.h"
 #include "Assets.h"
+#include <chrono>
+#include <ctime>
 
 #include <memory>
 #include <map>
@@ -29,12 +31,19 @@ protected:
     int m_currentFrame;
     bool m_paused;
     int m_framerate = 60;
+
+    std::chrono::steady_clock::time_point current_frame;
+    std::chrono::steady_clock::time_point next_frame;
+    std::chrono::steady_clock::time_point last_fps_update;
+
+    int frame_count = 0;
+    double accumulated_frame_time = 0.0;
     
     void init(const std::string & pathImages, const std::string & pathText);
     void update();
     void setPaused(bool paused);
-
     void sUserInput();
+    void FrametimeHandler();
 
 public:
     Game(const std::string & pathImages, const std::string & pathText);
@@ -42,6 +51,7 @@ public:
         const std::string& sceneName,
         std::shared_ptr<Scene> scene,
         bool endCurrentScene=false);
+    void changeSceneBack(const std::string& sceneName);
     std::shared_ptr<Scene> currentScene();
     void quit();
     void run();
@@ -54,4 +64,5 @@ public:
     int getHeight();
     void setWidth(int width);
     void setHeight(int height);
+    SceneMap& sceneMap();
 };

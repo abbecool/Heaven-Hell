@@ -10,33 +10,32 @@
 #include "Game.h"
 #include "Assets.h"
 #include "Scene_Menu.h"
-std::chrono::system_clock::time_point a = std::chrono::system_clock::now();
-std::chrono::system_clock::time_point b = std::chrono::system_clock::now();
 
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {
     init(pathImages, pathText);
 }
 
-void Game::init(const std::string & pathImages, const std::string & pathText){
-
+void Game::init(const std::string & pathImages, const std::string & pathText)
+{
     SDL_Init(SDL_INIT_EVERYTHING);
-    // SDL_GetCurrentDisplayMode(0, &DM);
-    // WIDTH = DM.w;
-    // HEIGHT = DM.h;
     m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_SetWindowPosition(m_window, 0, 0);
     if ( NULL == m_window )
     {
         std::cout << "Could not create window: " << SDL_GetError( ) << std::endl;
     }
+
+    current_frame = std::chrono::steady_clock::now();
+    last_fps_update = current_frame;
+
     m_renderer = SDL_CreateRenderer( m_window, -1 , SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
     TTF_Init();
     Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 );
 
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
-    changeScene("Menu", std::make_shared<Scene_Menu>(this));
+    changeScene("MENU", std::make_shared<Scene_Menu>(this));
 }
 
 std::shared_ptr<Scene> Game::currentScene() {
@@ -44,8 +43,17 @@ std::shared_ptr<Scene> Game::currentScene() {
 }
 
 void Game::changeScene( const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene ) {
+    if (endCurrentScene) {
+        m_sceneMap.erase(m_currentScene);
+    }
     m_currentScene = sceneName;
-    m_sceneMap[sceneName] = scene;
+    if (m_sceneMap.find(sceneName) == m_sceneMap.end()) {
+        m_sceneMap[sceneName] = scene;
+    }
+}
+
+void Game::changeSceneBack( const std::string& sceneName) {
+    m_currentScene = sceneName;
 }
 
 bool Game::isRunning() {
@@ -58,61 +66,69 @@ int Game::framerate(){
 
 void Game::run()
 {
-    std::chrono::steady_clock::time_point current_frame = std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point next_frame;
-    std::chrono::steady_clock::time_point last_fps_update = current_frame;
-
-    int frame_count = 0;
-    double accumulated_frame_time = 0.0;
 
     while (isRunning())
     {
-        // FPS cap
-        current_frame = std::chrono::steady_clock::now();
-        next_frame = current_frame + std::chrono::milliseconds(1000 / m_framerate); // 60Hz
-        // 
-
         SDL_RenderClear( m_renderer );
-
         update();
         sUserInput();
         SDL_RenderPresent( m_renderer );
-        m_currentFrame++;
 
-        auto frame_time = std::chrono::steady_clock::now() - current_frame;
-        auto frame_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(frame_time).count();
-
-        accumulated_frame_time += frame_time_ms;
-        frame_count++;
-         std::this_thread::sleep_until(next_frame);
-
-        // Check if one second has passed
-        if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(1))
-        {
-            double average_frame_time = accumulated_frame_time / frame_count;
-            double average_fps = 1000.0 / average_frame_time;
-
-            // Print the average FPS followed by a carriage return
-            std::cout << "FPS: " << (int)average_fps << ", Entities: " << currentScene()->m_ECS.getNumEntities() << "." << "\r";
-            std::cout.flush();  // Ensure the output is displayed immediately
-
-            // Reset counters for the next second
-            accumulated_frame_time = 0.0;
-            frame_count = 0;
-            last_fps_update = std::chrono::steady_clock::now();
-        }
+        FrametimeHandler(); // caps the framerate and prints the theoretical unlimited FPS.
 
     }
     SDL_DestroyWindow( m_window );
     SDL_Quit();
 }   
 
+void Game::FrametimeHandler()
+{
+    m_currentFrame++;
+
+    auto frame_time = std::chrono::steady_clock::now() - current_frame;
+    auto frame_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(frame_time).count();
+
+    accumulated_frame_time += frame_time_ms;
+    frame_count++;
+     std::this_thread::sleep_until(next_frame);
+
+    // Check if one second has passed
+    if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(1))
+    {
+        double average_frame_time = accumulated_frame_time / frame_count;
+        double average_fps = 1000.0 / average_frame_time;
+
+        // Print the average FPS followed by a carriage return
+        std::cout << " ----- Frametime: " << (int)average_frame_time << " ms == " << (int)average_fps << " FPS. ----- " << "\r";
+        std::cout.flush();  // Ensure the output is displayed immediately
+
+        // Reset counters for the next second
+        accumulated_frame_time = 0.0;
+        frame_count = 0;
+        last_fps_update = std::chrono::steady_clock::now();
+    }
+
+    // FPS cap
+    current_frame = std::chrono::steady_clock::now();
+    next_frame = current_frame + std::chrono::milliseconds(1000 / m_framerate); // 60Hz
+    // 
+}
+
 void Game::quit() {
     m_running = false;
 }
 
 void Game::update() {
-    currentScene()->update();
+    if (m_sceneMap.find("PLAY") != m_sceneMap.end()) {
+        m_sceneMap["PLAY"]->update();
+    }
+    if (m_currentScene != "PLAY") {
+        currentScene()->update();
+    }
+}
+
+SceneMap& Game::sceneMap(){
+    return m_sceneMap;
 }
 
 SDL_Renderer* Game::renderer(){

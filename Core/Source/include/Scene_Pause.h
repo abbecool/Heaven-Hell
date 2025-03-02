@@ -33,16 +33,16 @@ class Scene_Pause : public Scene
     void loadPause();
     Vec2 gridToMidPixel(float, float, Entity);
 
-    void spawnButton(const Vec2 pos, const std::string& button_name, const std::string& name, const std::string& dialog);
+    void spawnButton(const Vec2 pos, float length, const std::string& button_name, const std::string& name, const std::string& dialog);
 
     void sAnimation();
     void sRender();
     
-    void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
-
+    
     public:
+    void sDoAction(const Action&);
     Scene_Pause(Game* game);
     void update();
 };

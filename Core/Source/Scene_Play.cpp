@@ -50,8 +50,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_SPACE , "ATTACK");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
-    registerAction(SDLK_ESCAPE, "QUIT");
-    registerAction(SDLK_q, "SETTINGS");
+    registerAction(SDLK_ESCAPE, "ESC");
     registerAction(SDLK_u, "SAVE");
 
     registerAction(SDLK_f, "CAMERA FOLLOW");
@@ -168,7 +167,6 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     SDL_FreeSurface(loadedSurface);
     m_levelLoader.init(this, WIDTH_PIX, HEIGHT_PIX);
     m_levelLoader.loadChunk(m_currentChunk);
-
 }
 
 void Scene_Play::sDoAction(const Action& action) {
@@ -181,19 +179,6 @@ void Scene_Play::sDoAction(const Action& action) {
             m_drawDrawGrid = !m_drawDrawGrid; 
         } else if ( action.name() == "PAUSE") { 
             setPaused( !m_pause || m_inventoryOpen );
-        } else if ( action.name() == "QUIT") {
-            if (m_pause_scene != nullptr) {
-                m_pause_scene = nullptr;
-            } else {
-                onEnd();
-            }
-        } else if ( action.name() == "SETTINGS") { 
-            togglePause();
-            if (m_pause_scene != nullptr) {
-                m_pause_scene = nullptr;
-            } else {
-                m_pause_scene = std::make_shared<Scene_Pause>(m_game);
-            }
         } else if ( action.name() == "INVENTORY") { 
             m_inventoryOpen = !m_inventoryOpen;
             m_inventory_scene->toggleInventory();
@@ -235,7 +220,7 @@ void Scene_Play::sDoAction(const Action& action) {
         }else if ( action.name() == "TP3") {
             m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*64, 181*64};
         } else if ( action.name() == "RESET") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
         }
 
         if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = true; }
@@ -277,6 +262,11 @@ void Scene_Play::sDoAction(const Action& action) {
                 }
             }
         }
+        if ( action.name() == "ESC") {
+            m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
+            saveGame("config_files/game_save.txt");
+            m_pause = true;
+        }
     }
 }
 
@@ -297,9 +287,6 @@ void Scene_Play::update()
     sRender();
     m_ECS.update();
     m_inventory_scene->update();
-    if (m_pause_scene != nullptr) {
-        m_pause_scene->update();
-    }
 }
 
 void Scene_Play::sLoader()
@@ -569,7 +556,8 @@ void Scene_Play::sStatus() {
         {
             spawnCoin(transform.pos, 6);
             if ( m_player == entityID ){
-                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+                    // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+                    m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
             } else {
                 m_ECS.queueRemoveEntity(entityID);
                 Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
@@ -806,6 +794,7 @@ EntityID Scene_Play::spawnPlayer(){
     int pos_x = m_playerConfig.x;
     int pos_y = m_playerConfig.y;
     int hp = m_playerConfig.HP;
+    
     if (!m_newGame){
         std::ifstream file("config_files/game_save.txt");
         if (!file) {
@@ -813,14 +802,13 @@ EntityID Scene_Play::spawnPlayer(){
             exit(-1);
         }
         std::string head;
+        
         while (file >> head) {
             if (head == "Player_pos") {
                 file >> pos_x >> pos_y;
-            }
-            if (head == "Player_hp") {
+            } else if (head == "Player_hp") {
                 file >> hp;
-            }        
-            else {
+            } else {
                 std::cerr << "The game save file format is incorrect!\n";
                 exit(-1);
             }
@@ -1063,7 +1051,7 @@ void Scene_Play::changePlayerStateTo(EntityID entity, PlayerState s) {
 }
 
 void Scene_Play::onEnd() {
-    m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+    m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game));
 }
 
 void Scene_Play::setPaused(bool pause) {
@@ -1093,47 +1081,6 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, EntityID entity) {
     }
     
     Vec2 eScale = {4.0f, 4.0f};
-    // switch ((int)eSize.y) {
-    //     case 270:
-    //         eScale.x = 0.15f;
-    //         eScale.y = 0.18f;
-    //         break;
-    //     case 225:
-    //         eScale.x = 0.18f;
-    //         eScale.y = 0.18f;
-    //         break;
-    //     case 192:
-    //         eScale.x = 1.0f;
-    //         eScale.y = 1.0f;
-    //         eSize.x = 64.0f;
-    //         eSize.y = 64.0f;
-    //         break;
-    //     case 128:
-    //         eScale.x = 2.0f;
-    //         eScale.y = 2.0f;
-    //         eSize.x = 32.0f;
-    //         eSize.y = 32.0f;
-    //         break;
-    //     case 64:
-    //         eScale.x = 1.0f;
-    //         eScale.y = 1.0f;
-    //         break;
-    //     case 32:
-    //         eScale.x = 2.0f;
-    //         eScale.y = 2.0f;
-    //         break;
-    //     case 16:
-    //         eScale.x = 4.0f;
-    //         eScale.y = 4.0f;
-    //         break;
-    //     case 24:
-    //         eScale.x = 2.0f;
-    //         eScale.y = 2.0f;
-    //         break; 
-    //     default:
-    //         eScale.x = 1.0f;
-    //         eScale.y = 1.0f;
-    // }
     offset = (m_gridSize - eSize * eScale) / 2.0;
 
     return grid + m_gridSize / 2 - offset;

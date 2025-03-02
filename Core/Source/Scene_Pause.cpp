@@ -1,5 +1,6 @@
 #include "Scene_Pause.h"
 #include "Scene_Play.h"
+#include "Scene_Menu.h"
 #include "Sprite.h"
 #include "Assets.h"
 #include "Game.h"
@@ -24,7 +25,9 @@ Scene_Pause::Scene_Pause(Game* game)
 }
 
 void Scene_Pause::init() {
-    registerAction(SDLK_ESCAPE, "QUIT");
+    registerAction(SDLK_ESCAPE, "ESC");
+    registerAction(SDL_BUTTON_LEFT , "CLICK");
+    registerAction(SDLK_c, "TOGGLE_COLLISION");
     loadPause();
 }
 
@@ -87,20 +90,11 @@ Vec2 Scene_Pause::gridToMidPixel(float gridX, float gridY, Entity entity) {
 }
 
 void Scene_Pause::loadPause(){
-
-    // EntityID entityId1 = m_ECS.addEntity();
-    // Entity entity1 = {entityId1, &m_ECS};
-    // entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
-    // entity1.addComponent<CTopLayer>();
-    // entity1.addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
-    // entity1.getComponent<CTransform>().scale = Vec2{1.2f, 1.2f};
-    // entity1.addComponent<CName>("game_title");
-
-    spawnButton(Vec2 {512.0f +0.0f,64*7.0f +38.4f}, "button_unpressed", "new", "NEW GAME");
-    spawnButton(Vec2 {512.0f +0.0f,64*9.0f +12.8f}, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2 {512.0f +0.0f,64*7.0f}, 1.f, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2 {512.0f +0.0f,64*13.0f}, 2.f, "button_unpressed", "main menu", "Save and return to Main Menu");
 }
 
-void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
+void Scene_Pause::spawnButton(const Vec2 pos, const float length, const std::string& unpressed, const std::string& name, const std::string& dialog)
 {   
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
@@ -108,16 +102,50 @@ void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, cons
     entity.addComponent<CTopLayer>();
     Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
     entity.addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
-    entity.getComponent<CTransform>().scale = Vec2{4,4};
+    entity.getComponent<CTransform>().scale = Vec2{4*length,4};
     entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*4);
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(midGrid, entity.getComponent<CAnimation>().animation.getSize()*4, m_game->assets().getTexture(dialog));
+    entity.addComponent<CDialog>(midGrid, entity.getComponent<CAnimation>().animation.getSize()*4*length, m_game->assets().getTexture(dialog));
 
 }
 
 void Scene_Pause::sDoAction(const Action& action) {
-    if (action.name() == "QUIT") {
-        onEnd();
+    if (action.type() == "END") {
+        if (action.name() == "CLICK") {
+            auto view = m_ECS.view<CBoundingBox>();
+            for (auto e : view){
+                auto &transform = m_ECS.getComponent<CTransform>(e);
+                auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
+                auto &name = m_ECS.getComponent<CName>(e).name;
+
+                if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
+                    if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                        if ( name == "continue" ){
+                            if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
+                                auto playScene = std::dynamic_pointer_cast<Scene_Play>(m_game->sceneMap().at("PLAY"));
+                                playScene->setPaused(false);
+                            }
+                            m_game->changeScene("PLAY", nullptr, true);
+                            
+                        } else if ( name == "main menu" ){
+                            m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
+                            if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
+                                m_game->sceneMap().erase("PLAY");
+                            }
+                        }
+                    }
+                }
+            }
+        } else if ( action.name() == "TOGGLE_COLLISION") { 
+            m_drawCollision = !m_drawCollision; 
+            std::cout << "Collision: " << m_drawCollision << std::endl;
+        } else if ( action.name() == "ESC") { 
+            m_game->changeScene("PLAY", nullptr, true);
+            if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
+                auto playScene = std::dynamic_pointer_cast<Scene_Play>(m_game->sceneMap().at("PLAY"));
+                playScene->setPaused(false);
+            }
+        }
     }
 }
 
@@ -135,7 +163,6 @@ void Scene_Pause::sAnimation() {
 
 void Scene_Pause::sRender() {
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 200); // 50% transparent black
-    // SDL_Rect fullscreenRect = {0, 0, m_game->windowSize().x, m_game->windowSize().y};
     SDL_RenderFillRect(m_game->renderer(), nullptr);
     if (m_drawTextures){
         auto view = m_ECS.view<CBottomLayer>();
@@ -233,7 +260,6 @@ void Scene_Pause::sRender() {
 }
 
 void Scene_Pause::onEnd() {
-    m_game->quit();
 }
 
 void Scene_Pause::setPaused(bool pause) {
