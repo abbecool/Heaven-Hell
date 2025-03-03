@@ -1,2 +1,2 @@
-CONTINUE 1010 256
-Save_and_return_to_Main_Menu 996 336
+Save_and_return_to_Main_Menu 964 702
+CONTINUE 969 831

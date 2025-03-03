@@ -44,8 +44,6 @@ constexpr Signature CDamageMask             = 1 << 14; // Bit 14
 constexpr Signature CWeaponChildMask        = 1 << 15; // Bit 15
 constexpr Signature CDialogMask             = 1 << 16; // Bit 16
 constexpr Signature CPathfindMask           = 1 << 17; // Bit 17
-constexpr Signature CTopLayerMask           = 1 << 18; // Bit 18
-constexpr Signature CBottomLayerMask        = 1 << 19; // Bit 19
 constexpr Signature CScriptMask             = 1 << 20; // Bit 20
 constexpr Signature CVelocityMask           = 1 << 21; // Bit 21
 constexpr Signature CLifespanMask           = 1 << 22; // Bit 22
@@ -134,8 +132,6 @@ private:
         { typeid(CWeaponChild), CWeaponChildMask },
         { typeid(CDialog), CDialogMask },
         { typeid(CPathfind), CPathfindMask },
-        { typeid(CTopLayer), CTopLayerMask },
-        { typeid(CBottomLayer), CBottomLayerMask },
         { typeid(CScript), CScriptMask },
         { typeid(CVelocity), CVelocityMask },
         { typeid(CLifespan), CLifespanMask },

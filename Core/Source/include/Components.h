@@ -136,15 +136,6 @@ struct CAnimation
             : animation(animation), repeat(r), layer(l){}
 };  
 
-struct CTopLayer
-{
-    CTopLayer() {}
-};
-
-struct CBottomLayer
-{
-    CBottomLayer() {}
-};
 struct CState
 {
     PlayerState state;
