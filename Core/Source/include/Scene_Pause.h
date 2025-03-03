@@ -7,48 +7,31 @@
 
 class Scene_Pause : public Scene
 {
-    struct PlayerConfig
-    {
-        float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
-        std::string WEAPON; 
-    };
 
     protected:
 
     EntityID m_player;
     std::string m_levelPath;
-    PlayerConfig m_playerConfig;
-    Physics m_physics;
-    Vec2 levelSize;
     Vec2 cameraPos;
     bool cameraFollow = true;
     float cameraZoom = 1;
-    bool m_drawTextures = true;
-    bool m_drawCollision = false;
-    bool m_drawDrawGrid = false;
-    bool m_drawCoordinates = false;
     bool m_hold_CTRL = false;
     bool m_hold_CLICK = false;
-    const Vec2 m_gridSize = { 64, 64 };
-
-    void init();
-    void loadPause();
-    Vec2 gridToMidPixel(float, float, Entity);
-
-    void spawnButton(const Vec2 pos, float length, const std::string& button_name, const std::string& name, const std::string& dialog);
-    void sDragButton();
-    
-    void saveLayout(const std::string& path);
-    void loadLayout(const std::string& path);
 
     void sAnimation();
     void sRender();
-    
-    void onEnd();
+    void sDragButton();
+
+    void spawnButton(const Vec2 pos, const std::string& button_name, const std::string& name, const std::string& dialog);
+    void saveLayout(const std::string& path);
+    void loadLayout(const std::string& path);
     void setPaused(bool);
+
+    void onEnd(){};
     
     public:
-    void sDoAction(const Action&);
+
     Scene_Pause(Game* game);
     void update();
+    void sDoAction(const Action&);
 };

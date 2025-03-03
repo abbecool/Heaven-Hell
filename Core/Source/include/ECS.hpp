@@ -63,7 +63,12 @@ public:
 
     // Get the signature of a specific entity
     Signature getSignature(EntityID entity) const {
-        return m_signatures.at(entity);
+        auto it = m_signatures.find(entity);
+        if (it != m_signatures.end()) {
+            return it->second;
+        } else {
+            throw std::out_of_range("Entity signature not found");
+        }
     }
 
     // Remove the signature for a given entity
@@ -240,7 +245,15 @@ public:
     template <typename T>
     ComponentPool<T>& getComponentPool() {
         std::type_index typeIdx(typeid(T));
-        return *reinterpret_cast<ComponentPool<T>*>(m_componentPools.at(typeIdx).get());        
+        auto it = m_componentPools.find(typeIdx);
+        if (it != m_componentPools.end()) {
+            return *reinterpret_cast<ComponentPool<T>*>(it->second.get());
+        } else {
+            static ComponentPool<T> emptyPool;
+            return emptyPool;
+            std::cout << "Component pool not found for type: " << typeid(T).name() << std::endl;
+            // throw std::out_of_range("Component pool not found for the given type");
+        }
     }
 
     template <typename T>

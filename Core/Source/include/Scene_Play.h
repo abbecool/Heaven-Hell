@@ -30,8 +30,8 @@ class Scene_Play : public Scene
     PlayerConfig m_rooterConfig;
     PlayerConfig m_goblinConfig;
     Physics m_physics;
-    Camera m_camera;
-    Vec2 cameraPos;
+    // Camera m_camera;
+    // Vec2 cameraPos;
     float m_zoomStep = 2;
     Vec2 m_currentChunk = Vec2{1, 0};
     Vec2 m_chunkSize = Vec2{8, 8};
@@ -39,14 +39,9 @@ class Scene_Play : public Scene
     std::vector<EntityID> m_loadedChunkIDs;
     LevelLoader m_levelLoader;
     std::shared_ptr<Scene_Inventory> m_inventory_scene;
-    const Vec2 m_gridSize = { 64, 64 };
     Vec2 m_levelSize;
-    Vec2 m_mousePosition;
+    // Vec2 m_mousePosition;
     bool cameraFollow = true;
-    float cameraZoom = 0.75f;
-    bool m_drawTextures = true;
-    bool m_drawCollision = false;
-    bool m_drawDrawGrid = false;
     bool m_inventoryOpen = false;
     bool m_newGame;
     std::vector<std::vector<std::string>> m_pixelMatrix;
@@ -59,13 +54,11 @@ class Scene_Play : public Scene
         {"piercing", {"shielded"}}
     };
     
-    void init(const std::string&);
     void loadLevel(const std::string& path);
     void loadConfig(const std::string& path);
     void loadMobsNItems(const std::string& path);
     
     void saveGame(const std::string& filename);
-    Vec2 gridToMidPixel(float, float, EntityID);
     
     // void spawnHUD();
     EntityID spawnPlayer();
@@ -93,7 +86,6 @@ class Scene_Play : public Scene
     void sStatus();
     void sAnimation();
     void sRender();
-    void spriteRender(Animation &animation);
     void sAudio();
     
     void sDoAction(const Action&);

@@ -27,12 +27,6 @@
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), m_levelPath(levelPath), m_newGame(newGame)
 {
-    init(m_levelPath);
-    m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
-    m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
-}
-
-void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_w, "UP");
     registerAction(SDLK_UP, "UP");
     registerAction(SDLK_s, "DOWN");
@@ -70,6 +64,10 @@ void Scene_Play::init(const std::string& levelPath) {
     spawnPlayer();
     loadMobsNItems("config_files/mobs.txt"); // mobs have to spawn after player, so they can target the player
     spawnWeapon(Vec2{364, 90}*m_gridSize, 7);
+
+    m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
+    cameraZoom = 0.75f;
+    m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
@@ -652,131 +650,71 @@ void Scene_Play::sRender() {
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     SDL_RenderClear(m_game->renderer());
-    Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
-    
-    if (m_drawTextures)
-    {
-        auto& transformPool = m_ECS.getComponentPool<CTransform>();
-        auto& animationPool = m_ECS.getComponentPool<CAnimation>();
-        
-        auto layers = m_rendererManager.getLayers();
-        for (const auto& layer : layers)
-        {
-            for (const auto& e : layer)
-            {                
-                if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e)) {
-                    continue;
-                }
-                auto& transform = transformPool.getComponent(e);
-                auto& animation = animationPool.getComponent(e).animation;
+    sRenderBasic();
 
-                // Adjust the entity's position based on the camera position
-                Vec2 adjustedPosition = transform.pos - m_camera.position;
-                auto distanceToCenter = adjustedPosition - screenCenter;
-                adjustedPosition += distanceToCenter * (cameraZoom - 1);
+    Animation animation;
+    auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP) / 2;
+    
+    for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max / 2; i++)
+    {   
+        if (hearts >= i)
+        {
+            animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
+        }
+        else if (i - hearts == 0.5f)
+        {
+            animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
+        }
+        else
+        {
+            animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
+        }
+        animation.setScale(Vec2{4, 4});
+        animation.setDestRect(Vec2{(float)(i - 1) * animation.getSize().x * animation.getScale().x, 0});
+        spriteRender(animation);
+    }
+
+    Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& viewHealth = m_ECS.getComponentPool<CHealth>();
+    for (auto entityID : viewHealth)
+    {   
+        if (entityID == m_player) { continue; }
+        auto& health = viewHealth.getComponent(entityID);
+        if ((int)(m_currentFrame - health.damage_frame) < health.i_frames)
+        {
+            auto& transform = transformPool.getComponent(entityID);
+            Vec2 adjustedPosition = transform.pos - m_camera.position;
+            auto distanceToCenter = adjustedPosition - screenCenter;
+            adjustedPosition += distanceToCenter * (cameraZoom - 1);
+
+            Animation animation;
+            auto hearts = float(health.HP) / 2;
+
+            for (int i = 1; i <= health.HP_max / 2; i++)
+            {   
+                if (hearts >= i)
+                {
+                    animation = health.animation_full;
+                }
+                else if (i - hearts == 0.5f)
+                {
+                    animation = health.animation_half;
+                }
+                else
+                {
+                    animation = health.animation_empty;
+                }
 
                 animation.setScale(transform.scale * cameraZoom);
-                animation.setAngle(transform.angle);
-                animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
+                animation.setDestRect(Vec2{
+                    adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
+                    adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
+                });
                 spriteRender(animation);
             }
         }
-
-        auto& viewHealth = m_ECS.getComponentPool<CHealth>();
-        for (auto entityID : viewHealth)
-        {   
-            if (entityID == m_player) { continue; }
-            auto& health = viewHealth.getComponent(entityID);
-            if ((int)(m_currentFrame - health.damage_frame) < health.i_frames)
-            {
-                auto& transform = transformPool.getComponent(entityID);
-                Vec2 adjustedPosition = transform.pos - m_camera.position;
-                auto distanceToCenter = adjustedPosition - screenCenter;
-                adjustedPosition += distanceToCenter * (cameraZoom - 1);
-
-                Animation animation;
-                auto hearts = float(health.HP) / 2;
-
-                for (int i = 1; i <= health.HP_max / 2; i++)
-                {   
-                    if (hearts >= i)
-                    {
-                        animation = health.animation_full;
-                    }
-                    else if (i - hearts == 0.5f)
-                    {
-                        animation = health.animation_half;
-                    }
-                    else
-                    {
-                        animation = health.animation_empty;
-                    }
-
-                    animation.setScale(transform.scale * cameraZoom);
-                    animation.setDestRect(Vec2{
-                        adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
-                        adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
-                    });
-                    spriteRender(animation);
-                }
-            }
-        }
-        Animation animation;
-        auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP) / 2;
-
-        for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max / 2; i++)
-        {   
-            if (hearts >= i)
-            {
-                animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
-            }
-            else if (i - hearts == 0.5f)
-            {
-                animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
-            }
-            else
-            {
-                animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
-            }
-            animation.setScale(Vec2{4, 4});
-            animation.setDestRect(Vec2{(float)(i - 1) * animation.getSize().x * animation.getScale().x, 0});
-            spriteRender(animation);
-        }
     }
-    
-    if (m_drawCollision)
-    {
-        auto& view = m_ECS.view<CBoundingBox>();
-        auto& transformPool = m_ECS.getComponentPool<CTransform>();
-        auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
-        for (auto e : view)
-        {      
-            auto& transform = transformPool.getComponent(e);
-            auto& box = BboxPool.getComponent(e);
-
-            // Adjust the collision box position based on the camera position
-            SDL_Rect collisionRect;
-            collisionRect.x = (int)(transform.pos.x - box.halfSize.x - m_camera.position.x);
-            collisionRect.y = (int)(transform.pos.y - box.halfSize.y - m_camera.position.y);
-            collisionRect.w = (int)(box.size.x);
-            collisionRect.h = (int)(box.size.y);
-
-            SDL_SetRenderDrawColor(m_game->renderer(), box.red, box.green, box.blue, 255);
-            SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
-        }
-    }
-}
-
-void Scene_Play::spriteRender(Animation &animation){
-    SDL_RenderCopyEx(
-        m_game->renderer(), 
-        animation.getTexture(), 
-        animation.getSrcRect(), 
-        animation.getDestRect(),
-        animation.getAngle(),
-        NULL,
-        SDL_FLIP_NONE
-    );
 }
 
 void Scene_Play::sAudio(){
@@ -815,7 +753,7 @@ EntityID Scene_Play::spawnPlayer(){
         }
     }
     Vec2 pos = Vec2{64*(float)pos_x, 64*(float)pos_y};
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entityID);
+    Vec2 midGrid = gridToMidPixel(pos, entityID);
 
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, m_playerConfig.SPEED, true);
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
@@ -851,7 +789,7 @@ EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int l
 EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
     auto entity = m_ECS.addEntity();
 
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
     m_ECS.addComponent<CName>(entity, "staff");
@@ -866,7 +804,7 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
 EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation){
     auto entity = m_ECS.addEntity();
 
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, collisionBox);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(animation), true, layer);
@@ -878,7 +816,7 @@ EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t l
 
 EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
     m_ECS.addComponent<CImmovable>(entity);
@@ -888,7 +826,7 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
 EntityID Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(ani), true, 3);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0.0f, movable);
     m_ECS.addComponent<CHealth>(entity, (int)10, (int)10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {""};
@@ -900,7 +838,7 @@ EntityID Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     // std::vector<int> ranArray = generateRandomArray(1, m_ECS.getNumEntities(), 0, 15);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     return entity;
 }
@@ -908,7 +846,7 @@ EntityID Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 EntityID Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     return entity;
 }
@@ -918,7 +856,7 @@ EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("campfire"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
     return entity;
@@ -927,7 +865,7 @@ EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
 EntityID Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
 {
     auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
     m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
@@ -937,7 +875,7 @@ EntityID Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int 
 EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
 {
     auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
     m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
@@ -949,7 +887,7 @@ EntityID Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("bridge"), true, 3);
     m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(frame % 4), (float)(int)(frame / 4)});
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0.0f, false);
     return entity;
 }
@@ -974,7 +912,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
     m_ECS.addComponent<CLoot>(entity);
@@ -989,7 +927,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(type), true, 3);
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 150.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 48});
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
@@ -1032,7 +970,7 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
         m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, 10);
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});   
         m_rendererManager.addEntityToLayer(entity, layer);
-        Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+        Vec2 midGrid = gridToMidPixel(pos, entity);
         m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{4, 4}, 0.0f, false);
     }
     return entityIDs;
@@ -1068,20 +1006,4 @@ Vec2 Scene_Play::gridSize(){
 
 Vec2 Scene_Play::levelSize(){
     return m_levelSize;
-}
-
-Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, EntityID entity) {
-    Vec2 offset;
-    Vec2 grid = Vec2{gridX, gridY};
-    Vec2 eSize;
-    if ( m_ECS.hasComponent<CAnimation>(entity) ){
-        eSize = m_ECS.getComponent<CAnimation>(entity).animation.getSize();
-    } else {
-        eSize = m_gridSize/4;
-    }
-    
-    Vec2 eScale = {4.0f, 4.0f};
-    offset = (m_gridSize - eSize * eScale) / 2.0;
-
-    return grid + m_gridSize / 2 - offset;
 }

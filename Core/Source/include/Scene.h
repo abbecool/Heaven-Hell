@@ -4,6 +4,7 @@
 #include "ECS.hpp"
 #include "Renderer.hpp"
 #include "Game.h"
+#include "Camera.h"
 
 #include <cstddef>
 #include <map>
@@ -26,11 +27,19 @@ class Scene
     bool m_pause = false;
     bool m_hasEnded = false;
     size_t m_currentFrame = 0;
+
+    Camera m_camera;
+    float cameraZoom = 1.f;
     Vec2 m_mousePosition;
     int m_mouseScroll;
     MouseState m_mouseState;
+    bool m_drawTextures = true;
+    bool m_drawCollision = false;
+    bool m_drawDrawGrid = false;
+    const Vec2 m_gridSize = { 64, 64 };
 
     virtual void onEnd() = 0;
+    Vec2 gridToMidPixel(Vec2 grid, EntityID);
 
     public:
     ECS m_ECS;
@@ -42,7 +51,9 @@ class Scene
 
     virtual void update() = 0;
     virtual void sDoAction(const Action& action) = 0;
-    virtual void sRender() = 0;
+
+    void spriteRender(Animation &animation);
+    void sRenderBasic();
 
     virtual void doAction(const Action& action);
     void registerAction(int inputKey, const std::string& actionName);
@@ -59,5 +70,4 @@ class Scene
 
     Vec2 getMousePosition();
     MouseState getMouseState();
-    // void DestroySubScene();
 };
