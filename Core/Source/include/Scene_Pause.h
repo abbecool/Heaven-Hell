@@ -27,6 +27,8 @@ class Scene_Pause : public Scene
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
     bool m_drawCoordinates = false;
+    bool m_hold_CTRL = false;
+    bool m_hold_CLICK = false;
     const Vec2 m_gridSize = { 64, 64 };
 
     void init();
@@ -34,6 +36,10 @@ class Scene_Pause : public Scene
     Vec2 gridToMidPixel(float, float, Entity);
 
     void spawnButton(const Vec2 pos, float length, const std::string& button_name, const std::string& name, const std::string& dialog);
+    void sDragButton();
+    
+    void saveLayout(const std::string& path);
+    void loadLayout(const std::string& path);
 
     void sAnimation();
     void sRender();

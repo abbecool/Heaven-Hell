@@ -202,10 +202,11 @@ struct CDialog
     Vec2 pos;
     Vec2 size;
     SDL_Texture * dialog;
+    std::string dialog_text;
 
     CDialog() {}
-    CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia) 
-        : pos(p), size(sz), dialog(dia){}
+    CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia, std::string txt) 
+        : pos(p), size(sz), dialog(dia), dialog_text(txt){}
 };
 
 struct CPathfind

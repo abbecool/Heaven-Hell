@@ -28,6 +28,8 @@ void Scene_Pause::init() {
     registerAction(SDLK_ESCAPE, "ESC");
     registerAction(SDL_BUTTON_LEFT , "CLICK");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
+    registerAction(SDLK_s, "SAVE_LAYOUT");
+    registerAction(SDLK_LCTRL, "CTRL");
     loadPause();
 }
 
@@ -90,8 +92,50 @@ Vec2 Scene_Pause::gridToMidPixel(float gridX, float gridY, Entity entity) {
 }
 
 void Scene_Pause::loadPause(){
-    spawnButton(Vec2 {512.0f +0.0f,64*7.0f}, 1.f, "button_unpressed", "continue", "CONTINUE");
-    spawnButton(Vec2 {512.0f +0.0f,64*13.0f}, 2.f, "button_unpressed", "main menu", "Save and return to Main Menu");
+    // spawnButton(Vec2 {512.0f +0.0f,64*7.0f}, 1.f, "button_unpressed", "continue", "CONTINUE");
+    // spawnButton(Vec2 {512.0f +0.0f,64*13.0f}, 2.f, "button_unpressed", "main menu", "Save_and_return_to_Main_Menu");
+    
+    loadLayout("config_files/pause_menu/button_placement.txt");
+}
+
+void Scene_Pause::saveLayout(const std::string& filename) {
+    std::ofstream saveFile(filename);
+    
+
+    auto dialogPool = m_ECS.getComponentPool<CDialog>();    
+    auto transformPool = m_ECS.getComponentPool<CTransform>();
+    auto view = m_ECS.signatureView<CDialog, CTransform>();
+    if (saveFile.is_open()) {
+        for (auto e : view) {
+            auto dialog_text = dialogPool.getComponent(e).dialog_text;
+            auto pos = transformPool.getComponent(e).pos;
+            saveFile << dialog_text << " " << pos.x << " " << pos.y << std::endl;
+        }
+        saveFile.close();
+    } else {
+        std::cerr << "Unable to open file for saving!" << std::endl;
+    }
+}
+
+void Scene_Pause::loadLayout(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file) {
+        std::cerr << "Could not load button_placement.txt file!\n";
+        exit(-1);
+    }
+    std::string head;
+    std::string dialog;
+    float pos_x, pos_y;
+    while (file >> dialog) {
+        file >> pos_x >> pos_y;      
+        std::cout << dialog << " " << pos_x << " " << pos_y << std::endl;
+        spawnButton(Vec2 {pos_x, pos_y}, 2.f, "button_unpressed", dialog, dialog); 
+        // } else {
+        //     std::cerr << "head to " << head << "\n";
+        //     std::cerr << "The config file format is incorrect!\n";
+        //     exit(-1);
+        // }
+    }
 }
 
 void Scene_Pause::spawnButton(const Vec2 pos, const float length, const std::string& unpressed, const std::string& name, const std::string& dialog)
@@ -100,34 +144,46 @@ void Scene_Pause::spawnButton(const Vec2 pos, const float length, const std::str
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
     entity.addComponent<CTopLayer>();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    entity.addComponent<CTransform>(midGrid,Vec2 {0, 0}, false);
-    entity.getComponent<CTransform>().scale = Vec2{4*length,4};
-    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*4);
+    // Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    float dynamic_length = (float)(dialog.length());
+    entity.getComponent<CTransform>().scale = Vec2{dynamic_length,4};
+    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,4});
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(midGrid, entity.getComponent<CAnimation>().animation.getSize()*4*length, m_game->assets().getTexture(dialog));
+    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,4}, m_game->assets().getTexture(dialog), dialog);
 
 }
 
 void Scene_Pause::sDoAction(const Action& action) {
+    if (action.type() == "START") {
+        if (action.name() == "CTRL") {
+            m_hold_CTRL = true;
+        }
+        if (action.name() == "CLICK") {
+            m_hold_CLICK = true;
+        }
+    }
     if (action.type() == "END") {
         if (action.name() == "CLICK") {
+            m_hold_CLICK = false;
             auto view = m_ECS.view<CBoundingBox>();
             for (auto e : view){
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
                 auto &name = m_ECS.getComponent<CName>(e).name;
-
+                if (m_hold_CTRL) {
+                    continue;
+                }
                 if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
-                        if ( name == "continue" ){
+                        if ( name == "CONTINUE" ){
                             if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
                                 auto playScene = std::dynamic_pointer_cast<Scene_Play>(m_game->sceneMap().at("PLAY"));
                                 playScene->setPaused(false);
                             }
                             m_game->changeScene("PLAY", nullptr, true);
                             
-                        } else if ( name == "main menu" ){
+                        } else if ( name == "Save_and_return_to_Main_Menu" ){
                             m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
                             if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
                                 m_game->sceneMap().erase("PLAY");
@@ -146,11 +202,36 @@ void Scene_Pause::sDoAction(const Action& action) {
                 playScene->setPaused(false);
             }
         }
+        if ( action.name() == "SAVE_LAYOUT") {
+            saveLayout("config_files/pause_menu/button_placement.txt");
+        }
+        if (action.name() == "CTRL") {
+            m_hold_CTRL = false;
+        }
+    }
+}
+
+void Scene_Pause::sDragButton() {
+    if (m_hold_CTRL && m_hold_CLICK) {
+        auto view = m_ECS.signatureView<CBoundingBox, CTransform, CName>();
+        for (auto e : view) {
+            auto& transform = m_ECS.getComponent<CTransform>(e);
+            auto& Bbox = m_ECS.getComponent<CBoundingBox>(e);
+            auto& dialog = m_ECS.getComponent<CDialog>(e);
+
+            if (m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x - Bbox.halfSize.x) {
+                if (m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y - Bbox.halfSize.y) {
+                    transform.pos = m_mousePosition;
+                    dialog.pos = m_mousePosition;
+                }
+            }
+        }
     }
 }
 
 void Scene_Pause::update() {
     sAnimation();
+    sDragButton();
     sRender();
 }
 
