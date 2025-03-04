@@ -63,6 +63,8 @@ public:
     SDL_Window* window(); 
     Assets& assets(); 
     SceneMap& sceneMap();
+    int getVirtualWidth();
+    int getVirtualHeight();
     int getWidth();
     int getHeight();
     void setWidth(int width);

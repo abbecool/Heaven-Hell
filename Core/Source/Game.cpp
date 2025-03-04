@@ -155,6 +155,16 @@ SDL_Window* Game::window(){
     return m_window;
 }
 
+int Game::getVirtualWidth()
+{
+    return VIRTUAL_WIDTH;
+}
+
+int Game::getVirtualHeight()
+{
+    return VIRTUAL_HEIGHT;
+}
+
 int Game::getWidth()
 {
     return m_width;

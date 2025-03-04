@@ -109,11 +109,11 @@ void Scene::sRenderBasic() {
 }
 
 int Scene::width() const {
-    return m_game->getWidth();
+    return m_game->getVirtualWidth();
 }
 
 int Scene::height() const {
-    return m_game->getHeight();
+    return m_game->getVirtualHeight();
 }
 
 size_t Scene::currentFrame() const {

@@ -51,10 +51,10 @@ void Scene_Menu::loadMenu()
 
     spawnButton(Vec2 {64.f, 64.f}, "button_unpressed", "new", "NEW_GAME");
     spawnButton(Vec2 {64.f, 128.f}, "button_unpressed", "continue", "CONTINUE");
-    spawnButton(Vec2 {(float)width()-64.f,64.f }, "button_unpressed", "720p", "720p");
-    spawnButton(Vec2 {(float)width()-64.f,128.f }, "button_unpressed", "1080p", "1080p");
-    spawnButton(Vec2 {(float)width()-64.f,196.f }, "button_unpressed", "1440p", "1440p");
-    spawnButton(Vec2 {(float)width()-64.f,256.f }, "button_unpressed", "4K", "4K");
+    spawnButton(Vec2 {float(width())-64.f,64.f }, "button_unpressed", "720p", "720p");
+    spawnButton(Vec2 {float(width())-64.f,128.f }, "button_unpressed", "1080p", "1080p");
+    spawnButton(Vec2 {float(width())-64.f,196.f }, "button_unpressed", "1440p", "1440p");
+    spawnButton(Vec2 {float(width())-64.f,256.f }, "button_unpressed", "4K", "4K");
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
