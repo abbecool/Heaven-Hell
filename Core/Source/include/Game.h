@@ -41,7 +41,6 @@ protected:
     int frame_count = 0;
     double accumulated_frame_time = 0.0;
     
-    void init(const std::string & pathImages, const std::string & pathText);
     void update();
     void setPaused(bool paused);
     void sUserInput();

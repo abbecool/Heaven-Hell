@@ -18,16 +18,11 @@
 Scene_Inventory::Scene_Inventory(Game* game)
     : Scene(game)
 {
-    init();
-}
-
-void Scene_Inventory::init() {
     registerAction(SDLK_ESCAPE, "QUIT");
     registerAction(SDLK_e, "QUIT");
     registerAction(SDL_BUTTON_LEFT , "CLICK");
-
+    
     spawnItem("campfire");
-    // spawnItem("staff");
 }
 
 void Scene_Inventory::sDoAction(const Action& action) {
@@ -87,19 +82,6 @@ void Scene_Inventory::sRender() {
         
         spriteRender(animation);
     }
-}
-
-void Scene_Inventory::spriteRender(Animation &animation)
-{
-    SDL_RenderCopyEx(
-        m_game->renderer(), 
-        animation.getTexture(), 
-        animation.getSrcRect(), 
-        animation.getDestRect(),
-        animation.getAngle(),
-        NULL,
-        SDL_FLIP_NONE
-    );
 }
 
 // void Scene_Inventory::sAudio(){

@@ -13,20 +13,8 @@
 
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {
-    init(pathImages, pathText);
-
-    // SDL_DisplayMode DM;
-    // SDL_GetCurrentDisplayMode(0, &DM);
-    // std::cout << "Display is " << DM.w << "x" << DM.h << " pixels" << std::endl;
-    // std::cout << "Display is " << DM.w / VIRTUAL_WIDTH << "x" << DM.h / VIRTUAL_HEIGHT << " virtual pixels" << std::endl;
-    // updateResolution(int(DM.h / VIRTUAL_HEIGHT));
-    
-}
-
-void Game::init(const std::string & pathImages, const std::string & pathText)
-{
     SDL_Init(SDL_INIT_EVERYTHING);
-
+    
     m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_width, m_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     SDL_SetWindowPosition(m_window, 0, 0);
     if ( NULL == m_window )
@@ -43,7 +31,12 @@ void Game::init(const std::string & pathImages, const std::string & pathText)
     Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 );
     
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
+
+    SDL_DisplayMode DM;
+    SDL_GetCurrentDisplayMode(0, &DM);
+    updateResolution(int(DM.h / VIRTUAL_HEIGHT));
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
+    
 }
 
 void Game::updateResolution(int scale)

@@ -16,9 +16,6 @@ class Scene_Inventory : public Scene
     bool m_drawCollision = false;
     bool m_open = false;
 
-    void init();
-    // void saveGame(const std::string& filename);
-
     void spawnBox(Vec2 pos, std::string sprite);
     void spawnItem(std::string sprite);
 
@@ -28,7 +25,6 @@ class Scene_Inventory : public Scene
     void sStatus();
     void sAnimation();
     void sRender();
-    void spriteRender(Animation &animation);
     void sAudio();
 
     void sDoAction(const Action&);
