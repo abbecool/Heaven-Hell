@@ -12,9 +12,6 @@ class Scene_Pause : public Scene
 
     EntityID m_player;
     std::string m_levelPath;
-    Vec2 cameraPos;
-    bool cameraFollow = true;
-    float cameraZoom = 1;
     bool m_hold_CTRL = false;
     bool m_hold_CLICK = false;
 

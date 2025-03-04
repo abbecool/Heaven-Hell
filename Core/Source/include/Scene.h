@@ -16,6 +16,8 @@ typedef std::map<int, std::string> ActionMap;
 struct MouseState {
     Vec2 pos = {0,0};
     int scroll = 0;
+    bool hold_left_click = false;
+    bool hold_right_click = false;
 };
 
 class Scene
@@ -29,7 +31,6 @@ class Scene
     size_t m_currentFrame = 0;
 
     Camera m_camera;
-    float cameraZoom = 1.f;
     Vec2 m_mousePosition;
     int m_mouseScroll;
     MouseState m_mouseState;
@@ -39,24 +40,24 @@ class Scene
     Vec2 m_gridSize = {16, 16};    
     virtual void onEnd() = 0;
     Vec2 gridToMidPixel(Vec2 grid, EntityID);
-
+    
     public:
     ECS m_ECS;
     RendererManager m_rendererManager;
-
+    
     Scene();
     Scene(Game* game);
     virtual ~Scene();
-
+    
     virtual void update() = 0;
     virtual void sDoAction(const Action& action) = 0;
-
+    
     void spriteRender(Animation &animation);
     void sRenderBasic();
-
+    
     virtual void doAction(const Action& action);
     void registerAction(int inputKey, const std::string& actionName);
-
+    
     int width() const;
     int height() const;
     size_t currentFrame() const;

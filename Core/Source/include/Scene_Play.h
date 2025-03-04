@@ -38,7 +38,6 @@ class Scene_Play : public Scene
     LevelLoader m_levelLoader;
     std::shared_ptr<Scene_Inventory> m_inventory_scene;
     Vec2 m_levelSize;
-    bool cameraFollow = true;
     bool m_inventoryOpen = false;
     bool m_newGame;
     std::vector<std::vector<std::string>> m_pixelMatrix;

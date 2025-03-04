@@ -5,7 +5,7 @@
 
 class Camera {
     bool m_cameraFollow = false;
-    Vec2 m_cameraZoom = {1, 1};
+    int m_cameraZoom = 0;
     Vec2 m_screenSize = {1920, 1080};
     Vec2 m_levelSize;
     Vec2 m_gridSize;
@@ -37,8 +37,8 @@ public:
     void toggleCameraFollow();
     bool getCameraFollow();
 
-    void setCameraZoom(Vec2 zoom);
-    Vec2 getCameraZoom();
+    int stepCameraZoom(int zoom, int windowZoom);
+    int getCameraZoom();
 
     bool startPan(float speed, int duration, Vec2 pos, bool pause);
     void panCamera();

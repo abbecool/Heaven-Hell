@@ -20,8 +20,6 @@ class Scene_Menu : public Scene
     PlayerConfig m_playerConfig;
     Physics m_physics;
     Vec2 levelSize;
-    Vec2 cameraPos;
-    bool cameraFollow = true;
 
     void loadMenu();
 

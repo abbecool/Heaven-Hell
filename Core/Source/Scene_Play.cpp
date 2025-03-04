@@ -63,10 +63,9 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     loadLevel(levelPath); 
     spawnPlayer();
     loadMobsNItems("config_files/mobs.txt"); // mobs have to spawn after player, so they can target the player
-    spawnWeapon(Vec2{364/4, 90/4}*m_gridSize, 7);
+    spawnWeapon(Vec2{364, 91}*m_gridSize, 7);
 
     m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
-    cameraZoom = 1.f;
     m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
 }
 
@@ -186,29 +185,10 @@ void Scene_Play::sDoAction(const Action& action) {
             {
                 m_inventory_scene->Scroll(m_mouseState.scroll);
             }
-            else
-            {
-                if (m_mouseState.scroll > 0)
-                {
-                    cameraZoom += 0.25;
-                }
-                if (m_mouseState.scroll < 0)
-                {
-                    cameraZoom -= 0.25;
-                }
-                cameraZoom = std::max( 0.25f, std::min(4.0f, cameraZoom) );
-
-            }
         } else if ( action.name() == "ZOOM IN"){
-            // m_chunkSize += Vec2{4,4};
-            // m_levelLoader.clearChunks(0);
-            int scale = m_game->getScale()+1;
-            m_game->updateResolution(scale);
+            m_camera.stepCameraZoom(-1, m_game->getScale());
         } else if ( action.name() == "ZOOM OUT"){
-            // m_chunkSize -= Vec2{4,4};
-            // m_levelLoader.clearChunks(0);
-            int scale = m_game->getScale()-1;
-            m_game->updateResolution(scale);
+            m_camera.stepCameraZoom(1, m_game->getScale());
         } else if ( action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if ( action.name() == "CAMERA PAN"){
@@ -257,7 +237,7 @@ void Scene_Play::sDoAction(const Action& action) {
                     m_ECS.addComponent<CBoundingBox>(projectileID, Vec2{12, 12});
                     m_ECS.getComponent<CTransform>(projectileID).isMovable = true;
                     m_ECS.getComponent<CProjectileState>(projectileID).state = "Free";
-                    m_ECS.getComponent<CTransform>(projectileID).vel = getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position;
+                    m_ECS.getComponent<CTransform>(projectileID).vel = (getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position);
                     m_ECS.getComponent<CTransform>(projectileID).angle = m_ECS.getComponent<CTransform>(projectileID).vel.angle();
                 } else {
                     m_ECS.queueRemoveEntity(projectileID);
@@ -689,9 +669,9 @@ void Scene_Play::sRender() {
         if ((int)(m_currentFrame - health.damage_frame) < health.i_frames)
         {
             auto& transform = transformPool.getComponent(entityID);
-            Vec2 adjustedPosition = transform.pos - m_camera.position;
-            auto distanceToCenter = adjustedPosition - screenCenter;
-            adjustedPosition += distanceToCenter * (cameraZoom - 1);
+
+            Vec2 adjustedPosition = (transform.pos - m_camera.position) * (windowScale - m_camera.getCameraZoom());
+            adjustedPosition += screenCenter*m_camera.getCameraZoom();
 
             Animation animation;
             auto hearts = float(health.HP) / 2;
@@ -711,11 +691,11 @@ void Scene_Play::sRender() {
                     animation = health.animation_empty;
                 }
 
-                animation.setScale(transform.scale * cameraZoom*windowScale);
+                animation.setScale(transform.scale * windowScale);
                 animation.setDestRect(Vec2{
                     adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
                     adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
-                }*windowScale);
+                });
                 spriteRender(animation);
             }
         }
@@ -796,7 +776,7 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
 
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24/4, 24/4});
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {6, 6});
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     m_rendererManager.addEntityToLayer(entity, 5);
@@ -902,7 +882,7 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{1, 1}, vel.angle(), 400.0f, false);
+    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{1, 1}, vel.angle(), 200.0f, false);
     m_ECS.addComponent<CDamage>(entity, 1); // damage speed 6 = frames between attacking
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CProjectileState>(entity, "Create");
@@ -919,7 +899,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{32/4, 32/4});
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{8, 8});
     m_ECS.addComponent<CLoot>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
     return entity;
@@ -935,7 +915,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1,1}, 0.0f, 50.0f, true);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, m_goblinConfig.SPEED, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{32/4, 48/4});
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{8, 12});
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
 
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));

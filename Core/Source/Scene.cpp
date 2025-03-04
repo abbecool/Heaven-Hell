@@ -30,6 +30,9 @@ void Scene::spriteRender(Animation &animation){
 void Scene::sRenderBasic() {
     Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
     int windowScale = m_game->getScale();
+    int totalZoom = windowScale - m_camera.getCameraZoom(); // Combined zoom level with screen resolution and camera zoom
+    Vec2 screenCenterZoomed = screenCenter * m_camera.getCameraZoom(); // Tranpose the screen center to the zoomed screen center
+    // Above code does not have to be calculated every frame
 
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     if (m_drawTextures)
@@ -53,11 +56,9 @@ void Scene::sRenderBasic() {
                     auto& animation = animationPool.getComponent(e).animation;
                     
                     // Adjust the entity's position based on the camera position
-                    Vec2 adjustedPosition = (transform.pos - m_camera.position) * windowScale;
-                    Vec2 distanceToCenter = adjustedPosition - screenCenter;
-                    adjustedPosition += distanceToCenter * (cameraZoom - 1);
-                    
-                    animation.setScale(transform.scale * cameraZoom * windowScale);
+                    Vec2 adjustedPosition = (transform.pos - m_camera.position) * totalZoom + screenCenterZoomed;
+
+                    animation.setScale(transform.scale * totalZoom);
                     animation.setAngle(transform.angle);
                     animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
                     spriteRender(animation);
@@ -68,10 +69,10 @@ void Scene::sRenderBasic() {
                     auto& transform = m_ECS.getComponent<CTransform>(e);
             
                     SDL_Rect texRect;
-                    texRect.x = (int)(transform.pos.x - dialog.size.x/2 * 0.9f) * windowScale;
-                    texRect.y = (int)(transform.pos.y - dialog.size.y/2 * 0.8f) * windowScale;
-                    texRect.w = (int)(dialog.size.x * 0.9f) * windowScale;
-                    texRect.h = (int)(dialog.size.y * 0.8f) * windowScale;
+                    texRect.x = (int)(transform.pos.x - dialog.size.x/2 * 0.9f) * totalZoom + screenCenterZoomed.x;
+                    texRect.y = (int)(transform.pos.y - dialog.size.y/2 * 0.8f) * totalZoom + screenCenterZoomed.y;
+                    texRect.w = (int)(dialog.size.x * 0.9f) * totalZoom;
+                    texRect.h = (int)(dialog.size.y * 0.8f) * totalZoom;
             
                     SDL_RenderCopyEx(
                         m_game->renderer(), 
@@ -97,10 +98,10 @@ void Scene::sRenderBasic() {
 
             // Adjust the collision box position based on the camera position
             SDL_Rect collisionRect;
-            collisionRect.x = (int)(transform.pos.x - box.halfSize.x - m_camera.position.x) * windowScale;
-            collisionRect.y = (int)(transform.pos.y - box.halfSize.y - m_camera.position.y) * windowScale;
-            collisionRect.w = (int)(box.size.x) * windowScale;
-            collisionRect.h = (int)(box.size.y) * windowScale;
+            collisionRect.x = (int)(transform.pos.x - box.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x;
+            collisionRect.y = (int)(transform.pos.y - box.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
+            collisionRect.w = (int)(box.size.x) * totalZoom;
+            collisionRect.h = (int)(box.size.y) * totalZoom;
 
             SDL_SetRenderDrawColor(m_game->renderer(), box.red, box.green, box.blue, 255);
             SDL_RenderDrawRect(m_game->renderer(), &collisionRect);

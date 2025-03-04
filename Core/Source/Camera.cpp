@@ -78,11 +78,15 @@ bool Camera::getCameraFollow(){
     return m_cameraFollow;
 }
 
-void Camera::setCameraZoom(Vec2 zoom){
-    m_cameraZoom = zoom*m_cameraZoom;
+int Camera::stepCameraZoom(int zoom, int windowZoom){
+    if (windowZoom > m_cameraZoom+zoom)
+    {
+        m_cameraZoom += zoom;
+    }
+    return m_cameraZoom;
 }
 
-Vec2 Camera::getCameraZoom(){
+int Camera::getCameraZoom(){
     return m_cameraZoom;
 }
 
