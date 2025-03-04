@@ -194,7 +194,7 @@ void Game::sUserInput()
             currentScene()->doAction(Action(currentScene()->getActionMap().at(event.button.button), actionType));
         }
         if (event.type == SDL_MOUSEMOTION){
-            currentScene()->updateMousePosition(Vec2{float(event.motion.x),float(event.motion.y)});
+            currentScene()->updateMousePosition(Vec2{float(event.motion.x),float(event.motion.y)}/getScale());
         }
 
         // Mouse scroll wheel handling
