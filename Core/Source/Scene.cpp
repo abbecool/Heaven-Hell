@@ -151,10 +151,10 @@ Vec2 Scene::gridToMidPixel(Vec2 grid, EntityID entity) {
     if ( m_ECS.hasComponent<CAnimation>(entity) ){
         eSize = m_ECS.getComponent<CAnimation>(entity).animation.getSize();
     } else {
-        eSize = m_gridSize/4;
+        eSize = m_gridSize;
     }
     
-    Vec2 eScale = {4.0f, 4.0f};
+    Vec2 eScale = {1.0f, 1.0f};
     offset = (m_gridSize - eSize * eScale) / 2.0;
 
     return grid + m_gridSize / 2 - offset;

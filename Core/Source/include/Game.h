@@ -12,13 +12,12 @@
 
 class Scene;
 typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
-
 class Game
 {   
 protected:
     SDL_DisplayMode DM;
-    int WIDTH = 1920;
-    int HEIGHT = 1080;
+    int WIDTH = 640;
+    int HEIGHT = 360;
 
     SDL_Window *m_window;
     SDL_Renderer *m_renderer;

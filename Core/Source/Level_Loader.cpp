@@ -231,24 +231,24 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             std::vector<std::string> neighborsTags = neighborTag(m_scene->m_pixelMatrix, pixel, x, y, m_width, m_height);
             int textureIndex = getObstacleTextureIndex(neighbors);
             std::unordered_map<std::string, int> tileIndex = createDualGrid(m_scene->m_pixelMatrix, x, y);
-            std::vector<EntityID> ids = m_scene->spawnDualTiles(Vec2 {64*(float)x - 32, 64*(float)y - 32},  tileIndex);
+            std::vector<EntityID> ids = m_scene->spawnDualTiles(Vec2 {16*(float)x - 16/2, 16*(float)y - 16/2},  tileIndex);
             chunkChildren.insert(chunkChildren.end(), ids.begin(), ids.end());
 
             if (pixel == "obstacle") 
             {
-                EntityID id = m_scene->spawnObstacle(Vec2 {64*(float)x, 64*(float)y}, false, textureIndex);
+                EntityID id = m_scene->spawnObstacle(Vec2 {16*(float)x, 16*(float)y}, false, textureIndex);
                 chunkChildren.push_back(id);
             }
             else
             {
                 if (pixel == "lava") 
                 {
-                    EntityID id = m_scene->spawnLava(Vec2 {64*(float)x,64*(float)y}, "Lava", textureIndex);
+                    EntityID id = m_scene->spawnLava(Vec2 {16*(float)x,16*(float)y}, "Lava", textureIndex);
                     chunkChildren.push_back(id);
                 } 
                 else if (pixel == "water") 
                 {
-                    EntityID id = m_scene->spawnWater(Vec2 {64*(float)x,64*(float)y}, "Water", textureIndex);
+                    EntityID id = m_scene->spawnWater(Vec2 {16*(float)x,16*(float)y}, "Water", textureIndex);
                     chunkChildren.push_back(id);
                 }
             }

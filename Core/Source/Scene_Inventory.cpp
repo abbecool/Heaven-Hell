@@ -59,15 +59,15 @@ void Scene_Inventory::sRender() {
     if ( m_open ) 
     {
         Animation inventoryAnimation = m_game->assets().getAnimation("inventory_open");
-        inventoryAnimation.setSrcSize(m_inventorySize*32);
-        inventoryAnimation.setScale({4, 4});
-        inventoryAnimation.setDestRect(m_inventoryPos + Vec2{-16, 16});
+        inventoryAnimation.setSrcSize(m_inventorySize*8);
+        inventoryAnimation.setScale({1, 1});
+        inventoryAnimation.setDestRect(m_inventoryPos + Vec2{-4, 4});
         spriteRender(inventoryAnimation);
     }
     Animation hotbar = m_game->assets().getAnimation("inventory_open");
-    hotbar.setSrcSize(Vec2{4,1}*32);
-    hotbar.setScale({4, 4});
-    hotbar.setDestRect( Vec2{m_game->getWidth()-hotbar.getDestSize().x, 0} + Vec2{-16, 16});
+    hotbar.setSrcSize(Vec2{4,1}*8);
+    hotbar.setScale({1, 1});
+    hotbar.setDestRect( Vec2{m_game->getWidth()-hotbar.getDestSize().x, 0} + Vec2{-4, 4});
     spriteRender(hotbar);
 
     auto view = m_ECS.view<CTransform, CAnimation>();
@@ -79,7 +79,7 @@ void Scene_Inventory::sRender() {
         auto& transform = transformPool2.getComponent(eID);
         auto& animation = animationPool2.getComponent(eID).animation;
 
-        Vec2 adjustedPos = Vec2{m_game->getWidth()-hotbar.getDestSize().x, 0} + Vec2{64, 64} + transform.pos*128 + Vec2{-16, 16};
+        Vec2 adjustedPos = Vec2{m_game->getWidth()-hotbar.getDestSize().x, 0} + Vec2{16, 16} + transform.pos*32 + Vec2{-4, 4};
 
         animation.setScale(transform.scale);
         animation.setAngle(transform.angle);
@@ -116,8 +116,8 @@ void Scene_Inventory::spawnItem(std::string sprite)
     m_item = entityID;
     std::cout << entityID << std::endl;
     Vec2 pos = {(float)((int)(entityID-1)%(int)m_inventorySize.x), (float)((int)(entityID-1)/(int)m_inventorySize.x)};
-    m_ECS.addComponent<CTransform>(entityID, pos, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
-    m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
+    m_ECS.addComponent<CTransform>(entityID, pos, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
+    m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {8, 8});
 
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation(sprite), true, 3);
 }

@@ -70,11 +70,11 @@ void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, cons
     entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
     m_rendererManager.addEntityToLayer(entityId, 5);
     entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    float dynamic_length = (float)(dialog.length());
-    entity.getComponent<CTransform>().scale = Vec2{dynamic_length,4};
-    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,4});
+    float dynamic_length = (float)(dialog.length()/4);
+    entity.getComponent<CTransform>().scale = Vec2{dynamic_length,1};
+    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1});
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,4}, m_game->assets().getTexture(dialog), dialog);
+    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1}, m_game->assets().getTexture(dialog), dialog);
 }
 
 void Scene_Pause::sDoAction(const Action& action) {

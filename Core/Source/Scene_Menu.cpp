@@ -37,26 +37,26 @@ void Scene_Menu::loadMenu()
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true, 9);
     m_rendererManager.addEntityToLayer(entityId, 1);
-    Vec2 vec = entity.getComponent<CAnimation>().animation.getSize();
-    entity.addComponent<CTransform>(vec/2, Vec2 {0, 0}, false);
-    entity.getComponent<CTransform>().scale = Vec2{1, 1};
+    Vec2 midPixel = gridToMidPixel(Vec2{0, 0}, entityId);
+    midPixel.print("midpixel");
+    entity.addComponent<CTransform>(midPixel, Vec2{0, 0}, false);
+    // entity.getComponent<CTransform>().scale = Vec2{0.5, 0.5};
     entity.addComponent<CName>("title_screen");
 
     EntityID entityId1 = m_ECS.addEntity();
     Entity entity1 = {entityId1, &m_ECS};
     entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
     m_rendererManager.addEntityToLayer(entityId1, 2);
-    entity1.addComponent<CTransform>(Vec2 {1250, 180},Vec2 {0, 0}, false);
-    entity1.getComponent<CTransform>().scale = Vec2{1.2f, 1.2f};
+    entity1.addComponent<CTransform>(Vec2 {300, 45},Vec2 {0, 0}, false);
     entity1.addComponent<CName>("game_title");
 
-    spawnButton(Vec2 {128.0f +0.0f,64*7.0f +38.4f}, "button_unpressed", "new", "NEW_GAME");
-    spawnButton(Vec2 {128.0f +0.0f,64*9.0f +12.8f}, "button_unpressed", "continue", "CONTINUE");
-    spawnButton(Vec2 {(float)width()-196.0f,64.0f }, "button_unpressed", "720p", "720p");
-    spawnButton(Vec2 {(float)width()-196.0f,196.0f }, "button_unpressed", "1080p", "1080p");
-    spawnButton(Vec2 {(float)width()-196.0f,320.0f }, "button_unpressed", "1440p", "1440p");
-    spawnButton(Vec2 {(float)width()-196.0f,428.0f }, "button_unpressed", "1440p Wide", "1440p_Wide");
-    spawnButton(Vec2 {(float)width()-196.0f,536.0f }, "button_unpressed", "1440p Super wide", "1440p_Super_wide");
+    spawnButton(Vec2 {60, 35}, "button_unpressed", "new", "NEW_GAME");
+    spawnButton(Vec2 {60, 55}, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2 {(float)width()-196.f/3,64.f/3 }, "button_unpressed", "720p", "720p");
+    spawnButton(Vec2 {(float)width()-196.f/3,196.f/3 }, "button_unpressed", "1080p", "1080p");
+    spawnButton(Vec2 {(float)width()-196.f/3,320.f/3 }, "button_unpressed", "1440p", "1440p");
+    spawnButton(Vec2 {(float)width()-196.f/3,428.f/3 }, "button_unpressed", "1440p Wide", "1440p_Wide");
+    spawnButton(Vec2 {(float)width()-196.f/3,536.f/3 }, "button_unpressed", "1440p Super wide", "1440p_Super_wide");
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
@@ -75,10 +75,10 @@ void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const
     entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
     m_rendererManager.addEntityToLayer(entityId, 3);
     entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    entity.getComponent<CTransform>().scale = Vec2{4,4};
-    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*4);
+    entity.getComponent<CTransform>().scale = Vec2{1,1};
+    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*4, m_game->assets().getTexture(dialog), dialog);
+    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
 
 }
 
