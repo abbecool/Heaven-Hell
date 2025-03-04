@@ -30,8 +30,6 @@ class Scene_Play : public Scene
     PlayerConfig m_rooterConfig;
     PlayerConfig m_goblinConfig;
     Physics m_physics;
-    // Camera m_camera;
-    // Vec2 cameraPos;
     float m_zoomStep = 2;
     Vec2 m_currentChunk = Vec2{1, 0};
     Vec2 m_chunkSize = Vec2{8, 8};
@@ -40,7 +38,6 @@ class Scene_Play : public Scene
     LevelLoader m_levelLoader;
     std::shared_ptr<Scene_Inventory> m_inventory_scene;
     Vec2 m_levelSize;
-    // Vec2 m_mousePosition;
     bool cameraFollow = true;
     bool m_inventoryOpen = false;
     bool m_newGame;

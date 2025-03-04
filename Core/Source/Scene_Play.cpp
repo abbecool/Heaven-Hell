@@ -200,11 +200,13 @@ void Scene_Play::sDoAction(const Action& action) {
 
             }
         } else if ( action.name() == "ZOOM IN"){
-            m_chunkSize += Vec2{4,4};
-            m_levelLoader.clearChunks(0);
+            // m_chunkSize += Vec2{4,4};
+            // m_levelLoader.clearChunks(0);
+            m_game->setScale(m_game->getScale()+1);
         } else if ( action.name() == "ZOOM OUT"){
-            m_chunkSize -= Vec2{4,4};
-            m_levelLoader.clearChunks(0);
+            // m_chunkSize -= Vec2{4,4};
+            // m_levelLoader.clearChunks(0);
+            m_game->setScale(m_game->getScale()-1);
         } else if ( action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if ( action.name() == "CAMERA PAN"){
@@ -857,7 +859,7 @@ EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
     m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("campfire"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32/4, 32/4});
     return entity;
 }
@@ -866,7 +868,7 @@ EntityID Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int 
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64/4, 64/4});
     return entity;
@@ -876,7 +878,7 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64/4, 64/4});
     return entity;
@@ -888,7 +890,7 @@ EntityID Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("bridge"), true, 3);
     m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(frame % 4), (float)(int)(frame / 4)});
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     return entity;
 }
 
@@ -913,7 +915,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1,1}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32/4, 32/4});
     m_ECS.addComponent<CLoot>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
@@ -929,6 +931,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1,1}, 0.0f, 50.0f, true);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, m_goblinConfig.SPEED, false);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{32/4, 48/4});
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
 

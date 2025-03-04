@@ -38,6 +38,13 @@ void Game::init(const std::string & pathImages, const std::string & pathText)
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
 }
 
+void Game::updateResolution(int width, int height)
+{
+    SDL_SetWindowSize(m_window, width, height);
+    setWidth(width);
+    setHeight(height);
+}
+
 std::shared_ptr<Scene> Game::currentScene() {
     return m_sceneMap[m_currentScene];
 }
@@ -226,4 +233,12 @@ Assets& Game::assets(){
 void Game::setPaused(bool paused)
 {
     m_paused = paused;
+}
+
+void Game::setScale(int scale){
+    m_scale = scale;
+}
+
+int Game::getScale(){
+    return m_scale;
 }

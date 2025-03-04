@@ -38,7 +38,6 @@ void Scene_Menu::loadMenu()
     entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true, 9);
     m_rendererManager.addEntityToLayer(entityId, 1);
     Vec2 midPixel = gridToMidPixel(Vec2{0, 0}, entityId);
-    midPixel.print("midpixel");
     entity.addComponent<CTransform>(midPixel, Vec2{0, 0}, false);
     // entity.getComponent<CTransform>().scale = Vec2{0.5, 0.5};
     entity.addComponent<CName>("title_screen");

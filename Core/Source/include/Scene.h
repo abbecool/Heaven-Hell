@@ -36,8 +36,7 @@ class Scene
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
-    const Vec2 m_gridSize = { 16, 16 };
-
+    Vec2 m_gridSize = {16, 16};    
     virtual void onEnd() = 0;
     Vec2 gridToMidPixel(Vec2 grid, EntityID);
 

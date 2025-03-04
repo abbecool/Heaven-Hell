@@ -30,6 +30,7 @@ protected:
     int m_currentFrame;
     bool m_paused;
     int m_framerate = 60;
+    int m_scale = 1;
 
     std::chrono::steady_clock::time_point current_frame;
     std::chrono::steady_clock::time_point next_frame;
@@ -59,9 +60,12 @@ public:
     SDL_Renderer* renderer(); 
     SDL_Window* window(); 
     Assets& assets(); 
+    SceneMap& sceneMap();
     int getWidth();
     int getHeight();
     void setWidth(int width);
     void setHeight(int height);
-    SceneMap& sceneMap();
+    void updateResolution(int, int);
+    void setScale(int scale);
+    int getScale();
 };
