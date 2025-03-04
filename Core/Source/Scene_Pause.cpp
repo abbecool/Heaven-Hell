@@ -112,16 +112,7 @@ void Scene_Pause::sDoAction(const Action& action) {
                                 m_game->sceneMap().erase("PLAY");
                             }
                         } else if ( name == "Resolution" ){
-                            if (m_game->getWidth() == 1920) 
-                            {
-                                m_game->updateResolution(640, 360);
-                                m_game->setScale(1);
-                            }
-                            else
-                            {
-                                m_game->updateResolution(1920, 1080);
-                                m_game->setScale(3);
-                            }
+                            m_game->updateResolution(3);
                         }
                     }
                 }

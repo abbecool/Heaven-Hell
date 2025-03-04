@@ -202,11 +202,13 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if ( action.name() == "ZOOM IN"){
             // m_chunkSize += Vec2{4,4};
             // m_levelLoader.clearChunks(0);
-            m_game->setScale(m_game->getScale()+1);
+            int scale = m_game->getScale()+1;
+            m_game->updateResolution(scale);
         } else if ( action.name() == "ZOOM OUT"){
             // m_chunkSize -= Vec2{4,4};
             // m_levelLoader.clearChunks(0);
-            m_game->setScale(m_game->getScale()-1);
+            int scale = m_game->getScale()-1;
+            m_game->updateResolution(scale);
         } else if ( action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if ( action.name() == "CAMERA PAN"){
@@ -653,6 +655,7 @@ void Scene_Play::sRender() {
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     SDL_RenderClear(m_game->renderer());
     sRenderBasic();
+    int windowScale = m_game->getScale();
 
     Animation animation;
     auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP) / 2;
@@ -671,8 +674,8 @@ void Scene_Play::sRender() {
         {
             animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
         }
-        animation.setScale(Vec2{1, 1});
-        animation.setDestRect(Vec2{(float)(i - 1) * animation.getSize().x * animation.getScale().x, 0});
+        animation.setScale(Vec2{1, 1}*windowScale);
+        animation.setDestRect(Vec2{(float)(i - 1) * animation.getSize().x * animation.getScale().x, 0}*windowScale);
         spriteRender(animation);
     }
 
@@ -708,11 +711,11 @@ void Scene_Play::sRender() {
                     animation = health.animation_empty;
                 }
 
-                animation.setScale(transform.scale * cameraZoom);
+                animation.setScale(transform.scale * cameraZoom*windowScale);
                 animation.setDestRect(Vec2{
                     adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
                     adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
-                });
+                }*windowScale);
                 spriteRender(animation);
             }
         }

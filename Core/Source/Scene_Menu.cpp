@@ -49,13 +49,12 @@ void Scene_Menu::loadMenu()
     entity1.addComponent<CTransform>(Vec2 {300, 45},Vec2 {0, 0}, false);
     entity1.addComponent<CName>("game_title");
 
-    spawnButton(Vec2 {60, 35}, "button_unpressed", "new", "NEW_GAME");
-    spawnButton(Vec2 {60, 55}, "button_unpressed", "continue", "CONTINUE");
-    spawnButton(Vec2 {(float)width()-196.f/3,64.f/3 }, "button_unpressed", "720p", "720p");
-    spawnButton(Vec2 {(float)width()-196.f/3,196.f/3 }, "button_unpressed", "1080p", "1080p");
-    spawnButton(Vec2 {(float)width()-196.f/3,320.f/3 }, "button_unpressed", "1440p", "1440p");
-    spawnButton(Vec2 {(float)width()-196.f/3,428.f/3 }, "button_unpressed", "1440p Wide", "1440p_Wide");
-    spawnButton(Vec2 {(float)width()-196.f/3,536.f/3 }, "button_unpressed", "1440p Super wide", "1440p_Super_wide");
+    spawnButton(Vec2 {64.f, 64.f}, "button_unpressed", "new", "NEW_GAME");
+    spawnButton(Vec2 {64.f, 128.f}, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2 {(float)width()-64.f,64.f }, "button_unpressed", "720p", "720p");
+    spawnButton(Vec2 {(float)width()-64.f,128.f }, "button_unpressed", "1080p", "1080p");
+    spawnButton(Vec2 {(float)width()-64.f,196.f }, "button_unpressed", "1440p", "1440p");
+    spawnButton(Vec2 {(float)width()-64.f,256.f }, "button_unpressed", "4K", "4K");
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
@@ -141,41 +140,27 @@ void Scene_Menu::sDoAction(const Action& action)
                 m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y - 8;
                 if ( name == "new" )
                 {
-                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
                 }
                 else if ( name == "continue" )
                 {
-                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", false));
+                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", false), true);
                 }
                 else if ( name == "720p" )
                 {
-                    SDL_SetWindowSize(m_game->window(), 1280, 720);
-                    m_game->setWidth(1280);
-                    m_game->setHeight(720);
+                    m_game->updateResolution(2);
                 }
                 else if ( name == "1080p" )
                 {
-                    SDL_SetWindowSize(m_game->window(), 1920, 1080);
-                    m_game->setWidth(1920);
-                    m_game->setHeight(1080);
+                    m_game->updateResolution(3);
                 }
                 else if ( name == "1440p" )
                 {
-                    SDL_SetWindowSize(m_game->window(), 2560, 1440);
-                    m_game->setWidth(2560);
-                    m_game->setHeight(1440);
+                    m_game->updateResolution(4);
                 }
-                else if ( name == "1440p Wide" )
+                else if ( name == "4K" )
                 {
-                    SDL_SetWindowSize(m_game->window(), 3440, 1440);
-                    m_game->setWidth(3440);
-                    m_game->setHeight(1440);
-                }
-                else if ( name == "1440p Super wide" )
-                {
-                    SDL_SetWindowSize(m_game->window(), 5120, 1440);
-                    m_game->setWidth(5120);
-                    m_game->setHeight(1440);
+                    m_game->updateResolution(6);
                 }
             }
         }   

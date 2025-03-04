@@ -16,8 +16,10 @@ class Game
 {   
 protected:
     SDL_DisplayMode DM;
-    int WIDTH = 640;
-    int HEIGHT = 360;
+    const int VIRTUAL_WIDTH = 640;
+    const int VIRTUAL_HEIGHT = 360;
+    int m_width = 640;
+    int m_height = 360;
 
     SDL_Window *m_window;
     SDL_Renderer *m_renderer;
@@ -65,7 +67,7 @@ public:
     int getHeight();
     void setWidth(int width);
     void setHeight(int height);
-    void updateResolution(int, int);
+    void updateResolution(int scale);
     void setScale(int scale);
     int getScale();
 };
