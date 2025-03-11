@@ -34,6 +34,11 @@
 *.agit 
 *.lib
 *.vcxproj
+*.dll
+*.a
+
+lib/*
+Core/Source/include/SDL2/*
 
 # Executables
 *.exe
@@ -59,4 +64,7 @@ Game.sln
 # FMOD
 Core/assets/audio/FMOD/*
 
-Core/game_save.txt
+Core/config_files/game_save.txt
+
+# Command for removing files from git index 
+# git rm --cached config.json

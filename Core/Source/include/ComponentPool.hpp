@@ -77,7 +77,11 @@ public:
         //// If everything is fine, return the component
         //return it->second;
 
-        return pool.at(entityId);
+        try {
+            return pool.at(entityId);
+        } catch (const std::out_of_range& e) {
+            throw std::runtime_error("Component not found for this entity! Type: " + typeName);
+        }
     }
 
     // Custom iterator for range-based for loops
@@ -178,12 +182,19 @@ public:
     // Retrieve the component for an entityId
     template<typename t>
     t& getComponent(EntityID entityId) {
-        if constexpr (std::is_same_v<t, T>) {
-            return std::get<0>(pool.at(entityId));  // Get the first component (T) from the tuple
-        } else if constexpr (std::is_same_v<t, Other>) {
-            return std::get<1>(pool.at(entityId));  // Get the second component (Other) from the tuple
+        auto it = pool.find(entityId);
+        if (it == pool.end()) {
+            throw std::runtime_error("Component not found for this entity!");
         }
-    }   
+
+        if constexpr (std::is_same_v<t, T>) {
+            return std::get<0>(it->second);  // Get the first component (T) from the tuple
+        } else if constexpr (std::is_same_v<t, Other>) {
+            return std::get<1>(it->second);  // Get the second component (Other) from the tuple
+        } else {
+            throw std::runtime_error("Invalid component type requested!");
+        }
+    }
 private:
     std::unordered_map<EntityID, std::tuple<T, Other>> pool;  // Map of components indexed by EntityID
 };

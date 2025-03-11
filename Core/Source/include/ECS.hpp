@@ -44,8 +44,8 @@ constexpr Signature CDamageMask             = 1 << 14; // Bit 14
 constexpr Signature CWeaponChildMask        = 1 << 15; // Bit 15
 constexpr Signature CDialogMask             = 1 << 16; // Bit 16
 constexpr Signature CPathfindMask           = 1 << 17; // Bit 17
-constexpr Signature CTopLayerMask           = 1 << 18; // Bit 18
-constexpr Signature CBottomLayerMask        = 1 << 19; // Bit 19
+constexpr Signature CSwimmingMask           = 1 << 18; // Bit 18
+constexpr Signature CWaterMask              = 1 << 19; // Bit 19
 constexpr Signature CScriptMask             = 1 << 20; // Bit 20
 constexpr Signature CVelocityMask           = 1 << 21; // Bit 21
 constexpr Signature CLifespanMask           = 1 << 22; // Bit 22
@@ -63,7 +63,12 @@ public:
 
     // Get the signature of a specific entity
     Signature getSignature(EntityID entity) const {
-        return m_signatures.at(entity);
+        auto it = m_signatures.find(entity);
+        if (it != m_signatures.end()) {
+            return it->second;
+        } else {
+            throw std::out_of_range("Entity signature not found");
+        }
     }
 
     // Remove the signature for a given entity
@@ -120,6 +125,8 @@ private:
         { typeid(CParent), CParentMask },
         { typeid(CShadow), CShadowMask },
         { typeid(CImmovable), CImmovableMask },
+        { typeid(CSwimming), CSwimmingMask },
+        { typeid(CWater), CWaterMask },
         { typeid(CWeapon), CWeaponMask },
         { typeid(CKnockback), CKnockbackMask },
         { typeid(CProjectile), CProjectileMask },
@@ -129,8 +136,6 @@ private:
         { typeid(CWeaponChild), CWeaponChildMask },
         { typeid(CDialog), CDialogMask },
         { typeid(CPathfind), CPathfindMask },
-        { typeid(CTopLayer), CTopLayerMask },
-        { typeid(CBottomLayer), CBottomLayerMask },
         { typeid(CScript), CScriptMask },
         { typeid(CVelocity), CVelocityMask },
         { typeid(CLifespan), CLifespanMask },
@@ -240,7 +245,15 @@ public:
     template <typename T>
     ComponentPool<T>& getComponentPool() {
         std::type_index typeIdx(typeid(T));
-        return *reinterpret_cast<ComponentPool<T>*>(m_componentPools.at(typeIdx).get());        
+        auto it = m_componentPools.find(typeIdx);
+        if (it != m_componentPools.end()) {
+            return *reinterpret_cast<ComponentPool<T>*>(it->second.get());
+        } else {
+            static ComponentPool<T> emptyPool;
+            return emptyPool;
+            std::cout << "Component pool not found for type: " << typeid(T).name() << std::endl;
+            // throw std::out_of_range("Component pool not found for the given type");
+        }
     }
 
     template <typename T>

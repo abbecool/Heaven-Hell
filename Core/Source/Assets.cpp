@@ -30,7 +30,12 @@ void Assets::addTexture(std::string name, SDL_Texture* texture)
 
 SDL_Texture * Assets::getTexture(std::string name) const
 {
-    return m_textures.at(name);
+    try {
+        return m_textures.at(name);
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Texture not found: " << name << std::endl;
+        throw;
+    }
 }
 
 void Assets::addFont(const std::string& name, const std::string& path) {
@@ -43,7 +48,12 @@ void Assets::addFont(const std::string& name, const std::string& path) {
 }
 
 TTF_Font* Assets::getFont(const std::string& name) const {
-    return m_fonts.at(name);
+    try {
+        return m_fonts.at(name);
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Font not found: " << name << std::endl;
+        throw;
+    }
 }
 
 void Assets::addAnimation(const std::string& name, Animation animation) {
@@ -51,7 +61,12 @@ void Assets::addAnimation(const std::string& name, Animation animation) {
 }
 
 const Animation& Assets::getAnimation(const std::string& name) const {
-    return m_animations.at(name);
+    try {
+        return m_animations.at(name);
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Animation not found: " << name << std::endl;
+        throw;
+    }
 }
 
 void Assets::addAudio(const std::string& name, const std::string& path) {
@@ -64,7 +79,12 @@ void Assets::addAudio(const std::string& name, const std::string& path) {
 }
 
 Mix_Chunk* Assets::getAudio(const std::string& name) const {
-    return m_audios.at(name);
+    try {
+        return m_audios.at(name);
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Audio not found: " << name << std::endl;
+        throw;
+    }
 }
 
 void Assets::addMusic(const std::string& name, const std::string& path) {
@@ -77,7 +97,12 @@ void Assets::addMusic(const std::string& name, const std::string& path) {
 }
 
 Mix_Music* Assets::getMusic(const std::string& name) const {
-    return m_music.at(name);
+    try {
+        return m_music.at(name);
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Music not found: " << name << std::endl;
+        throw;
+    }
 }
 
 void Assets::loadFromFile(const std::string & pathImages, const std::string & pathText, SDL_Renderer * ren) {

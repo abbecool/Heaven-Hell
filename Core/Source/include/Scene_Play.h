@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Scene.h"
 #include "Scene_Inventory.h"
+#include "Scene_Pause.h"
 #include "Level_Loader.h"
 #include <memory>
 #include <unordered_map>
@@ -19,9 +20,9 @@ class Scene_Play : public Scene
         int HP, DAMAGE;
         int ATTACK_SPEED;
     };
-
+    
     protected:
-
+    
     friend class LevelLoader;
     EntityID m_player;
     std::string m_levelPath;
@@ -29,8 +30,6 @@ class Scene_Play : public Scene
     PlayerConfig m_rooterConfig;
     PlayerConfig m_goblinConfig;
     Physics m_physics;
-    Camera m_camera;
-    Vec2 cameraPos;
     float m_zoomStep = 2;
     Vec2 m_currentChunk = Vec2{1, 0};
     Vec2 m_chunkSize = Vec2{8, 8};
@@ -38,18 +37,11 @@ class Scene_Play : public Scene
     std::vector<EntityID> m_loadedChunkIDs;
     LevelLoader m_levelLoader;
     std::shared_ptr<Scene_Inventory> m_inventory_scene;
-    const Vec2 m_gridSize = { 64, 64 };
     Vec2 m_levelSize;
-    Vec2 m_mousePosition;
-    bool cameraFollow = true;
-    float cameraZoom = 0.75f;
-    bool m_drawTextures = true;
-    bool m_drawCollision = false;
-    bool m_drawDrawGrid = false;
     bool m_inventoryOpen = false;
     bool m_newGame;
     std::vector<std::vector<std::string>> m_pixelMatrix;
-
+    
     std::unordered_map<std::string, std::unordered_set<std::string>> m_damageToEnemyMap = {
         {"fire", {"grass"}},
         {"water", {"fire"}},
@@ -57,15 +49,13 @@ class Scene_Play : public Scene
         {"explosive", {"rock"}},
         {"piercing", {"shielded"}}
     };
-
-    void init(const std::string&);
+    
     void loadLevel(const std::string& path);
     void loadConfig(const std::string& path);
     void loadMobsNItems(const std::string& path);
-
+    
     void saveGame(const std::string& filename);
-    Vec2 gridToMidPixel(float, float, EntityID);
-
+    
     // void spawnHUD();
     EntityID spawnPlayer();
     EntityID spawnWeapon(Vec2 pos, int layer);
@@ -74,7 +64,7 @@ class Scene_Play : public Scene
     EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
     EntityID spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation);
-
+    
     EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     EntityID spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
     EntityID spawnGrass     (const Vec2 pos, const int frame);
@@ -84,7 +74,7 @@ class Scene_Play : public Scene
     EntityID spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     EntityID spawnBridge    (const Vec2 pos, const int frame );
     std::vector<EntityID> spawnDualTiles (const Vec2 pos, std::unordered_map<std::string, int> tileIndex);
-
+    
     void sLoader();
     void sScripting();
     void sMovement();
@@ -92,17 +82,17 @@ class Scene_Play : public Scene
     void sStatus();
     void sAnimation();
     void sRender();
-    void spriteRender(Animation &animation);
     void sAudio();
-
+    
     void sDoAction(const Action&);
     void onEnd();
-    void setPaused(bool);
+    void togglePause();
     void changePlayerStateTo(EntityID entity, PlayerState s);
-
+    
     public:
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 gridSize();
     Vec2 levelSize();
     void update();
+    void setPaused(bool);
 };

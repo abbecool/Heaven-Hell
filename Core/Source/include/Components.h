@@ -55,7 +55,7 @@ struct CTransform
     Vec2 pos;    
     Vec2 prevPos;
     Vec2 vel = {0, 0};    
-    Vec2 scale = {4, 4};    
+    Vec2 scale = {1, 1};    
     float angle = 0;
     float speed = 0;
     bool isMovable = false;
@@ -63,11 +63,11 @@ struct CTransform
     CTransform() {}
     CTransform(const Vec2 & p) : pos(p), prevPos(p) {}
     CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, bool mvbl) 
-    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
+        : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
         : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
     CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, float spd, bool mvbl) 
-    : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
+        : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
 };
 
 struct CVelocity
@@ -93,6 +93,16 @@ struct CBoundingBox
 struct CImmovable
 {
     CImmovable(){}    
+};
+
+struct CWater {
+    bool isDeep = false;  // Differentiates deep vs shallow water
+};
+
+struct CSwimming
+{
+    bool isSwimming = false;
+    float swimSpeedMultiplier = 0.5f;
 };
 
 struct CHealth
@@ -136,15 +146,6 @@ struct CAnimation
             : animation(animation), repeat(r), layer(l){}
 };  
 
-struct CTopLayer
-{
-    CTopLayer() {}
-};
-
-struct CBottomLayer
-{
-    CBottomLayer() {}
-};
 struct CState
 {
     PlayerState state;
@@ -202,10 +203,11 @@ struct CDialog
     Vec2 pos;
     Vec2 size;
     SDL_Texture * dialog;
+    std::string dialog_text;
 
     CDialog() {}
-    CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia) 
-        : pos(p), size(sz), dialog(dia){}
+    CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia, std::string txt) 
+        : pos(p), size(sz), dialog(dia), dialog_text(txt){}
 };
 
 struct CPathfind

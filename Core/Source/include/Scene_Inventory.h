@@ -11,13 +11,10 @@ class Scene_Inventory : public Scene
     EntityID m_item;
     Vec2 m_mousePosition;
     Vec2 m_inventorySize = {4, 2};
-    Vec2 m_inventoryPos = Vec2{m_game->getWidth()-m_inventorySize.x*128, 256};
+    Vec2 m_inventoryPos = Vec2{m_game->getWidth()-m_inventorySize.x*32, 64};
     bool m_drawTextures = false;
     bool m_drawCollision = false;
     bool m_open = false;
-
-    void init();
-    // void saveGame(const std::string& filename);
 
     void spawnBox(Vec2 pos, std::string sprite);
     void spawnItem(std::string sprite);
@@ -28,7 +25,6 @@ class Scene_Inventory : public Scene
     void sStatus();
     void sAnimation();
     void sRender();
-    void spriteRender(Animation &animation);
     void sAudio();
 
     void sDoAction(const Action&);

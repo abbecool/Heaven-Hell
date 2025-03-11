@@ -27,12 +27,6 @@
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), m_levelPath(levelPath), m_newGame(newGame)
 {
-    init(m_levelPath);
-    m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
-    m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
-}
-
-void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_w, "UP");
     registerAction(SDLK_UP, "UP");
     registerAction(SDLK_s, "DOWN");
@@ -50,7 +44,7 @@ void Scene_Play::init(const std::string& levelPath) {
     registerAction(SDLK_SPACE , "ATTACK");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
-    registerAction(SDLK_ESCAPE, "QUIT");
+    registerAction(SDLK_ESCAPE, "ESC");
     registerAction(SDLK_u, "SAVE");
 
     registerAction(SDLK_f, "CAMERA FOLLOW");
@@ -67,49 +61,12 @@ void Scene_Play::init(const std::string& levelPath) {
 
     loadConfig("config_files/config.txt");
     loadLevel(levelPath); 
-    
     spawnPlayer();
-    spawnWeapon(Vec2{364, 90}*m_gridSize, 7);
+    loadMobsNItems("config_files/mobs.txt"); // mobs have to spawn after player, so they can target the player
+    spawnWeapon(Vec2{364, 91}*m_gridSize, 7);
 
-    loadMobsNItems("config_files/mobs.txt");
-    // spawnCoin(Vec2{345, 62}*m_gridSize, 4);
-    // spawnDecoration(Vec2 {330, 80}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-
-    // spawnDecoration(Vec2 {395, 67}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {400, 67}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {396, 69}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {403, 68}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {406, 71}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    
-    // spawnDecoration(Vec2 {399, 70}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {393, 71}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {400, 72}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {403, 72}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {406, 72}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-
-    // spawnDecoration(Vec2 {397, 73}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {401, 74}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {405, 75}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {408, 78}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-
-    // spawnDecoration(Vec2 {393, 79}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {396, 79}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {396, 81}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {394, 82}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    
-    // spawnDecoration(Vec2 {398, 82}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {397, 93}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {395, 84}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-    // spawnDecoration(Vec2 {402, 85}*m_gridSize, Vec2 {24, 32}, 4, "tree");
-
-    // spawnDecoration(Vec2 {380, 80}*m_gridSize, Vec2 {56, 44}*4, 4, "House1");
-
-
-    // spawnSmallEnemy(Vec2{330, 77}*m_gridSize, 3, "goblin");
-    // spawnSmallEnemy(Vec2{11, 27}*m_gridSize, 3, "goblin");
-    // spawnSmallEnemy(Vec2{54, 27}*m_gridSize, 3, "rooter");
-    // spawnSmallEnemy(Vec2{89, 66}*m_gridSize, 3, "rooter");
-    // spawnCampfire(Vec2{67, 36}*m_gridSize);
+    m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
+    m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
@@ -127,23 +84,21 @@ void Scene_Play::loadMobsNItems(const std::string& path){
             spawnSmallEnemy(pos*m_gridSize, layer, "rooter");
         }
         else if (head == "goblin") {
-            // spawnSmallEnemy(Vec2{330, 77}*m_gridSize, 5, "goblin");
             spawnSmallEnemy(pos*m_gridSize, layer, "goblin");
         }
         else if (head == "coin") {
             spawnCoin(pos*m_gridSize, layer);
         }
         else if (head == "tree") {
-            spawnDecoration(pos*m_gridSize, Vec2 {24, 32}, layer, "tree");
+            spawnDecoration(pos*m_gridSize, Vec2 {24/4, 32/4}, layer, "tree");
         }
         else if (head == "House1") {
-            spawnDecoration(pos*m_gridSize, Vec2 {56, 44}*4, layer, "House1");
+            spawnDecoration(pos*m_gridSize, Vec2 {56, 44}, layer, "House1");
         }
         else if (head == "campfire") {
             spawnCampfire(pos*m_gridSize, layer);
         }
         else {
-            std::cerr << "head to " << head << "\n";
             std::cerr << "The mobs file format is incorrect!\n";
             exit(-1);
         }
@@ -209,7 +164,6 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     SDL_FreeSurface(loadedSurface);
     m_levelLoader.init(this, WIDTH_PIX, HEIGHT_PIX);
     m_levelLoader.loadChunk(m_currentChunk);
-
 }
 
 void Scene_Play::sDoAction(const Action& action) {
@@ -222,13 +176,6 @@ void Scene_Play::sDoAction(const Action& action) {
             m_drawDrawGrid = !m_drawDrawGrid; 
         } else if ( action.name() == "PAUSE") { 
             setPaused( !m_pause || m_inventoryOpen );
-        } else if ( action.name() == "QUIT") { 
-            if ( m_inventoryOpen ) {
-                m_inventoryOpen = false;
-                setPaused( !m_pause || m_inventoryOpen );
-            } else {
-                onEnd();
-            }
         } else if ( action.name() == "INVENTORY") { 
             m_inventoryOpen = !m_inventoryOpen;
             m_inventory_scene->toggleInventory();
@@ -238,25 +185,10 @@ void Scene_Play::sDoAction(const Action& action) {
             {
                 m_inventory_scene->Scroll(m_mouseState.scroll);
             }
-            else
-            {
-                if (m_mouseState.scroll > 0)
-                {
-                    cameraZoom += 0.25;
-                }
-                if (m_mouseState.scroll < 0)
-                {
-                    cameraZoom -= 0.25;
-                }
-                cameraZoom = std::max( 0.25f, std::min(4.0f, cameraZoom) );
-
-            }
         } else if ( action.name() == "ZOOM IN"){
-            m_chunkSize += Vec2{4,4};
-            m_levelLoader.clearChunks(0);
+            m_camera.stepCameraZoom(-1, m_game->getScale());
         } else if ( action.name() == "ZOOM OUT"){
-            m_chunkSize -= Vec2{4,4};
-            m_levelLoader.clearChunks(0);
+            m_camera.stepCameraZoom(1, m_game->getScale());
         } else if ( action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if ( action.name() == "CAMERA PAN"){
@@ -270,7 +202,7 @@ void Scene_Play::sDoAction(const Action& action) {
         }else if ( action.name() == "TP3") {
             m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*64, 181*64};
         } else if ( action.name() == "RESET") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
         }
 
         if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = true; }
@@ -305,12 +237,17 @@ void Scene_Play::sDoAction(const Action& action) {
                     m_ECS.addComponent<CBoundingBox>(projectileID, Vec2{12, 12});
                     m_ECS.getComponent<CTransform>(projectileID).isMovable = true;
                     m_ECS.getComponent<CProjectileState>(projectileID).state = "Free";
-                    m_ECS.getComponent<CTransform>(projectileID).vel = getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position;
+                    m_ECS.getComponent<CTransform>(projectileID).vel = (getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position);
                     m_ECS.getComponent<CTransform>(projectileID).angle = m_ECS.getComponent<CTransform>(projectileID).vel.angle();
                 } else {
                     m_ECS.queueRemoveEntity(projectileID);
                 }
             }
+        }
+        if ( action.name() == "ESC") {
+            m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
+            saveGame("config_files/game_save.txt");
+            m_pause = true;
         }
     }
 }
@@ -379,7 +316,7 @@ void Scene_Play::sMovement() {
     {
         auto& transform = transformPool.getComponent(e);
         auto& pathfind = pathfindPool.getComponent(e);
-        if ((pathfind.target - transform.pos).length() < 64*2) {
+        if ((pathfind.target - transform.pos).length() < 16*2) {
             transform.vel = pathfind.target - transform.pos;
         } else {
             transform.vel = Vec2 {0,0};
@@ -406,9 +343,13 @@ void Scene_Play::sMovement() {
             } if (inputs.shift){
                 transform.tempo = 0.5f;
             } else if (inputs.ctrl){
-                transform.tempo = 3.0f;
+                transform.tempo = 2.0f;
             } else{
                 transform.tempo = 1.0f;
+            }
+
+            if (m_ECS.hasComponent<CSwimming>(m_player)){
+                transform.tempo *= m_ECS.getComponent<CSwimming>(m_player).swimSpeedMultiplier;
             }
         }
     }
@@ -474,7 +415,7 @@ void Scene_Play::sCollision() {
             m_ECS.queueRemoveComponent<CBoundingBox>(e);
             m_ECS.queueRemoveComponent<CWeapon>(e);
             m_ECS.addComponent<CWeaponChild>(m_player, e);
-            m_ECS.addComponent<CParent>(e, m_player, Vec2{32, -16});
+            m_ECS.addComponent<CParent>(e, m_player, Vec2{8, -4});
             Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
 
         }
@@ -601,7 +542,8 @@ void Scene_Play::sStatus() {
         {
             spawnCoin(transform.pos, 6);
             if ( m_player == entityID ){
-                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+                    // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+                    m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
             } else {
                 m_ECS.queueRemoveEntity(entityID);
                 Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
@@ -631,7 +573,7 @@ void Scene_Play::sStatus() {
             {
                 if ( (int)(m_currentFrame-health.damage_frame) > health.i_frames ) {
                     int damageMultiplier = 1;
-                    m_ECS.addComponent<CKnockback>(entityHealth, 50, 64, transformDamage.pos-transforHealth.pos);
+                    m_ECS.addComponent<CKnockback>(entityHealth, 50/4, 64/4, transformDamage.pos-transforHealth.pos);
                     health.HP = health.HP-(int)(damage.damage*damageMultiplier);
                     health.damage_frame = m_currentFrame;
                 }
@@ -642,7 +584,6 @@ void Scene_Play::sStatus() {
 
 void Scene_Play::sAnimation() {
     auto view = m_ECS.signatureView<CState, CAnimation, CTransform>();
-    // auto view = m_ECS.signatureView<CState, CAnimation>();
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& statePool = m_ECS.getComponentPool<CState>();
     auto& animationPool = m_ECS.getComponentPool<CAnimation>();
@@ -691,141 +632,85 @@ void Scene_Play::sAnimation() {
             animation.animation.update(m_currentFrame);
         }
     }
+
+    auto view3 = m_ECS.signatureView<CSwimming, CAnimation>();
+    for ( auto e : view3 ){
+        auto& animation = animationPool.getComponent(e);
+        SDL_Rect* rect = animation.animation.getSrcRect();
+        animation.animation.setSrcRect(rect->x, rect->y-4, rect->w, rect->h);
+    }
 }
 
 void Scene_Play::sRender() {
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     SDL_RenderClear(m_game->renderer());
-    Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
+    sRenderBasic();
+    int windowScale = m_game->getScale();
+
+    Animation animation;
+    auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP) / 2;
     
-    if (m_drawTextures)
-    {
-        auto& transformPool = m_ECS.getComponentPool<CTransform>();
-        auto& animationPool = m_ECS.getComponentPool<CAnimation>();
-        
-        auto layers = m_rendererManager.getLayers();
-        for (const auto& layer : layers)
+    for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max / 2; i++)
+    {   
+        if (hearts >= i)
         {
-            for (const auto& e : layer)
-            {                
-                if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e)) {
-                    continue;
+            animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
+        }
+        else if (i - hearts == 0.5f)
+        {
+            animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
+        }
+        else
+        {
+            animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
+        }
+        animation.setScale(Vec2{1, 1}*windowScale);
+        animation.setDestRect(Vec2{(float)(i - 1) * animation.getSize().x * animation.getScale().x, 0}*windowScale);
+        spriteRender(animation);
+    }
+
+    Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& viewHealth = m_ECS.getComponentPool<CHealth>();
+    for (auto entityID : viewHealth)
+    {   
+        if (entityID == m_player) { continue; }
+        auto& health = viewHealth.getComponent(entityID);
+        if ((int)(m_currentFrame - health.damage_frame) < health.i_frames)
+        {
+            auto& transform = transformPool.getComponent(entityID);
+
+            Vec2 adjustedPosition = (transform.pos - m_camera.position) * (windowScale - m_camera.getCameraZoom());
+            adjustedPosition += screenCenter*m_camera.getCameraZoom();
+
+            Animation animation;
+            auto hearts = float(health.HP) / 2;
+
+            for (int i = 1; i <= health.HP_max / 2; i++)
+            {   
+                if (hearts >= i)
+                {
+                    animation = health.animation_full;
                 }
-                auto& transform = transformPool.getComponent(e);
-                auto& animation = animationPool.getComponent(e).animation;
+                else if (i - hearts == 0.5f)
+                {
+                    animation = health.animation_half;
+                }
+                else
+                {
+                    animation = health.animation_empty;
+                }
 
-                // Adjust the entity's position based on the camera position
-                Vec2 adjustedPosition = transform.pos - m_camera.position;
-                auto distanceToCenter = adjustedPosition - screenCenter;
-                adjustedPosition += distanceToCenter * (cameraZoom - 1);
-
-                animation.setScale(transform.scale * cameraZoom);
-                animation.setAngle(transform.angle);
-                animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
-                
+                animation.setScale(transform.scale * windowScale);
+                animation.setDestRect(Vec2{
+                    adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
+                    adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
+                });
                 spriteRender(animation);
             }
         }
-
-        auto& viewHealth = m_ECS.getComponentPool<CHealth>();
-        for (auto entityID : viewHealth)
-        {   
-            if (entityID == m_player) { continue; }
-            auto& health = viewHealth.getComponent(entityID);
-            if ((int)(m_currentFrame - health.damage_frame) < health.i_frames)
-            {
-                auto& transform = transformPool.getComponent(entityID);
-                Vec2 adjustedPosition = transform.pos - m_camera.position;
-                auto distanceToCenter = adjustedPosition - screenCenter;
-                adjustedPosition += distanceToCenter * (cameraZoom - 1);
-
-                Animation animation;
-                auto hearts = float(health.HP) / 2;
-
-                for (int i = 1; i <= health.HP_max / 2; i++)
-                {   
-                    if (hearts >= i)
-                    {
-                        animation = health.animation_full;
-                    }
-                    else if (i - hearts == 0.5f)
-                    {
-                        animation = health.animation_half;
-                    }
-                    else
-                    {
-                        animation = health.animation_empty;
-                    }
-
-                    animation.setScale(transform.scale * cameraZoom);
-                    animation.setDestRect(Vec2{
-                        adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
-                        adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
-                    });
-                    spriteRender(animation);
-                }
-            }
-        }
-
-        Animation animation;
-        auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP) / 2;
-
-        for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max / 2; i++)
-        {   
-            if (hearts >= i)
-            {
-                animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
-            }
-            else if (i - hearts == 0.5f)
-            {
-                animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
-            }
-            else
-            {
-                animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
-            }
-
-            animation.setScale(Vec2{4, 4});
-            animation.setDestRect(Vec2{(float)(i - 1) * animation.getSize().x * animation.getScale().x, 0});
-
-            spriteRender(animation);
-        }
     }
-    
-    if (m_drawCollision)
-    {
-        auto& view = m_ECS.view<CBoundingBox>();
-        auto& transformPool = m_ECS.getComponentPool<CTransform>();
-        auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
-        for (auto e : view)
-        {      
-            auto& transform = transformPool.getComponent(e);
-            auto& box = BboxPool.getComponent(e);
-
-            // Adjust the collision box position based on the camera position
-            SDL_Rect collisionRect;
-            collisionRect.x = (int)(transform.pos.x - box.halfSize.x - m_camera.position.x);
-            collisionRect.y = (int)(transform.pos.y - box.halfSize.y - m_camera.position.y);
-            collisionRect.w = (int)(box.size.x);
-            collisionRect.h = (int)(box.size.y);
-
-            SDL_SetRenderDrawColor(m_game->renderer(), box.red, box.green, box.blue, 255);
-            SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
-        }
-    }
-}
-
-void Scene_Play::spriteRender(Animation &animation){
-    SDL_RenderCopyEx(
-        m_game->renderer(), 
-        animation.getTexture(), 
-        animation.getSrcRect(), 
-        animation.getDestRect(),
-        animation.getAngle(),
-        NULL,
-        SDL_FLIP_NONE
-    );
 }
 
 void Scene_Play::sAudio(){
@@ -836,13 +721,14 @@ void Scene_Play::sAudio(){
 }
 
 EntityID Scene_Play::spawnPlayer(){
-
+    uint8_t layer = 10;
     auto entityID = m_ECS.addEntity();
     m_player = entityID;
 
     int pos_x = m_playerConfig.x;
     int pos_y = m_playerConfig.y;
     int hp = m_playerConfig.HP;
+    
     if (!m_newGame){
         std::ifstream file("config_files/game_save.txt");
         if (!file) {
@@ -850,31 +736,29 @@ EntityID Scene_Play::spawnPlayer(){
             exit(-1);
         }
         std::string head;
+        
         while (file >> head) {
             if (head == "Player_pos") {
                 file >> pos_x >> pos_y;
-            }
-            if (head == "Player_hp") {
+            } else if (head == "Player_hp") {
                 file >> hp;
+            } else {
+                std::cerr << "The game save file format is incorrect!\n";
+                exit(-1);
             }
         }
     }
-    Vec2 pos = Vec2{64*(float)pos_x, 64*(float)pos_y};
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entityID);
+    Vec2 pos = Vec2{64/4*(float)pos_x, 64/4*(float)pos_y};
+    Vec2 midGrid = gridToMidPixel(pos, entityID);
 
-    m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, m_playerConfig.SPEED, true);
-    m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32, 32});
-    uint8_t layer = 10;
+    m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
+    m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32/4, 32/4});
     m_ECS.addComponent<CName>(entityID, "wiz");
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
-    m_ECS.addComponent<CTopLayer>(entityID);
-    
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
-
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
-
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
 
     m_ECS.addComponent<CScript>(entityID).Bind<PlayerController>();
@@ -883,6 +767,8 @@ EntityID Scene_Play::spawnPlayer(){
     sc.Instance = sc.InstantiateScript();
     sc.Instance->m_entity = {entityID, &m_ECS};
     sc.Instance->m_ECS = &m_ECS;
+    sc.Instance->m_physics = &m_physics;
+    sc.Instance->m_game = m_game;
     sc.Instance->OnCreateFunction();
     return entityID;
 }
@@ -894,7 +780,6 @@ EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int l
     m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
     m_ECS.addComponent<CAnimation>(shadowID, m_game->assets().getAnimation("shadow"), true, layer);
     m_rendererManager.addEntityToLayer(shadowID, layer);
-    m_ECS.addComponent<CTopLayer>(shadowID);
     m_ECS.addComponent<CChild>(parentID, shadowID, true);
     return shadowID;
 }
@@ -902,10 +787,9 @@ EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int l
 EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
     auto entity = m_ECS.addEntity();
 
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {24, 24});
-    m_ECS.addComponent<CTopLayer>(entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {6, 6});
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     m_rendererManager.addEntityToLayer(entity, 5);
@@ -918,22 +802,21 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
 EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation){
     auto entity = m_ECS.addEntity();
 
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4, 4}, 0.0f, 0.0f, true);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
     m_ECS.addComponent<CBoundingBox>(entity, collisionBox);
-    m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(animation), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CImmovable>(entity);
-    spawnShadow(entity, Vec2{0,-16}, 3, layer-1);
+    spawnShadow(entity, Vec2{0,-16/4}, 3, layer-1);
     return entity;
 }
 
 EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64, 64});
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64/4, 64/4});
     m_ECS.addComponent<CImmovable>(entity);
     return entity;
 }
@@ -941,12 +824,11 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
 EntityID Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(ani), true, 3);
-    m_ECS.addComponent<CTopLayer>(entity);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0.0f, movable);
     m_ECS.addComponent<CHealth>(entity, (int)10, (int)10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {""};
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{96, 96});
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{96/4, 96/4});
     return entity;
 }
 
@@ -954,7 +836,7 @@ EntityID Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     // std::vector<int> ranArray = generateRandomArray(1, m_ECS.getNumEntities(), 0, 15);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     return entity;
 }
@@ -962,7 +844,7 @@ EntityID Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 EntityID Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
+    Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     return entity;
 }
@@ -972,30 +854,28 @@ EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("campfire"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CTopLayer>(entity);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 0.0f, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
+    Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{32/4, 32/4});
     return entity;
 }
 
 EntityID Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
 {
     auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
-    m_ECS.addComponent<CImmovable>(entity);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
+    Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{64/4, 64/4});
     return entity;
 }
 
 EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
 {
     auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, false);
-    m_ECS.addComponent<CImmovable>(entity);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
+    Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CWater>(entity, CWater{false});
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{64/4, 64/4});
     return entity;
 }
 
@@ -1004,10 +884,8 @@ EntityID Scene_Play::spawnBridge(const Vec2 pos, const int frame)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("bridge"), true, 3);
     m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(frame % 4), (float)(int)(frame / 4)});
-    m_ECS.addComponent<CTopLayer>(entity);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2{2,2}, 0.0f, false);
-    // m_ECS.addComponent<CBoundingBox>(entity, Vec2{64, 64});
+    Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     return entity;
 }
 
@@ -1016,15 +894,13 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CTopLayer>(entity);
-    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{2, 2}, vel.angle(), 400.0f, false);
-    // m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
+    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{1, 1}, vel.angle(), 200.0f, false);
     m_ECS.addComponent<CDamage>(entity, 1); // damage speed 6 = frames between attacking
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CProjectileState>(entity, "Create");
     m_ECS.addComponent<CParent>(entity, creator);
     m_ECS.addComponent<CProjectile>(creator, entity);
-    // spawnShadow(entity, Vec2{0,0}, 1);
+    spawnShadow(entity, Vec2{0,0}, 1, layer-1);
     return entity;
 }
 
@@ -1033,10 +909,9 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CTopLayer>(entity);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 32});
+    Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{8, 8});
     m_ECS.addComponent<CLoot>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
     return entity;
@@ -1048,18 +923,18 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_ECS.addComponent<CName>(entity, type);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(type), true, 3);
     m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CTopLayer>(entity);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
-    Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{4,4}, 0.0f, 150.0f, true);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{32, 48});
+    Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1,1}, 0.0f, 50.0f, true);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, m_goblinConfig.SPEED, false);
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{8, 12});
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
 
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
-    m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*64, Vec2{64,64});
+    m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*64/4, Vec2{64/4,64/4});
 
-    spawnShadow(entity, Vec2{0, 16}, 1, layer-1);
+    spawnShadow(entity, Vec2{0, 16/4}, 1, layer-1);
 
     m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
     auto& scriptPool = m_ECS.getComponentPool<CScript>();
@@ -1088,17 +963,13 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
             layer = layer + 1;
             tile = "mountain";  // Change the tile name for "obstacle"
         }
-
         EntityID entity = m_ECS.addEntity();
         entityIDs.push_back(entity);
         m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, 10);
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});   
         m_rendererManager.addEntityToLayer(entity, layer);
-
-        m_ECS.addComponent<CBottomLayer>(entity);
-        Vec2 midGrid = gridToMidPixel(pos.x, pos.y, entity);
-        m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{4, 4}, 0.0f, false);
-        // m_ECS.addComponent<CName>(entity, tile);
+        Vec2 midGrid = gridToMidPixel(pos, entity);
+        m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, false);
     }
     return entityIDs;
 }
@@ -1116,11 +987,15 @@ void Scene_Play::changePlayerStateTo(EntityID entity, PlayerState s) {
 }
 
 void Scene_Play::onEnd() {
-    m_game->changeScene("Menu", std::make_shared<Scene_Menu>(m_game));
+    m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game));
 }
 
 void Scene_Play::setPaused(bool pause) {
     m_pause = pause;
+}
+
+void Scene_Play::togglePause() {
+    m_pause = !m_pause;
 }
 
 Vec2 Scene_Play::gridSize(){
@@ -1129,61 +1004,4 @@ Vec2 Scene_Play::gridSize(){
 
 Vec2 Scene_Play::levelSize(){
     return m_levelSize;
-}
-
-Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, EntityID entity) {
-    Vec2 offset;
-    Vec2 grid = Vec2{gridX, gridY};
-    Vec2 eSize;
-    if ( m_ECS.hasComponent<CAnimation>(entity) ){
-        eSize = m_ECS.getComponent<CAnimation>(entity).animation.getSize();
-    } else {
-        eSize = m_gridSize/4;
-    }
-    
-    Vec2 eScale = {4.0f, 4.0f};
-    // switch ((int)eSize.y) {
-    //     case 270:
-    //         eScale.x = 0.15f;
-    //         eScale.y = 0.18f;
-    //         break;
-    //     case 225:
-    //         eScale.x = 0.18f;
-    //         eScale.y = 0.18f;
-    //         break;
-    //     case 192:
-    //         eScale.x = 1.0f;
-    //         eScale.y = 1.0f;
-    //         eSize.x = 64.0f;
-    //         eSize.y = 64.0f;
-    //         break;
-    //     case 128:
-    //         eScale.x = 2.0f;
-    //         eScale.y = 2.0f;
-    //         eSize.x = 32.0f;
-    //         eSize.y = 32.0f;
-    //         break;
-    //     case 64:
-    //         eScale.x = 1.0f;
-    //         eScale.y = 1.0f;
-    //         break;
-    //     case 32:
-    //         eScale.x = 2.0f;
-    //         eScale.y = 2.0f;
-    //         break;
-    //     case 16:
-    //         eScale.x = 4.0f;
-    //         eScale.y = 4.0f;
-    //         break;
-    //     case 24:
-    //         eScale.x = 2.0f;
-    //         eScale.y = 2.0f;
-    //         break; 
-    //     default:
-    //         eScale.x = 1.0f;
-    //         eScale.y = 1.0f;
-    // }
-    offset = (m_gridSize - eSize * eScale) / 2.0;
-
-    return grid + m_gridSize / 2 - offset;
 }

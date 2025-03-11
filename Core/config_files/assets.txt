@@ -103,7 +103,7 @@ Animation   heart_empty                 heart_empty                 1   100 1   
 Animation   golem                       golem                       1   100   1  1
 Animation   devil                       devil                       1   100   1  1
 Animation   fireball                    fireball                    4   15    4  1
-Animation   fireball_explode            fireball_explode            3   5     3  1
+Animation   fireball_explode            fireball_explode            9   3     9  1
 Animation   fireball_create             fireball_create             3   15    3  1
 Animation   levelStartingArea           levelStartingArea           1   100   1  1
 Animation   level1                      level1                      1   100   1  1
