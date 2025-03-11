@@ -35,7 +35,9 @@
 *.lib
 *.vcxproj
 *.dll
-lib
+
+lib/*
+# SDL2
 
 # Executables
 *.exe
