@@ -29,11 +29,7 @@ public:
             {
                 if (!hasComponent<CSwimming>()) 
                 {
-                    // transformPlayer.pos.y += 4;
                     addComponent<CSwimming>();
-                    std::cout << "Player is swimming" << std::endl;
-                    // auto& animation = getComponent<CAnimation>().animation;
-                    // animation = m_game->assets().getAnimation("demon");
                     getComponent<CAnimation>().animation = m_game->assets().getAnimation("demon");
 
                 }
@@ -43,11 +39,8 @@ public:
 
         if (hasComponent<CSwimming>()) 
         {
-            // transformPlayer.pos.y -= 4;
-            std::cout << "Player is not swimming" << std::endl;
-            // getComponent<CAnimation>().animation.setTexture(m_game->assets().getTexture("wiz"));
-            getComponent<CAnimation>().animation = m_game->assets().getAnimation("wiz");
             removeComponent<CSwimming>();
+            getComponent<CAnimation>().animation = m_game->assets().getAnimation("wiz");
         }
     }
 };
