@@ -18,7 +18,7 @@
 - **Progression manager**
 
 
-# AI suggested improvments
+# :robot: AI suggested improvments
 
 ### 1. Improve Player Mechanics
 - **Swimming Enhancements**
