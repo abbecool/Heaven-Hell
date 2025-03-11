@@ -37,7 +37,7 @@
 *.dll
 *.a
 
-lib/*
+Core/Source/lib/*
 Core/Source/include/SDL2/*
 
 # Executables
