@@ -347,6 +347,10 @@ void Scene_Play::sMovement() {
             } else{
                 transform.tempo = 1.0f;
             }
+
+            if (m_ECS.hasComponent<CSwimming>(m_player)){
+                transform.tempo *= m_ECS.getComponent<CSwimming>(m_player).swimSpeedMultiplier;
+            }
         }
     }
 
@@ -628,6 +632,13 @@ void Scene_Play::sAnimation() {
             animation.animation.update(m_currentFrame);
         }
     }
+
+    auto view3 = m_ECS.signatureView<CSwimming, CAnimation>();
+    for ( auto e : view3 ){
+        auto& animation = animationPool.getComponent(e);
+        SDL_Rect* rect = animation.animation.getSrcRect();
+        animation.animation.setSrcRect(rect->x, rect->y-4, rect->w, rect->h);
+    }
 }
 
 void Scene_Play::sRender() {
@@ -756,6 +767,8 @@ EntityID Scene_Play::spawnPlayer(){
     sc.Instance = sc.InstantiateScript();
     sc.Instance->m_entity = {entityID, &m_ECS};
     sc.Instance->m_ECS = &m_ECS;
+    sc.Instance->m_physics = &m_physics;
+    sc.Instance->m_game = m_game;
     sc.Instance->OnCreateFunction();
     return entityID;
 }
@@ -852,7 +865,6 @@ EntityID Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int 
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
-    m_ECS.addComponent<CImmovable>(entity);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64/4, 64/4});
     return entity;
 }
@@ -862,7 +874,7 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
-    m_ECS.addComponent<CImmovable>(entity);
+    m_ECS.addComponent<CWater>(entity, CWater{false});
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64/4, 64/4});
     return entity;
 }

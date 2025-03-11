@@ -51,10 +51,11 @@ void Scene_Menu::loadMenu()
 
     spawnButton(Vec2 {64.f, 64.f}, "button_unpressed", "new", "NEW_GAME");
     spawnButton(Vec2 {64.f, 128.f}, "button_unpressed", "continue", "CONTINUE");
-    spawnButton(Vec2 {float(width())-64.f,64.f }, "button_unpressed", "720p", "720p");
-    spawnButton(Vec2 {float(width())-64.f,128.f }, "button_unpressed", "1080p", "1080p");
-    spawnButton(Vec2 {float(width())-64.f,196.f }, "button_unpressed", "1440p", "1440p");
-    spawnButton(Vec2 {float(width())-64.f,256.f }, "button_unpressed", "4K", "4K");
+    spawnButton(Vec2 {float(width())-64.f,64.f }, "button_unpressed", "360p", "360p");
+    spawnButton(Vec2 {float(width())-64.f,2*64.f }, "button_unpressed", "720p", "720p");
+    spawnButton(Vec2 {float(width())-64.f,3*64.f }, "button_unpressed", "1080p", "1080p");
+    spawnButton(Vec2 {float(width())-64.f,4*64.f }, "button_unpressed", "1440p", "1440p");
+    spawnButton(Vec2 {float(width())-64.f,5*64.f }, "button_unpressed", "4K", "4K");
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
@@ -145,6 +146,10 @@ void Scene_Menu::sDoAction(const Action& action)
                 else if ( name == "continue" )
                 {
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", false), true);
+                }
+                else if ( name == "360p" )
+                {
+                    m_game->updateResolution(1);
                 }
                 else if ( name == "720p" )
                 {

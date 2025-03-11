@@ -95,6 +95,16 @@ struct CImmovable
     CImmovable(){}    
 };
 
+struct CWater {
+    bool isDeep = false;  // Differentiates deep vs shallow water
+};
+
+struct CSwimming
+{
+    bool isSwimming = false;
+    float swimSpeedMultiplier = 0.5f;
+};
+
 struct CHealth
 {
     int HP = 6;
