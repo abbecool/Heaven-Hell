@@ -64,6 +64,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     spawnPlayer();
     loadMobsNItems("config_files/mobs.txt"); // mobs have to spawn after player, so they can target the player
     spawnWeapon(Vec2{364, 91}*m_gridSize, 7);
+    spawnSword(Vec2{345, 60}*m_gridSize, 7);
 
     m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
     m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
@@ -792,6 +793,21 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {6, 6});
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
+    m_rendererManager.addEntityToLayer(entity, 5);
+    // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
+    m_ECS.addComponent<CWeapon>(entity);
+    spawnShadow(entity, Vec2{0,0}, 1, layer-1);
+    return entity;
+}
+
+EntityID Scene_Play::spawnSword(Vec2 pos, int layer){
+    auto entity = m_ECS.addEntity();
+
+    Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {6, 6});
+    m_ECS.addComponent<CName>(entity, "sword");
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("sword"), true, 2);
     m_rendererManager.addEntityToLayer(entity, 5);
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);

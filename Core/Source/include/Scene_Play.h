@@ -59,6 +59,7 @@ class Scene_Play : public Scene
     // void spawnHUD();
     EntityID spawnPlayer();
     EntityID spawnWeapon(Vec2 pos, int layer);
+    EntityID spawnSword(Vec2 pos, int layer);
     EntityID spawnProjectile(EntityID player, Vec2 vel, int layer);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
