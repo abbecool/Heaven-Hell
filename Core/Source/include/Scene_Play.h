@@ -90,6 +90,9 @@ class Scene_Play : public Scene
     void togglePause();
     void changePlayerStateTo(EntityID entity, PlayerState s);
     
+    template<typename T>
+    void InitiateScript(CScript& sc, EntityID entityID);
+    
     public:
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 gridSize();

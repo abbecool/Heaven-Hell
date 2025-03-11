@@ -1,7 +1,7 @@
-goblin 11 27 5
+goblin 350 79 5
 goblin 330 77 5
-rooter 54 27 5
-rooter 89 66 5
+rooter 345 60 5
+rooter 340 75 5
 coin 345 62 6
 
 tree 330 80 6
@@ -29,4 +29,4 @@ tree 395 84 6
 tree 402 85 6
 
 House1 380 80 6
-campfire 67 36 6
+campfire 370 78 6

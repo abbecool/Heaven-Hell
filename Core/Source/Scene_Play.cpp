@@ -193,15 +193,15 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if ( action.name() == "CAMERA FOLLOW"){
             m_camera.toggleCameraFollow();
         } else if ( action.name() == "CAMERA PAN"){
-            m_pause = m_camera.startPan(2048, 1000, Vec2 {(float)(64*52+32 - width()/2), (float)(64*44+32 - height()/2)}, m_pause);
+            m_pause = m_camera.startPan(2048, 1000, Vec2{0,0}, m_pause);
         } else if ( action.name() == "SAVE"){
             saveGame("config_files/game_save.txt");
         } else if ( action.name() == "TP1") { 
-            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{460*64, 460*64};
+            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{460*64/4, 460*64/4};
         } else if ( action.name() == "TP2") { 
-            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{292*64, 236*64};
+            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{292*64/4, 236*64/4};
         }else if ( action.name() == "TP3") {
-            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*64, 181*64};
+            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*64/4, 181*64/4};
         } else if ( action.name() == "RESET") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
         }
@@ -761,16 +761,9 @@ EntityID Scene_Play::spawnPlayer(){
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-
-    m_ECS.addComponent<CScript>(entityID).Bind<PlayerController>();
-    auto& scriptPool = m_ECS.getComponentPool<CScript>();
-    auto& sc = scriptPool.getComponent(entityID);    
-    sc.Instance = sc.InstantiateScript();
-    sc.Instance->m_entity = {entityID, &m_ECS};
-    sc.Instance->m_ECS = &m_ECS;
-    sc.Instance->m_physics = &m_physics;
-    sc.Instance->m_game = m_game;
-    sc.Instance->OnCreateFunction();
+    
+    auto& sc= m_ECS.addComponent<CScript>(entityID);
+    InitiateScript<PlayerController>(sc, entityID);
     return entityID;
 }
 
@@ -781,7 +774,7 @@ EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int l
     m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
     m_ECS.addComponent<CAnimation>(shadowID, m_game->assets().getAnimation("shadow"), true, layer);
     m_rendererManager.addEntityToLayer(shadowID, layer);
-    m_ECS.addComponent<CChild>(parentID, shadowID, true);
+    m_ECS.addComponent<CChild>(parentID, shadowID);
     return shadowID;
 }
 
@@ -952,13 +945,8 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
 
     spawnShadow(entity, Vec2{0, 16/4}, 1, layer-1);
 
-    m_ECS.addComponent<CScript>(entity).Bind<RooterController>();
-    auto& scriptPool = m_ECS.getComponentPool<CScript>();
-    auto& sc = scriptPool.getComponent(entity);    
-    sc.Instance = sc.InstantiateScript();
-    sc.Instance->m_entity = {entity, &m_ECS};
-    sc.Instance->m_ECS = &m_ECS;
-    sc.Instance->OnCreateFunction();
+    auto& sc= m_ECS.addComponent<CScript>(entity);
+    InitiateScript<RooterController>(sc, entity);
     return entity;
 }
 
@@ -1000,6 +988,17 @@ void Scene_Play::changePlayerStateTo(EntityID entity, PlayerState s) {
     else { 
         m_ECS.getComponent<CState>(entity).changeAnimate = false;
     }
+}
+
+template<typename T>
+void Scene_Play::InitiateScript(CScript& sc, EntityID entityID){
+    sc.Bind<T>();
+    sc.Instance = sc.InstantiateScript();
+    sc.Instance->m_entity = {entityID, &m_ECS};
+    sc.Instance->m_ECS = &m_ECS;
+    sc.Instance->m_physics = &m_physics;
+    sc.Instance->m_game = m_game;
+    sc.Instance->OnCreateFunction();
 }
 
 void Scene_Play::onEnd() {
