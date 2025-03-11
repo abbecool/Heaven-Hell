@@ -2,6 +2,13 @@
 
 ## :rocket: High Priority
 
+### Player swimming animations
+- **Draw new swimming animations for the player**
+
+### Update the physics system and the collision detection
+- **Use a broad and narrow collision detection system**
+- **Implement a QuadTree system for the collision detection**
+
 ### More attacks
 - **Different attacks for the rooter and goblin**
   - Goblin uses normal melee attacks
@@ -17,8 +24,9 @@
 - **Story manager**
 - **Progression manager**
 
+### :heart: Remove HP heart system and use a health bar instead
 
-# :robot: AI suggested improvments
+# :robot: AI suggested improvements
 
 ### 1. Improve Player Mechanics
 - **Swimming Enhancements**
@@ -28,7 +36,6 @@
 ### 2. Advanced Combat System
 - **Melee Attacks**
   - Create attack animation
-  - Implement hit detection using `CBoundingBox`
   - Add enemy hit reactions
 - **Ranged Attacks**
   - Implement projectile movement & collision detection
