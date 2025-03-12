@@ -70,6 +70,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
 
     m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
     m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
+
+    // m_physics.createQuadtree();
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
@@ -378,6 +380,14 @@ void Scene_Play::sMovement() {
 
 void Scene_Play::sCollision() {
 // ------------------------------- Player collisions -------------------------------------------------------------------------
+    m_physics.clearQuadtree();
+
+    auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
+    for ( auto e : viewCollision ){
+        Entity entity = m_ECS.getEntity(e);
+        m_physics.createQuadtree()->insert(entity);
+    }
+
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
     auto& transformPlayer = transformPool.getComponent(m_player);

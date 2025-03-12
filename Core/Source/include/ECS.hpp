@@ -2,6 +2,7 @@
 
 #include "Components.h"
 #include "ComponentPool.hpp"
+#include "Entity.h"
 
 #include <iostream>
 #include <unordered_map>
@@ -147,10 +148,14 @@ private:
 class ECS
 {
     EntityID m_numEntities = 0;
-    friend class Entity;
+    // friend class Entity;
 public:
 
     ECS(){}  
+
+    Entity getEntity(EntityID entity){
+        return {entity, this};
+    }
 
     EntityID addEntity(){   
         m_numEntities++;

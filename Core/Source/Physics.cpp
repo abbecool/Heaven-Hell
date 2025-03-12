@@ -18,22 +18,23 @@ bool Physics::isCollided(CTransform t1, CBoundingBox b1, CTransform t2, CBoundin
     return (x_overlap && y_overlap);
 }
 
+
 bool Physics::isStandingIn(Entity a, Entity b)
 {
     if (a.getID() == b.getID())
     {
         return false;
     }
-
+    
     Vec2 aSize = a.getComponent<CBoundingBox>().size;
     Vec2 aHalfSize = a.getComponent<CBoundingBox>().halfSize;
     Vec2 bSize = b.getComponent<CBoundingBox>().size;
     Vec2 aPos = a.getComponent<CTransform>().pos - a.getComponent<CBoundingBox>().halfSize;
     Vec2 bPos = b.getComponent<CTransform>().pos - b.getComponent<CBoundingBox>().halfSize;
-
+    
     bool x_overlap = (aPos.x + aHalfSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x + aHalfSize.x);
     bool y_overlap = (aPos.y + aSize.y <= bPos.y + bSize.y) && (aPos.y + aSize.y > bPos.y);
-
+    
     return (x_overlap && y_overlap);
 }
 
@@ -45,12 +46,12 @@ Vec2 Physics::overlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBo
     Vec2 bPos = t2.pos - b2.halfSize;
     Vec2 aPrevPos = t1.prevPos - b1.halfSize;
     Vec2 bPrevPos = t2.prevPos - b2.halfSize;
-
+    
     Vec2 delta          =   ( (aPos       + aSize) - (bPos      + bSize) ).abs_elem();
     Vec2 prevDelta      =   ( (aPrevPos   + aSize) - (bPrevPos  + bSize) ).abs_elem();
     Vec2 overlap        =   aSize + bSize - delta;
     Vec2 prevOverlap    =   aSize + bSize - prevDelta;
-
+    
     Vec2 move = { 0, 0 };
     if (prevOverlap.y > 0)
     {
@@ -63,7 +64,7 @@ Vec2 Physics::overlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBo
             move -= Vec2 { overlap.x, 0 };
         }
     }
-
+    
     if (prevOverlap.x > 0)
     {
         if ((aPos.y + aSize.y/2) > (bPos.y + bSize.y/2))
@@ -75,7 +76,7 @@ Vec2 Physics::overlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBo
             move -=  Vec2 { 0, overlap.y };
         }
     }
-
+    
     return move;
 }
 
@@ -100,4 +101,15 @@ Vec2 Physics::knockback(CKnockback& knockback){
         knockback.duration = 0;
         return Vec2{0, 0};
     }
+}
+
+void Physics::clearQuadtree()
+{
+    m_quadroot = nullptr;
+}
+
+std::unique_ptr<Quadtree> Physics::createQuadtree()
+{
+    std::unique_ptr<Quadtree> m_quadroot = std::make_unique<Quadtree>(0, 0, 800, 800, 4);
+    return m_quadroot;
 }
