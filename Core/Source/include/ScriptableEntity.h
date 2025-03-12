@@ -31,6 +31,9 @@ class ScriptableEntity{
         std::vector<EntityID> view(){
             return m_entity.view<T>();
         }
+        void removeEntity() {
+            m_entity.removeEntity();
+        }
         Entity m_entity; // private
         ECS* m_ECS;
         Physics* m_physics;

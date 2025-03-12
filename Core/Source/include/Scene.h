@@ -68,6 +68,8 @@ class Scene
     void updateMousePosition(Vec2 pos);
     void updateMouseScroll(int scroll);
 
-    Vec2 getMousePosition();
     MouseState getMouseState();
+    Vec2 getMousePosition();
+    virtual Vec2 getCameraPosition();
+
 };

@@ -11,6 +11,8 @@
 #include "ScriptableEntity.h"
 #include "scripts/player.cpp"
 #include "scripts/rooter.cpp"
+#include "scripts/weapon.cpp"
+#include "scripts/projectile.cpp"
 
 #include "RandomArray.h"
 
@@ -228,22 +230,7 @@ void Scene_Play::sDoAction(const Action& action) {
 
         if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)) {
             EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
-            if ( m_ECS.hasComponent<CProjectile>(weaponID) )
-            {
-                EntityID projectileID = m_ECS.getComponent<CProjectile>(weaponID).projectileID;
-                m_ECS.queueRemoveComponent<CProjectile>(weaponID);
-                m_ECS.queueRemoveComponent<CParent>(projectileID);
-                if ( m_ECS.getComponent<CProjectileState>(projectileID).state == "Ready" )
-                {
-                    m_ECS.addComponent<CBoundingBox>(projectileID, Vec2{12, 12});
-                    m_ECS.getComponent<CTransform>(projectileID).isMovable = true;
-                    m_ECS.getComponent<CProjectileState>(projectileID).state = "Free";
-                    m_ECS.getComponent<CTransform>(projectileID).vel = (getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position);
-                    m_ECS.getComponent<CTransform>(projectileID).angle = m_ECS.getComponent<CTransform>(projectileID).vel.angle();
-                } else {
-                    m_ECS.queueRemoveEntity(projectileID);
-                }
-            }
+            m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
         }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
@@ -754,8 +741,8 @@ EntityID Scene_Play::spawnPlayer(){
 
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32/4, 32/4});
-    m_ECS.addComponent<CName>(entityID, "wiz");
-    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz"), true, layer);
+    m_ECS.addComponent<CName>(entityID, "demon");
+    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("demon"), true, layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
     m_ECS.addComponent<CInputs>(entityID);
@@ -790,6 +777,8 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
+    auto& sc = m_ECS.addComponent<CScript>(entity);
+    InitiateScript<WeaponController>(sc, entity);
     return entity;
 }
 
@@ -805,6 +794,8 @@ EntityID Scene_Play::spawnSword(Vec2 pos, int layer){
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
+    auto& sc = m_ECS.addComponent<CScript>(entity);
+    InitiateScript<WeaponController>(sc, entity);
     return entity;
 }
 
@@ -910,6 +901,8 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
     m_ECS.addComponent<CParent>(entity, creator);
     m_ECS.addComponent<CProjectile>(creator, entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
+    auto& script = m_ECS.addComponent<CScript>(entity);
+    InitiateScript<ProjectileController>(script, entity);
     return entity;
 }
 
@@ -1019,4 +1012,8 @@ Vec2 Scene_Play::gridSize(){
 
 Vec2 Scene_Play::levelSize(){
     return m_levelSize;
+}
+
+Vec2 Scene_Play::getCameraPosition() {
+    return m_camera.position;
 }

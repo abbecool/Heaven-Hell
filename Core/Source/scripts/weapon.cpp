@@ -1,7 +1,7 @@
 #include "ScriptableEntity.h"
 #include <iostream>
 
-class ProjectileController : public ScriptableEntity 
+class WeaponController : public ScriptableEntity 
 {
 public:
     void OnCreateFunction()
@@ -31,16 +31,14 @@ public:
 
     void OnAttackFunction()
     {
-        if ( getComponent<CProjectileState>().state == "Ready" )
+        if ( hasComponent<CProjectile>() )
         {
-            addComponent<CBoundingBox>(Vec2{12, 12});
-            getComponent<CTransform>().isMovable = true;
-            getComponent<CProjectileState>().state = "Free";
-            getComponent<CTransform>().vel = (m_game->currentScene()->getMousePosition()-getComponent<CTransform>().pos+m_game->currentScene()->getCameraPosition());
-            getComponent<CTransform>().angle = getComponent<CTransform>().vel.angle();
-        } else {
-            removeEntity();
+            EntityID projectileID = getComponent<CProjectile>().projectileID;
+            removeComponent<CProjectile>();
+            m_ECS->queueRemoveComponent<CParent>(projectileID);
+            m_ECS->getComponent<CScript>(projectileID).Instance->OnAttackFunction();
         }
     }
+
 };
 

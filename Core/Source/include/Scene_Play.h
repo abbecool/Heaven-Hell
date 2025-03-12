@@ -97,6 +97,8 @@ class Scene_Play : public Scene
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 gridSize();
     Vec2 levelSize();
+    Vec2 getCameraPosition() override;
+    
     void update();
     void setPaused(bool);
 };

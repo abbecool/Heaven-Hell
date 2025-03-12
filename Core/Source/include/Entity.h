@@ -42,6 +42,10 @@ public:
         return m_ECS->signatureView<T>();
     }
 
+    void removeEntity() {
+        m_ECS->queueRemoveEntity(m_entityId);
+    }
+
     EntityID getID(){
         return m_entityId;
     }

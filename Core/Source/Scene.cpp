@@ -161,3 +161,7 @@ Vec2 Scene::gridToMidPixel(Vec2 grid, EntityID entity) {
 
     return grid + m_gridSize / 2 - offset;
 }
+
+Vec2 Scene::getCameraPosition() {
+    return Vec2{0,0};
+}
