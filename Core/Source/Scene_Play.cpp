@@ -70,8 +70,6 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
 
     m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
     m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
-
-    // m_physics.createQuadtree();
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
@@ -379,14 +377,17 @@ void Scene_Play::sMovement() {
 }
 
 void Scene_Play::sCollision() {
-// ------------------------------- Player collisions -------------------------------------------------------------------------
-    m_physics.clearQuadtree();
 
+    auto screenSize = Vec2{width()/2, height()/2};
+    Vec2 treePos = m_camera.position + screenSize;
+    Vec2 treeSize = Vec2{width()/2, width()/2};
+    m_physics.createQuadtree(treePos, treeSize);
     auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
     for ( auto e : viewCollision ){
-        Entity entity = m_ECS.getEntity(e);
-        m_physics.createQuadtree()->insert(entity);
+        Entity entity = {e, &m_ECS};
+        m_physics.insertQuadtree(entity);
     }
+// ------------------------------- Player collisions -------------------------------------------------------------------------
 
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
@@ -708,6 +709,13 @@ void Scene_Play::sRender() {
                 spriteRender(animation);
             }
         }
+    }
+    if (m_drawCollision)
+    {
+        auto totalZoom = windowScale - m_camera.getCameraZoom();
+        auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
+        auto camPos = m_camera.position;
+        m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
     }
 }
 

@@ -108,8 +108,17 @@ void Physics::clearQuadtree()
     m_quadroot = nullptr;
 }
 
-std::unique_ptr<Quadtree> Physics::createQuadtree()
+void Physics::createQuadtree(Vec2 pos, Vec2 size)
 {
-    std::unique_ptr<Quadtree> m_quadroot = std::make_unique<Quadtree>(0, 0, 800, 800, 4);
-    return m_quadroot;
+    m_quadroot = std::make_unique<Quadtree>(pos.x, pos.y, size.x, size.y, 4);
+}
+
+void Physics::insertQuadtree(Entity e)
+{
+    m_quadroot->insert(e);
+}
+
+void Physics::renderQuadtree(SDL_Renderer* renderer, int zoom, Vec2 screenCenter, Vec2 camPos)
+{
+    m_quadroot->renderBoundary(renderer, zoom, screenCenter, camPos);
 }
