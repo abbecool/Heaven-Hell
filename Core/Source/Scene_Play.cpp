@@ -381,12 +381,12 @@ void Scene_Play::sCollision() {
     auto screenSize = Vec2{width()/2, height()/2};
     Vec2 treePos = m_camera.position + screenSize;
     Vec2 treeSize = Vec2{width()/2, width()/2};
-    m_physics.createQuadtree(treePos, treeSize);
-    auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
-    for ( auto e : viewCollision ){
-        Entity entity = {e, &m_ECS};
-        m_physics.insertQuadtree(entity);
-    }
+    // m_physics.createQuadtree(treePos, treeSize);
+    // auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
+    // for ( auto e : viewCollision ){
+    //     Entity entity = {e, &m_ECS};
+    //     m_physics.insertQuadtree(entity);
+    // }
 // ------------------------------- Player collisions -------------------------------------------------------------------------
 
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
@@ -715,7 +715,7 @@ void Scene_Play::sRender() {
         auto totalZoom = windowScale - m_camera.getCameraZoom();
         auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
         auto camPos = m_camera.position;
-        m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+        // m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
     }
 }
 
