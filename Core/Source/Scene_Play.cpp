@@ -150,7 +150,8 @@ void Scene_Play::loadLevel(const std::string& levelPath){
 
     const char* path = levelPath.c_str();
     SDL_Surface* loadedSurface = IMG_Load(path);
-    if (loadedSurface == nullptr) {
+    if (loadedSurface == nullptr) 
+    {
         std::cerr << "Unable to load image " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
     }
 
@@ -216,7 +217,9 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
 
         if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)){
+            std::cout << "ATTACK START" << std::endl;
             EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
+            m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
             spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position, 8);
         }
     }
@@ -229,6 +232,7 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
 
         if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)) {
+            std::cout << "ATTACK END" << std::endl;
             EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
             m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
         }
@@ -378,9 +382,9 @@ void Scene_Play::sMovement() {
 
 void Scene_Play::sCollision() {
 
-    auto screenSize = Vec2{width()/2, height()/2};
-    Vec2 treePos = m_camera.position + screenSize;
-    Vec2 treeSize = Vec2{width()/2, width()/2};
+    // auto screenSize = Vec2{width()/2, height()/2};
+    // Vec2 treePos = m_camera.position + screenSize;
+    // Vec2 treeSize = Vec2{width()/2, width()/2};
     // m_physics.createQuadtree(treePos, treeSize);
     // auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
     // for ( auto e : viewCollision ){
@@ -479,39 +483,42 @@ void Scene_Play::sCollision() {
         auto& BboxProjectile = BboxPool.getComponent(projectileID);
         for ( auto enemyID : viewSignatureBbox )
         {   
-            if (enemyID != m_player ) 
+            if (enemyID == m_player )
             {
-                auto& transformEnemy = transformPool.getComponent(enemyID);
-                auto& BboxEnemy = BboxPool.getComponent(enemyID);
-                if (m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
-                {
-                    auto& animation     = m_ECS.getComponent<CAnimation>(projectileID);
-                    animation.animation = m_game->assets().getAnimation("fireball_explode");
-                    animation.repeat    = false;
-                    transformProjectile.isMovable = false;
-                    m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
-                    m_ECS.queueRemoveComponent<CDamage>(projectileID);
-                    // m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
-                    auto& health = healthPool.getComponent(enemyID);
-                    health.HP--;
-                    health.damage_frame = m_currentFrame;
-                }
+                continue;
             }
+            auto& transformEnemy = transformPool.getComponent(enemyID);
+            auto& BboxEnemy = BboxPool.getComponent(enemyID);
+            if (!m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
+            {
+                continue;
+            }
+            auto& animation     = m_ECS.getComponent<CAnimation>(projectileID);
+            animation.animation = m_game->assets().getAnimation("fireball_explode");
+            animation.repeat    = false;
+            transformProjectile.isMovable = false;
+            m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
+            m_ECS.queueRemoveComponent<CDamage>(projectileID);
+            m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
+            auto& health = healthPool.getComponent(enemyID);
+            health.HP--;
+            health.damage_frame = m_currentFrame;
         }
         for ( auto enemyID : viewSignatureImmovable )
         {   
             auto& transformObstacle = transformPool.getComponent(enemyID);
             auto& BboxObstacle = BboxPool.getComponent(enemyID);
-            if (m_physics.isCollided(transformProjectile, BboxProjectile, transformObstacle, BboxObstacle))
+            if (!m_physics.isCollided(transformProjectile, BboxProjectile, transformObstacle, BboxObstacle))
             {
-                auto& animation     = m_ECS.getComponent<CAnimation>(projectileID);
-                animation.animation = m_game->assets().getAnimation("fireball_explode");
-                animation.repeat    = false;
-                transformProjectile.isMovable = false;
-                m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
-                m_ECS.queueRemoveComponent<CDamage>(projectileID);
-                // m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
+                continue;
             }
+            auto& animation     = m_ECS.getComponent<CAnimation>(projectileID);
+            animation.animation = m_game->assets().getAnimation("fireball_explode");
+            animation.repeat    = false;
+            transformProjectile.isMovable = false;
+            m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
+            m_ECS.queueRemoveComponent<CDamage>(projectileID);
+            // m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
         }
     }
 }
@@ -536,17 +543,18 @@ void Scene_Play::sStatus() {
     for ( auto entityID : viewHealth)
     {
         auto& health = healthPool.getComponent(entityID);
-        auto& transform = transformPool.getComponent(entityID);
-        if (health.HP <= 0)
+        if (health.HP > 0)
         {
-            spawnCoin(transform.pos, 6);
-            if ( m_player == entityID ){
-                    // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
-                    m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
-            } else {
-                m_ECS.queueRemoveEntity(entityID);
-                Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
-            }
+            continue;
+        }
+        auto& transform = transformPool.getComponent(entityID);
+        spawnCoin(transform.pos, 6);
+        if ( m_player == entityID ){
+                // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
+                m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
+        } else {
+            m_ECS.queueRemoveEntity(entityID);
+            Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
         }
     }
     auto viewDamage = m_ECS.signatureView<CDamage, CBoundingBox, CTransform>();
@@ -676,57 +684,60 @@ void Scene_Play::sRender() {
     {   
         if (entityID == m_player) { continue; }
         auto& health = viewHealth.getComponent(entityID);
-        if ((int)(m_currentFrame - health.damage_frame) < health.i_frames)
+        if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
         {
-            auto& transform = transformPool.getComponent(entityID);
+            continue;
+        }
+        auto& transform = transformPool.getComponent(entityID);
 
-            Vec2 adjustedPosition = (transform.pos - m_camera.position) * (windowScale - m_camera.getCameraZoom());
-            adjustedPosition += screenCenter*m_camera.getCameraZoom();
+        Vec2 adjustedPosition = (transform.pos - m_camera.position) * (windowScale - m_camera.getCameraZoom());
+        adjustedPosition += screenCenter*m_camera.getCameraZoom();
 
-            Animation animation;
-            auto hearts = float(health.HP) / 2;
+        Animation animation;
+        auto hearts = float(health.HP) / 2;
 
-            for (int i = 1; i <= health.HP_max / 2; i++)
-            {   
-                if (hearts >= i)
-                {
-                    animation = health.animation_full;
-                }
-                else if (i - hearts == 0.5f)
-                {
-                    animation = health.animation_half;
-                }
-                else
-                {
-                    animation = health.animation_empty;
-                }
-
-                animation.setScale(transform.scale * windowScale);
-                animation.setDestRect(Vec2{
-                    adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
-                    adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
-                });
-                spriteRender(animation);
+        for (int i = 1; i <= health.HP_max / 2; i++)
+        {   
+            if (hearts >= i)
+            {
+                animation = health.animation_full;
             }
+            else if (i - hearts == 0.5f)
+            {
+                animation = health.animation_half;
+            }
+            else
+            {
+                animation = health.animation_empty;
+            }
+
+            animation.setScale(transform.scale * windowScale);
+            animation.setDestRect(Vec2{
+                adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
+                adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
+            });
+            spriteRender(animation);
         }
     }
-    if (m_drawCollision)
-    {
-        auto totalZoom = windowScale - m_camera.getCameraZoom();
-        auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
-        auto camPos = m_camera.position;
-        // m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
-    }
+    // if (m_drawCollision)
+    // {
+    //     auto totalZoom = windowScale - m_camera.getCameraZoom();
+    //     auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
+    //     auto camPos = m_camera.position;
+    //     m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+    // }
 }
 
-void Scene_Play::sAudio(){
+void Scene_Play::sAudio()
+{
     if( Mix_PlayingMusic() == 0 )
     {
         Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1"), -1);
     }
 }
 
-EntityID Scene_Play::spawnPlayer(){
+EntityID Scene_Play::spawnPlayer()
+{
     uint8_t layer = 10;
     auto entityID = m_ECS.addEntity();
     m_player = entityID;
@@ -913,14 +924,14 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{1, 1}, vel.angle(), 200.0f, false);
-    m_ECS.addComponent<CDamage>(entity, 1); // damage speed 6 = frames between attacking
+    m_ECS.addComponent<CDamage>(entity, 1);
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CProjectileState>(entity, "Create");
     m_ECS.addComponent<CParent>(entity, creator);
     m_ECS.addComponent<CProjectile>(creator, entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
-    auto& script = m_ECS.addComponent<CScript>(entity);
-    InitiateScript<ProjectileController>(script, entity);
+    // auto& script = m_ECS.addComponent<CScript>(entity);
+    // InitiateScript<ProjectileController>(script, entity);
     return entity;
 }
 

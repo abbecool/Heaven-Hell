@@ -31,13 +31,15 @@ public:
 
     void OnAttackFunction()
     {
-        if ( hasComponent<CProjectile>() )
-        {
-            EntityID projectileID = getComponent<CProjectile>().projectileID;
-            removeComponent<CProjectile>();
-            m_ECS->queueRemoveComponent<CParent>(projectileID);
-            m_ECS->getComponent<CScript>(projectileID).Instance->OnAttackFunction();
-        }
+        // spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position, 8);
+
+        // if ( hasComponent<CProjectile>() )
+        // {
+        //     EntityID projectileID = getComponent<CProjectile>().projectileID;
+        //     removeComponent<CProjectile>();
+        //     m_ECS->queueRemoveComponent<CParent>(projectileID);
+        //     m_ECS->getComponent<CScript>(projectileID).Instance->OnAttackFunction();
+        // }
     }
 
 };
