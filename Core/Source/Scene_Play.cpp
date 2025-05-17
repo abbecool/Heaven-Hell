@@ -231,11 +231,11 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = false; }
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
 
-        if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)) {
-            std::cout << "ATTACK END" << std::endl;
-            EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
-            m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
-        }
+        // if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)) {
+        //     std::cout << "ATTACK END" << std::endl;
+        //     EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
+        //     m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
+        // }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
             saveGame("config_files/game_save.txt");
@@ -921,17 +921,17 @@ EntityID Scene_Play::spawnBridge(const Vec2 pos, const int frame)
 EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball_create"), false, layer);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{1, 1}, vel.angle(), 200.0f, false);
     m_ECS.addComponent<CDamage>(entity, 1);
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CProjectileState>(entity, "Create");
-    m_ECS.addComponent<CParent>(entity, creator);
-    m_ECS.addComponent<CProjectile>(creator, entity);
+    // m_ECS.addComponent<CParent>(entity, creator);
+    // m_ECS.addComponent<CProjectile>(creator, entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
-    // auto& script = m_ECS.addComponent<CScript>(entity);
-    // InitiateScript<ProjectileController>(script, entity);
+    auto& script = m_ECS.addComponent<CScript>(entity);
+    InitiateScript<ProjectileController>(script, entity);
     return entity;
 }
 
