@@ -26,7 +26,7 @@ public:
         //     transform.vel = Vec2 {0,0};
         // }
         // pathfind.target = transformPool.getComponent(m_player).pos;
-        OnAttackFunction();
+        // OnAttackFunction();
     }
 
     void OnAttackFunction()

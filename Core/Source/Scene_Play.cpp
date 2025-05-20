@@ -217,7 +217,6 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
 
         if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)){
-            std::cout << "ATTACK START" << std::endl;
             EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
             m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
             spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position, 8);
@@ -230,12 +229,6 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = false; }
         if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = false; }
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
-
-        // if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)) {
-        //     std::cout << "ATTACK END" << std::endl;
-        //     EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
-        //     m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
-        // }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
             saveGame("config_files/game_save.txt");
@@ -449,6 +442,7 @@ void Scene_Play::sCollision() {
         auto& BboxEnemy = BboxPool.getComponent(enemy);
         for (auto enemy2 : viewP)
         {
+            // if (enemy == enemy2) {continue;}
             auto& transformEnemy2 = transformPool.getComponent(enemy2);
             auto& BboxEnemy2 = BboxPool.getComponent(enemy2);
             if (m_physics.isCollided(transformEnemy, BboxEnemy, transformEnemy2, BboxEnemy2))
@@ -459,7 +453,7 @@ void Scene_Play::sCollision() {
         if (m_physics.isCollided(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer))
             {
                 transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer);
-                // m_ECS.addComponent<CKnockback>(m_player, 120, 10, transformEnemy.vel);
+                m_ECS.addComponent<CKnockback>(m_player, 120, 10, transformEnemy.vel);
             }
         auto &viewImmovable = m_ECS.view<CImmovable>();
         for ( auto e : viewImmovable ){
@@ -483,10 +477,7 @@ void Scene_Play::sCollision() {
         auto& BboxProjectile = BboxPool.getComponent(projectileID);
         for ( auto enemyID : viewSignatureBbox )
         {   
-            if (enemyID == m_player )
-            {
-                continue;
-            }
+            if (enemyID == m_player ){continue;}
             auto& transformEnemy = transformPool.getComponent(enemyID);
             auto& BboxEnemy = BboxPool.getComponent(enemyID);
             if (!m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
@@ -499,7 +490,6 @@ void Scene_Play::sCollision() {
             transformProjectile.isMovable = false;
             m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
             m_ECS.queueRemoveComponent<CDamage>(projectileID);
-            m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
             auto& health = healthPool.getComponent(enemyID);
             health.HP--;
             health.damage_frame = m_currentFrame;
@@ -923,12 +913,17 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{1, 1}, vel.angle(), 200.0f, false);
+    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{1, 1}, vel.angle(), 200.0f, true);
     m_ECS.addComponent<CDamage>(entity, 1);
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
-    m_ECS.addComponent<CProjectileState>(entity, "Create");
-    // m_ECS.addComponent<CParent>(entity, creator);
-    // m_ECS.addComponent<CProjectile>(creator, entity);
+    // m_ECS.addComponent<CProjectileState>(entity, "Create");
+
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
+    // m_ECS.getComponent<CTransform>(entity).isMovable = true;
+    m_ECS.addComponent<CProjectileState>(entity, "Free");
+    // m_ECS.getComponent<CTransform>(entity).vel = (m_game->currentScene()->getMousePosition()-m_ECS.getComponent<CTransform>(entity).pos+m_game->currentScene()->getCameraPosition());
+    // m_ECS.getComponent<CTransform>(entity).angle = m_ECS.getComponent<CTransform>(entity).vel.angle();
+
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
     auto& script = m_ECS.addComponent<CScript>(entity);
     InitiateScript<ProjectileController>(script, entity);

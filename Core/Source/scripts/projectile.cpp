@@ -6,12 +6,12 @@ class ProjectileController : public ScriptableEntity
 public:
     void OnCreateFunction()
     {
-        addComponent<CBoundingBox>(Vec2{12, 12});
-        getComponent<CTransform>().isMovable = true;
-        getComponent<CProjectileState>().state = "Free";
-        getComponent<CTransform>().vel = (m_game->currentScene()->getMousePosition()-getComponent<CTransform>().pos+m_game->currentScene()->getCameraPosition());
-        getComponent<CTransform>().angle = getComponent<CTransform>().vel.angle();
-        std::cout << "create script entity: OnCreate" << std::endl;
+        // addComponent<CBoundingBox>(Vec2{12, 12});
+        // getComponent<CTransform>().isMovable = true;
+        // getComponent<CProjectileState>().state = "Free";
+        // getComponent<CTransform>().vel = (m_game->currentScene()->getMousePosition()-getComponent<CTransform>().pos+m_game->currentScene()->getCameraPosition());
+        // getComponent<CTransform>().angle = getComponent<CTransform>().vel.angle();
+        // std::cout << "create script entity: OnCreate" << std::endl;
     }
 
     void OnDestroyFunction()
