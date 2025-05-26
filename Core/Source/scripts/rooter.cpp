@@ -43,7 +43,7 @@ public:
         if ( abs((target-transform.pos).length()) < (float)attack.range && (attack.attackTimer <= 0))
         {
             EntityID damageAreaID = m_ECS->addEntity();
-            // addComponent<CChild>(damageAreaID, m_entity.getID());
+            addComponent<CChild>(damageAreaID, true);
             m_ECS->addComponent<CTransform>(damageAreaID, transform.pos );
             m_ECS->addComponent<CParent>(damageAreaID, m_entity.getID(), (target-transform.pos).norm(64/4));
             m_ECS->addComponent<CBoundingBox>(damageAreaID, attack.area, 0, 0, 255);

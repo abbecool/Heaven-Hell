@@ -128,9 +128,11 @@ void Game::quit() {
 }
 
 void Game::update() {
+    // if play scene exists, update it
     if (m_sceneMap.find("PLAY") != m_sceneMap.end()) {
         m_sceneMap["PLAY"]->update();
     }
+    // update current scene
     if (m_currentScene != "PLAY") {
         currentScene()->update();
     }

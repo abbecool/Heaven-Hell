@@ -836,6 +836,35 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
     m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64/4, 64/4});
+    auto& box = m_ECS.getComponent<CBoundingBox>(entity);
+    box.red = 255;
+    box.green = 0;
+    box.blue = 0;
+    
+    // if (frame == 10)
+    // {
+    // box.red = 255;
+    // box.green = 255;
+    // box.blue = 255;
+    // }
+    // else if (frame == 11 || frame == 14 || frame == 6 || frame == 9)
+    // {
+    //     box.red = 255;
+    //     box.green = 0;
+    //     box.blue = 0;
+    // }
+    // else if (frame == 13 || frame == 15 || frame == 7 || frame == 5 || frame == 8 || frame == 2)
+    // {
+    //     box.red = 0;
+    //     box.green = 255;
+    //     box.blue = 0;
+    // }
+    // else if (frame == 4 || frame == 1 || frame == 12 || frame == 3)
+    // {
+    //     box.red = 0;
+    //     box.green = 255;
+    //     box.blue = 0;
+    // }
     m_ECS.addComponent<CImmovable>(entity);
     return entity;
 }
@@ -895,6 +924,35 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     m_ECS.addComponent<CWater>(entity, CWater{false});
     m_ECS.addComponent<CBoundingBox>(entity, Vec2{64/4, 64/4});
+    auto& box = m_ECS.getComponent<CBoundingBox>(entity);
+    box.red = 0;
+    box.green = 0;
+    box.blue = 255;
+    
+    // if (frame == 10)
+    // {
+    // box.red = 255;
+    // box.green = 255;
+    // box.blue = 255;
+    // }
+    // else if (frame == 11 || frame == 14 || frame == 6 || frame == 9)
+    // {
+    //     box.red = 255;
+    //     box.green = 0;
+    //     box.blue = 0;
+    // }
+    // else if (frame == 13 || frame == 15 || frame == 7 || frame == 5 || frame == 8 || frame == 2)
+    // {
+    //     box.red = 0;
+    //     box.green = 255;
+    //     box.blue = 0;
+    // }
+    // else if (frame == 4 || frame == 1 || frame == 12 || frame == 3)
+    // {
+    //     box.red = 0;
+    //     box.green = 0;
+    //     box.blue = 255;
+    // }
     return entity;
 }
 

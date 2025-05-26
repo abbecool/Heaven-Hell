@@ -234,7 +234,8 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             std::vector<EntityID> ids = m_scene->spawnDualTiles(Vec2 {16*(float)x - 16/2, 16*(float)y - 16/2},  tileIndex);
             chunkChildren.insert(chunkChildren.end(), ids.begin(), ids.end());
 
-            if (pixel == "obstacle") 
+            // Spawn obsticle if it is an edge or corner tile
+            if (pixel == "obstacle" && textureIndex != 10) 
             {
                 EntityID id = m_scene->spawnObstacle(Vec2 {16*(float)x, 16*(float)y}, false, textureIndex);
                 chunkChildren.push_back(id);
@@ -246,7 +247,7 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
                     EntityID id = m_scene->spawnLava(Vec2 {16*(float)x,16*(float)y}, "Lava", textureIndex);
                     chunkChildren.push_back(id);
                 } 
-                else if (pixel == "water") 
+                else if (pixel == "water" && textureIndex != 10) 
                 {
                     EntityID id = m_scene->spawnWater(Vec2 {16*(float)x,16*(float)y}, "Water", textureIndex);
                     chunkChildren.push_back(id);

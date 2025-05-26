@@ -172,15 +172,16 @@ public:
     }
 
     void queueRemoveEntity(EntityID entity) {
-        m_entitiesToRemove.push_back(entity);
         if ( hasComponent<CChild>(entity) )
         {
             if ( getComponent<CChild>(entity).removeOnDeath )
             {
+                std::cout << "Queue remove child: " << entity << "\n";
                 auto childID = getComponent<CChild>(entity).childID;
                 m_entitiesToRemove.push_back(childID);
             }
         }
+        m_entitiesToRemove.push_back(entity);
     }
 
     template<typename T>

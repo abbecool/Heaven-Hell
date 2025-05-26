@@ -58,4 +58,6 @@ class Animation
     float getAngle() const;
     void setCurrentFrame(size_t frame);
     size_t frames();
+    Vec2 getRowColumn() const;
+    Vec2 getShape() const;
     };
