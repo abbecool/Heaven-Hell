@@ -82,6 +82,13 @@ public:
         // Retrieve the current signature of the entity
         Signature currentSignature = getSignature(entity);
 
+        if ((currentSignature & CChildMask) == CChildMask) {
+            // std::cout << CChildMask << std::endl;
+            // std::cout << currentSignature << std::endl;
+            // If the entity already has said component, print a warning
+            std::cerr << "Warning: Entity " << entity << " already has component of type " 
+            << typeid(CChildMask).name() << ". Overwriting signature." << std::endl;
+        }
         // Set the bit for the new component using bitwise OR
         currentSignature |= componentMask;
 
@@ -172,14 +179,25 @@ public:
     }
 
     void queueRemoveEntity(EntityID entity) {
+        if (entity == 1) {
+            std::cerr << "Error: Attempting to remove player entity!" << std::endl;
+            
+            return;
+        }
         if ( hasComponent<CChild>(entity) )
         {
+            auto childID = getComponent<CChild>(entity).childID;
+            queueRemoveComponent<CParent>(childID);
+            queueRemoveComponent<CChild>(entity);
+            if (childID == 1) {
+                std::cerr << "Error: Attempting to remove child player entity!" << std::endl;
+                return;
+            }
             if ( getComponent<CChild>(entity).removeOnDeath )
             {
-                std::cout << "Queue remove child: " << entity << "\n";
-                auto childID = getComponent<CChild>(entity).childID;
                 m_entitiesToRemove.push_back(childID);
             }
+
         }
         m_entitiesToRemove.push_back(entity);
     }

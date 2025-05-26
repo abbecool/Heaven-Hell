@@ -42,6 +42,11 @@ public:
     }
 
     void queueRemoveEntity(EntityID entity) {
+        if (entity == 1)
+        {
+            std::cerr << "Warning: Attempting to remove player entity." << std::endl;
+            std::cout << "Type of pool: " << typeid(pool).name() << std::endl;
+        }
         entitiesToRemove.push_back(entity);
     }
 
@@ -63,24 +68,11 @@ public:
     T& getComponent(EntityID entityId) {
         std::string typeName = typeid(T).name();
         
-        // // Check if pool is empty
-        // if (pool.empty()) {
-        //    throw std::runtime_error("Pool is empty! Type: " + typeName);
-        // }
-
-        //// Check if the entity exists in the pool
-        auto it = pool.find(entityId);
-        if (it == pool.end()) {
-           throw std::runtime_error("Component not found for this entity! Type: " + typeName);
-        }
-
-        //// If everything is fine, return the component
-        //return it->second;
-
         try {
             return pool.at(entityId);
         } catch (const std::out_of_range& e) {
-            throw std::runtime_error("Component not found for this entity! Type: " + typeName);
+            std::cerr << "Error at " << __FILE__ << ":" << __LINE__ << " in function " << __func__ << std::endl;
+            throw std::runtime_error("Component " + typeName + " not found for entity: " + std::to_string(entityId) + ". std::out_of_range");
         }
     }
 

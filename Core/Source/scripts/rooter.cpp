@@ -42,16 +42,16 @@ public:
         Vec2 target = getComponent<CPathfind>().target;
         if ( abs((target-transform.pos).length()) < (float)attack.range && (attack.attackTimer <= 0))
         {
+            // child parent relation removed since code does not support multiple children per parent
             EntityID damageAreaID = m_ECS->addEntity();
-            addComponent<CChild>(damageAreaID, true);
-            m_ECS->addComponent<CTransform>(damageAreaID, transform.pos );
-            m_ECS->addComponent<CParent>(damageAreaID, m_entity.getID(), (target-transform.pos).norm(64/4));
+            // addComponent<CChild>(damageAreaID, true);
+            // m_ECS->addComponent<CParent>(damageAreaID, m_entity.getID(), (target-transform.pos).norm(64/4));
+            m_ECS->addComponent<CTransform>(damageAreaID, transform.pos + (target-transform.pos).norm(20) );
             m_ECS->addComponent<CBoundingBox>(damageAreaID, attack.area, 0, 0, 255);
             m_ECS->addComponent<CDamage>(damageAreaID, attack.damage);
             m_ECS->addComponent<CLifespan>(damageAreaID, attack.duration);
             attack.attackTimer = attack.speed;
         }
-        
     }
 
     void OnCollisionFunction()

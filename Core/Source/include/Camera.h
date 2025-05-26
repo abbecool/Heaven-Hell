@@ -3,7 +3,14 @@
 #include "Vec2.h"
 #include "Entity.h"
 
+struct CameraConfig
+{
+    int SHAKE_DURATION_SMALL, SHAKE_DURATION_MEDIUM, SHAKE_DURATION_LARGE;
+    int SHAKE_INTENSITY_SMALL, SHAKE_INTENSITY_MEDIUM, SHAKE_INTENSITY_LARGE;
+};
+
 class Camera {
+
     bool m_cameraFollow = false;
     int m_cameraZoom = 0;
     Vec2 m_screenSize = {1920, 1080};
@@ -21,6 +28,7 @@ class Camera {
     Vec2 panPos = Vec2{0,0};
     Vec2 panStartPos = Vec2{0,0};
 public:
+    CameraConfig config;
     int panDuration = 0;
     Camera();
     void calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize);

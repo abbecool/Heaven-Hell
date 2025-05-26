@@ -1,3 +1,4 @@
-Player 349 63 100 100 6 1
+Player 349 63 100 100 2 1
 Rooter 80 100 4 1
 Goblin 80 100 4 1
+Camera 30 2

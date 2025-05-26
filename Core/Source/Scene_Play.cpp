@@ -62,8 +62,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_3, "TP3");
 
     loadConfig("config_files/config.txt");
-    loadLevel(levelPath); 
     spawnPlayer();
+    loadLevel(levelPath); 
     loadMobsNItems("config_files/mobs.txt"); // mobs have to spawn after player, so they can target the player
     spawnWeapon(Vec2{364, 91}*m_gridSize, 7);
     spawnSword(Vec2{345, 60}*m_gridSize, 7);
@@ -124,6 +124,9 @@ void Scene_Play::loadConfig(const std::string& confPath){
         }
         else if (head == "Goblin") {
             file >> m_goblinConfig.SPEED >> m_goblinConfig.ATTACK_SPEED >> m_goblinConfig.HP >> m_goblinConfig.DAMAGE;           
+        }
+        else if (head == "Camera") {
+            file >> m_camera.config.SHAKE_DURATION_SMALL >> m_camera.config.SHAKE_INTENSITY_SMALL;           
         }
         else {
             std::cerr << "head to " << head << "\n";
@@ -220,6 +223,7 @@ void Scene_Play::sDoAction(const Action& action) {
             EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
             m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
             spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position, 8);
+            m_camera.startShake(m_camera.config.SHAKE_INTENSITY_SMALL, m_camera.config.SHAKE_DURATION_SMALL);
         }
     }
     else if ( action.type() == "END") {
@@ -276,8 +280,7 @@ void Scene_Play::sLoader()
             }
         }
     }
-
-    m_levelLoader.clearChunks(35); // Will leave 12 chunks
+    m_levelLoader.clearChunks(35); // Will leave x number of chunks
 }
 
 void Scene_Play::sScripting() 
@@ -339,16 +342,16 @@ void Scene_Play::sMovement() {
         }
     }
 
-    auto viewKnockback = m_ECS.signatureView<CKnockback, CTransform>();
-    auto& knockbackPool = m_ECS.getComponentPool<CKnockback>();
-    for (auto entityKnockback : viewKnockback){    
-        auto &transform = transformPool.getComponent(entityKnockback);
-        auto& knockback = knockbackPool.getComponent(entityKnockback);
-        transform.pos += m_physics.knockback(knockback);
-        if (knockback.duration <= 0){
-            m_ECS.queueRemoveComponent<CKnockback>(entityKnockback);
-        }
-    }       
+    // auto viewKnockback = m_ECS.signatureView<CKnockback, CTransform>();
+    // auto& knockbackPool = m_ECS.getComponentPool<CKnockback>();
+    // for (auto entityKnockback : viewKnockback){    
+    //     auto &transform = transformPool.getComponent(entityKnockback);
+    //     auto& knockback = knockbackPool.getComponent(entityKnockback);
+    //     transform.pos += m_physics.knockback(knockback);
+    //     if (knockback.duration <= 0){
+    //         m_ECS.queueRemoveComponent<CKnockback>(entityKnockback);
+    //     }
+    // }       
 
     auto& viewTransform = m_ECS.view<CTransform>();
     for (auto e : viewTransform){    
@@ -450,11 +453,11 @@ void Scene_Play::sCollision() {
                 transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transformEnemy2, BboxEnemy2);
             }
         }
-        if (m_physics.isCollided(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer))
-            {
-                transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer);
-                m_ECS.addComponent<CKnockback>(m_player, 120, 10, transformEnemy.vel);
-            }
+        // if (m_physics.isCollided(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer))
+        //     {
+        //         transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer);
+        //         m_ECS.addComponent<CKnockback>(m_player, 120, 10, transformEnemy.vel);
+        //     }
         auto &viewImmovable = m_ECS.view<CImmovable>();
         for ( auto e : viewImmovable ){
             auto& transform = transformPool.getComponent(e);
@@ -538,26 +541,25 @@ void Scene_Play::sStatus() {
             continue;
         }
         auto& transform = transformPool.getComponent(entityID);
-        spawnCoin(transform.pos, 6);
         if ( m_player == entityID ){
-                // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true));
-                m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
+            std::cout << "Player has died!" << std::endl;
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
         } else {
+            spawnCoin(transform.pos, 6);
             m_ECS.queueRemoveEntity(entityID);
             Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
         }
     }
+
     auto viewDamage = m_ECS.signatureView<CDamage, CBoundingBox, CTransform>();
     auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
     auto& damagePool = m_ECS.getComponentPool<CDamage>();
-    // for ( auto& [transformDamage, bboxDamage, damage] : viewDamage)
     for ( auto entityDamage : viewDamage)
     {
         auto& transformDamage = transformPool.getComponent(entityDamage);
         auto& bboxDamage = BboxPool.getComponent(entityDamage);
         auto& damage = damagePool.getComponent(entityDamage);
         Signature damageSignature = m_ECS.getSignature(entityDamage);
-        // for ( auto& [transformHealth, bboxHealth, health] : viewHealth)
         for ( auto entityHealth : viewHealth )
         {
             if ( entityDamage == entityHealth ){continue;}
@@ -570,7 +572,7 @@ void Scene_Play::sStatus() {
             {
                 if ( (int)(m_currentFrame-health.damage_frame) > health.i_frames ) {
                     int damageMultiplier = 1;
-                    m_ECS.addComponent<CKnockback>(entityHealth, 50/4, 64/4, transformDamage.pos-transforHealth.pos);
+                    // m_ECS.addComponent<CKnockback>(entityHealth, 50/4, 64/4, transformDamage.pos-transforHealth.pos);
                     health.HP = health.HP-(int)(damage.damage*damageMultiplier);
                     health.damage_frame = m_currentFrame;
                 }
@@ -615,7 +617,8 @@ void Scene_Play::sAnimation() {
                 projectileState.state = "Ready";
                 animation.animation = m_game->assets().getAnimation("fireball");
                 animation.repeat = true;
-                m_camera.startShake(4, 50);
+                std::cout << "Projectile created!\n";
+                m_camera.startShake(50, 100);
             }
         }
     }
@@ -775,12 +778,12 @@ EntityID Scene_Play::spawnPlayer()
 
 EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer){
     auto shadowID = m_ECS.addEntity();
-    m_ECS.addComponent<CTransform>(shadowID);
-    m_ECS.getComponent<CTransform>(shadowID).scale *= size;
-    m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
-    m_ECS.addComponent<CAnimation>(shadowID, m_game->assets().getAnimation("shadow"), true, layer);
-    m_rendererManager.addEntityToLayer(shadowID, layer);
-    m_ECS.addComponent<CChild>(parentID, shadowID);
+    // m_ECS.addComponent<CTransform>(shadowID);
+    // m_ECS.getComponent<CTransform>(shadowID).scale *= size;
+    // m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
+    // m_ECS.addComponent<CAnimation>(shadowID, m_game->assets().getAnimation("shadow"), true, layer);
+    // m_rendererManager.addEntityToLayer(shadowID, layer);
+    // m_ECS.addComponent<CChild>(parentID, shadowID);
     return shadowID;
 }
 
