@@ -250,6 +250,10 @@ void Scene_Play::update()
         sScripting();
         sMovement();
         sStatus();
+        if (m_player == 0) {
+            std::cerr << "Player entity is not initialized!" << std::endl;
+            return;
+        }
         sCollision();
         sAnimation();
         sAudio();
@@ -543,7 +547,9 @@ void Scene_Play::sStatus() {
         auto& transform = transformPool.getComponent(entityID);
         if ( m_player == entityID ){
             std::cout << "Player has died!" << std::endl;
+            m_player = 0;
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
+            return;
         } else {
             spawnCoin(transform.pos, 6);
             m_ECS.queueRemoveEntity(entityID);
