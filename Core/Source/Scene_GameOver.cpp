@@ -32,17 +32,16 @@ Scene_GameOver::Scene_GameOver(Game* game)
 
 void Scene_GameOver::loadGameOver()
 {
-    // spawnTitleScreen
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation> (m_game->assets().getAnimation("dwarf"), true, 9);
     m_rendererManager.addEntityToLayer(entityId, 1);
-    Vec2 midPixel = gridToMidPixel(Vec2{0, 0}, entityId);
-    entity.addComponent<CTransform>(midPixel, Vec2{0, 0}, false);
-    // entity.getComponent<CTransform>().scale = Vec2{0.5, 0.5};
-    entity.addComponent<CName>("title_screen");
+    Vec2 pos = Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()}/4;
+    entity.addComponent<CTransform>(pos, Vec2{0, 0}, false);
+    entity.addComponent<CDialog>(pos, Vec2{1, 1}, m_game->assets().getTexture("RESTART"), "RESTART");
 
     spawnButton(Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()}/2, "button_unpressed", "restart", "RESTART");
+    spawnButton(Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()}*0.75, "button_unpressed", "dead", "You Died!");
 }
 
 void Scene_GameOver::spawnLevel(const Vec2 pos, std::string level)
