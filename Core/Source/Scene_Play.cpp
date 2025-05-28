@@ -1,5 +1,6 @@
 #include "Scene_Menu.h"
 #include "Scene_Play.h"
+#include "Scene_GameOver.h"
 #include "Scene_Inventory.h"
 #include "Sprite.h"
 #include "Assets.h"
@@ -548,7 +549,9 @@ void Scene_Play::sStatus() {
         if ( m_player == entityID ){
             std::cout << "Player has died!" << std::endl;
             m_player = 0;
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
+            // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
+            m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
+
             return;
         } else {
             spawnCoin(transform.pos, 6);
