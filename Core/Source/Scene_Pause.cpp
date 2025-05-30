@@ -31,7 +31,7 @@ Scene_Pause::Scene_Pause(Game* game)
     registerAction(SDLK_c, "TOGGLE_COLLISION");
     registerAction(SDLK_s, "SAVE_LAYOUT");
     registerAction(SDLK_LCTRL, "CTRL");
-    loadLayout("config_files/pause_menu/button_placement.txt");
+    loadLayout("config_files/pause_menu/button_placement.json");
 }
 
 void Scene_Pause::saveLayout(const std::string& filename) {
@@ -44,6 +44,7 @@ void Scene_Pause::saveLayout(const std::string& filename) {
         for (auto e : view) {
             auto dialog_text = dialogPool.getComponent(e).dialog_text;
             auto pos = transformPool.getComponent(e).pos;
+            
             saveFile << dialog_text << " " << pos.x << " " << pos.y << std::endl;
         }
         saveFile.close();
@@ -55,48 +56,18 @@ void Scene_Pause::saveLayout(const std::string& filename) {
 void Scene_Pause::loadLayout(const std::string& filename) {
     std::ifstream file(filename);
     if (!file) {
-        std::cerr << "Could not load button_placement.txt file!\n";
-        exit(-1);
-    }
-
-    std::ifstream jfile("config_files/test.json");
-    if (!jfile) {
-        std::cerr << "Could not open test.json file!\n";
+        std::cerr << "Could not load button_placement.json file!\n";
         exit(-1);
     }
     json j;
-    jfile >> j;
-    jfile.close();
+    file >> j;
+    file.close();
     for (const auto& button : j["buttons"]) {
         std::string dialog = button["label"];
-        float pos_x = button["x"];
-        float pos_y = button["y"];
-        std::cout << "Loading button: " << dialog << " at position: (" << pos_x << ", " << pos_y << ")\n";
+        float pos_x = button["position"]["x"];
+        float pos_y = button["position"]["y"];
         spawnButton(Vec2 {pos_x, pos_y}, "button_unpressed", dialog, dialog);
     }
-    // std::ifstream file1(filename);
-    // std::string line;
-    // std::getline(file1, line, ',');  // Read until the closing quote
-    // std::cout << line << std::endl;
-
-    // std::istringstream iss(line);
-    // std::vector<std::string> tokens;
-    // std::string token;
-    // while (iss >> token) {
-    //     tokens.push_back(token);
-    //     std::cout << "Token: " << token << std::endl;
-    // }
-    // file1.close();
-
-    // std::string head;
-    // std::string dialog;
-    // float pos_x, pos_y;
-    // while (file >> dialog) {
-    //     file >> pos_x >> pos_y;      
-    //     std::cout << "Loading button: " << dialog << " at position: (" << pos_x << ", " << pos_y << ")\n";
-    //     spawnButton(Vec2 {pos_x, pos_y}, "button_unpressed", dialog, dialog); 
-    // }
-    // file.close();
 }
 
 void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
@@ -178,7 +149,7 @@ void Scene_Pause::sDoAction(const Action& action) {
             }
         }
         if ( action.name() == "SAVE_LAYOUT") {
-            saveLayout("config_files/pause_menu/button_placement.txt");
+            saveLayout("config_files/pause_menu/button_placement.json");
         }
         if (action.name() == "CTRL") {
             m_hold_CTRL = false;
