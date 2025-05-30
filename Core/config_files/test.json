@@ -10,12 +10,5 @@
     "scripts": {
         "start": "node index.js",
         "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "comment": "JSON (JavaScript Object Notation) files are commonly used in game development for various purposes 
-     due to their lightweight and easy-to-read format. They can be used to store game configuration settings, 
-     level data, character attributes, and other game-related information. JSON files are particularly useful for 
-     storing game saves and settings because they allow for structured data storage that can be easily parsed and 
-     manipulated by the game engine. By using JSON files, developers can ensure that game data is organized and 
-     accessible, making it easier to load and save game states, as well as to modify game settings without requiring 
-     recompilation of the game code."
+    }
 }

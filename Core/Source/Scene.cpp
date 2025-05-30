@@ -38,8 +38,6 @@ void Scene::sRenderBasic() {
     if (m_drawTextures)
     {
         auto& animationPool = m_ECS.getComponentPool<CAnimation>();
-        auto& dialogPool = m_ECS.getComponentPool<CDialog>();
-        
         auto layers = m_rendererManager.getLayers();
         for (const auto& layer : layers)
         {
@@ -63,29 +61,31 @@ void Scene::sRenderBasic() {
                     animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
                     spriteRender(animation);
                 }
-                if (dialogPool.hasComponent(e))
-                {
-                    auto& dialog = m_ECS.getComponent<CDialog>(e);
-                    auto& transform = m_ECS.getComponent<CTransform>(e);
-            
-                    SDL_Rect texRect;
-                    texRect.x = (int)(transform.pos.x - dialog.size.x/2 * 0.9f) * totalZoom + screenCenterZoomed.x;
-                    texRect.y = (int)(transform.pos.y - dialog.size.y/2 * 0.8f) * totalZoom + screenCenterZoomed.y;
-                    texRect.w = (int)(dialog.size.x * 0.9f) * totalZoom;
-                    texRect.h = (int)(dialog.size.y * 0.8f) * totalZoom;
-            
-                    SDL_RenderCopyEx(
-                        m_game->renderer(), 
-                        dialog.dialog, 
-                        nullptr,
-                        &texRect, 
-                        0,
-                        NULL,
-                        SDL_FLIP_NONE
-                        );
-                }
             }
         }
+        auto& dialogPool = m_ECS.getComponentPool<CDialog>();
+        auto dialogView = m_ECS.view<CDialog, CTransform>();
+        for (const auto& e : dialogView)
+        {
+            auto& dialog = dialogPool.getComponent(e);
+            auto& transform = transformPool.getComponent(e);
+    
+            SDL_Rect texRect;
+            texRect.x = (int)(transform.pos.x + dialog.offset.x - dialog.size.x/2 * 0.9f) * totalZoom + screenCenterZoomed.x;
+            texRect.y = (int)(transform.pos.y + dialog.offset.y - dialog.size.y/2 * 0.8f) * totalZoom + screenCenterZoomed.y;
+            texRect.w = (int)(dialog.size.x * 0.9f) * totalZoom;
+            texRect.h = (int)(dialog.size.y * 0.8f) * totalZoom;
+    
+            SDL_RenderCopyEx(
+                m_game->renderer(), 
+                dialog.dialog, 
+                nullptr,
+                &texRect, 
+                0,
+                NULL,
+                SDL_FLIP_NONE
+                );
+        } 
     }
     if (m_drawCollision)
     {

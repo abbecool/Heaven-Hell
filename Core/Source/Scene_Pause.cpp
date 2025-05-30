@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -54,13 +55,29 @@ void Scene_Pause::loadLayout(const std::string& filename) {
         std::cerr << "Could not load button_placement.txt file!\n";
         exit(-1);
     }
+    // std::ifstream file1(filename);
+    // std::string line;
+    // std::getline(file1, line, ',');  // Read until the closing quote
+    // std::cout << line << std::endl;
+
+    // std::istringstream iss(line);
+    // std::vector<std::string> tokens;
+    // std::string token;
+    // while (iss >> token) {
+    //     tokens.push_back(token);
+    //     std::cout << "Token: " << token << std::endl;
+    // }
+    // file1.close();
+
     std::string head;
     std::string dialog;
     float pos_x, pos_y;
     while (file >> dialog) {
         file >> pos_x >> pos_y;      
+        std::cout << "Loading button: " << dialog << " at position: (" << pos_x << ", " << pos_y << ")\n";
         spawnButton(Vec2 {pos_x, pos_y}, "button_unpressed", dialog, dialog); 
     }
+    file.close();
 }
 
 void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
@@ -74,7 +91,7 @@ void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, cons
     entity.getComponent<CTransform>().scale = Vec2{dynamic_length,1};
     entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1});
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1}, m_game->assets().getTexture(dialog), dialog);
+    entity.addComponent<CDialog>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1}, m_game->assets().getTexture(dialog), dialog);
 }
 
 void Scene_Pause::sDoAction(const Action& action) {
@@ -84,6 +101,19 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
+        }
+        auto view = m_ECS.view<CBoundingBox>();
+        for (auto e : view)
+        {
+            auto &transform = m_ECS.getComponent<CTransform>(e);
+            auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
+
+            if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
+                if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                    m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
+                    m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y + 3;
+                }
+            }
         }
     }
     if (action.type() == "END") {
@@ -99,6 +129,8 @@ void Scene_Pause::sDoAction(const Action& action) {
                 }
                 if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                        m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
+                        m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y - 3;
                         if ( name == "CONTINUE" ){
                             if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
                                 auto playScene = std::dynamic_pointer_cast<Scene_Play>(m_game->sceneMap().at("PLAY"));
@@ -106,13 +138,11 @@ void Scene_Pause::sDoAction(const Action& action) {
                             }
                             m_game->changeScene("PLAY", nullptr, true);
                             
-                        } else if ( name == "Save_and_return_to_Main_Menu" ){
+                        } else if ( name == "Quit" ){
                             m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
                             if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
                                 m_game->sceneMap().erase("PLAY");
                             }
-                        } else if ( name == "Resolution" ){
-                            m_game->updateResolution(3);
                         }
                     }
                 }
@@ -143,12 +173,10 @@ void Scene_Pause::sDragButton() {
         for (auto e : view) {
             auto& transform = m_ECS.getComponent<CTransform>(e);
             auto& Bbox = m_ECS.getComponent<CBoundingBox>(e);
-            auto& dialog = m_ECS.getComponent<CDialog>(e);
 
             if (m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x - Bbox.halfSize.x) {
                 if (m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y - Bbox.halfSize.y) {
                     transform.pos = m_mousePosition;
-                    dialog.pos = m_mousePosition;
                 }
             }
         }

@@ -29,6 +29,7 @@ class Scene
     bool m_pause = false;
     bool m_hasEnded = false;
     size_t m_currentFrame = 0;
+    bool m_restart = false;
 
     Camera m_camera;
     Vec2 m_mousePosition;

@@ -23,8 +23,6 @@ Scene_GameOver::Scene_GameOver(Game* game)
     registerAction(SDLK_ESCAPE, "QUIT");
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
-    registerAction(SDLK_1, "LEVEL0");
-    registerAction(SDLK_2, "LEVEL5");
     registerAction(SDL_BUTTON_LEFT , "MOUSE LEFT CLICK");
     registerAction(SDLK_v , "SHOW COORDINATES");
     loadGameOver();
@@ -32,16 +30,22 @@ Scene_GameOver::Scene_GameOver(Game* game)
 
 void Scene_GameOver::loadGameOver()
 {
+    
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (m_game->assets().getAnimation("dwarf"), true, 9);
-    m_rendererManager.addEntityToLayer(entityId, 1);
-    Vec2 pos = Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()}/4;
-    entity.addComponent<CTransform>(pos, Vec2{0, 0}, false);
-    entity.addComponent<CDialog>(pos, Vec2{1, 1}, m_game->assets().getTexture("RESTART"), "RESTART");
+    // entity.addComponent<CAnimation>(m_game->assets().getAnimation("sword"), true, 5);
+    m_rendererManager.addEntityToLayer(entityId, 3);
+    Vec2 pos = Vec2{float(m_game->getVirtualWidth()), float(m_game->getVirtualHeight()/2)}/2;
+    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    // entity.getComponent<CTransform>().scale = Vec2{1,1};
+    Vec2 size = Vec2{512, 128};
+    // entity.addComponent<CBoundingBox>(size);
+    entity.addComponent<CName>("death_text");
+    entity.addComponent<CDialog>(size, m_game->assets().getTexture("You Died!"), "You Died!");
 
-    spawnButton(Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()}/2, "button_unpressed", "restart", "RESTART");
-    spawnButton(Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()}*0.75, "button_unpressed", "dead", "You Died!");
+
+    spawnButton(Vec2{float(m_game->getVirtualWidth()*0.5), float(m_game->getVirtualHeight()*0.75)}, "button_unpressed", "restart", "RESTART");
+    // spawnButton(Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()}*0.75, "button_unpressed", "dead", "You Died!");
 }
 
 void Scene_GameOver::spawnLevel(const Vec2 pos, std::string level)
@@ -63,7 +67,7 @@ void Scene_GameOver::spawnButton(const Vec2 pos, const std::string& unpressed, c
     entity.getComponent<CTransform>().scale = Vec2{1,1};
     entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
+    entity.addComponent<CDialog>(entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
 
 }
 
@@ -98,7 +102,7 @@ void Scene_GameOver::sDoAction(const Action& action)
                 if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
-                        m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y + 8;
+                        m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y + 3;
                     }
                 }
             }
@@ -124,7 +128,7 @@ void Scene_GameOver::sDoAction(const Action& action)
                     continue;
                 }
                 m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
-                m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y - 8;
+                m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y - 3;
                 if ( name == "restart" )
                 {
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);

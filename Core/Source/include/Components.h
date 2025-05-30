@@ -200,14 +200,14 @@ struct CDamage
 
 struct CDialog
 {    
-    Vec2 pos;
     Vec2 size;
     SDL_Texture * dialog;
     std::string dialog_text;
+    Vec2 offset = Vec2{0, 1};
 
     CDialog() {}
-    CDialog(const Vec2 p, const Vec2 sz, SDL_Texture* dia, std::string txt) 
-        : pos(p), size(sz), dialog(dia), dialog_text(txt){}
+    CDialog(const Vec2 sz, SDL_Texture* dia, std::string txt) 
+        : size(sz), dialog(dia), dialog_text(txt){}
 };
 
 struct CPathfind

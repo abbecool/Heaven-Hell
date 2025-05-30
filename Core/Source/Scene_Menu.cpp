@@ -39,7 +39,6 @@ void Scene_Menu::loadMenu()
     m_rendererManager.addEntityToLayer(entityId, 1);
     Vec2 midPixel = gridToMidPixel(Vec2{0, 0}, entityId);
     entity.addComponent<CTransform>(midPixel, Vec2{0, 0}, false);
-    // entity.getComponent<CTransform>().scale = Vec2{0.5, 0.5};
     entity.addComponent<CName>("title_screen");
 
     EntityID entityId1 = m_ECS.addEntity();
@@ -49,7 +48,7 @@ void Scene_Menu::loadMenu()
     entity1.addComponent<CTransform>(Vec2 {300, 45},Vec2 {0, 0}, false);
     entity1.addComponent<CName>("game_title");
 
-    spawnButton(Vec2 {64.f, 64.f}, "button_unpressed", "new", "NEW_GAME");
+    spawnButton(Vec2 {64.f, 64.f}, "button_unpressed", "new", "NEW GAME");
     spawnButton(Vec2 {64.f, 128.f}, "button_unpressed", "continue", "CONTINUE");
     spawnButton(Vec2 {float(width())-64.f,64.f }, "button_unpressed", "360p", "360p");
     spawnButton(Vec2 {float(width())-64.f,2*64.f }, "button_unpressed", "720p", "720p");
@@ -77,7 +76,7 @@ void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const
     entity.getComponent<CTransform>().scale = Vec2{1,1};
     entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(pos, entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
+    entity.addComponent<CDialog>(entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
 
 }
 
@@ -112,7 +111,7 @@ void Scene_Menu::sDoAction(const Action& action)
                 if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
-                        m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y + 8;
+                        m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y + 3;
                     }
                 }
             }
@@ -138,7 +137,7 @@ void Scene_Menu::sDoAction(const Action& action)
                     continue;
                 }
                 m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
-                m_ECS.getComponent<CDialog>(e).pos.y = m_ECS.getComponent<CDialog>(e).pos.y - 8;
+                m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y - 3;
                 if ( name == "new" )
                 {
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);

@@ -56,6 +56,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_MINUS, "ZOOM OUT");
     registerAction(SDLK_r, "RESET");
     registerAction(SDLK_p, "PAUSE");
+    registerAction(SDLK_k, "KILL_PLAYER");
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
     registerAction(SDLK_1, "TP1");
@@ -211,6 +212,8 @@ void Scene_Play::sDoAction(const Action& action) {
             m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*64/4, 181*64/4};
         } else if ( action.name() == "RESET") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
+        } else if ( action.name() == "KILL_PLAYER") { 
+            m_ECS.getComponent<CHealth>(m_player).HP = 0;
         }
 
         if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = true; }
@@ -251,10 +254,6 @@ void Scene_Play::update()
         sScripting();
         sMovement();
         sStatus();
-        if (m_player == 0) {
-            std::cerr << "Player entity is not initialized!" << std::endl;
-            return;
-        }
         sCollision();
         sAnimation();
         sAudio();
@@ -263,6 +262,11 @@ void Scene_Play::update()
     sRender();
     m_ECS.update();
     m_inventory_scene->update();
+    if (m_restart) {
+        // std::cerr << "Player entity is not initialized!" << std::endl;
+        m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
+        return;
+    }
 }
 
 void Scene_Play::sLoader()
@@ -548,11 +552,7 @@ void Scene_Play::sStatus() {
         auto& transform = transformPool.getComponent(entityID);
         if ( m_player == entityID ){
             std::cout << "Player has died!" << std::endl;
-            m_player = 0;
-            // m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
-            m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
-
-            return;
+            m_restart = true;
         } else {
             spawnCoin(transform.pos, 6);
             m_ECS.queueRemoveEntity(entityID);

@@ -1,3 +1,2 @@
-Save_and_return_to_Main_Menu 328 282
+Quit 328 282
 CONTINUE 329 256
-Resolution 330 308
