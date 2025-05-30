@@ -1,4 +1,6 @@
 #include <SDL2/SDL.h>
+#include "include/json.hpp"
+using json = nlohmann::json;
 #include "Game.h"
 
 // Top part is heaven, bot part is hell. arrows control both.

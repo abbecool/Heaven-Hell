@@ -1,14 +1,6 @@
 {
-    "name": "Example Project",
-    "version": "1.0.0",
-    "description": "This is a simple JSON template example.",
-    "author": "Your Name",
-    "dependencies": {
-        "library1": "1.0.0",
-        "library2": "2.0.0"
-    },
-    "scripts": {
-        "start": "node index.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
-    }
+  "buttons": [
+    { "label": "Quit",     "x": 328, "y": 282 },
+    { "label": "CONTINUE", "x": 329, "y": 256 }
+  ]
 }

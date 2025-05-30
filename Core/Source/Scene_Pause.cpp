@@ -18,6 +18,9 @@
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <json.hpp>
+using json = nlohmann::json;
+
 
 Scene_Pause::Scene_Pause(Game* game)
     : Scene(game)
@@ -55,6 +58,22 @@ void Scene_Pause::loadLayout(const std::string& filename) {
         std::cerr << "Could not load button_placement.txt file!\n";
         exit(-1);
     }
+
+    std::ifstream jfile("config_files/test.json");
+    if (!jfile) {
+        std::cerr << "Could not open test.json file!\n";
+        exit(-1);
+    }
+    json j;
+    jfile >> j;
+    jfile.close();
+    for (const auto& button : j["buttons"]) {
+        std::string dialog = button["label"];
+        float pos_x = button["x"];
+        float pos_y = button["y"];
+        std::cout << "Loading button: " << dialog << " at position: (" << pos_x << ", " << pos_y << ")\n";
+        spawnButton(Vec2 {pos_x, pos_y}, "button_unpressed", dialog, dialog);
+    }
     // std::ifstream file1(filename);
     // std::string line;
     // std::getline(file1, line, ',');  // Read until the closing quote
@@ -69,15 +88,15 @@ void Scene_Pause::loadLayout(const std::string& filename) {
     // }
     // file1.close();
 
-    std::string head;
-    std::string dialog;
-    float pos_x, pos_y;
-    while (file >> dialog) {
-        file >> pos_x >> pos_y;      
-        std::cout << "Loading button: " << dialog << " at position: (" << pos_x << ", " << pos_y << ")\n";
-        spawnButton(Vec2 {pos_x, pos_y}, "button_unpressed", dialog, dialog); 
-    }
-    file.close();
+    // std::string head;
+    // std::string dialog;
+    // float pos_x, pos_y;
+    // while (file >> dialog) {
+    //     file >> pos_x >> pos_y;      
+    //     std::cout << "Loading button: " << dialog << " at position: (" << pos_x << ", " << pos_y << ")\n";
+    //     spawnButton(Vec2 {pos_x, pos_y}, "button_unpressed", dialog, dialog); 
+    // }
+    // file.close();
 }
 
 void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
