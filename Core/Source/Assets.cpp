@@ -38,9 +38,9 @@ SDL_Texture * Assets::getTexture(std::string name) const
     }
 }
 
-void Assets::addFont(const std::string& name, const std::string& path) {
+void Assets::addFont(const std::string& name, const std::string& path, const int font_size) {
     const char *path_char = path.c_str(); 
-    TTF_Font* font = TTF_OpenFont(path_char, 24);
+    TTF_Font* font = TTF_OpenFont(path_char, font_size);
     if (font == nullptr) {
         std::cerr << "Failed to load font! TTF_Error: " << TTF_GetError() << std::endl;
     }
@@ -121,8 +121,9 @@ void Assets::loadFromFile(const std::string & pathImages, const std::string & pa
         } else if (head == "Font") {
             std::string font_name;
             std::string font_path;
-            file >> font_name >> font_path;
-            addFont(font_name, font_path);
+            int font_size;
+            file >> font_name >> font_path >> font_size;
+            addFont(font_name, font_path, font_size);
         } else if (head == "Animation") {
             std::string aniName;
             std::string texName;

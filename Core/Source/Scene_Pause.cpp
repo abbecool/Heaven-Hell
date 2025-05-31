@@ -35,22 +35,25 @@ Scene_Pause::Scene_Pause(Game* game)
 }
 
 void Scene_Pause::saveLayout(const std::string& filename) {
-    std::ofstream saveFile(filename);
     
     auto dialogPool = m_ECS.getComponentPool<CDialog>();    
     auto transformPool = m_ECS.getComponentPool<CTransform>();
-    auto view = m_ECS.signatureView<CDialog, CTransform>();
-    if (saveFile.is_open()) {
-        for (auto e : view) {
-            auto dialog_text = dialogPool.getComponent(e).dialog_text;
-            auto pos = transformPool.getComponent(e).pos;
-            
-            saveFile << dialog_text << " " << pos.x << " " << pos.y << std::endl;
+    auto view = m_ECS.signatureView<CDialog, CBoundingBox, CTransform>();
+    json j;
+    for (auto e : view) {
+        json button;
+        button["label"] = dialogPool.getComponent(e).dialog_text;
+        button["position"]["x"] = transformPool.getComponent(e).pos.x;
+        button["position"]["y"] = transformPool.getComponent(e).pos.y;
+        j["buttons"].push_back(button);
         }
-        saveFile.close();
-    } else {
-        std::cerr << "Unable to open file for saving!" << std::endl;
+    std::ofstream file(filename);
+    if (!file) {
+        std::cerr << "Could not load button_placement.json file!\n";
+        exit(-1);
     }
+    file << j.dump(2);
+    file.close();
 }
 
 void Scene_Pause::loadLayout(const std::string& filename) {

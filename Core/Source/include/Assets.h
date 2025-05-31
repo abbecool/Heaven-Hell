@@ -24,7 +24,7 @@ public:
 	void addAnimation(const std::string& name, Animation animation);
 	void addAudio(const std::string& name, const std::string& path);
 	void addMusic(const std::string& name, const std::string& path);
-	void addFont(const std::string& name, const std::string& path);
+	void addFont(const std::string& name, const std::string& path, const int font_size);
 
 	SDL_Texture* getTexture(std::string name) const;
 	TTF_Font* getFont(const std::string& name) const;

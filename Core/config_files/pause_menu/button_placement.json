@@ -1,6 +1,18 @@
 {
   "buttons": [
-    { "label": "Quit",     "position": {"x": 328, "y": 282} },
-    { "label": "CONTINUE", "position": {"x": 329, "y": 256} }
+    {
+      "label": "Quit",
+      "position": {
+        "x": 328.0,
+        "y": 282.0
+      }
+    },
+    {
+      "label": "CONTINUE",
+      "position": {
+        "x": 329.0,
+        "y": 249.75
+      }
+    }
   ]
 }

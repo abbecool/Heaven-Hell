@@ -1,0 +1,56 @@
+{
+    "fonts": [
+        {
+            "name": "minecraft",
+            "path": "Minecraft.ttf",
+            "size": 16
+        }
+    ],
+    "textures": [
+        {
+            "name": "gras_tuva",
+            "path": "gras_tuva.png"
+        },
+        {
+            "name": "gras_sheet",
+            "path": "sheets/gras_sheet.png"
+        }
+    ],
+    "animations": [
+        {
+            "name": "fireball",
+            "path": "fireball.png",
+            "frames": 4,
+            "frametime": 15,
+            "loop": true
+        },
+        {
+            "name": "fireball_explode",
+            "frames": 9,
+            "frametime": 3,
+            "loop": false
+        },
+        {
+            "name": "fireball_create",
+            "frames": 3,
+            "frametime": 15,
+            "loop": false
+        }
+    ],
+    "audio": [
+        {
+            "name": "loot_pickup",
+            "path": "loot_pickup.wav"
+        },
+        {
+            "name": "enemy_death",
+            "path": "enemy_death.wav"
+        }
+    ],
+    "music": [
+        {
+            "name": "AbbeGameTrack1",
+            "path": "AbbeGameTrack1ogg.ogg"
+        }
+    ]
+}
