@@ -9,17 +9,22 @@
 #include "SDL2/SDL_image.h"
 #include "SDL2/SDL_ttf.h"
 #include <SDL2/SDL_mixer.h>
+#include "json.hpp"
+using json = nlohmann::json;
 
 Assets::Assets(){}
 
 
 void Assets::addTexture(std::string name, const std::string & path, SDL_Renderer * ren)
 {
-    const char *path_char = path.c_str(); 
+    const char *path_char = ("assets/images/"+path).c_str(); 
     SDL_Surface* tempSurface = IMG_Load(path_char);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, tempSurface);
     SDL_FreeSurface(tempSurface);
-
+    if (texture == nullptr) {
+        std::cerr << "Failed to load texture: " << name << ", from path: " << path_char << ", IMG_Error: " << IMG_GetError() << std::endl;
+        return;
+    }
     m_textures[name] = texture;
 }
 
@@ -39,7 +44,7 @@ SDL_Texture * Assets::getTexture(std::string name) const
 }
 
 void Assets::addFont(const std::string& name, const std::string& path, const int font_size) {
-    const char *path_char = path.c_str(); 
+    const char *path_char = ("assets/fonts/" + name+".ttf").c_str(); 
     TTF_Font* font = TTF_OpenFont(path_char, font_size);
     if (font == nullptr) {
         std::cerr << "Failed to load font! TTF_Error: " << TTF_GetError() << std::endl;
@@ -70,7 +75,7 @@ const Animation& Assets::getAnimation(const std::string& name) const {
 }
 
 void Assets::addAudio(const std::string& name, const std::string& path) {
-    const char *path_char = path.c_str(); 
+    const char *path_char = ("assets/audio/" + name+".wav").c_str(); 
     Mix_Chunk* audio = Mix_LoadWAV(path_char);
     if (audio == nullptr) {
         std::cerr << "Failed to load audio! Mix_Error: " << Mix_GetError() << std::endl;
@@ -88,7 +93,7 @@ Mix_Chunk* Assets::getAudio(const std::string& name) const {
 }
 
 void Assets::addMusic(const std::string& name, const std::string& path) {
-    const char *path_char = path.c_str(); 
+    const char *path_char = ("assets/music/" + name+".ogg").c_str(); 
     Mix_Music* music = Mix_LoadMUS(path_char);
     if (music == nullptr) {
         std::cerr << "Failed to load music! Mix_Error: " << Mix_GetError() << std::endl;
@@ -106,6 +111,35 @@ Mix_Music* Assets::getMusic(const std::string& name) const {
 }
 
 void Assets::loadFromFile(const std::string & pathImages, const std::string & pathText, SDL_Renderer * ren) {
+    std::ifstream file_json("config_files/assets.json");
+    if (!file_json) {
+        std::cerr << "Could not load assets.json file!\n";
+        exit(-1);
+    }
+    json j;
+    file_json >> j;
+    file_json.close();
+    for (const auto& font : j["fonts"]) {
+        std::string name = font["name"];
+        std::string path = font["path"];
+        int size = font["size"];
+        addFont(name, path, size);
+    }
+    for (const auto& texture : j["textures"]) {
+        std::string name = texture["name"];
+        std::string path = texture["path"];
+        addTexture(name, path, ren);
+    }
+    for (const auto& audio : j["audio"]) {
+        std::string name = audio["name"];
+        std::string path = audio["path"];
+        addAudio(name, path);
+    }
+    for (const auto& music : j["music"]) {
+        std::string name = music["name"];
+        std::string path = music["path"];
+        addMusic(name, path);
+    }
     std::ifstream file(pathImages);
     if (!file) {
         std::cerr << "Could not load assets.txt file!\n";
@@ -113,34 +147,13 @@ void Assets::loadFromFile(const std::string & pathImages, const std::string & pa
     }
     std::string head;
     while (file >> head) {
-        if (head == "Texture") {
-            std::string name;
-            std::string path;
-            file >> name >> path;
-            addTexture(name, path, ren);
-        } else if (head == "Font") {
-            std::string font_name;
-            std::string font_path;
-            int font_size;
-            file >> font_name >> font_path >> font_size;
-            addFont(font_name, font_path, font_size);
-        } else if (head == "Animation") {
+        if (head == "Animation") {
             std::string aniName;
             std::string texName;
             int frames, speed, rows, cols;
             file >> aniName >> texName >> frames >> speed >> cols >> rows;
             SDL_Texture* tex = getTexture(texName);
-            addAnimation( aniName, Animation( aniName, tex, frames, speed, rows, cols) );            
-        } else if (head == "Audio") {
-            std::string audio_name;
-            std::string audio_path;
-            file >> audio_name >> audio_path;
-            addAudio(audio_name, audio_path);
-        } else if (head == "Music") {
-            std::string music_name;
-            std::string music_path;
-            file >> music_name >> music_path;
-            addMusic(music_name, music_path);
+            addAnimation( aniName, Animation( aniName, tex, frames, speed, rows, cols) );
         }
         else {
             std::cerr << "head to " << head << "\n";

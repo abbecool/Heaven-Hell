@@ -94,17 +94,17 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
-        }
-        auto view = m_ECS.view<CBoundingBox>();
-        for (auto e : view)
-        {
-            auto &transform = m_ECS.getComponent<CTransform>(e);
-            auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
-
-            if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
-                if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
-                    m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
-                    m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y + 3;
+            auto view = m_ECS.view<CBoundingBox>();
+            for (auto e : view)
+            {
+                auto &transform = m_ECS.getComponent<CTransform>(e);
+                auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
+    
+                if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
+                    if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                        m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
+                        m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y + 3;
+                    }
                 }
             }
         }

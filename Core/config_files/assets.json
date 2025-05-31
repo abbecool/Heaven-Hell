@@ -1,19 +1,139 @@
 {
     "fonts": [
         {
-            "name": "minecraft",
-            "path": "Minecraft.ttf",
-            "size": 16
+            "name": "Minecraft",
+            "path": "assets/fonts/Minecraft.ttf",
+            "size": 24
         }
     ],
     "textures": [
         {
-            "name": "gras_tuva",
-            "path": "gras_tuva.png"
+            "name": "campfire",
+            "path": "campfire.png"
         },
         {
-            "name": "gras_sheet",
-            "path": "sheets/gras_sheet.png"
+            "name": "heart_full",
+            "path": "heart_full.png"
+        },
+        {
+            "name": "heart_half",
+            "path": "heart_half.png"
+        },
+        {
+            "name": "heart_empty",
+            "path": "heart_empty.png"
+        },
+        {
+            "name": "fireball",
+            "path": "fireball.png"
+        },
+        {
+            "name": "fireball_explode",
+            "path": "fireball_explode.png"
+        },
+        {
+            "name": "fireball_create",
+            "path": "fireball_create.png"
+        },
+        {
+            "name": "grass_dual_sheet",
+            "path": "dual_sheets/grass_dual_sheet.png"
+        },
+        {
+            "name": "water_dual_sheet",
+            "path": "dual_sheets/water_dual_sheet.png"
+        },
+        {
+            "name": "mountain_dual_sheet",
+            "path": "dual_sheets/mountain_dual_sheet.png"
+        },
+        {
+            "name": "dirt_dual_sheet",
+            "path": "dual_sheets/dirt_dual_sheet.png"
+        },
+        {
+            "name": "levelStartingArea",
+            "path": "levels/levelStartingArea.png"
+        },
+        {
+            "name": "level1",
+            "path": "levels/level1.png"
+        },
+        {
+            "name": "level2",
+            "path": "levels/level2.png"
+        },
+        {
+            "name": "title_screen",
+            "path": "title_screen.png"
+        },
+        {
+            "name": "shadow",
+            "path": "shadow.png"
+        },
+        {
+            "name": "level0_screenshot",
+            "path": "level0_screenshot.png"
+        },
+        {
+            "name": "button_unpressed",
+            "path": "buttons/button_unpressed.png"
+        },
+        {
+            "name": "button_pressed",
+            "path": "buttons/button_pressed.png"
+        },
+        {
+            "name": "game_title",
+            "path": "game_title.png"
+        },
+        {
+            "name": "coin",
+            "path": "coin.png"
+        },
+        {
+            "name": "tree",
+            "path": "tree.png"
+        },
+        {
+            "name": "House1",
+            "path": "House1.png"
+        },
+        {
+            "name": "staff",
+            "path": "staff.png"
+        },
+        {
+            "name": "sword",
+            "path": "sword.png"
+        },
+        {
+            "name": "demon",
+            "path": "demon-sheet.png"
+        },
+        {
+            "name": "wiz",
+            "path": "wiz-sheet.png"
+        },
+        {
+            "name": "dwarf",
+            "path": "dwarf-sheet.png"
+        },
+        {
+            "name": "goblin",
+            "path": "goblin-sheet.png"
+        },
+        {
+            "name": "rooter",
+            "path": "rooter-sheet.png"
+        },
+        {
+            "name": "inventory",
+            "path": "inventory.png"
+        },
+        {
+            "name": "inventory_open",
+            "path": "inventory_open.png"
         }
     ],
     "animations": [
@@ -49,7 +169,7 @@
     ],
     "music": [
         {
-            "name": "AbbeGameTrack1",
+            "name": "AbbeGameTrack1ogg",
             "path": "AbbeGameTrack1ogg.ogg"
         }
     ]

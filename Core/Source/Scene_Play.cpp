@@ -734,7 +734,7 @@ void Scene_Play::sAudio()
 {
     if( Mix_PlayingMusic() == 0 )
     {
-        Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1"), -1);
+        Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1ogg"), -1);
     }
 }
 
@@ -916,7 +916,7 @@ EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{32/4, 32/4});
+    m_ECS.addComponent<CBoundingBox>(entity, Vec2{8, 8});
     return entity;
 }
 

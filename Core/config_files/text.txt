@@ -1,4 +1,4 @@
-Font minecraft 255 255 255 255
+Font Minecraft 255 255 255 255
 Text "HEAVEN & HELL"
 Text "NEW GAME"     
 Text "LEVEL 0"      
@@ -15,7 +15,7 @@ Text "Quit"
 Text "Resolution"
 Text "RESTART"
 Text "You Died!"
-Font minecraft 60 60 60 255
+Font Minecraft 60 60 60 255
 Text "0"
 Text "1"
 Text "2"
