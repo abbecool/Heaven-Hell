@@ -52,7 +52,7 @@ void Scene_Pause::saveLayout(const std::string& filename) {
         std::cerr << "Could not load button_placement.json file!\n";
         exit(-1);
     }
-    file << j.dump(2);
+    file << j.dump(4);
     file.close();
 }
 

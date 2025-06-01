@@ -29,6 +29,23 @@ Animation::Animation(
     setSrcRect( 0, 0, (int)m_size.x, (int)m_size.y );
 }
 
+Animation::Animation(const std::string& name, SDL_Texture* t, size_t frameCount, size_t speed, int rows, int cols, int width, int height)
+{
+    m_texture = t;
+    m_frameCount = rows*cols;
+    m_currentFrame = 0;
+    m_speed = speed;
+    m_name = name;
+    m_rows = rows;
+    m_cols = cols;
+    m_currentRow = 0;
+    m_currentCol = 0;    
+    m_size = Vec2((float)getTextureSize().x / cols, (float)getTextureSize().y / rows);
+
+    setSrcRect( 0, 0, (int)m_size.x, (int)m_size.y );
+
+}
+
 // update the animation to show the next frame, depending on its speed
 // animation loops when it reaches the end
 void Animation::update(size_t currentFrame) {

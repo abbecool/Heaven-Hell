@@ -125,14 +125,17 @@ void Assets::loadFromFile(const std::string & pathAssets, const std::string & pa
     for (const std::string path : j["textures"]["individual_paths"]) {
         addTexture(pathTextures+path, ren);
     }
-    for (const auto& animation : j["animations"]) {
-        const auto aniName = animation["name"];
-        int frames = animation["frames"];
-        int frametime = animation["frametime"];
-        int rows = animation["rows"];
-        int cols = animation["cols"];
-        SDL_Texture* tex = getTexture(animation["name"]);
-        addAnimation( aniName, Animation( aniName, tex, frames, frametime, rows, cols) );
+    for (const auto& animationJSON : j["animations"]) {
+        const auto name = animationJSON["name"];
+        int frames = animationJSON["frames"];
+        int frametime = animationJSON["frametime"];
+        int rows = animationJSON["rows"];
+        int cols = animationJSON["cols"];
+        // int width = animationJSON["width"];
+        // int height = animationJSON["height"];
+        SDL_Texture* tex = getTexture(animationJSON["name"]);
+        Animation animation = Animation( name, tex, frames, frametime, rows, cols);
+        addAnimation(name, animation);
     }
     for (const auto& audio : j["audio"]) {
         std::string name = audio["name"];

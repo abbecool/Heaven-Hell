@@ -34,6 +34,16 @@ class Animation
         int rows,
         int cols
     );
+    Animation(
+        const std::string& name,
+        SDL_Texture* t,
+        size_t frameCount,
+        size_t speed,
+        int rows,
+        int cols,
+        int width,
+        int height
+    );
 
     void update(size_t currentFrame);
     void setRow(int row);
