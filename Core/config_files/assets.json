@@ -6,155 +6,245 @@
             "size": 24
         }
     ],
-    "textures": [
-        {
-            "name": "campfire",
-            "path": "campfire.png"
-        },
+    "textures": {
+        "master_path": "assets/images/",
+        "individual_paths": [
+            "campfire.png",
+            "heart_full.png",
+            "heart_half.png",
+            "heart_empty.png",
+            "fireball.png",
+            "fireball_explode.png",
+            "fireball_create.png",
+            "dual_sheets/grass_dual_sheet.png",
+            "dual_sheets/water_dual_sheet.png",
+            "dual_sheets/mountain_dual_sheet.png",
+            "dual_sheets/dirt_dual_sheet.png",
+            "levels/levelStartingArea.png",
+            "levels/level1.png",
+            "levels/level2.png",
+            "shadow.png",
+            "level0_screenshot.png",
+            "buttons/button_unpressed.png",
+            "buttons/button_pressed.png",
+            "game_title.png",
+            "coin.png",
+            "tree.png",
+            "House1.png",
+            "staff.png",
+            "sword.png",
+            "demon-sheet.png",
+            "wiz-sheet.png",
+            "dwarf-sheet.png",
+            "goblin-sheet.png",
+            "rooter-sheet.png",
+            "inventory.png",
+            "inventory_open.png"
+        ]
+    },
+    "animations": [
         {
             "name": "heart_full",
-            "path": "heart_full.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "heart_half",
-            "path": "heart_half.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "heart_empty",
-            "path": "heart_empty.png"
-        },
-        {
-            "name": "fireball",
-            "path": "fireball.png"
-        },
-        {
-            "name": "fireball_explode",
-            "path": "fireball_explode.png"
-        },
-        {
-            "name": "fireball_create",
-            "path": "fireball_create.png"
-        },
-        {
-            "name": "grass_dual_sheet",
-            "path": "dual_sheets/grass_dual_sheet.png"
-        },
-        {
-            "name": "water_dual_sheet",
-            "path": "dual_sheets/water_dual_sheet.png"
-        },
-        {
-            "name": "mountain_dual_sheet",
-            "path": "dual_sheets/mountain_dual_sheet.png"
-        },
-        {
-            "name": "dirt_dual_sheet",
-            "path": "dual_sheets/dirt_dual_sheet.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "levelStartingArea",
-            "path": "levels/levelStartingArea.png"
-        },
-        {
-            "name": "level1",
-            "path": "levels/level1.png"
-        },
-        {
-            "name": "level2",
-            "path": "levels/level2.png"
-        },
-        {
-            "name": "title_screen",
-            "path": "title_screen.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "shadow",
-            "path": "shadow.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "level0_screenshot",
-            "path": "level0_screenshot.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "button_unpressed",
-            "path": "buttons/button_unpressed.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "button_pressed",
-            "path": "buttons/button_pressed.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "game_title",
-            "path": "game_title.png"
-        },
-        {
-            "name": "coin",
-            "path": "coin.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "tree",
-            "path": "tree.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "House1",
-            "path": "House1.png"
-        },
-        {
-            "name": "staff",
-            "path": "staff.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "sword",
-            "path": "sword.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
-            "name": "demon",
-            "path": "demon-sheet.png"
-        },
-        {
-            "name": "wiz",
-            "path": "wiz-sheet.png"
-        },
-        {
-            "name": "dwarf",
-            "path": "dwarf-sheet.png"
-        },
-        {
-            "name": "goblin",
-            "path": "goblin-sheet.png"
-        },
-        {
-            "name": "rooter",
-            "path": "rooter-sheet.png"
+            "name": "staff",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "inventory",
-            "path": "inventory.png"
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
         },
         {
             "name": "inventory_open",
-            "path": "inventory_open.png"
-        }
-    ],
-    "animations": [
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1
+        },
         {
             "name": "fireball",
-            "path": "fireball.png",
             "frames": 4,
             "frametime": 15,
-            "loop": true
+            "cols": 4,
+            "rows": 1
         },
         {
             "name": "fireball_explode",
             "frames": 9,
             "frametime": 3,
-            "loop": false
+            "cols": 9,
+            "rows": 1
         },
         {
             "name": "fireball_create",
             "frames": 3,
             "frametime": 15,
-            "loop": false
+            "cols": 3,
+            "rows": 1
+        },
+        {
+            "name": "coin",
+            "frames": 4,
+            "frametime": 15,
+            "cols": 4,
+            "rows": 1
+        },
+        {
+            "name": "campfire",
+            "frames": 6,
+            "frametime": 10,
+            "cols": 6,
+            "rows": 1
+        },
+        {
+            "name": "demon-sheet",
+            "frames": 4,
+            "frametime": 40,
+            "cols": 4,
+            "rows": 5
+        },
+        {
+            "name": "wiz-sheet",
+            "frames": 4,
+            "frametime": 10,
+            "cols": 4,
+            "rows": 5
+        },
+        {
+            "name": "dwarf-sheet",
+            "frames": 6,
+            "frametime": 7,
+            "cols": 6,
+            "rows": 5
+        },
+        {
+            "name": "rooter-sheet",
+            "frames": 4,
+            "frametime": 20,
+            "cols": 4,
+            "rows": 5
+        },
+        {
+            "name": "goblin-sheet",
+            "frames": 4,
+            "frametime": 20,
+            "cols": 4,
+            "rows": 5
+        },
+        {
+            "name": "grass_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 7
+        },
+        {
+            "name": "water_dual_sheet",
+            "frames": 2,
+            "frametime": 100,
+            "cols": 8,
+            "rows": 7
+        },
+        {
+            "name": "mountain_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 4
+        },
+        {
+            "name": "dirt_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 4
         }
     ],
     "audio": [

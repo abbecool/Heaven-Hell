@@ -86,10 +86,10 @@ void Scene_Play::loadMobsNItems(const std::string& path){
     while (file >> head) {
         file >>  pos.x >> pos.y >> layer;           
         if (head == "rooter") {
-            spawnSmallEnemy(pos*m_gridSize, layer, "rooter");
+            spawnSmallEnemy(pos*m_gridSize, layer, "rooter-sheet");
         }
         else if (head == "goblin") {
-            spawnSmallEnemy(pos*m_gridSize, layer, "goblin");
+            spawnSmallEnemy(pos*m_gridSize, layer, "goblin-sheet");
         }
         else if (head == "coin") {
             spawnCoin(pos*m_gridSize, layer);
@@ -773,7 +773,7 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
     m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32/4, 32/4});
     m_ECS.addComponent<CName>(entityID, "demon");
-    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("demon"), true, layer);
+    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("demon-sheet"), true, layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
     m_ECS.addComponent<CInputs>(entityID);

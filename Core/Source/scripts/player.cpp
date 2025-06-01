@@ -30,7 +30,7 @@ public:
                 if (!hasComponent<CSwimming>()) 
                 {
                     addComponent<CSwimming>();
-                    getComponent<CAnimation>().animation = m_game->assets().getAnimation("dwarf");
+                    getComponent<CAnimation>().animation = m_game->assets().getAnimation("dwarf-sheet");
 
                 }
                 return;
@@ -40,7 +40,7 @@ public:
         if (hasComponent<CSwimming>()) 
         {
             removeComponent<CSwimming>();
-            getComponent<CAnimation>().animation = m_game->assets().getAnimation("demon");
+            getComponent<CAnimation>().animation = m_game->assets().getAnimation("demon-sheet");
         }
     }
 };

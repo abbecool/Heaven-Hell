@@ -19,8 +19,7 @@ public:
 
 	Assets();
 
-	void addTexture(std::string name, SDL_Texture* texture);
-	void addTexture(std::string name, const std::string & path, SDL_Renderer * ren);
+	void addTexture(const std::string & path, SDL_Renderer * ren);
 	void addAnimation(const std::string& name, Animation animation);
 	void addAudio(const std::string& name, const std::string& path);
 	void addMusic(const std::string& name, const std::string& path);

@@ -15,9 +15,10 @@ using json = nlohmann::json;
 Assets::Assets(){}
 
 
-void Assets::addTexture(std::string name, const std::string & path, SDL_Renderer * ren)
+void Assets::addTexture(const std::string & path, SDL_Renderer * ren)
 {
-    const char *path_char = ("assets/images/"+path).c_str(); 
+    const char *path_char = path.c_str(); 
+    std::string name = path.substr(0, path.find_last_of('.')).substr(path.find_last_of('/') + 1);
     SDL_Surface* tempSurface = IMG_Load(path_char);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, tempSurface);
     SDL_FreeSurface(tempSurface);
@@ -25,11 +26,6 @@ void Assets::addTexture(std::string name, const std::string & path, SDL_Renderer
         std::cerr << "Failed to load texture: " << name << ", from path: " << path_char << ", IMG_Error: " << IMG_GetError() << std::endl;
         return;
     }
-    m_textures[name] = texture;
-}
-
-void Assets::addTexture(std::string name, SDL_Texture* texture)
-{
     m_textures[name] = texture;
 }
 
@@ -110,25 +106,33 @@ Mix_Music* Assets::getMusic(const std::string& name) const {
     }
 }
 
-void Assets::loadFromFile(const std::string & pathImages, const std::string & pathText, SDL_Renderer * ren) {
-    std::ifstream file_json("config_files/assets.json");
-    if (!file_json) {
-        std::cerr << "Could not load assets.json file!\n";
+void Assets::loadFromFile(const std::string & pathAssets, const std::string & pathText, SDL_Renderer * ren) {
+    std::ifstream file_assets(pathAssets);
+    if (!file_assets) {
+        std::cerr << "Could not load assets file!\n";
         exit(-1);
     }
     json j;
-    file_json >> j;
-    file_json.close();
+    file_assets >> j;
+    file_assets.close();
     for (const auto& font : j["fonts"]) {
         std::string name = font["name"];
         std::string path = font["path"];
         int size = font["size"];
         addFont(name, path, size);
     }
-    for (const auto& texture : j["textures"]) {
-        std::string name = texture["name"];
-        std::string path = texture["path"];
-        addTexture(name, path, ren);
+    const std::string pathTextures = j["textures"]["master_path"];
+    for (const std::string path : j["textures"]["individual_paths"]) {
+        addTexture(pathTextures+path, ren);
+    }
+    for (const auto& animation : j["animations"]) {
+        const auto aniName = animation["name"];
+        int frames = animation["frames"];
+        int frametime = animation["frametime"];
+        int rows = animation["rows"];
+        int cols = animation["cols"];
+        SDL_Texture* tex = getTexture(animation["name"]);
+        addAnimation( aniName, Animation( aniName, tex, frames, frametime, rows, cols) );
     }
     for (const auto& audio : j["audio"]) {
         std::string name = audio["name"];
@@ -140,36 +144,14 @@ void Assets::loadFromFile(const std::string & pathImages, const std::string & pa
         std::string path = music["path"];
         addMusic(name, path);
     }
-    std::ifstream file(pathImages);
-    if (!file) {
-        std::cerr << "Could not load assets.txt file!\n";
-        exit(-1);
-    }
-    std::string head;
-    while (file >> head) {
-        if (head == "Animation") {
-            std::string aniName;
-            std::string texName;
-            int frames, speed, rows, cols;
-            file >> aniName >> texName >> frames >> speed >> cols >> rows;
-            SDL_Texture* tex = getTexture(texName);
-            addAnimation( aniName, Animation( aniName, tex, frames, speed, rows, cols) );
-        }
-        else {
-            std::cerr << "head to " << head << "\n";
-            std::cerr << "The config file format is incorrect!\n";
-            exit(-1);
-        }
-    }
-
+    
     std::ifstream file_text(pathText);
     if (!file_text) {
         std::cerr << "Could not load text.txt file!\n";
         exit(-1);
     }
-    // std::string head;
+    std::string head;
     std::string font_name;
-    // Uint8 r, g, b;
     int r, g, b, a;
     SDL_Color textColor = {255, 255, 255, 255};
     while (file_text >> head) {
