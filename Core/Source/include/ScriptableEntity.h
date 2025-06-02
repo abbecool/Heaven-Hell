@@ -43,6 +43,7 @@ class ScriptableEntity{
         virtual void OnUpdateFunction() {} //protected
         virtual void OnAttackFunction() {}
         virtual void OnCollisionFunction() {} //protected
+        virtual void OnInteractFunction() {} //protected
     // protected:
     private:
         // friend class Scene;

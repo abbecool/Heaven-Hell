@@ -11,6 +11,7 @@
 #include "Camera.h"
 #include "ScriptableEntity.h"
 #include "scripts/player.cpp"
+#include "scripts/npc.cpp"
 #include "scripts/rooter.cpp"
 #include "scripts/weapon.cpp"
 #include "scripts/projectile.cpp"
@@ -65,6 +66,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
 
     loadConfig("config_files/config.txt");
     spawnPlayer();
+    spawnNPC(Vec2{353, 63});
     loadLevel(levelPath); 
     loadMobsNItems("config_files/mobs.txt"); // mobs have to spawn after player, so they can target the player
     spawnWeapon(Vec2{364, 91}*m_gridSize, 7);
@@ -385,19 +387,8 @@ void Scene_Play::sMovement() {
 
 }
 
-void Scene_Play::sCollision() {
-
-    // auto screenSize = Vec2{width()/2, height()/2};
-    // Vec2 treePos = m_camera.position + screenSize;
-    // Vec2 treeSize = Vec2{width()/2, width()/2};
-    // m_physics.createQuadtree(treePos, treeSize);
-    // auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
-    // for ( auto e : viewCollision ){
-    //     Entity entity = {e, &m_ECS};
-    //     m_physics.insertQuadtree(entity);
-    // }
-// ------------------------------- Player collisions -------------------------------------------------------------------------
-
+void Scene_Play::playerCollisions()
+{
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
     auto& transformPlayer = transformPool.getComponent(m_player);
@@ -425,7 +416,18 @@ void Scene_Play::sCollision() {
             m_ECS.addComponent<CWeaponChild>(m_player, e);
             m_ECS.addComponent<CParent>(e, m_player, Vec2{8, -4});
             Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
+        }
+    }
 
+    auto& scriptPool = m_ECS.getComponentPool<CScript>();
+    auto viewScript = m_ECS.signatureView<CScript, CBoundingBox>();
+    for ( auto e : viewScript ){
+        auto& transform = transformPool.getComponent(e);
+        auto& Bbox = BboxPool.getComponent(e);
+        if (m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox))
+        {
+            auto& sc = scriptPool.getComponent(e);
+            sc.Instance->OnInteractFunction();
         }
     }
 
@@ -444,9 +446,14 @@ void Scene_Play::sCollision() {
             m_ECS.getComponent<CTransform>(m_player).pos += overlap;
         }
     }
+}
 
-// ------------------------------- Enemy collisions -------------------------------------------------------------------------
-
+void Scene_Play::enemyCollisions()
+{
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
+    // auto& transformPlayer = transformPool.getComponent(m_player);
+    // auto& BboxPlayer = BboxPool.getComponent(m_player);
     auto& viewP = m_ECS.view<CPathfind>();
     for ( auto enemy : viewP )
     {
@@ -477,8 +484,11 @@ void Scene_Play::sCollision() {
             }
         }
     }
+}
 
-// ------------------------------- Projectile collisions ---------------------------------------------------------------------
+void Scene_Play::projectileCollisions()
+{auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
     auto& healthPool = m_ECS.getComponentPool<CHealth>();
     std::vector<EntityID> viewSignatureBbox             = m_ECS.signatureView<CBoundingBox, CHealth>();
     std::vector<EntityID> viewSignatureImmovable        = m_ECS.signatureView<CBoundingBox, CImmovable>();
@@ -523,6 +533,43 @@ void Scene_Play::sCollision() {
             // m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
         }
     }
+}
+
+void Scene_Play::sCollision() {
+
+    // auto screenSize = Vec2{width()/2, height()/2};
+    // Vec2 treePos = m_camera.position + screenSize;
+    // Vec2 treeSize = Vec2{width()/2, width()/2};
+    // m_physics.createQuadtree(treePos, treeSize);
+    // auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
+    // for ( auto e : viewCollision ){
+    //     Entity entity = {e, &m_ECS};
+    //     m_physics.insertQuadtree(entity);
+    // }
+
+    // playerCollisions();
+    // enemyCollisions();
+    // projectileCollisions();
+    auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
+    std::cout << "Number of entities in viewCollision: " << viewCollision.size() << std::endl;
+
+    // Implementation using collisionManager:
+    // auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
+    // for ( auto entityA : m_ECS.view<CBoundingBox, CTransform>() )
+    // {
+    //      for ( auto entityB : collisionEntities )
+    //      {
+    //          if ( entityA == entityB ) { continue; } // Skip self-collision
+    //          auto& collisionMaskA = BboxPool.getComponent(entityA).mask;
+    //          auto& collisionLayerA = BboxPool.getComponent(entityA).layer;
+    //          auto& collisionMaskB = BboxPool.getComponent(entityB).mask;
+    //          auto& collisionLayerB = BboxPool.getComponent(entityB).layer;
+    //          if ( m_physics.isCollided(entityA, entityB) )
+    //          {
+    //              // Handle collision between entityA and entityB
+    //          }
+    //      {
+    // }
 }
 
 void Scene_Play::sStatus() {
@@ -767,7 +814,7 @@ EntityID Scene_Play::spawnPlayer()
             }
         }
     }
-    Vec2 pos = Vec2{64/4*(float)pos_x, 64/4*(float)pos_y};
+    Vec2 pos = Vec2{16*(float)pos_x, 16*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos, entityID);
 
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
@@ -782,6 +829,26 @@ EntityID Scene_Play::spawnPlayer()
     
     auto& sc= m_ECS.addComponent<CScript>(entityID);
     InitiateScript<PlayerController>(sc, entityID);
+    return entityID;
+}
+
+EntityID Scene_Play::spawnNPC(Vec2 pos)
+{
+    uint8_t layer = 10;
+    auto entityID = m_ECS.addEntity();
+
+    Vec2 midGrid = gridToMidPixel(pos*16, entityID);
+
+    m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
+    m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {48, 32});
+    m_ECS.addComponent<CName>(entityID, "NPC1");
+    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz-sheet"), true, layer);
+    m_rendererManager.addEntityToLayer(entityID, layer);
+    spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
+    m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
+    
+    auto& sc= m_ECS.addComponent<CScript>(entityID);
+    InitiateScript<NPCController>(sc, entityID);
     return entityID;
 }
 

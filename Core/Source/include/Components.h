@@ -11,6 +11,19 @@
 // checking if a flag set: return (flag & (int)PlayerState) == (int)PlayerState
 // checking multiple flags set: return (flag &(int)PlayerState) != 0
 
+enum struct CollisionLayer {
+    OBSTACLE        = 1 << 0,
+    PLAYER          = 1 << 1,
+    ENEMY           = 1 << 2,
+    DAMAGE          = 1 << 3,
+    INTERACTABLE    = 1 << 4
+};
+
+struct CollisionComponent { 
+    CollisionLayer layer;
+    uint8_t mask; // bitmask of layers this entity should collide with
+};
+
 enum struct PlayerState {
     STAND = 0,
     RUN_DOWN = 1,
@@ -83,6 +96,9 @@ struct CBoundingBox
     Vec2 size;
     Vec2 halfSize;
     Uint8 red, green, blue;
+    CollisionLayer layer;
+    uint8_t mask; // bitmask of layers this entity should collide with
+
     CBoundingBox() {}
     CBoundingBox(const Vec2& s) 
         : size(s), halfSize(s/2.0), red(255), green(255), blue(255) {}
