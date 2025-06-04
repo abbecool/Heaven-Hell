@@ -47,7 +47,7 @@ public:
             // addComponent<CChild>(damageAreaID, true);
             // m_ECS->addComponent<CParent>(damageAreaID, m_entity.getID(), (target-transform.pos).norm(64/4));
             m_ECS->addComponent<CTransform>(damageAreaID, transform.pos + (target-transform.pos).norm(20) );
-            m_ECS->addComponent<CBoundingBox>(damageAreaID, attack.area, 0, 0, 255);
+            m_ECS->addComponent<CCollisionBox>(damageAreaID, attack.area, 0, 0, 255);
             m_ECS->addComponent<CDamage>(damageAreaID, attack.damage);
             m_ECS->addComponent<CLifespan>(damageAreaID, attack.duration);
             attack.attackTimer = attack.speed;

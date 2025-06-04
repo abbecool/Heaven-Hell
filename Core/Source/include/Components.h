@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_set>
 #include <functional>
+#include <bitset>
 
 // set a flag: flag |= (int)PlayerState
 // unset a flag: flag &= ~(int)PlayerState
@@ -11,18 +12,18 @@
 // checking if a flag set: return (flag & (int)PlayerState) == (int)PlayerState
 // checking multiple flags set: return (flag &(int)PlayerState) != 0
 
-enum struct CollisionLayer {
-    OBSTACLE        = 1 << 0,
-    PLAYER          = 1 << 1,
-    ENEMY           = 1 << 2,
-    DAMAGE          = 1 << 3,
-    INTERACTABLE    = 1 << 4
-};
-
-struct CollisionComponent { 
-    CollisionLayer layer;
-    uint8_t mask; // bitmask of layers this entity should collide with
-};
+using CollisionLayer = uint16_t;
+constexpr uint8_t MAX_LAYERS = 8;
+using CollisionMask = std::bitset<MAX_LAYERS>;
+constexpr CollisionMask EMPTY_MASK              = 0; // 00000000, No bits set
+constexpr CollisionMask PLAYER_LAYER            = 1 << 0; // 00000001, Bit 0
+constexpr CollisionMask OBSTACLE_LAYER          = 1 << 1; // 00000010, Bit 1
+constexpr CollisionMask ENEMY_LAYER             = 1 << 2; // 00000100, Bit 2
+constexpr CollisionMask FRIENDLY_LAYER          = 1 << 3; // 00001000, Bit 3
+constexpr CollisionMask DAMAGE_LAYER            = 1 << 4; // 00010000, Bit 4
+constexpr CollisionMask INTERACTABLE_LAYER      = 1 << 5; // 00100000, Bit 5
+constexpr CollisionMask PROJECTILE_LAYER        = 1 << 6; // 01000000, Bit 6
+constexpr CollisionMask FINAL_MASK              = 1 << 7; // 10000000, Final bit set
 
 enum struct PlayerState {
     STAND = 0,
@@ -33,6 +34,7 @@ enum struct PlayerState {
 };
 
 using EntityID = uint32_t;
+
 class ScriptableEntity;
 
 struct CParent
@@ -91,19 +93,44 @@ struct CVelocity
     float tempo = 1.0f;
 };
 
-struct CBoundingBox
+struct CCollisionBox
 {
     Vec2 size;
     Vec2 halfSize;
     Uint8 red, green, blue;
-    CollisionLayer layer;
-    uint8_t mask; // bitmask of layers this entity should collide with
+    CollisionMask layer = FINAL_MASK;
+    CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
 
-    CBoundingBox() {}
-    CBoundingBox(const Vec2& s) 
+    CCollisionBox() {}
+    CCollisionBox(const Vec2& s) 
         : size(s), halfSize(s/2.0), red(255), green(255), blue(255) {}
-    CBoundingBox(const Vec2& s, const Uint8 r, const Uint8 g, const Uint8 b) 
+    CCollisionBox(const Vec2& s, const Uint8 r, const Uint8 g, const Uint8 b) 
         : size(s), halfSize(s/2.0), red(r), green(g), blue(b) {}
+
+    CCollisionBox(const Vec2& s, CollisionMask l, CollisionMask m) // only use this after the new collision system is implemented
+        : size(s), halfSize(s/2.0), layer(l), mask(m) {}
+};
+
+struct CHitBox
+{
+    Vec2 size;
+    Vec2 halfSize;
+    // CollisionLayer layer;
+    // CollisionMask mask; // bitmask of layers this entity should collide with
+
+    CHitBox() {}
+    // CHitBox(const Vec2& s, CollisionLayer l, uint8_t m) 
+    //     : size(s), halfSize(s/2.0), layer(l), mask(m) {}
+};
+
+struct CInteractionBox
+{
+    Vec2 size;
+    Vec2 halfSize;
+
+    CInteractionBox() {}
+    CInteractionBox(const Vec2& s) 
+        : size(s), halfSize(s/2.0) {}
 };
 
 struct CImmovable

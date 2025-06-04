@@ -6,7 +6,7 @@ class ProjectileController : public ScriptableEntity
 public:
     void OnCreateFunction()
     {
-        // addComponent<CBoundingBox>(Vec2{12, 12});
+        // addComponent<CCollisionBox>(Vec2{12, 12});
         // getComponent<CTransform>().isMovable = true;
         // getComponent<CProjectileState>().state = "Free";
         // getComponent<CTransform>().vel = (m_game->currentScene()->getMousePosition()-getComponent<CTransform>().pos+m_game->currentScene()->getCameraPosition());
@@ -38,7 +38,7 @@ public:
     {
         // if ( getComponent<CProjectileState>().state == "Ready" )
         // {
-        //     addComponent<CBoundingBox>(Vec2{12, 12});
+        //     addComponent<CCollisionBox>(Vec2{12, 12});
         //     getComponent<CTransform>().isMovable = true;
         //     getComponent<CProjectileState>().state = "Free";
         //     getComponent<CTransform>().vel = (m_game->currentScene()->getMousePosition()-getComponent<CTransform>().pos+m_game->currentScene()->getCameraPosition());

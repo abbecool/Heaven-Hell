@@ -38,7 +38,7 @@ void Scene_Pause::saveLayout(const std::string& filename) {
     
     auto dialogPool = m_ECS.getComponentPool<CDialog>();    
     auto transformPool = m_ECS.getComponentPool<CTransform>();
-    auto view = m_ECS.signatureView<CDialog, CBoundingBox, CTransform>();
+    auto view = m_ECS.signatureView<CDialog, CCollisionBox, CTransform>();
     json j;
     for (auto e : view) {
         json button;
@@ -82,7 +82,7 @@ void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, cons
     entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
     float dynamic_length = (float)(dialog.length()/4);
     entity.getComponent<CTransform>().scale = Vec2{dynamic_length,1};
-    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1});
+    entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1});
     entity.addComponent<CName>(name);
     entity.addComponent<CDialog>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1}, m_game->assets().getTexture(dialog), dialog);
 }
@@ -94,14 +94,14 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
-            auto view = m_ECS.view<CBoundingBox>();
+            auto view = m_ECS.view<CCollisionBox>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
+                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
     
-                if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
-                    if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
+                    if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
                         m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y + 3;
                     }
@@ -112,16 +112,16 @@ void Scene_Pause::sDoAction(const Action& action) {
     if (action.type() == "END") {
         if (action.name() == "CLICK") {
             m_hold_CLICK = false;
-            auto view = m_ECS.view<CBoundingBox>();
+            auto view = m_ECS.view<CCollisionBox>();
             for (auto e : view){
                 auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
+                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 auto &name = m_ECS.getComponent<CName>(e).name;
                 if (m_hold_CTRL) {
                     continue;
                 }
-                if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
-                    if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
+                    if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
                         m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y - 3;
                         if ( name == "CONTINUE" ){
@@ -162,13 +162,13 @@ void Scene_Pause::sDoAction(const Action& action) {
 
 void Scene_Pause::sDragButton() {
     if (m_hold_CTRL && m_hold_CLICK) {
-        auto view = m_ECS.signatureView<CBoundingBox, CTransform, CName>();
+        auto view = m_ECS.signatureView<CCollisionBox, CTransform, CName>();
         for (auto e : view) {
             auto& transform = m_ECS.getComponent<CTransform>(e);
-            auto& Bbox = m_ECS.getComponent<CBoundingBox>(e);
+            auto& collision = m_ECS.getComponent<CCollisionBox>(e);
 
-            if (m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x - Bbox.halfSize.x) {
-                if (m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y - Bbox.halfSize.y) {
+            if (m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x - collision.halfSize.x) {
+                if (m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y - collision.halfSize.y) {
                     transform.pos = m_mousePosition;
                 }
             }

@@ -74,7 +74,7 @@ void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const
     m_rendererManager.addEntityToLayer(entityId, 3);
     entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
     entity.getComponent<CTransform>().scale = Vec2{1,1};
-    entity.addComponent<CBoundingBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
+    entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
     entity.addComponent<CName>(name);
     entity.addComponent<CDialog>(entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
 
@@ -102,14 +102,14 @@ void Scene_Menu::sDoAction(const Action& action)
         }
         else if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.view<CBoundingBox>();
+            auto view = m_ECS.view<CCollisionBox>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
+                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
 
-                if ( m_mousePosition.x < transform.pos.x + Bbox.halfSize.x && m_mousePosition.x >= transform.pos.x -Bbox.halfSize.x ){
-                    if ( m_mousePosition.y < transform.pos.y + Bbox.halfSize.y && m_mousePosition.y >= transform.pos.y -Bbox.halfSize.y ){
+                if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
+                    if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
                         m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y + 3;
                     }
@@ -122,17 +122,17 @@ void Scene_Menu::sDoAction(const Action& action)
     {
         if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.view<CBoundingBox>();
+            auto view = m_ECS.view<CCollisionBox>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &Bbox = m_ECS.getComponent<CBoundingBox>(e);
+                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 auto &name = m_ECS.getComponent<CName>(e).name;
-                if ( m_mousePosition.x >= transform.pos.x + Bbox.halfSize.x || m_mousePosition.x < transform.pos.x -Bbox.halfSize.x )
+                if ( m_mousePosition.x >= transform.pos.x + collision.halfSize.x || m_mousePosition.x < transform.pos.x -collision.halfSize.x )
                 {
                     continue;
                 }
-                if ( m_mousePosition.y >= transform.pos.y + Bbox.halfSize.y || m_mousePosition.y < transform.pos.y -Bbox.halfSize.y )
+                if ( m_mousePosition.y >= transform.pos.y + collision.halfSize.y || m_mousePosition.y < transform.pos.y -collision.halfSize.y )
                 {
                     continue;
                 }

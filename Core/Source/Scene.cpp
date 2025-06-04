@@ -89,22 +89,20 @@ void Scene::sRenderBasic() {
     }
     if (m_drawCollision)
     {
-        auto& view = m_ECS.view<CBoundingBox>();
-        auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
-        // auto& immovablePool = m_ECS.getComponentPool<CImmovable>();
-        // auto& animationPool = m_ECS.getComponentPool<CAnimation>();
+        auto& view = m_ECS.view<CCollisionBox>();
+        auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
         for (auto e : view)
         {      
             auto& transform = transformPool.getComponent(e);
-            auto& box = BboxPool.getComponent(e);
+            auto& collision = collisionPool.getComponent(e);
 
             // Adjust the collision box position based on the camera position
             SDL_Rect collisionRect;
-            collisionRect.x = (int)(transform.pos.x - box.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x;
-            collisionRect.y = (int)(transform.pos.y - box.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
-            collisionRect.w = (int)(box.size.x) * totalZoom;
-            collisionRect.h = (int)(box.size.y) * totalZoom;
-            SDL_SetRenderDrawColor(m_game->renderer(), box.red, box.green, box.blue, 255);
+            collisionRect.x = (int)(transform.pos.x - collision.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x;
+            collisionRect.y = (int)(transform.pos.y - collision.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
+            collisionRect.w = (int)(collision.size.x) * totalZoom;
+            collisionRect.h = (int)(collision.size.y) * totalZoom;
+            SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
             SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
         }
     }

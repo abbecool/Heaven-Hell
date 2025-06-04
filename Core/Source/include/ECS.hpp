@@ -27,7 +27,7 @@ using Signature = std::bitset<MAX_COMPONENTS>;
 
 // Define masks for each component (bit positions) - Ordered from basic to complex
 constexpr Signature CTransformMask          = 1 << 0; // 00000001, Bit 0
-constexpr Signature CBoundingBoxMask        = 1 << 1; // 00000010, Bit 1
+constexpr Signature CCollisionBoxMask       = 1 << 1; // 00000010, Bit 1
 constexpr Signature CHealthMask             = 1 << 2; // 00000100, Bit 2
 constexpr Signature CInputsMask             = 1 << 3; // 00001000, Bit 3
 constexpr Signature CAnimationMask          = 1 << 4; // 00010000, Bit 4
@@ -51,6 +51,8 @@ constexpr Signature CVelocityMask           = 1 << 21; // Bit 21
 constexpr Signature CLifespanMask           = 1 << 22; // Bit 22
 constexpr Signature CAttackMask             = 1 << 23; // Bit 23
 constexpr Signature CChildMask              = 1 << 24; // Bit 24
+constexpr Signature CHitBoxMask             = 1 << 25; // Bit 25
+constexpr Signature CInteractionBoxMask     = 1 << 26; // Bit 26
 
 class SignaturePool {
 public:
@@ -124,14 +126,14 @@ private:
     std::unordered_map<EntityID, Signature> m_signatures;
     std::unordered_map<std::type_index, Signature> componentMaskMap = {
         { typeid(CTransform), CTransformMask },
-        { typeid(CBoundingBox), CBoundingBoxMask },
+        { typeid(CCollisionBox), CCollisionBoxMask },
         { typeid(CHealth), CHealthMask },
         { typeid(CInputs), CInputsMask },
         { typeid(CAnimation), CAnimationMask },
         { typeid(CState), CStateMask },
         { typeid(CParent), CParentMask },
         { typeid(CShadow), CShadowMask },
-        { typeid(CImmovable), CImmovableMask },
+        { typeid(CImmovable), CImmovableMask }, // remove when new collision system is implemented
         { typeid(CSwimming), CSwimmingMask },
         { typeid(CWater), CWaterMask },
         { typeid(CWeapon), CWeaponMask },
@@ -148,6 +150,8 @@ private:
         { typeid(CLifespan), CLifespanMask },
         { typeid(CAttack), CAttackMask },
         { typeid(CChild), CChildMask },
+        { typeid(CHitBox), CHitBoxMask },
+        { typeid(CInteractionBox), CInteractionBoxMask },
     };
 };
 
@@ -178,13 +182,13 @@ public:
         m_signaturePool.removeSignature(entity);
     }
 
-    void queueRemoveEntity(EntityID entity) {
+    void queueRemoveEntity(EntityID entity, bool condition = true) {
         if (entity == 1) {
             std::cerr << "Error: Attempting to remove player entity!" << std::endl;
             
             return;
         }
-        if ( hasComponent<CChild>(entity) )
+        if ( hasComponent<CChild>(entity) & condition )
         {
             auto childID = getComponent<CChild>(entity).childID;
             queueRemoveComponent<CParent>(childID);

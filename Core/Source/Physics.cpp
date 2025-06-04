@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <memory>
 
-bool Physics::isCollided(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBox b2)
+bool Physics::isCollided(CTransform t1, CCollisionBox b1, CTransform t2, CCollisionBox b2)
 {
     Vec2 aSize = b1.size;
     Vec2 bSize = b2.size;
@@ -18,7 +18,6 @@ bool Physics::isCollided(CTransform t1, CBoundingBox b1, CTransform t2, CBoundin
     return (x_overlap && y_overlap);
 }
 
-
 bool Physics::isStandingIn(Entity a, Entity b)
 {
     if (a.getID() == b.getID())
@@ -26,11 +25,11 @@ bool Physics::isStandingIn(Entity a, Entity b)
         return false;
     }
     
-    Vec2 aSize = a.getComponent<CBoundingBox>().size;
-    Vec2 aHalfSize = a.getComponent<CBoundingBox>().halfSize;
-    Vec2 bSize = b.getComponent<CBoundingBox>().size;
-    Vec2 aPos = a.getComponent<CTransform>().pos - a.getComponent<CBoundingBox>().halfSize;
-    Vec2 bPos = b.getComponent<CTransform>().pos - b.getComponent<CBoundingBox>().halfSize;
+    Vec2 aSize = a.getComponent<CCollisionBox>().size;
+    Vec2 aHalfSize = a.getComponent<CCollisionBox>().halfSize;
+    Vec2 bSize = b.getComponent<CCollisionBox>().size;
+    Vec2 aPos = a.getComponent<CTransform>().pos - a.getComponent<CCollisionBox>().halfSize;
+    Vec2 bPos = b.getComponent<CTransform>().pos - b.getComponent<CCollisionBox>().halfSize;
     
     bool x_overlap = (aPos.x + aHalfSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x + aHalfSize.x);
     bool y_overlap = (aPos.y + aSize.y <= bPos.y + bSize.y) && (aPos.y + aSize.y > bPos.y);
@@ -38,7 +37,7 @@ bool Physics::isStandingIn(Entity a, Entity b)
     return (x_overlap && y_overlap);
 }
 
-Vec2 Physics::overlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBox b2)
+Vec2 Physics::overlap(CTransform t1, CCollisionBox b1, CTransform t2, CCollisionBox b2)
 {    
     Vec2 aSize = b1.halfSize;
     Vec2 bSize = b2.halfSize;
@@ -80,7 +79,7 @@ Vec2 Physics::overlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBo
     return move;
 }
 
-Vec2 Physics::calculateOverlap(CTransform t1, CBoundingBox b1, CTransform t2, CBoundingBox b2) {
+Vec2 Physics::calculateOverlap(CTransform t1, CCollisionBox b1, CTransform t2, CCollisionBox b2) {
     // todo: return the overlap rectangle size of the bouding boxes of enetity a and b
     Vec2 posA = t1.pos;
     Vec2 sizeA = b1.halfSize;
@@ -110,7 +109,7 @@ void Physics::clearQuadtree()
 
 void Physics::createQuadtree(Vec2 pos, Vec2 size)
 {
-    m_quadroot = std::make_unique<Quadtree>(pos.x, pos.y, size.x, size.y, 4);
+    m_quadroot = std::make_unique<Quadtree>(pos.x, pos.y, size.x, size.y);
 }
 
 void Physics::insertQuadtree(Entity e)
@@ -122,3 +121,9 @@ void Physics::renderQuadtree(SDL_Renderer* renderer, int zoom, Vec2 screenCenter
 {
     m_quadroot->renderBoundary(renderer, zoom, screenCenter, camPos);
 }
+
+int Physics::countQuadtree(int count)
+{
+    return m_quadroot->countLeafs(count);
+}
+

@@ -390,15 +390,15 @@ void Scene_Play::sMovement() {
 void Scene_Play::playerCollisions()
 {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
+    auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
     auto& transformPlayer = transformPool.getComponent(m_player);
-    auto& BboxPlayer = BboxPool.getComponent(m_player);
+    auto& collisionPlayer = collisionPool.getComponent(m_player);
 
     auto& viewLoot = m_ECS.getComponentPool<CLoot>();
     for ( auto e : viewLoot ){
         auto& transform = transformPool.getComponent(e);
-        auto& Bbox = BboxPool.getComponent(e);
-        if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
+        auto& collision = collisionPool.getComponent(e);
+        if ( m_physics.isCollided(transformPlayer, collisionPlayer, transform, collision) )
         {
             m_ECS.queueRemoveEntity(e);
             Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
@@ -408,10 +408,10 @@ void Scene_Play::playerCollisions()
     auto& viewWeapon = m_ECS.getComponentPool<CWeapon>();
     for ( auto e : viewWeapon ){
         auto& transform = transformPool.getComponent(e);
-        auto& Bbox = BboxPool.getComponent(e);
-        if ( m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox) )
+        auto& collision = collisionPool.getComponent(e);
+        if ( m_physics.isCollided(transformPlayer, collisionPlayer, transform, collision) )
         {
-            m_ECS.queueRemoveComponent<CBoundingBox>(e);
+            m_ECS.queueRemoveComponent<CCollisionBox>(e);
             m_ECS.queueRemoveComponent<CWeapon>(e);
             m_ECS.addComponent<CWeaponChild>(m_player, e);
             m_ECS.addComponent<CParent>(e, m_player, Vec2{8, -4});
@@ -420,11 +420,11 @@ void Scene_Play::playerCollisions()
     }
 
     auto& scriptPool = m_ECS.getComponentPool<CScript>();
-    auto viewScript = m_ECS.signatureView<CScript, CBoundingBox>();
+    auto viewScript = m_ECS.signatureView<CScript, CCollisionBox>();
     for ( auto e : viewScript ){
         auto& transform = transformPool.getComponent(e);
-        auto& Bbox = BboxPool.getComponent(e);
-        if (m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox))
+        auto& collision = collisionPool.getComponent(e);
+        if (m_physics.isCollided(transformPlayer, collisionPlayer, transform, collision))
         {
             auto& sc = scriptPool.getComponent(e);
             sc.Instance->OnInteractFunction();
@@ -434,10 +434,10 @@ void Scene_Play::playerCollisions()
     auto &viewImmovable = m_ECS.view<CImmovable>();
     for ( auto e : viewImmovable ){
         auto& transform = transformPool.getComponent(e);
-        auto& Bbox = BboxPool.getComponent(e);
-        if (m_physics.isCollided(transformPlayer, BboxPlayer, transform, Bbox))
+        auto& collision = collisionPool.getComponent(e);
+        if (m_physics.isCollided(transformPlayer, collisionPlayer, transform, collision))
         {
-            Vec2 overlap = m_physics.overlap(transformPlayer, BboxPlayer, transform, Bbox);
+            Vec2 overlap = m_physics.overlap(transformPlayer, collisionPlayer, transform, collision);
             if ( m_ECS.hasComponent<CChild>(m_player) )
             {
                 EntityID childID = m_ECS.getComponent<CChild>(m_player).childID;
@@ -451,36 +451,36 @@ void Scene_Play::playerCollisions()
 void Scene_Play::enemyCollisions()
 {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
+    auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
     // auto& transformPlayer = transformPool.getComponent(m_player);
-    // auto& BboxPlayer = BboxPool.getComponent(m_player);
+    // auto& collisionPlayer = collisionPool.getComponent(m_player);
     auto& viewP = m_ECS.view<CPathfind>();
     for ( auto enemy : viewP )
     {
         auto& transformEnemy = transformPool.getComponent(enemy);
-        auto& BboxEnemy = BboxPool.getComponent(enemy);
+        auto& collisionEnemy = collisionPool.getComponent(enemy);
         for (auto enemy2 : viewP)
         {
             // if (enemy == enemy2) {continue;}
             auto& transformEnemy2 = transformPool.getComponent(enemy2);
-            auto& BboxEnemy2 = BboxPool.getComponent(enemy2);
-            if (m_physics.isCollided(transformEnemy, BboxEnemy, transformEnemy2, BboxEnemy2))
+            auto& collisionEnemy2 = collisionPool.getComponent(enemy2);
+            if (m_physics.isCollided(transformEnemy, collisionEnemy, transformEnemy2, collisionEnemy2))
             {
-                transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transformEnemy2, BboxEnemy2);
+                transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, collisionEnemy, transformEnemy2, collisionEnemy2);
             }
         }
-        // if (m_physics.isCollided(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer))
+        // if (m_physics.isCollided(transformEnemy, collisionEnemy, transformPlayer, collisionPlayer))
         //     {
-        //         transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transformPlayer, BboxPlayer);
+        //         transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, collisionEnemy, transformPlayer, collisionPlayer);
         //         m_ECS.addComponent<CKnockback>(m_player, 120, 10, transformEnemy.vel);
         //     }
         auto &viewImmovable = m_ECS.view<CImmovable>();
         for ( auto e : viewImmovable ){
             auto& transform = transformPool.getComponent(e);
-            auto& Bbox = BboxPool.getComponent(e);
-            if (m_physics.isCollided(transformEnemy, BboxEnemy, transform, Bbox))
+            auto& collision = collisionPool.getComponent(e);
+            if (m_physics.isCollided(transformEnemy, collisionEnemy, transform, collision))
             {
-                m_ECS.getComponent<CTransform>(enemy).pos += m_physics.overlap(transformEnemy, BboxEnemy, transform, Bbox);
+                m_ECS.getComponent<CTransform>(enemy).pos += m_physics.overlap(transformEnemy, collisionEnemy, transform, collision);
             }
         }
     }
@@ -488,21 +488,21 @@ void Scene_Play::enemyCollisions()
 
 void Scene_Play::projectileCollisions()
 {auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
+    auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
     auto& healthPool = m_ECS.getComponentPool<CHealth>();
-    std::vector<EntityID> viewSignatureBbox             = m_ECS.signatureView<CBoundingBox, CHealth>();
-    std::vector<EntityID> viewSignatureImmovable        = m_ECS.signatureView<CBoundingBox, CImmovable>();
-    std::vector<EntityID> viewSignatureProjectileState  = m_ECS.signatureView<CBoundingBox, CProjectileState>();
+    std::vector<EntityID> viewSignaturecollision             = m_ECS.signatureView<CCollisionBox, CHealth>();
+    std::vector<EntityID> viewSignatureImmovable        = m_ECS.signatureView<CCollisionBox, CImmovable>();
+    std::vector<EntityID> viewSignatureProjectileState  = m_ECS.signatureView<CCollisionBox, CProjectileState>();
     for ( auto projectileID : viewSignatureProjectileState )
     {
         auto& transformProjectile = transformPool.getComponent(projectileID);
-        auto& BboxProjectile = BboxPool.getComponent(projectileID);
-        for ( auto enemyID : viewSignatureBbox )
+        auto& collisionProjectile = collisionPool.getComponent(projectileID);
+        for ( auto enemyID : viewSignaturecollision )
         {   
             if (enemyID == m_player ){continue;}
             auto& transformEnemy = transformPool.getComponent(enemyID);
-            auto& BboxEnemy = BboxPool.getComponent(enemyID);
-            if (!m_physics.isCollided(transformProjectile, BboxProjectile, transformEnemy, BboxEnemy))
+            auto& collisionEnemy = collisionPool.getComponent(enemyID);
+            if (!m_physics.isCollided(transformProjectile, collisionProjectile, transformEnemy, collisionEnemy))
             {
                 continue;
             }
@@ -510,7 +510,7 @@ void Scene_Play::projectileCollisions()
             animation.animation = m_game->assets().getAnimation("fireball_explode");
             animation.repeat    = false;
             transformProjectile.isMovable = false;
-            m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
+            m_ECS.queueRemoveComponent<CCollisionBox>(projectileID);
             m_ECS.queueRemoveComponent<CDamage>(projectileID);
             auto& health = healthPool.getComponent(enemyID);
             health.HP--;
@@ -519,8 +519,8 @@ void Scene_Play::projectileCollisions()
         for ( auto enemyID : viewSignatureImmovable )
         {   
             auto& transformObstacle = transformPool.getComponent(enemyID);
-            auto& BboxObstacle = BboxPool.getComponent(enemyID);
-            if (!m_physics.isCollided(transformProjectile, BboxProjectile, transformObstacle, BboxObstacle))
+            auto& collisionObstacle = collisionPool.getComponent(enemyID);
+            if (!m_physics.isCollided(transformProjectile, collisionProjectile, transformObstacle, collisionObstacle))
             {
                 continue;
             }
@@ -528,7 +528,7 @@ void Scene_Play::projectileCollisions()
             animation.animation = m_game->assets().getAnimation("fireball_explode");
             animation.repeat    = false;
             transformProjectile.isMovable = false;
-            m_ECS.queueRemoveComponent<CBoundingBox>(projectileID);
+            m_ECS.queueRemoveComponent<CCollisionBox>(projectileID);
             m_ECS.queueRemoveComponent<CDamage>(projectileID);
             // m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
         }
@@ -537,54 +537,62 @@ void Scene_Play::projectileCollisions()
 
 void Scene_Play::sCollision() {
 
-    // auto screenSize = Vec2{width()/2, height()/2};
-    // Vec2 treePos = m_camera.position + screenSize;
-    // Vec2 treeSize = Vec2{width()/2, width()/2};
-    // m_physics.createQuadtree(treePos, treeSize);
-    // auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
-    // for ( auto e : viewCollision ){
-    //     Entity entity = {e, &m_ECS};
-    //     m_physics.insertQuadtree(entity);
-    // }
+    auto screenSize = Vec2{(float)width(), (float)height()};
+    Vec2 treePos = m_camera.position + screenSize/2 + Vec2{32, 32} ;
+    Vec2 treeSize = Vec2{512, 512};
+    m_physics.createQuadtree(treePos, treeSize);
+    auto viewCollision = m_ECS.signatureView<CCollisionBox, CTransform>();
+    for ( auto e : viewCollision ){
+        Entity entity = {e, &m_ECS};
+        m_physics.insertQuadtree(entity);
+    }
+
+    int quadtreeCount = m_physics.countQuadtree(0);
+    std::cout << "Number of quadtrees in the main tree: " << quadtreeCount << std::endl;
 
     // playerCollisions();
     // enemyCollisions();
     // projectileCollisions();
-    auto viewCollision = m_ECS.signatureView<CBoundingBox, CTransform>();
-    std::cout << "Number of entities in viewCollision: " << viewCollision.size() << std::endl;
 
-    // Implementation using collisionManager:
-    // auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
-    // for ( auto entityA : m_ECS.view<CBoundingBox, CTransform>() )
+    // auto viewCollision = m_ECS.signatureView<CCollisionBox, CTransform>();
+    // // std::cout << "Number of entities in viewCollision: " << viewCollision.size() << std::endl;
+    // // Implementation using collisionManager:
+    // auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
+    // for ( auto entityA : m_ECS.signatureView<CCollisionBox, CTransform>() )
     // {
-    //      for ( auto entityB : collisionEntities )
+    //      for ( auto entityB : collisionPool )
     //      {
-    //          if ( entityA == entityB ) { continue; } // Skip self-collision
-    //          auto& collisionMaskA = BboxPool.getComponent(entityA).mask;
-    //          auto& collisionLayerA = BboxPool.getComponent(entityA).layer;
-    //          auto& collisionMaskB = BboxPool.getComponent(entityB).mask;
-    //          auto& collisionLayerB = BboxPool.getComponent(entityB).layer;
-    //          if ( m_physics.isCollided(entityA, entityB) )
+    //         if ( entityA == entityB ) { continue; } // Skip self-collision
+    //         auto& collisionA = collisionPool.getComponent(entityA);
+    //         auto& collisionB = collisionPool.getComponent(entityB);
+    //         auto& collisionLayerA = collisionA.layer;
+    //         auto& collisionMaskA = collisionA.mask;
+    //         auto& collisionLayerB = collisionB.layer;
+    //         auto& collisionMaskB = collisionB.mask;
+    //         if ( (collisionLayerB & collisionMaskA) != collisionLayerB ) { continue; } // No collision mask match
+    //         if ( (collisionLayerA & collisionMaskB) != collisionLayerA ) { continue; } // No collision layer match
+    //          auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    //          auto& transformA = transformPool.getComponent(entityA);
+    //          auto& transformB = transformPool.getComponent(entityB);
+    //          if ( m_physics.isCollided(transformA, collisionA, transformB, collisionB) )
     //          {
     //              // Handle collision between entityA and entityB
+    //              std::cout << "Collision detected between entity " << entityA << " and entity " << entityB << std::endl;
     //          }
-    //      {
+    //      }
     // }
 }
 
 void Scene_Play::sStatus() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
   
-    auto viewLifespan = m_ECS.signatureView<CLifespan>();
     auto& lifespanPool = m_ECS.getComponentPool<CLifespan>();
+    auto viewLifespan = m_ECS.signatureView<CLifespan>();
     for ( auto entityID : viewLifespan)
     {   
         auto& lifespan = lifespanPool.getComponent(entityID).lifespan;
         lifespan--;
-        if ( lifespan <= 0)
-        {
-            m_ECS.queueRemoveEntity(entityID);
-        }
+        m_ECS.queueRemoveEntity(entityID, lifespan <= 0);
     }
 
     auto viewHealth = m_ECS.signatureView<CHealth>();
@@ -606,35 +614,35 @@ void Scene_Play::sStatus() {
             Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
         }
     }
-
-    auto viewDamage = m_ECS.signatureView<CDamage, CBoundingBox, CTransform>();
-    auto& BboxPool = m_ECS.getComponentPool<CBoundingBox>();
-    auto& damagePool = m_ECS.getComponentPool<CDamage>();
-    for ( auto entityDamage : viewDamage)
-    {
-        auto& transformDamage = transformPool.getComponent(entityDamage);
-        auto& bboxDamage = BboxPool.getComponent(entityDamage);
-        auto& damage = damagePool.getComponent(entityDamage);
-        Signature damageSignature = m_ECS.getSignature(entityDamage);
-        for ( auto entityHealth : viewHealth )
-        {
-            if ( entityDamage == entityHealth ){continue;}
-            if ( (entityHealth == m_player) && ((damageSignature & CProjectileStateMask) == CProjectileStateMask) ){continue;}
+    // ------------------- SHLOULD BE IN sCollision() -------------------
+    // auto viewDamage = m_ECS.signatureView<CDamage, CCollisionBox, CTransform>();
+    // auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
+    // auto& damagePool = m_ECS.getComponentPool<CDamage>();
+    // for ( auto entityDamage : viewDamage)
+    // {
+    //     auto& transformDamage = transformPool.getComponent(entityDamage);
+    //     auto& bboxDamage = collisionPool.getComponent(entityDamage);
+    //     auto& damage = damagePool.getComponent(entityDamage);
+    //     Signature damageSignature = m_ECS.getSignature(entityDamage);
+    //     for ( auto entityHealth : viewHealth )
+    //     {
+    //         if ( entityDamage == entityHealth ){continue;}
+    //         if ( (entityHealth == m_player) && ((damageSignature & CProjectileStateMask) == CProjectileStateMask) ){continue;}
             
-            auto& transforHealth = transformPool.getComponent(entityHealth);
-            auto& bboxHealth = BboxPool.getComponent(entityHealth);
-            auto& health = healthPool.getComponent(entityHealth);
-            if ( m_physics.isCollided(transformDamage, bboxDamage, transforHealth, bboxHealth) )
-            {
-                if ( (int)(m_currentFrame-health.damage_frame) > health.i_frames ) {
-                    int damageMultiplier = 1;
-                    // m_ECS.addComponent<CKnockback>(entityHealth, 50/4, 64/4, transformDamage.pos-transforHealth.pos);
-                    health.HP = health.HP-(int)(damage.damage*damageMultiplier);
-                    health.damage_frame = m_currentFrame;
-                }
-            }
-        }
-    }
+    //         auto& transforHealth = transformPool.getComponent(entityHealth);
+    //         auto& bboxHealth = collisionPool.getComponent(entityHealth);
+    //         auto& health = healthPool.getComponent(entityHealth);
+    //         if ( m_physics.isCollided(transformDamage, bboxDamage, transforHealth, bboxHealth) )
+    //         {
+    //             if ( (int)(m_currentFrame-health.damage_frame) > health.i_frames ) {
+    //                 int damageMultiplier = 1;
+    //                 // m_ECS.addComponent<CKnockback>(entityHealth, 50/4, 64/4, transformDamage.pos-transforHealth.pos);
+    //                 health.HP = health.HP-(int)(damage.damage*damageMultiplier);
+    //                 health.damage_frame = m_currentFrame;
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 void Scene_Play::sAnimation() {
@@ -768,13 +776,13 @@ void Scene_Play::sRender() {
             spriteRender(animation);
         }
     }
-    // if (m_drawCollision)
-    // {
-    //     auto totalZoom = windowScale - m_camera.getCameraZoom();
-    //     auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
-    //     auto camPos = m_camera.position;
-    //     m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
-    // }
+    if (m_drawCollision)
+    {
+        auto totalZoom = windowScale - m_camera.getCameraZoom();
+        auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
+        auto camPos = m_camera.position;
+        m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+    }
 }
 
 void Scene_Play::sAudio()
@@ -818,7 +826,8 @@ EntityID Scene_Play::spawnPlayer()
     Vec2 midGrid = gridToMidPixel(pos, entityID);
 
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
-    m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {32/4, 32/4});
+    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
+    m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, PLAYER_LAYER, collisionMask);
     m_ECS.addComponent<CName>(entityID, "demon");
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("demon-sheet"), true, layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
@@ -840,7 +849,8 @@ EntityID Scene_Play::spawnNPC(Vec2 pos)
     Vec2 midGrid = gridToMidPixel(pos*16, entityID);
 
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
-    m_ECS.addComponent<CBoundingBox>(entityID, Vec2 {48, 32});
+    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
+    m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, FRIENDLY_LAYER, collisionMask);
     m_ECS.addComponent<CName>(entityID, "NPC1");
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz-sheet"), true, layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
@@ -868,7 +878,7 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
 
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {6, 6});
+    // m_ECS.addComponent<CCollisionBox>(entity, Vec2 {6, 6});
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     m_rendererManager.addEntityToLayer(entity, 5);
@@ -885,7 +895,7 @@ EntityID Scene_Play::spawnSword(Vec2 pos, int layer){
 
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {6, 6});
+    // m_ECS.addComponent<CCollisionBox>(entity, Vec2 {6, 6});
     m_ECS.addComponent<CName>(entity, "sword");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("sword"), true, 2);
     m_rendererManager.addEntityToLayer(entity, 5);
@@ -902,7 +912,8 @@ EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t l
 
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
-    m_ECS.addComponent<CBoundingBox>(entity, collisionBox);
+    CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
+    m_ECS.addComponent<CCollisionBox>(entity, collisionBox, OBSTACLE_LAYER, collisionMask);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(animation), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CImmovable>(entity);
@@ -914,48 +925,10 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2 {64/4, 64/4});
-    auto& box = m_ECS.getComponent<CBoundingBox>(entity);
-    box.red = 255;
-    box.green = 0;
-    box.blue = 0;
-    
-    // if (frame == 10)
-    // {
-    // box.red = 255;
-    // box.green = 255;
-    // box.blue = 255;
-    // }
-    // else if (frame == 11 || frame == 14 || frame == 6 || frame == 9)
-    // {
-    //     box.red = 255;
-    //     box.green = 0;
-    //     box.blue = 0;
-    // }
-    // else if (frame == 13 || frame == 15 || frame == 7 || frame == 5 || frame == 8 || frame == 2)
-    // {
-    //     box.red = 0;
-    //     box.green = 255;
-    //     box.blue = 0;
-    // }
-    // else if (frame == 4 || frame == 1 || frame == 12 || frame == 3)
-    // {
-    //     box.red = 0;
-    //     box.green = 255;
-    //     box.blue = 0;
-    // }
-    m_ECS.addComponent<CImmovable>(entity);
-    return entity;
-}
+    CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
+    m_ECS.addComponent<CCollisionBox>(entity, Vec2 {16, 16}, OBSTACLE_LAYER, collisionMask);
 
-EntityID Scene_Play::spawnDragon(const Vec2 pos, bool movable, const std::string &ani) {
-    auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(ani), true, 3);
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid,Vec2 {0, 0}, Vec2 {2, 2}, 0.0f, movable);
-    m_ECS.addComponent<CHealth>(entity, (int)10, (int)10, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
-    m_ECS.getComponent<CHealth>(entity).HPType = {""};
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{96/4, 96/4});
+    m_ECS.addComponent<CImmovable>(entity); // remove when new collision system is implemented
     return entity;
 }
 
@@ -983,7 +956,7 @@ EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{8, 8});
+    // m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 8});
     return entity;
 }
 
@@ -992,7 +965,7 @@ EntityID Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int 
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{64/4, 64/4});
+    m_ECS.addComponent<CCollisionBox>(entity, Vec2{64/4, 64/4});
     return entity;
 }
 
@@ -1002,46 +975,8 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     m_ECS.addComponent<CWater>(entity, CWater{false});
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{64/4, 64/4});
-    auto& box = m_ECS.getComponent<CBoundingBox>(entity);
-    box.red = 0;
-    box.green = 0;
-    box.blue = 255;
-    
-    // if (frame == 10)
-    // {
-    // box.red = 255;
-    // box.green = 255;
-    // box.blue = 255;
-    // }
-    // else if (frame == 11 || frame == 14 || frame == 6 || frame == 9)
-    // {
-    //     box.red = 255;
-    //     box.green = 0;
-    //     box.blue = 0;
-    // }
-    // else if (frame == 13 || frame == 15 || frame == 7 || frame == 5 || frame == 8 || frame == 2)
-    // {
-    //     box.red = 0;
-    //     box.green = 255;
-    //     box.blue = 0;
-    // }
-    // else if (frame == 4 || frame == 1 || frame == 12 || frame == 3)
-    // {
-    //     box.red = 0;
-    //     box.green = 0;
-    //     box.blue = 255;
-    // }
-    return entity;
-}
+    m_ECS.addComponent<CCollisionBox>(entity, Vec2{64/4, 64/4});
 
-EntityID Scene_Play::spawnBridge(const Vec2 pos, const int frame)
-{
-    auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("bridge"), true, 3);
-    m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(frame % 4), (float)(int)(frame / 4)});
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
     return entity;
 }
 
@@ -1054,8 +989,8 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
     m_ECS.addComponent<CDamage>(entity, 1);
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     // m_ECS.addComponent<CProjectileState>(entity, "Create");
-
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{12, 12});
+    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
+    m_ECS.addComponent<CCollisionBox>(entity, Vec2{12, 12}, PROJECTILE_LAYER, collisionMask);
     // m_ECS.getComponent<CTransform>(entity).isMovable = true;
     m_ECS.addComponent<CProjectileState>(entity, "Free");
     // m_ECS.getComponent<CTransform>(entity).vel = (m_game->currentScene()->getMousePosition()-m_ECS.getComponent<CTransform>(entity).pos+m_game->currentScene()->getCameraPosition());
@@ -1074,7 +1009,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{8, 8});
+    m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 8});
     m_ECS.addComponent<CLoot>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
     return entity;
@@ -1090,7 +1025,8 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1,1}, 0.0f, 50.0f, true);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, m_goblinConfig.SPEED, false);
-    m_ECS.addComponent<CBoundingBox>(entity, Vec2{8, 12});
+    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
+    m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 12}, ENEMY_LAYER, collisionMask);
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
 
     m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));

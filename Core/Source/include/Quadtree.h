@@ -7,7 +7,7 @@
 
 class Quadtree
 {
-    int m_capacity = 4;
+    int m_capacity = 8;
     
     float m_x;
     float m_y;
@@ -26,7 +26,7 @@ class Quadtree
     // Divided
     bool m_divided = false;
 public:
-    Quadtree(float x, float y, float width, float height, int capacity);
+    Quadtree(float x, float y, float width, float height);
     void subdivide();
     void insert(Entity entity);
     
@@ -35,5 +35,6 @@ public:
 
     bool Collision(Entity entity, Quadtree& quadtree);
     void renderBoundary(SDL_Renderer* renderer, int zoom, Vec2 screenCenter, Vec2 camPos);
+    int countLeafs(int count );
     
 };

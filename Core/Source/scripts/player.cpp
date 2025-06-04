@@ -17,13 +17,13 @@ public:
     void OnUpdateFunction()
     {
         auto& transformPlayer = getComponent<CTransform>();
-        auto& playerCollider = getComponent<CBoundingBox>();
+        auto& playerCollider = getComponent<CCollisionBox>();
 
         auto viewWater = view<CWater>();
         for (auto entity : viewWater) 
         {
             auto& waterTransform = m_ECS->getComponent<CTransform>(entity);
-            auto& waterCollider = m_ECS->getComponent<CBoundingBox>(entity);
+            auto& waterCollider = m_ECS->getComponent<CCollisionBox>(entity);
             
             if (m_physics->isCollided(transformPlayer, playerCollider, waterTransform, waterCollider) )
             {
