@@ -127,3 +127,8 @@ int Physics::countQuadtree(int count)
     return m_quadroot->countLeafs(count);
 }
 
+std::vector<std::shared_ptr<Quadtree>> Physics::createQuadtreeVector()
+{
+    std::vector<std::shared_ptr<Quadtree>> quadtreeVector = m_quadroot->createQuadtreeVector();
+    return quadtreeVector;
+}

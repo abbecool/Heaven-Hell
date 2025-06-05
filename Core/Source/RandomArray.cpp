@@ -3,6 +3,9 @@
 // Function to generate an array of random integers
 std::vector<int> generateRandomArray(int size, int seed, int minValue, int maxValue) {
     // Create a random number engine and seed it
+    if (seed == 0) {
+        seed = std::random_device{}(); // Use a random device if no seed is provided
+    }
     std::mt19937 engine(seed);
 
     // Create a distribution range

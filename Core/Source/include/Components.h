@@ -97,7 +97,9 @@ struct CCollisionBox
 {
     Vec2 size;
     Vec2 halfSize;
-    Uint8 red, green, blue;
+    Uint8 red = 255;
+    Uint8 green = 255;
+    Uint8 blue = 255;
     CollisionMask layer = FINAL_MASK;
     CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
 

@@ -7,7 +7,7 @@
 
 class Quadtree
 {
-    int m_capacity = 8;
+    int m_capacity = 12;
     
     float m_x;
     float m_y;
@@ -15,10 +15,10 @@ class Quadtree
     float m_height;
     
     // Children
-    std::unique_ptr<Quadtree> m_northWest;
-    std::unique_ptr<Quadtree> m_northEast;
-    std::unique_ptr<Quadtree> m_southWest;
-    std::unique_ptr<Quadtree> m_southEast;
+    std::shared_ptr<Quadtree> m_northWest;
+    std::shared_ptr<Quadtree> m_northEast;
+    std::shared_ptr<Quadtree> m_southWest;
+    std::shared_ptr<Quadtree> m_southEast;
     
     // Objects
     std::vector<Entity> m_objects;
@@ -36,5 +36,8 @@ public:
     bool Collision(Entity entity, Quadtree& quadtree);
     void renderBoundary(SDL_Renderer* renderer, int zoom, Vec2 screenCenter, Vec2 camPos);
     int countLeafs(int count );
-    
+    std::vector<Entity> getObjects() const;
+    std::vector<std::shared_ptr<Quadtree>> createQuadtreeVector();
+    void printTree(const std::string& prefix, const std::string& branch);
+    bool Divided() const { return m_divided; }
 };

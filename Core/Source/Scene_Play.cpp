@@ -50,16 +50,18 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "ESC");
     registerAction(SDLK_u, "SAVE");
+    registerAction(SDLK_r, "RESET");
 
     registerAction(SDLK_f, "CAMERA FOLLOW");
     registerAction(SDLK_z, "CAMERA PAN");
     registerAction(SDLK_PLUS, "ZOOM IN");
     registerAction(SDLK_MINUS, "ZOOM OUT");
-    registerAction(SDLK_r, "RESET");
+    registerAction(SDLK_q, "WRITE QUADTREE");
     registerAction(SDLK_p, "PAUSE");
     registerAction(SDLK_k, "KILL_PLAYER");
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
+    registerAction(SDLK_F3, "TOGGLE_COLLISION");
     registerAction(SDLK_1, "TP1");
     registerAction(SDLK_2, "TP2");
     registerAction(SDLK_3, "TP3");
@@ -243,6 +245,10 @@ void Scene_Play::sDoAction(const Action& action) {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
             saveGame("config_files/game_save.txt");
             m_pause = true;
+        }
+        if ( action.name() == "WRITE QUADTREE")
+        {
+            m_physics.m_quadroot->printTree("", "");
         }
     }
 }
@@ -538,8 +544,8 @@ void Scene_Play::projectileCollisions()
 void Scene_Play::sCollision() {
 
     auto screenSize = Vec2{(float)width(), (float)height()};
-    Vec2 treePos = m_camera.position + screenSize/2 + Vec2{32, 32} ;
-    Vec2 treeSize = Vec2{512, 512};
+    Vec2 treePos = m_camera.position + screenSize/2 - Vec2{32, 32};
+    Vec2 treeSize = Vec2{1048, 1048};
     m_physics.createQuadtree(treePos, treeSize);
     auto viewCollision = m_ECS.signatureView<CCollisionBox, CTransform>();
     for ( auto e : viewCollision ){
@@ -547,8 +553,37 @@ void Scene_Play::sCollision() {
         m_physics.insertQuadtree(entity);
     }
 
-    int quadtreeCount = m_physics.countQuadtree(0);
-    std::cout << "Number of quadtrees in the main tree: " << quadtreeCount << std::endl;
+    auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
+    auto quadVector = m_physics.createQuadtreeVector();
+    int count = 0;
+    for (auto quadleaf : quadVector)
+    {
+        count++;
+        std::vector<Entity> entityVector = quadleaf->getObjects();
+
+        bool playerQuad = false;
+        int color = 255;
+        auto rgb_colors = generateRandomArray(3, count, 100, 255);
+        for (auto& entityA : entityVector)
+        {
+            // if (entityA.getID() == m_player) {
+                //     playerQuad = true;
+                // }
+            auto& collision = collisionPool.getComponent(entityA.getID());
+            collision.red = rgb_colors[0];
+            collision.green = rgb_colors[1];
+            collision.blue = rgb_colors[2];
+        }
+        // if (playerQuad) {
+        //     color = 0;
+        //     for (auto& entityA : entityVector)
+        //     {
+        //         auto& collision = collisionPool.getComponent(entityA.getID());
+        //         collision.red = color;
+        //         collision.green = color; 
+        //     }
+        // } 
+    }
 
     // playerCollisions();
     // enemyCollisions();

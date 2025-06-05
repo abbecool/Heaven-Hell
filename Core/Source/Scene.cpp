@@ -102,8 +102,10 @@ void Scene::sRenderBasic() {
             collisionRect.y = (int)(transform.pos.y - collision.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
             collisionRect.w = (int)(collision.size.x) * totalZoom;
             collisionRect.h = (int)(collision.size.y) * totalZoom;
-            SDL_SetRenderDrawColor(m_game->renderer(), 255, 255, 255, 255);
+            SDL_SetRenderDrawColor(m_game->renderer(), collision.red, collision.green, collision.blue, 255);
             SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
+            collision.red = 255;
+            collision.green = 255;
         }
     }
 }
