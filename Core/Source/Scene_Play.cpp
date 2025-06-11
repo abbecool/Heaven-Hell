@@ -554,35 +554,38 @@ void Scene_Play::sCollision() {
     }
 
     auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto quadVector = m_physics.createQuadtreeVector();
-    int count = 0;
-    for (auto quadleaf : quadVector)
-    {
-        count++;
+    for (auto quadleaf : quadVector){
         std::vector<Entity> entityVector = quadleaf->getObjects();
 
-        bool playerQuad = false;
-        int color = 255;
-        auto rgb_colors = generateRandomArray(3, count, 100, 255);
-        for (auto& entityA : entityVector)
-        {
-            // if (entityA.getID() == m_player) {
-                //     playerQuad = true;
-                // }
-            auto& collision = collisionPool.getComponent(entityA.getID());
-            collision.red = rgb_colors[0];
-            collision.green = rgb_colors[1];
-            collision.blue = rgb_colors[2];
+        for (auto entityA : entityVector){
+            EntityID entityIDA = entityA.getID();
+            auto& collisionA = collisionPool.getComponent(entityIDA);
+            
+            for ( auto entityB : entityVector ){
+                EntityID entityIDB = entityB.getID();
+                if ( entityIDA == entityIDB ) {
+                    continue; // Skip self-collision
+                }
+                auto& collisionB = collisionPool.getComponent(entityIDB);
+                auto& collisionLayerA = collisionA.layer;
+                auto& collisionMaskA = collisionA.mask;
+                auto& collisionLayerB = collisionB.layer;
+                auto& collisionMaskB = collisionB.mask;
+                if ( ((collisionLayerB & collisionMaskA) != collisionLayerB) | ((collisionLayerA & collisionMaskB) != collisionLayerA) ){
+                    continue; // No collision layer match
+                }
+                auto& transformA = transformPool.getComponent(entityIDA);
+                auto& transformB = transformPool.getComponent(entityIDB);
+                if ( !m_physics.isCollided(transformA, collisionA, transformB, collisionB) ) 
+                {
+                    continue; // No collision detected
+                }
+                std::cout << "Collision detected between entity " << entityIDA << " and entity " << entityIDB << std::endl;
+
+            }
         }
-        // if (playerQuad) {
-        //     color = 0;
-        //     for (auto& entityA : entityVector)
-        //     {
-        //         auto& collision = collisionPool.getComponent(entityA.getID());
-        //         collision.red = color;
-        //         collision.green = color; 
-        //     }
-        // } 
     }
 
     // playerCollisions();

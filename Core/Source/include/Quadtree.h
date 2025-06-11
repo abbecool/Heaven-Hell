@@ -7,7 +7,7 @@
 
 class Quadtree
 {
-    int m_capacity = 12;
+    int m_capacity = 8;
     
     float m_x;
     float m_y;
