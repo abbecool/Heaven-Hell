@@ -44,25 +44,15 @@ public:
         }
     }
 
+    void OnAttackFunction()
+    {
+        EntityID weaponID = m_ECS->getComponent<CWeaponChild>(m_entity.getID()).weaponID;
+        m_ECS->getComponent<CScript>(weaponID).Instance->OnAttackFunction();
+    }
+
     void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap)
     {
-        // std::cout << "PlayerController: OnCollisionFunction called with colliderID: " << colliderID << std::endl;
-        // auto& transformPlayer = getComponent<CTransform>();
-        // auto& collisionPlayer = getComponent<CCollisionBox>();
         auto id = m_entity.getID();
-
-        // if (colliderLayer == OBSTACLE_LAYER) 
-        // {
-            // auto& obstacleTransform = m_ECS->getComponent<CTransform>(colliderID);
-            // auto& obstacleCollider = m_ECS->getComponent<CCollisionBox>(colliderID);
-            
-            // Vec2 overlap = m_physics.overlap(transformPlayer, collisionPlayer, obstacleTransform, obstacleCollider);
-            // if ( m_ECS->hasComponent<CChild>(id) )
-            // {
-            //     EntityID childID = m_ECS->getComponent<CChild>(id).childID;
-            //     m_ECS->getComponent<CTransform>(childID).pos += overlap;
-            // }      
-        // }
         m_ECS->getComponent<CTransform>(id).pos += overlap;
     }
 };

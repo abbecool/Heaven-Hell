@@ -15,6 +15,7 @@
 #include "scripts/rooter.cpp"
 #include "scripts/weapon.cpp"
 #include "scripts/projectile.cpp"
+#include "scripts/coin.cpp"
 
 #include "RandomArray.h"
 
@@ -231,11 +232,12 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = true; }
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
 
-        if ( action.name() == "ATTACK" && m_ECS.hasComponent<CWeaponChild>(m_player)){
-            EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
-            m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
-            spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position, 8);
-            m_camera.startShake(m_camera.config.SHAKE_INTENSITY_SMALL, m_camera.config.SHAKE_DURATION_SMALL);
+        if ( action.name() == "ATTACK"){
+            m_ECS.getComponent<CScript>(m_player).Instance->OnAttackFunction();
+            // EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
+            // m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
+            // spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position, 8);
+            // m_camera.startShake(m_camera.config.SHAKE_INTENSITY_SMALL, m_camera.config.SHAKE_DURATION_SMALL);
         }
     }
     else if ( action.type() == "END") {
@@ -554,13 +556,55 @@ void Scene_Play::sInteraction()
     Vec2 treePos = m_camera.position + screenSize/2 - Vec2{32, 32};
     Vec2 treeSize = Vec2{1048, 1048};
     m_physics.createInteractionQuadtree(treePos, treeSize);
-    auto viewInteraction = m_ECS.signatureView<CInteractionBox, CTransform>();
+    auto viewInteraction = m_ECS.signatureView<CInteractionBox, CTransform, CScript>();
     for ( auto e : viewInteraction ){
         Entity entity = {e, &m_ECS};
         m_physics.insertInteractionQuadtree(entity);
     }
+
+    auto& interactionPool = m_ECS.getComponentPool<CInteractionBox>();
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& scriptPool = m_ECS.getComponentPool<CScript>();
+    auto quadVector = m_physics.createInteractionQuadtreeVector();
+    for (auto quadleaf : quadVector){
+        std::vector<Entity> entityVector = quadleaf->getObjects();
+
+        for (size_t a = 0; a < entityVector.size(); ++a) {
+            EntityID entityIDA = entityVector[a].getID();
+            auto& interactionA = interactionPool.getComponent(entityIDA);
+
+            
+            for (size_t b = a + 1; b < entityVector.size(); ++b) {
+                EntityID entityIDB = entityVector[b].getID();
+                if ( entityIDA == entityIDB ) {
+                    continue; // Skip self-collision
+                }
+                auto& interactionB = interactionPool.getComponent(entityIDB);
+                auto& interactionLayerA = interactionA.layer;
+                auto& interactionMaskA = interactionA.mask;
+                auto& interactionLayerB = interactionB.layer;
+                auto& interactionMaskB = interactionB.mask;
+                if ( ((interactionLayerB & interactionMaskA) != interactionLayerB) | ((interactionLayerA & interactionMaskB) != interactionLayerA) ){
+                    continue; // No interaction layer match
+                }
+                auto& transformA = transformPool.getComponent(entityIDA);
+                auto& transformB = transformPool.getComponent(entityIDB);
+                if ( !m_physics.isCollided(transformA, interactionA, transformB, interactionB) ) 
+                {
+                    continue; // No interaction detected
+                }
+                // std::cout << "interaction detected between entity " << entityIDA << " and entity " << entityIDB << std::endl;
+                // auto overlap = m_physics.overlap(transformA, interactionA, transformB, interactionB);
+
+                scriptPool.getComponent(entityIDA).Instance->OnInteractionCollisionFunction(entityIDB, interactionLayerB);
+                scriptPool.getComponent(entityIDB).Instance->OnInteractionCollisionFunction(entityIDA, interactionLayerA);
+                
+            }
+        }
+    }
 }
 
+ 
 void Scene_Play::sCollision() {
 
     auto screenSize = Vec2{(float)width(), (float)height()};
@@ -906,6 +950,8 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, PLAYER_LAYER, collisionMask);
+    InterationMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER;
+    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {16, 16}, PLAYER_LAYER1, interactionMask);
     m_ECS.addComponent<CName>(entityID, "demon");
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("demon-sheet"), true, layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
@@ -927,8 +973,13 @@ EntityID Scene_Play::spawnNPC(Vec2 pos)
     Vec2 midGrid = gridToMidPixel(pos*16, entityID);
 
     m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
-    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
+    
+    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, FRIENDLY_LAYER, collisionMask);
+
+    InterationMask interactionMask = PLAYER_LAYER1;
+    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {48, 32}, FRIENDLY_LAYER, interactionMask);
+
     m_ECS.addComponent<CName>(entityID, "NPC1");
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("wiz-sheet"), true, layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
@@ -1081,8 +1132,8 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
     // m_ECS.getComponent<CTransform>(entity).angle = m_ECS.getComponent<CTransform>(entity).vel.angle();
 
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
-    auto& script = m_ECS.addComponent<CScript>(entity);
-    InitiateScript<ProjectileController>(script, entity);
+    // auto& script = m_ECS.addComponent<CScript>(entity);
+    // InitiateScript<ProjectileController>(script, entity);
     return entity;
 }
 
@@ -1093,11 +1144,16 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
-    // m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 8});
+
     InterationMask interactionMask = PLAYER_LAYER1;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8 ,8}, LOOT_LAYER, interactionMask);
+
     m_ECS.addComponent<CLoot>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
+
+    auto& sc= m_ECS.addComponent<CScript>(entity);
+    InitiateScript<CoinController>(sc, entity);
+    
     return entity;
 }
 
@@ -1174,8 +1230,21 @@ void Scene_Play::InitiateScript(CScript& sc, EntityID entityID){
     sc.Instance->m_ECS = &m_ECS;
     sc.Instance->m_physics = &m_physics;
     sc.Instance->m_game = m_game;
+    sc.Instance->m_scene = this;
     sc.Instance->OnCreateFunction();
 }
+
+void Scene_Play::InitiateProjectileScript(CScript& sc, EntityID entityID){
+    sc.Bind<ProjectileController>();
+    sc.Instance = sc.InstantiateScript();
+    sc.Instance->m_entity = {entityID, &m_ECS};
+    sc.Instance->m_ECS = &m_ECS;
+    sc.Instance->m_physics = &m_physics;
+    sc.Instance->m_game = m_game;
+    sc.Instance->m_scene = this;
+    sc.Instance->OnCreateFunction();
+}
+
 
 void Scene_Play::onEnd() {
     m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game));

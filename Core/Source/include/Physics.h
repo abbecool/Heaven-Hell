@@ -12,8 +12,10 @@ class Physics
         std::shared_ptr<Quadtree> m_quadRoot;
         std::shared_ptr<Quadtree> m_interactionQuadRoot;
         bool isCollided(CTransform t1, CCollisionBox b1, CTransform t2, CCollisionBox b2);
+        bool isCollided(CTransform t1, CInteractionBox b1, CTransform t2, CInteractionBox b2);
         bool isStandingIn(Entity entity1, Entity entity2);
         Vec2 overlap(CTransform t1, CCollisionBox b1, CTransform t2, CCollisionBox b2);
+        Vec2 overlap(CTransform t1, CInteractionBox b1, CTransform t2, CInteractionBox b2);
         Vec2 calculateOverlap(CTransform t1, CCollisionBox b1, CTransform t2, CCollisionBox b2);
         Vec2 knockback(CKnockback& knockback);
 

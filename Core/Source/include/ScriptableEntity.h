@@ -38,11 +38,13 @@ class ScriptableEntity{
         ECS* m_ECS;
         Physics* m_physics;
         Game* m_game;
+        Scene* m_scene;
         virtual void OnCreateFunction() {} //protected
         virtual void OnDestroyFunction() {} //protected
         virtual void OnUpdateFunction() {} //protected
         virtual void OnAttackFunction() {}
         virtual void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap) {} //protected
+        virtual void OnInteractionCollisionFunction(EntityID colliderID, CollisionMask colliderLayer) {} //protected
         virtual void OnInteractFunction() {} //protected
     // protected:
     private:

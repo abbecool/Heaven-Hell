@@ -18,6 +18,19 @@ bool Physics::isCollided(CTransform t1, CCollisionBox b1, CTransform t2, CCollis
     return (x_overlap && y_overlap);
 }
 
+bool Physics::isCollided(CTransform t1, CInteractionBox b1, CTransform t2, CInteractionBox b2)
+{
+    Vec2 aSize = b1.size;
+    Vec2 bSize = b2.size;
+    Vec2 aPos = t1.pos - b1.halfSize;
+    Vec2 bPos = t2.pos - b2.halfSize;
+
+    bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
+    bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
+
+    return (x_overlap && y_overlap);
+}
+
 bool Physics::isStandingIn(Entity a, Entity b)
 {
     if (a.getID() == b.getID())
@@ -35,6 +48,48 @@ bool Physics::isStandingIn(Entity a, Entity b)
     bool y_overlap = (aPos.y + aSize.y <= bPos.y + bSize.y) && (aPos.y + aSize.y > bPos.y);
     
     return (x_overlap && y_overlap);
+}
+
+Vec2 Physics::overlap(CTransform t1, CInteractionBox b1, CTransform t2, CInteractionBox b2)
+{    
+    Vec2 aSize = b1.halfSize;
+    Vec2 bSize = b2.halfSize;
+    Vec2 aPos = t1.pos - b1.halfSize;
+    Vec2 bPos = t2.pos - b2.halfSize;
+    Vec2 aPrevPos = t1.prevPos - b1.halfSize;
+    Vec2 bPrevPos = t2.prevPos - b2.halfSize;
+    
+    Vec2 delta          =   ( (aPos       + aSize) - (bPos      + bSize) ).abs_elem();
+    Vec2 prevDelta      =   ( (aPrevPos   + aSize) - (bPrevPos  + bSize) ).abs_elem();
+    Vec2 overlap        =   aSize + bSize - delta;
+    Vec2 prevOverlap    =   aSize + bSize - prevDelta;
+    
+    Vec2 move = { 0, 0 };
+    if (prevOverlap.y > 0)
+    {
+        if ((aPos.x + aSize.x) > (bPos.x + bSize.x))
+        {
+            move += Vec2 { overlap.x, 0 };
+        }
+        if ((aPos.x + aSize.x) < (bPos.x + bSize.x))
+        {
+            move -= Vec2 { overlap.x, 0 };
+        }
+    }
+    
+    if (prevOverlap.x > 0)
+    {
+        if ((aPos.y + aSize.y/2) > (bPos.y + bSize.y/2))
+        {
+            move +=  Vec2 { 0, overlap.y };
+        }
+        if ((aPos.y + aSize.y/2) < (bPos.y + bSize.y/2))
+        {
+            move -=  Vec2 { 0, overlap.y };
+        }
+    }
+    
+    return move;
 }
 
 Vec2 Physics::overlap(CTransform t1, CCollisionBox b1, CTransform t2, CCollisionBox b2)

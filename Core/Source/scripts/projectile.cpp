@@ -16,7 +16,12 @@ public:
 
     void OnDestroyFunction()
     {
-        // std::cout << "destoy script entity: OnDestroy" << std::endl;
+        auto& animation     = m_ECS->getComponent<CAnimation>(m_entity.getID());
+        animation.animation = m_game->assets().getAnimation("fireball_explode");
+        animation.repeat    = false;
+        m_ECS->getComponent<CTransform>(m_entity.getID()).isMovable = false;
+        m_ECS->queueRemoveComponent<CCollisionBox>(m_entity.getID());
+        m_ECS->queueRemoveComponent<CDamage>(m_entity.getID());
     }
 
     void OnUpdateFunction()
@@ -46,6 +51,12 @@ public:
         // } else {
         //     removeEntity();
         // }
+    }
+
+    void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap)
+    {
+        std::cout << "Projectile collided with entity ID: " << colliderID << std::endl;
+        OnDestroyFunction();
     }
 };
 

@@ -97,6 +97,7 @@ class Scene_Play : public Scene
     
     template<typename T>
     void InitiateScript(CScript& sc, EntityID entityID);
+    void InitiateProjectileScript(CScript& sc, EntityID entityID);
     
     public:
     Scene_Play(Game* game, std::string path, bool newGame);
