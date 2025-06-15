@@ -89,24 +89,33 @@ void Scene::sRenderBasic() {
     }
     if (m_drawCollision)
     {
-        auto& view = m_ECS.view<CCollisionBox>();
+        auto viewCollisions = m_ECS.signatureView<CCollisionBox, CTransform>();
         auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
-        for (auto e : view)
-        {      
-            auto& transform = transformPool.getComponent(e);
-            auto& collision = collisionPool.getComponent(e);
+        renderBox<CCollisionBox>(viewCollisions, transformPool, collisionPool, screenCenterZoomed, totalZoom);
+    }
+    if (m_drawInteraction)
+    {
+        auto viewInteractions = m_ECS.signatureView<CInteractionBox, CTransform>();
+        auto& interactionPool = m_ECS.getComponentPool<CInteractionBox>();
+        renderBox<CInteractionBox>(viewInteractions, transformPool, interactionPool, screenCenterZoomed, totalZoom);
+    }
+}
 
-            // Adjust the collision box position based on the camera position
-            SDL_Rect collisionRect;
-            collisionRect.x = (int)(transform.pos.x - collision.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x;
-            collisionRect.y = (int)(transform.pos.y - collision.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
-            collisionRect.w = (int)(collision.size.x) * totalZoom;
-            collisionRect.h = (int)(collision.size.y) * totalZoom;
-            SDL_SetRenderDrawColor(m_game->renderer(), collision.red, collision.green, collision.blue, 255);
-            SDL_RenderDrawRect(m_game->renderer(), &collisionRect);
-            collision.red = 255;
-            collision.green = 255;
-        }
+template<typename BoxType>
+void Scene::renderBox(std::vector<EntityID> view, ComponentPool<CTransform> transformPool, ComponentPool<BoxType> boxPool, const Vec2& screenCenterZoomed, int totalZoom)
+{
+    for (auto e : view)
+    {   
+        auto& transform = transformPool.getComponent(e);
+        auto& box = boxPool.getComponent(e);
+        // Adjust the box box position based on the camera position
+        SDL_Rect boxRect;
+        boxRect.x = (int)(transform.pos.x - box.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x;
+        boxRect.y = (int)(transform.pos.y - box.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
+        boxRect.w = (int)(box.size.x) * totalZoom;
+        boxRect.h = (int)(box.size.y) * totalZoom;
+        SDL_SetRenderDrawColor(m_game->renderer(), box.red, box.green, box.blue, 255);
+        SDL_RenderDrawRect(m_game->renderer(), &boxRect);
     }
 }
 

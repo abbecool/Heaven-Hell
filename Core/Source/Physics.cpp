@@ -104,31 +104,63 @@ Vec2 Physics::knockback(CKnockback& knockback){
 
 void Physics::clearQuadtree()
 {
-    m_quadroot = nullptr;
+    m_quadRoot = nullptr;
 }
 
 void Physics::createQuadtree(Vec2 pos, Vec2 size)
 {
-    m_quadroot = std::make_unique<Quadtree>(pos.x, pos.y, size.x, size.y);
+    m_quadRoot = std::make_unique<Quadtree>(pos.x, pos.y, size.x, size.y);
 }
 
 void Physics::insertQuadtree(Entity e)
 {
-    m_quadroot->insert(e);
+    m_quadRoot->insert<CCollisionBox>(e);
 }
 
 void Physics::renderQuadtree(SDL_Renderer* renderer, int zoom, Vec2 screenCenter, Vec2 camPos)
 {
-    m_quadroot->renderBoundary(renderer, zoom, screenCenter, camPos);
+    m_quadRoot->renderBoundary(renderer, zoom, screenCenter, camPos, {255, 0, 0, 255});
 }
 
 int Physics::countQuadtree(int count)
 {
-    return m_quadroot->countLeafs(count);
+    return m_quadRoot->countLeafs(count);
 }
 
 std::vector<std::shared_ptr<Quadtree>> Physics::createQuadtreeVector()
 {
-    std::vector<std::shared_ptr<Quadtree>> quadtreeVector = m_quadroot->createQuadtreeVector();
+    std::vector<std::shared_ptr<Quadtree>> quadtreeVector = m_quadRoot->createQuadtreeVector();
     return quadtreeVector;
 }
+
+void Physics::clearInteractionQuadtree()
+{
+    m_interactionQuadRoot = nullptr;
+}
+
+void Physics::createInteractionQuadtree(Vec2 pos, Vec2 size)
+{
+    m_interactionQuadRoot = std::make_unique<Quadtree>(pos.x, pos.y, size.x, size.y);
+}
+
+void Physics::insertInteractionQuadtree(Entity e)
+{
+    m_interactionQuadRoot->insert<CInteractionBox>(e);
+}
+
+void Physics::renderInteractionQuadtree(SDL_Renderer* renderer, int zoom, Vec2 screenCenter, Vec2 camPos)
+{
+    m_interactionQuadRoot->renderBoundary(renderer, zoom, screenCenter, camPos, {0, 0, 255, 255});
+}
+
+int Physics::countInteractionQuadtree(int count)
+{
+    return m_interactionQuadRoot->countLeafs(count);
+}
+
+std::vector<std::shared_ptr<Quadtree>> Physics::createInteractionQuadtreeVector()
+{
+    std::vector<std::shared_ptr<Quadtree>> quadtreeVector = m_interactionQuadRoot->createQuadtreeVector();
+    return quadtreeVector;
+}
+

@@ -6,42 +6,44 @@ Quadtree::Quadtree(float x, float y, float width, float height)
     m_objects.reserve(m_capacity);
 }
 
-bool Quadtree::Collision(Entity entity, Quadtree& quadtree)
-{
-    Vec2 entityPos = entity.getComponent<CTransform>().pos;
-    Vec2 entityHalfSize = entity.getComponent<CCollisionBox>().halfSize;
-    Vec2 entitySize = entity.getComponent<CCollisionBox>().size;
+// template<typename T>
+// bool Quadtree::Collision(Entity entity, Quadtree& quadtree)
+// {
+//     Vec2 entityPos = entity.getComponent<CTransform>().pos;
+//     Vec2 entityHalfSize = entity.getComponent<T>().halfSize;
+//     Vec2 entitySize = entity.getComponent<T>().size;
 
-    Vec2 treePos = quadtree.getPos();
-    Vec2 treeSize = quadtree.getSize();
-    Vec2 treeHalfSize = quadtree.getSize()/2;
+//     Vec2 treePos = quadtree.getPos();
+//     Vec2 treeSize = quadtree.getSize();
+//     Vec2 treeHalfSize = quadtree.getSize()/2;
 
-    Vec2 aPos = entityPos - entityHalfSize;
-    Vec2 aSize = entitySize;
+//     Vec2 aPos = entityPos - entityHalfSize;
+//     Vec2 aSize = entitySize;
 
-    Vec2 bPos = treePos - treeHalfSize;
-    Vec2 bSize = treeSize;
+//     Vec2 bPos = treePos - treeHalfSize;
+//     Vec2 bSize = treeSize;
 
-    bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
-    bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
+//     bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
+//     bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
 
-    return (x_overlap && y_overlap);
+//     return (x_overlap && y_overlap);
     
-    // entityPos.print("entityPos");
-    // entityHalfSize.print("entityHalfSize");
-    // treePos.print("treePos");
-    // treeHalfSize.print("treeHalfSize");
+//     // entityPos.print("entityPos");
+//     // entityHalfSize.print("entityHalfSize");
+//     // treePos.print("treePos");
+//     // treeHalfSize.print("treeHalfSize");
     
-    // bool x_overlap =    (entityPos.x + entityHalfSize.x > treePos.x - treeHalfSize.x) && 
-    // (treePos.x + treeHalfSize.x > entityPos.x - entityHalfSize.x);
+//     // bool x_overlap =    (entityPos.x + entityHalfSize.x > treePos.x - treeHalfSize.x) && 
+//     // (treePos.x + treeHalfSize.x > entityPos.x - entityHalfSize.x);
 
-    // bool y_overlap =    (entityPos.y + entityHalfSize.y > treePos.y - treeHalfSize.y) && 
-    // (treePos.y + treeHalfSize.y > entityPos.y - entityHalfSize.y);
-    // std::cout << entity.getID() << ". Coll: " << (x_overlap & y_overlap) << ". treePos: " << treePos.x << ", " << treePos.y << ". entityPos: " << entityPos.x << ", " << entityPos.y << "\n";
-    // std::cout << entity.getID() << ". Coll: " << (x_overlap & y_overlap) << ". treeHalfSize: " << treeHalfSize.x << ", " << treeHalfSize.y << ". entityHalfSize: " << entityHalfSize.x << ", " << entityHalfSize.y << "\n";
-    // return x_overlap & y_overlap;
+//     // bool y_overlap =    (entityPos.y + entityHalfSize.y > treePos.y - treeHalfSize.y) && 
+//     // (treePos.y + treeHalfSize.y > entityPos.y - entityHalfSize.y);
+//     // std::cout << entity.getID() << ". Coll: " << (x_overlap & y_overlap) << ". treePos: " << treePos.x << ", " << treePos.y << ". entityPos: " << entityPos.x << ", " << entityPos.y << "\n";
+//     // std::cout << entity.getID() << ". Coll: " << (x_overlap & y_overlap) << ". treeHalfSize: " << treeHalfSize.x << ", " << treeHalfSize.y << ". entityHalfSize: " << entityHalfSize.x << ", " << entityHalfSize.y << "\n";
+//     // return x_overlap & y_overlap;
 
-}
+// }
+
 void Quadtree::subdivide()
 {
     float subWidth = m_width / 2;
@@ -58,37 +60,38 @@ void Quadtree::subdivide()
     // std::cout << "subdivide" << std::endl;
 }
 
-void Quadtree::insert(Entity entity)
-{
-    if (!Collision(entity, *this)) { return; } // If the entity does not collide with this quadtree, do not insert it
-    // std::cout << "insert" << std::endl;
+// template<typename T>
+// void Quadtree::insert(Entity entity)
+// {
+//     if (!Collision<T>(entity, *this)) { return; } // If the entity does not collide with this quadtree, do not insert it
+//     // std::cout << "insert" << std::endl;
 
-    if (m_divided){
-        // If the node is divided, try insert into the child nodes
-        m_northWest->insert(entity);
-        m_northEast->insert(entity);
-        m_southWest->insert(entity);
-        m_southEast->insert(entity);
-        return; // No need to insert into this node, as it is already divided
-    }
-    m_objects.push_back(entity);
-    // std::cout << (int)m_objects.size() << " | " << m_capacity << std::endl;
-    if ((int)m_objects.size() >= m_capacity)
-    {  
-        if (!m_divided)
-        {
-            subdivide();
-        }
-        for (auto entity1 : m_objects)
-        {
-            m_northWest->insert(entity1);
-            m_northEast->insert(entity1);
-            m_southWest->insert(entity1);
-            m_southEast->insert(entity1);
-        }
-        m_objects.clear(); // Clear the objects in this node after subdividing
-    }
-}
+//     if (m_divided){
+//         // If the node is divided, try insert into the child nodes
+//         m_northWest->insert<T>(entity);
+//         m_northEast->insert<T>(entity);
+//         m_southWest->insert<T>(entity);
+//         m_southEast->insert<T>(entity);
+//         return; // No need to insert into this node, as it is already divided
+//     }
+//     m_objects.push_back(entity);
+//     // std::cout << (int)m_objects.size() << " | " << m_capacity << std::endl;
+//     if ((int)m_objects.size() >= m_capacity)
+//     {  
+//         if (!m_divided)
+//         {
+//             subdivide();
+//         }
+//         for (auto entity1 : m_objects)
+//         {
+//             m_northWest->insert<T>(entity1);
+//             m_northEast->insert<T>(entity1);
+//             m_southWest->insert<T>(entity1);
+//             m_southEast->insert<T>(entity1);
+//         }
+//         m_objects.clear(); // Clear the objects in this node after subdividing
+//     }
+// }
 
 void Quadtree::printTree(const std::string& prefix, const std::string& branch)
 {
@@ -121,14 +124,14 @@ void Quadtree::printTree(const std::string& prefix, const std::string& branch)
     }
 }
 
-void Quadtree::renderBoundary(SDL_Renderer* renderer, int zoom, Vec2 screenCenter, Vec2 camPos)
+void Quadtree::renderBoundary(SDL_Renderer* renderer, int zoom, Vec2 screenCenter, Vec2 camPos, SDL_Color color)
 {
     if (m_divided)
     {
-        m_northWest->renderBoundary(renderer, zoom, screenCenter, camPos);
-        m_northEast->renderBoundary(renderer, zoom, screenCenter, camPos);
-        m_southWest->renderBoundary(renderer, zoom, screenCenter, camPos);
-        m_southEast->renderBoundary(renderer, zoom, screenCenter, camPos);
+        m_northWest->renderBoundary(renderer, zoom, screenCenter, camPos, color);
+        m_northEast->renderBoundary(renderer, zoom, screenCenter, camPos, color);
+        m_southWest->renderBoundary(renderer, zoom, screenCenter, camPos, color);
+        m_southEast->renderBoundary(renderer, zoom, screenCenter, camPos, color);
     }
     else
     {
@@ -138,8 +141,8 @@ void Quadtree::renderBoundary(SDL_Renderer* renderer, int zoom, Vec2 screenCente
         collisionRect.y = int ( m_y - m_height/2 - camPos.y) * zoom + screenCenter.y;
         collisionRect.w = int ( m_width ) * zoom;
         collisionRect.h = int ( m_height ) * zoom;
-    
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
         SDL_RenderDrawRect(renderer, &collisionRect);
         // render the number of objects in the quadtree
     }

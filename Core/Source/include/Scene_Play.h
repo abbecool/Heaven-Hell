@@ -83,6 +83,7 @@ class Scene_Play : public Scene
     void playerCollisions();
     void enemyCollisions();
     void projectileCollisions();
+    void sInteraction();
     void sCollision();
     void sStatus();
     void sAnimation();

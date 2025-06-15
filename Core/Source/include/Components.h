@@ -25,6 +25,17 @@ constexpr CollisionMask INTERACTABLE_LAYER      = 1 << 5; // 00100000, Bit 5
 constexpr CollisionMask PROJECTILE_LAYER        = 1 << 6; // 01000000, Bit 6
 constexpr CollisionMask FINAL_MASK              = 1 << 7; // 10000000, Final bit set
 
+using InterationMask = std::bitset<MAX_LAYERS>;
+// constexpr InterationMask EMPTY_MASK              = 0; // 00000000, No bits set
+constexpr InterationMask PLAYER_LAYER1            = 1 << 0; // 00000001, Bit 0
+constexpr InterationMask LOOT_LAYER          = 1 << 1; // 00000010, Bit 1
+// constexpr InterationMask ENEMY_LAYER             = 1 << 2; // 00000100, Bit 2
+constexpr InterationMask FRIENDLY_LAYER1          = 1 << 3; // 00001000, Bit 3
+// constexpr InterationMask DAMAGE_LAYER            = 1 << 4; // 00010000, Bit 4
+// constexpr InterationMask INTERACTABLE_LAYER      = 1 << 5; // 00100000, Bit 5
+// constexpr InterationMask PROJECTILE_LAYER        = 1 << 6; // 01000000, Bit 6
+// constexpr InterationMask FINAL_MASK              = 1 << 7; // 10000000, Final bit set
+
 enum struct PlayerState {
     STAND = 0,
     RUN_DOWN = 1,
@@ -93,24 +104,41 @@ struct CVelocity
     float tempo = 1.0f;
 };
 
-struct CCollisionBox
+struct CBox 
 {
     Vec2 size;
     Vec2 halfSize;
-    Uint8 red = 255;
-    Uint8 green = 255;
-    Uint8 blue = 255;
     CollisionMask layer = FINAL_MASK;
     CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
+    Uint8 red;
+    Uint8 green;
+    Uint8 blue;
+
+    CBox() {}
+    CBox(const Vec2& s) 
+        : size(s), halfSize(s/2.0), red(255), green(255), blue(255) {}
+    CBox(const Vec2& s, CollisionMask l, CollisionMask m, const Uint8 r, const Uint8 g, const Uint8 b) // only use this after the new collision system is implemented
+        : size(s), halfSize(s/2.0), layer(l), mask(m), red(r), green(g), blue(b) {}
+};
+
+struct CCollisionBox : public CBox 
+{
+    // Vec2 size;
+    // Vec2 halfSize;
+    // Uint8 red = 255;
+    // Uint8 green = 255;
+    // Uint8 blue = 255;
+    // CollisionMask layer = FINAL_MASK;
+    // CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
 
     CCollisionBox() {}
     CCollisionBox(const Vec2& s) 
-        : size(s), halfSize(s/2.0), red(255), green(255), blue(255) {}
+        : CBox(s) {}
     CCollisionBox(const Vec2& s, const Uint8 r, const Uint8 g, const Uint8 b) 
-        : size(s), halfSize(s/2.0), red(r), green(g), blue(b) {}
+        : CBox(s) {}
 
-    CCollisionBox(const Vec2& s, CollisionMask l, CollisionMask m) // only use this after the new collision system is implemented
-        : size(s), halfSize(s/2.0), layer(l), mask(m) {}
+    CCollisionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
+        : CBox(size, layer, mask, 255, 255, 255) {}
 };
 
 struct CHitBox
@@ -125,14 +153,18 @@ struct CHitBox
     //     : size(s), halfSize(s/2.0), layer(l), mask(m) {}
 };
 
-struct CInteractionBox
+struct CInteractionBox : public CBox
 {
-    Vec2 size;
-    Vec2 halfSize;
+    // Vec2 size;
+    // Vec2 halfSize;
+    // Uint8 red = 0;
+    // Uint8 green = 0;
+    // Uint8 blue = 255;
+    // CollisionMask layer = FINAL_MASK;
+    // CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
 
-    CInteractionBox() {}
-    CInteractionBox(const Vec2& s) 
-        : size(s), halfSize(s/2.0) {}
+    CInteractionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
+        : CBox(size, layer, mask, 0, 0, 255) {}
 };
 
 struct CImmovable

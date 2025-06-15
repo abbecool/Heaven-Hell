@@ -37,6 +37,7 @@ class Scene
     MouseState m_mouseState;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
+    bool m_drawInteraction = false;
     bool m_drawDrawGrid = false;
     Vec2 m_gridSize = {16, 16};    
     virtual void onEnd() = 0;
@@ -55,7 +56,9 @@ class Scene
     
     void spriteRender(Animation &animation);
     void sRenderBasic();
-    
+    template<typename T>
+    void renderBox(std::vector<EntityID> viewCollisions, ComponentPool<CTransform> transform, ComponentPool<T> box, const Vec2& screenCenterZoomed, int totalZoom);
+
     virtual void doAction(const Action& action);
     void registerAction(int inputKey, const std::string& actionName);
     

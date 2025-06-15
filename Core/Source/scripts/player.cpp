@@ -43,5 +43,27 @@ public:
             getComponent<CAnimation>().animation = m_game->assets().getAnimation("demon-sheet");
         }
     }
+
+    void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap)
+    {
+        // std::cout << "PlayerController: OnCollisionFunction called with colliderID: " << colliderID << std::endl;
+        // auto& transformPlayer = getComponent<CTransform>();
+        // auto& collisionPlayer = getComponent<CCollisionBox>();
+        auto id = m_entity.getID();
+
+        // if (colliderLayer == OBSTACLE_LAYER) 
+        // {
+            // auto& obstacleTransform = m_ECS->getComponent<CTransform>(colliderID);
+            // auto& obstacleCollider = m_ECS->getComponent<CCollisionBox>(colliderID);
+            
+            // Vec2 overlap = m_physics.overlap(transformPlayer, collisionPlayer, obstacleTransform, obstacleCollider);
+            // if ( m_ECS->hasComponent<CChild>(id) )
+            // {
+            //     EntityID childID = m_ECS->getComponent<CChild>(id).childID;
+            //     m_ECS->getComponent<CTransform>(childID).pos += overlap;
+            // }      
+        // }
+        m_ECS->getComponent<CTransform>(id).pos += overlap;
+    }
 };
 

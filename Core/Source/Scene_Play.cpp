@@ -40,8 +40,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_d, "RIGHT");
     registerAction(SDLK_RIGHT, "RIGHT");
     
-    registerAction(SDLK_i, "INVENTORY");
-    registerAction(SDLK_e, "USE");
+    registerAction(SDLK_e, "INVENTORY");
+    // registerAction(SDLK_XXX, "USE");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
     registerAction(SDL_MOUSEWHEEL , "ATTACK");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
@@ -62,6 +62,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
     registerAction(SDLK_F3, "TOGGLE_COLLISION");
+    registerAction(SDLK_i, "TOGGLE_INTERACTION");
+    registerAction(SDLK_F4, "TOGGLE_INTERACTION");
     registerAction(SDLK_1, "TP1");
     registerAction(SDLK_2, "TP2");
     registerAction(SDLK_3, "TP3");
@@ -185,6 +187,8 @@ void Scene_Play::sDoAction(const Action& action) {
             m_drawTextures = !m_drawTextures; 
         } else if ( action.name() == "TOGGLE_COLLISION") { 
             m_drawCollision = !m_drawCollision; 
+        } else if ( action.name() == "TOGGLE_INTERACTION") { 
+            m_drawInteraction = !m_drawInteraction; 
         } else if ( action.name() == "TOGGLE_GRID") { 
             m_drawDrawGrid = !m_drawDrawGrid; 
         } else if ( action.name() == "PAUSE") { 
@@ -248,7 +252,10 @@ void Scene_Play::sDoAction(const Action& action) {
         }
         if ( action.name() == "WRITE QUADTREE")
         {
-            m_physics.m_quadroot->printTree("", "");
+            std::cout << "Collisions:" << std::endl;
+            m_physics.m_quadRoot->printTree("", "");
+            std::cout << "Interactions:" << std::endl;
+            m_physics.m_interactionQuadRoot->printTree("", "");
         }
     }
 }
@@ -263,6 +270,7 @@ void Scene_Play::update()
         sMovement();
         sStatus();
         sCollision();
+        sInteraction();
         sAnimation();
         sAudio();
         m_currentFrame++;
@@ -540,6 +548,18 @@ void Scene_Play::projectileCollisions()
         }
     }
 }
+void Scene_Play::sInteraction()
+{
+    auto screenSize = Vec2{(float)width(), (float)height()};
+    Vec2 treePos = m_camera.position + screenSize/2 - Vec2{32, 32};
+    Vec2 treeSize = Vec2{1048, 1048};
+    m_physics.createInteractionQuadtree(treePos, treeSize);
+    auto viewInteraction = m_ECS.signatureView<CInteractionBox, CTransform>();
+    for ( auto e : viewInteraction ){
+        Entity entity = {e, &m_ECS};
+        m_physics.insertInteractionQuadtree(entity);
+    }
+}
 
 void Scene_Play::sCollision() {
 
@@ -555,16 +575,18 @@ void Scene_Play::sCollision() {
 
     auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& scriptPool = m_ECS.getComponentPool<CScript>();
     auto quadVector = m_physics.createQuadtreeVector();
     for (auto quadleaf : quadVector){
         std::vector<Entity> entityVector = quadleaf->getObjects();
 
-        for (auto entityA : entityVector){
-            EntityID entityIDA = entityA.getID();
+        for (size_t a = 0; a < entityVector.size(); ++a) {
+            EntityID entityIDA = entityVector[a].getID();
             auto& collisionA = collisionPool.getComponent(entityIDA);
+
             
-            for ( auto entityB : entityVector ){
-                EntityID entityIDB = entityB.getID();
+            for (size_t b = a + 1; b < entityVector.size(); ++b) {
+                EntityID entityIDB = entityVector[b].getID();
                 if ( entityIDA == entityIDB ) {
                     continue; // Skip self-collision
                 }
@@ -582,8 +604,22 @@ void Scene_Play::sCollision() {
                 {
                     continue; // No collision detected
                 }
-                std::cout << "Collision detected between entity " << entityIDA << " and entity " << entityIDB << std::endl;
+                // std::cout << "Collision detected between entity " << entityIDA << " and entity " << entityIDB << std::endl;
+                auto overlap = m_physics.overlap(transformA, collisionA, transformB, collisionB);
+                // Only entities with a script can handle collisions
+                bool aHasScript = scriptPool.hasComponent(entityIDA);
+                bool bHasScript = scriptPool.hasComponent(entityIDB);
 
+                if ( aHasScript && bHasScript ) {
+                    scriptPool.getComponent(entityIDA).Instance->OnCollisionFunction(entityIDB, collisionLayerB, overlap/2);
+                    scriptPool.getComponent(entityIDB).Instance->OnCollisionFunction(entityIDA, collisionLayerA, overlap/2*-1);
+                }
+                else if ( scriptPool.hasComponent(entityIDA) ) {
+                    scriptPool.getComponent(entityIDA).Instance->OnCollisionFunction(entityIDB, collisionLayerB, overlap);
+                }
+                else if ( scriptPool.hasComponent(entityIDB) ) {
+                    scriptPool.getComponent(entityIDB).Instance->OnCollisionFunction(entityIDA, collisionLayerA, overlap*-1);
+                }
             }
         }
     }
@@ -814,12 +850,16 @@ void Scene_Play::sRender() {
             spriteRender(animation);
         }
     }
+    auto totalZoom = windowScale - m_camera.getCameraZoom();
+    auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
+    auto camPos = m_camera.position;
     if (m_drawCollision)
     {
-        auto totalZoom = windowScale - m_camera.getCameraZoom();
-        auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
-        auto camPos = m_camera.position;
         m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+    }
+    if (m_drawInteraction)
+    {
+        m_physics.renderInteractionQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
     }
 }
 
@@ -916,7 +956,10 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
 
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
-    // m_ECS.addComponent<CCollisionBox>(entity, Vec2 {6, 6});
+    
+    InterationMask interactionMask = PLAYER_LAYER1;
+    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
+
     m_ECS.addComponent<CName>(entity, "staff");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
     m_rendererManager.addEntityToLayer(entity, 5);
@@ -933,7 +976,10 @@ EntityID Scene_Play::spawnSword(Vec2 pos, int layer){
 
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
-    // m_ECS.addComponent<CCollisionBox>(entity, Vec2 {6, 6});
+    
+    InterationMask interactionMask = PLAYER_LAYER1;
+    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
+    
     m_ECS.addComponent<CName>(entity, "sword");
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("sword"), true, 2);
     m_rendererManager.addEntityToLayer(entity, 5);
@@ -1047,7 +1093,9 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
-    m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 8});
+    // m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 8});
+    InterationMask interactionMask = PLAYER_LAYER1;
+    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8 ,8}, LOOT_LAYER, interactionMask);
     m_ECS.addComponent<CLoot>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
     return entity;
