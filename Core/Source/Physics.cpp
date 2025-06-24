@@ -164,7 +164,7 @@ void Physics::clearQuadtree()
 
 void Physics::createQuadtree(Vec2 pos, Vec2 size)
 {
-    m_quadRoot = std::make_unique<Quadtree>(pos.x, pos.y, size.x, size.y);
+    m_quadRoot = std::make_unique<Quadtree>(pos, size);
 }
 
 void Physics::insertQuadtree(Entity e)
@@ -195,7 +195,7 @@ void Physics::clearInteractionQuadtree()
 
 void Physics::createInteractionQuadtree(Vec2 pos, Vec2 size)
 {
-    m_interactionQuadRoot = std::make_unique<Quadtree>(pos.x, pos.y, size.x, size.y);
+    m_interactionQuadRoot = std::make_unique<Quadtree>(pos, size);
 }
 
 void Physics::insertInteractionQuadtree(Entity e)

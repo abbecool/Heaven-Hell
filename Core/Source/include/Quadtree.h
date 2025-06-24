@@ -9,10 +9,8 @@ class Quadtree
 {
     int m_capacity = 8;
     
-    float m_x;
-    float m_y;
-    float m_width;
-    float m_height;
+    Vec2 m_position;
+    Vec2 m_size;
     
     // Children
     std::shared_ptr<Quadtree> m_northWest;
@@ -26,7 +24,7 @@ class Quadtree
     // Divided
     bool m_divided = false;
 public:
-    Quadtree(float x, float y, float width, float height);
+    Quadtree(Vec2 pos, Vec2 size);
     void subdivide();
     
     template<typename T>
@@ -58,8 +56,8 @@ public:
         }
     }
 
-    Vec2 getPos() const { return Vec2{m_x, m_y}; }
-    Vec2 getSize() const { return Vec2{m_width, m_height}; }
+    Vec2 getPos() const { return m_position; }
+    Vec2 getSize() const { return m_size; }
 
     template<typename T>
     bool Collision(Entity entity, Quadtree& quadtree)

@@ -30,7 +30,7 @@
 #include <algorithm>
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
-    : Scene(game), m_levelPath(levelPath), m_newGame(newGame)
+    : Scene(game), m_levelPath(levelPath), m_collisionManager(&m_ECS, this), m_newGame(newGame)
 {
     registerAction(SDLK_w, "UP");
     registerAction(SDLK_UP, "UP");
@@ -234,10 +234,6 @@ void Scene_Play::sDoAction(const Action& action) {
 
         if ( action.name() == "ATTACK"){
             m_ECS.getComponent<CScript>(m_player).Instance->OnAttackFunction();
-            // EntityID weaponID = m_ECS.getComponent<CWeaponChild>(m_player).weaponID;
-            // m_ECS.getComponent<CScript>(weaponID).Instance->OnAttackFunction();
-            // spawnProjectile(weaponID, getMousePosition()-m_ECS.getComponent<CTransform>(weaponID).pos+m_camera.position, 8);
-            // m_camera.startShake(m_camera.config.SHAKE_INTENSITY_SMALL, m_camera.config.SHAKE_DURATION_SMALL);
         }
     }
     else if ( action.type() == "END") {
@@ -386,7 +382,7 @@ void Scene_Play::sMovement() {
         
         // Update position
         transform.prevPos = transform.pos;
-        if (!(transform.vel.isnull()) && transform.isMovable ){
+        if (!(transform.vel.isNull()) && transform.isMovable ){
             transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
         }
         
@@ -550,6 +546,7 @@ void Scene_Play::projectileCollisions()
         }
     }
 }
+
 void Scene_Play::sInteraction()
 {
     auto screenSize = Vec2{(float)width(), (float)height()};
@@ -610,63 +607,68 @@ void Scene_Play::sCollision() {
     auto screenSize = Vec2{(float)width(), (float)height()};
     Vec2 treePos = m_camera.position + screenSize/2 - Vec2{32, 32};
     Vec2 treeSize = Vec2{1048, 1048};
-    m_physics.createQuadtree(treePos, treeSize);
-    auto viewCollision = m_ECS.signatureView<CCollisionBox, CTransform>();
-    for ( auto e : viewCollision ){
-        Entity entity = {e, &m_ECS};
-        m_physics.insertQuadtree(entity);
-    }
 
-    auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& scriptPool = m_ECS.getComponentPool<CScript>();
-    auto quadVector = m_physics.createQuadtreeVector();
-    for (auto quadleaf : quadVector){
-        std::vector<Entity> entityVector = quadleaf->getObjects();
+    // m_physics.createQuadtree(treePos, treeSize);
+    // auto viewCollision = m_ECS.signatureView<CCollisionBox, CTransform>();
+    // for ( auto e : viewCollision ){
+    //     Entity entity = {e, &m_ECS};
+    //     m_physics.insertQuadtree(entity);
+    // }
 
-        for (size_t a = 0; a < entityVector.size(); ++a) {
-            EntityID entityIDA = entityVector[a].getID();
-            auto& collisionA = collisionPool.getComponent(entityIDA);
+    m_collisionManager.newQuadtree(treePos, treeSize);
+    m_collisionManager.doCollisions();
+
+    // auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
+    // auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    // auto& scriptPool = m_ECS.getComponentPool<CScript>();
+    // auto quadVector = m_physics.createQuadtreeVector();
+    // for (auto quadleaf : quadVector){
+    //     std::vector<Entity> entityVector = quadleaf->getObjects();
+
+    //     for (size_t a = 0; a < entityVector.size(); ++a) {
+    //         EntityID entityIDA = entityVector[a].getID();
+    //         auto& collisionA = collisionPool.getComponent(entityIDA);
 
             
-            for (size_t b = a + 1; b < entityVector.size(); ++b) {
-                EntityID entityIDB = entityVector[b].getID();
-                if ( entityIDA == entityIDB ) {
-                    continue; // Skip self-collision
-                }
-                auto& collisionB = collisionPool.getComponent(entityIDB);
-                auto& collisionLayerA = collisionA.layer;
-                auto& collisionMaskA = collisionA.mask;
-                auto& collisionLayerB = collisionB.layer;
-                auto& collisionMaskB = collisionB.mask;
-                if ( ((collisionLayerB & collisionMaskA) != collisionLayerB) | ((collisionLayerA & collisionMaskB) != collisionLayerA) ){
-                    continue; // No collision layer match
-                }
-                auto& transformA = transformPool.getComponent(entityIDA);
-                auto& transformB = transformPool.getComponent(entityIDB);
-                if ( !m_physics.isCollided(transformA, collisionA, transformB, collisionB) ) 
-                {
-                    continue; // No collision detected
-                }
-                // std::cout << "Collision detected between entity " << entityIDA << " and entity " << entityIDB << std::endl;
-                auto overlap = m_physics.overlap(transformA, collisionA, transformB, collisionB);
-                // Only entities with a script can handle collisions
-                bool aHasScript = scriptPool.hasComponent(entityIDA);
-                bool bHasScript = scriptPool.hasComponent(entityIDB);
+    //         for (size_t b = a + 1; b < entityVector.size(); ++b) {
+    //             EntityID entityIDB = entityVector[b].getID();
+    //             if ( entityIDA == entityIDB ) {
+    //                 continue; // Skip self-collision
+    //             }
+    //             auto& collisionB = collisionPool.getComponent(entityIDB);
+    //             auto& collisionLayerA = collisionA.layer;
+    //             auto& collisionMaskA = collisionA.mask;
+    //             auto& collisionLayerB = collisionB.layer;
+    //             auto& collisionMaskB = collisionB.mask;
+    //             if ( ((collisionLayerB & collisionMaskA) != collisionLayerB) | ((collisionLayerA & collisionMaskB) != collisionLayerA) ){
+    //                 continue; // No collision layer match
+    //             }
+    //             auto& transformA = transformPool.getComponent(entityIDA);
+    //             auto& transformB = transformPool.getComponent(entityIDB);
+    //             auto overlap = m_physics.overlap(transformA, collisionA, transformB, collisionB);
+    //             if ( !m_physics.isCollided(transformA, collisionA, transformB, collisionB) ) 
+    //             {
+    //                 continue; // No collision detected
+    //             }
+    //             // std::cout << "Collision detected between entity " << entityIDA << " and entity " << entityIDB << std::endl;
+    //             // Only entities with a script can handle collisions
+    //             bool aHasScript = scriptPool.hasComponent(entityIDA);
+    //             bool bHasScript = scriptPool.hasComponent(entityIDB);
 
-                if ( aHasScript && bHasScript ) {
-                    scriptPool.getComponent(entityIDA).Instance->OnCollisionFunction(entityIDB, collisionLayerB, overlap/2);
-                    scriptPool.getComponent(entityIDB).Instance->OnCollisionFunction(entityIDA, collisionLayerA, overlap/2*-1);
-                }
-                else if ( scriptPool.hasComponent(entityIDA) ) {
-                    scriptPool.getComponent(entityIDA).Instance->OnCollisionFunction(entityIDB, collisionLayerB, overlap);
-                }
-                else if ( scriptPool.hasComponent(entityIDB) ) {
-                    scriptPool.getComponent(entityIDB).Instance->OnCollisionFunction(entityIDA, collisionLayerA, overlap*-1);
-                }
-            }
-        }
-    }
+    //             if ( aHasScript && bHasScript ) {
+    //                 scriptPool.getComponent(entityIDA).Instance->OnCollisionFunction(entityIDB, collisionLayerB, overlap/2);
+    //                 scriptPool.getComponent(entityIDB).Instance->OnCollisionFunction(entityIDA, collisionLayerA, overlap/2*-1);
+    //             }
+    //             else if ( scriptPool.hasComponent(entityIDA) ) {
+    //                 scriptPool.getComponent(entityIDA).Instance->OnCollisionFunction(entityIDB, collisionLayerB, overlap);
+    //             }
+    //             else if ( scriptPool.hasComponent(entityIDB) ) {
+    //                 scriptPool.getComponent(entityIDB).Instance->OnCollisionFunction(entityIDA, collisionLayerA, overlap*-1);
+    //             }
+
+    //         }
+    //     }
+    // }
 
     // playerCollisions();
     // enemyCollisions();
@@ -772,7 +774,7 @@ void Scene_Play::sAnimation() {
         auto& transform = transformPool.getComponent(e);
         auto& state = statePool.getComponent(e);
         auto& animation = animationPool.getComponent(e).animation;
-        if( transform.vel.isnull() ) {
+        if( transform.vel.isNull() ) {
             changePlayerStateTo(e, PlayerState::STAND);
         } else if( transform.vel.mainDir().x > 0 ) {
             changePlayerStateTo(e, PlayerState::RUN_RIGHT);
@@ -899,11 +901,13 @@ void Scene_Play::sRender() {
     auto camPos = m_camera.position;
     if (m_drawCollision)
     {
-        m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+        // m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+        m_collisionManager.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
     }
     if (m_drawInteraction)
     {
-        m_physics.renderInteractionQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+        // m_physics.renderInteractionQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+        m_collisionManager.renderInteractionQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
     }
 }
 
@@ -1167,11 +1171,14 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1,1}, 0.0f, 50.0f, true);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, m_goblinConfig.SPEED, false);
-    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
+    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 12}, ENEMY_LAYER, collisionMask);
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
 
-    m_ECS.addComponent<CHealth>(entity, 4, 4, 30, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    m_ECS.addComponent<CHealth>(entity, 4, 4, 30, 
+        m_game->assets().getAnimation("heart_full"), 
+        m_game->assets().getAnimation("heart_half"), 
+        m_game->assets().getAnimation("heart_empty"));
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
     m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*64/4, Vec2{64/4,64/4});
 
@@ -1202,7 +1209,9 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
         EntityID entity = m_ECS.addEntity();
         entityIDs.push_back(entity);
         m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, 10);
-        m_ECS.getComponent<CAnimation>(entity).animation.setTile(Vec2{(float)(textureIndex % 4), (float)(int)(textureIndex / 4)});   
+        Vec2 tilePosition = Vec2{   (float)(textureIndex % 4), 
+                                    (float)(int)(textureIndex / 4)};
+        m_ECS.getComponent<CAnimation>(entity).animation.setTile(tilePosition);   
         m_rendererManager.addEntityToLayer(entity, layer);
         Vec2 midGrid = gridToMidPixel(pos, entity);
         m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, false);

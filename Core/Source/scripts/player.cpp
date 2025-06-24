@@ -46,14 +46,12 @@ public:
 
     void OnAttackFunction()
     {
-        EntityID weaponID = m_ECS->getComponent<CWeaponChild>(m_entity.getID()).weaponID;
+        if (!hasComponent<CWeaponChild>()) 
+        {
+            return; // Player has no weapon
+        }
+        EntityID weaponID = getComponent<CWeaponChild>().weaponID;
         m_ECS->getComponent<CScript>(weaponID).Instance->OnAttackFunction();
-    }
-
-    void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap)
-    {
-        auto id = m_entity.getID();
-        m_ECS->getComponent<CTransform>(id).pos += overlap;
     }
 };
 

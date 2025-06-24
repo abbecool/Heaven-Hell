@@ -32,7 +32,7 @@ public:
     void operator /= (const float val);
 
     float dist(const Vec2 & rhs) const;
-    bool isnull() const;
+    bool isNull() const;
     float length() const;
     Vec2 abs_elem() const;
     Vec2 norm() const;
@@ -43,4 +43,8 @@ public:
     bool smaller(Vec2 rhs);
     bool greater(Vec2 rhs);
     void print(std::string text);
+    bool hasPositive();
+    bool hasNegative();
+    bool isPositive();
+    bool isNegative();
 };

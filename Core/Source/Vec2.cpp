@@ -95,7 +95,7 @@ void Vec2::operator-- (){
     y--;
 }
 
-bool Vec2::isnull () const
+bool Vec2::isNull () const
 {
     return (std::fabs(x)+std::fabs(y) == 0);
 }
@@ -156,4 +156,24 @@ bool Vec2::greater(Vec2 rhs)
 void Vec2::print(std::string text)
 {
     std::cout << text << ": " << x << ", " << y << std::endl;
+}
+
+bool Vec2::hasPositive()
+{
+    return ( (x>0) | (y>0) );
+}
+
+bool Vec2::hasNegative()
+{
+    return ( (x<0) | (y<0) );
+}
+
+bool Vec2::isPositive()
+{
+    return ( (x>0) & (y>0) );
+}
+
+bool Vec2::isNegative()
+{
+    return ( (x<0) & (y<0) );
 }

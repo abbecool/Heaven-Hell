@@ -14,7 +14,8 @@
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {
     SDL_Init(SDL_INIT_EVERYTHING);
-    
+    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");    
+
     m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_width, m_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     SDL_SetWindowPosition(m_window, 0, 0);
     if ( NULL == m_window )
