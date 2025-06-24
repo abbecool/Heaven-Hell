@@ -1,0 +1,10 @@
+{
+  "name": "heavenhell",
+  "version": "0.1.0",
+  "dependencies": [
+    "sdl2",
+    "sdl2-image",
+    "sdl2-mixer",
+    "sdl2-ttf"
+  ]
+}

@@ -1,0 +1,41 @@
+cmake_minimum_required(VERSION 3.15)
+
+# 1) Point at vcpkg’s toolchain *before* project()
+#    Adjust this path if you cloned vcpkg somewhere else.
+set(CMAKE_TOOLCHAIN_FILE
+    "C:/projects/privat/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    CACHE STRING "Vcpkg toolchain file")
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+project(heavenhell VERSION 0.1 LANGUAGES CXX)
+
+# 2) Use CONFIG mode so CMake looks for SDL2Config.cmake in vcpkg
+find_package(SDL2        CONFIG REQUIRED)
+find_package(SDL2_image  CONFIG REQUIRED)
+find_package(SDL2_mixer  CONFIG REQUIRED)
+find_package(SDL2_ttf    CONFIG REQUIRED)
+
+# 3) Your executable
+file(GLOB SOURCES "${CMAKE_SOURCE_DIR}/Source/*.cpp")
+# file(GLOB HEADERS "${CMAKE_SOURCE_DIR}/Source/include/*.h")
+
+add_executable(heavenhell
+    ${SOURCES}
+    # ${HEADERS}
+)
+
+target_include_directories(heavenhell
+  PRIVATE
+    "${CMAKE_SOURCE_DIR}/Source/include"        # <— look here for *.h
+)
+
+# 4) Link against the imported targets
+target_link_libraries(heavenhell PRIVATE
+  SDL2::SDL2
+  SDL2::SDL2main   # on Windows to satisfy SDL’s WinMaink
+  SDL2_image::SDL2_image
+  SDL2_mixer::SDL2_mixer
+  SDL2_ttf::SDL2_ttf
+)
