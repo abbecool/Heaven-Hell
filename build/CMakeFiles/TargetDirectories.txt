@@ -1,3 +1,0 @@
-C:/projects/privat/Heaven-Hell/build/CMakeFiles/heavenhell.dir
-C:/projects/privat/Heaven-Hell/build/CMakeFiles/ALL_BUILD.dir
-C:/projects/privat/Heaven-Hell/build/CMakeFiles/ZERO_CHECK.dir
