@@ -1,6 +1,0 @@
-{
-  "buttons": [
-    { "label": "Quit",     "position": {"x": 328, "y": 282} },
-    { "label": "CONTINUE", "position": {"x": 329, "y": 256} }
-  ]
-}

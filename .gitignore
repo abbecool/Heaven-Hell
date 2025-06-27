@@ -1,62 +1,9 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-*.sarif
-*.tlog
-*.log
-*.recipe
-*.idb
-*.pdb
-*.ini
-*.ilk
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.agit 
-*.lib
-*.vcxproj
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Large audio files
-*.wav
-
-# # Build dirs
-Binaries/*
-!Binaries/.gitkeep
-
 # Test scripts
 test_*
 
-# Env settings
-.vscode/
-.vs/
-Core/Core.vcxproj
-Game.sln
+# Build directories
+build*
 
-# FMOD
-Core/assets/audio/FMOD/*
-
-Core/game_save.txt
+# Build artifacts
+run/Release*
+run/Debug*
