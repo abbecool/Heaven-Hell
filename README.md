@@ -32,10 +32,27 @@ Download and extract relevant SDL2 dependancies to sibling folder named "SDL2" a
 | SDL2_ttf         | SDL2_ttf-devel-2.24.0-VC.zip      | https://github.com/libsdl-org/SDL_ttf/releases       |
 | SDL2_mixer              | SDL2_mixer-devel-2.8.1-VC.zip      | https://github.com/libsdl-org/SDL_mixer/releases  |
 
-The SDL2 folder should look like this.![](SDL2_folder.png)
+The SDL2 folder should look like this.
 
-cmake -S . -D CMAKE_PREFIX_PATH="C:\\projects\\privat\\SDL2\\SDL2-2.32.8;C:\\projects\\privat\\SDL2\\SDL2_image-2.8.8;C:\\projects\\privat\\SDL2\\SDL2_mixer-2.8.1;C:\\projects\\privat\\SDL2\\SDL2_ttf-2.24.0" -B build/
+![](SDL2_folder.png)
 
+When the sibling SDL2 folder is done, open the terminal in VSCode and then, inside the root directory of the repository run these commands:
+
+```sh
+mkdir build
+```
+
+this creates the build folder that CMake will use to build the project. Then initilize the build using the CMake commande:
+```sh
+cmake -S .   -B build/
+```
+
+Then select configuration inside of VSCode and press F5 to do an initial build/compile and then run the game.
+
+To manually compile either the release or debug versions, run these commands:
+```sh
 cmake --build build --config release
-
+```
+```sh
 cmake --build build --config debug
+```

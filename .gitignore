@@ -2,8 +2,10 @@
 test_*
 
 # Build directories
-build*
+build/*
 
-# Build artifacts
-run/Release*
-run/Debug*
+!run/
+!run/Release/
+!run/Debug/
+run/Release/*
+run/Debug/*
