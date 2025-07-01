@@ -43,6 +43,7 @@ class ScriptableEntity{
         virtual void OnDestroyFunction() {} //protected
         virtual void OnUpdateFunction() {} //protected
         virtual void OnAttackFunction() {}
+        virtual void OnAttackFunction(EntityID victimID) {}
         virtual void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap) {} //protected
         virtual void OnInteractionCollisionFunction(EntityID colliderID, CollisionMask colliderLayer) {} //protected
         virtual void OnInteractFunction() {} //protected

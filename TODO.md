@@ -44,6 +44,7 @@
   - Implement patrolling behavior
   - Add attack logic based on distance
   - Create dodge & retreat behavior
+  - A* pathing
 
 
 ### 3. Dynamic World System

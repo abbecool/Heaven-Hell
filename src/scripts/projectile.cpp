@@ -12,6 +12,7 @@ public:
         // getComponent<CTransform>().vel = (m_game->currentScene()->getMousePosition()-getComponent<CTransform>().pos+m_game->currentScene()->getCameraPosition());
         // getComponent<CTransform>().angle = getComponent<CTransform>().vel.angle();
         // std::cout << "create script entity: OnCreate" << std::endl;
+        // Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
     }
 
     void OnDestroyFunction()
@@ -39,23 +40,14 @@ public:
         // OnAttackFunction();
     }
 
-    void OnAttackFunction()
+    void OnAttackFunction(EntityID victimID)
     {
-        // if ( getComponent<CProjectileState>().state == "Ready" )
-        // {
-        //     addComponent<CCollisionBox>(Vec2{12, 12});
-        //     getComponent<CTransform>().isMovable = true;
-        //     getComponent<CProjectileState>().state = "Free";
-        //     getComponent<CTransform>().vel = (m_game->currentScene()->getMousePosition()-getComponent<CTransform>().pos+m_game->currentScene()->getCameraPosition());
-        //     getComponent<CTransform>().angle = getComponent<CTransform>().vel.angle();
-        // } else {
-        //     removeEntity();
-        // }
+        int damage = m_entity.getComponent<CDamage>().damage;
+        m_ECS->getComponent<CHealth>(victimID).HP -= damage;
     }
 
     void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap)
     {
-        std::cout << "Projectile collided with entity ID: " << colliderID << std::endl;
         OnDestroyFunction();
     }
 };

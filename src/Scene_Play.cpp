@@ -1064,7 +1064,7 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
-    CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
+    CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
     m_ECS.addComponent<CCollisionBox>(entity, Vec2 {16, 16}, OBSTACLE_LAYER, collisionMask);
 
     m_ECS.addComponent<CImmovable>(entity); // remove when new collision system is implemented

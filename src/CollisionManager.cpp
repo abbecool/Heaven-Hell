@@ -25,18 +25,21 @@ void handleFriendlyObstacleCollision(Entity friendly, Entity obstacle, Vec2 over
 void handleProjectileObstacleCollision(Entity projectile, Entity obstacle, Vec2 overlap)
 {
     std::cout << "Projectile: " << projectile.getID() << " collided with obstacle: " << obstacle.getID() << std::endl;
+    projectile.getComponent<CScript>().Instance->OnDestroyFunction();
 }
 
 void handleEnemyProjectileCollision(Entity enemy, Entity projectile, Vec2 overlap)
 {
     std::cout << "Enemy: " << enemy.getID() << " collided with projectile: " << projectile.getID() << std::endl;
+    projectile.getComponent<CScript>().Instance->OnDestroyFunction();
+    projectile.getComponent<CScript>().Instance->OnAttackFunction(enemy.getID());
 }
 
 void handleEnemyEnemyCollision(Entity enemyA, Entity enemyB, Vec2 overlap)
 {
     std::cout << "EnemyA: " << enemyA.getID() << " collided with enemyB: " << enemyB.getID() << std::endl;
-    enemyA.getComponent<CTransform>().pos -= overlap/2;
-    enemyB.getComponent<CTransform>().pos += overlap/2;
+    enemyA.getComponent<CTransform>().pos += overlap/2;
+    enemyB.getComponent<CTransform>().pos -= overlap/2;
 }
 
 
@@ -131,7 +134,10 @@ void CollisionManager::doCollisions()
                 {
                     continue; // No collision detected
                 }
+                // std::cout << "EntityA " << entityIDA << " Layer: " << collisionLayerA << " Mask: " << collisionMaskA << std::endl;
+                // std::cout << "EntityB " << entityIDB << " Layer: " << collisionLayerB << " Mask: " << collisionMaskB << std::endl;
                 
+                // std::cout << "Collision detected between entity " << entityIDA << " and entity " << entityIDB << std::endl;
                 handleCollision(entityIDA, collisionLayerA, entityIDB, collisionLayerB, overlap);
             }
         }
