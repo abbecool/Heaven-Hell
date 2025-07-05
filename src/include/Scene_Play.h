@@ -32,6 +32,7 @@ class Scene_Play : public Scene
     PlayerConfig m_goblinConfig;
     Physics m_physics;
     CollisionManager m_collisionManager;
+    InteractionManager m_interactionManager;
     float m_zoomStep = 2;
     Vec2 m_currentChunk = Vec2{1, 0};
     Vec2 m_chunkSize = Vec2{8, 8};
