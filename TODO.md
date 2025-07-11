@@ -5,9 +5,10 @@
 ### Player swimming animations
 - **Draw new swimming animations for the player**
 
-### Update the physics system and the collision detection
-- **Use a broad and narrow collision detection system**
-- **Implement a QuadTree system for the collision detection**
+### Manage child entities using masks similarly to collision layers
+- **Each entity has a childMask that stores which childern the entitie has.**
+- **Access the childern using a vector storing the childIDs in the same order as the mask bitset. Thus the correct child can always be found**
+- **Update the child mask and ID vector dynamically to stay up-to-date**
 
 ### More attacks
 - **Different attacks for the rooter and goblin**

@@ -47,13 +47,14 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDL_MOUSEWHEEL , "ATTACK");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
     registerAction(SDLK_SPACE , "ATTACK");
+    registerAction(SDLK_f, "INTERACT");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "ESC");
     registerAction(SDLK_u, "SAVE");
     registerAction(SDLK_r, "RESET");
 
-    registerAction(SDLK_f, "CAMERA FOLLOW");
+    registerAction(SDLK_x, "CAMERA FOLLOW");
     registerAction(SDLK_z, "CAMERA PAN");
     registerAction(SDLK_PLUS, "ZOOM IN");
     registerAction(SDLK_MINUS, "ZOOM OUT");
@@ -185,7 +186,8 @@ void Scene_Play::loadLevel(const std::string& levelPath){
 }
 
 void Scene_Play::sDoAction(const Action& action) {
-    if ( action.type() == "START") {
+    if ( action.type() == "START")
+    {
         if ( action.name() == "TOGGLE_TEXTURE") {
             m_drawTextures = !m_drawTextures; 
         } else if ( action.name() == "TOGGLE_COLLISION") { 
@@ -226,25 +228,27 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if ( action.name() == "KILL_PLAYER") { 
             m_ECS.getComponent<CHealth>(m_player).HP = 0;
         }
-
         if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = true; }
         if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = true;  }
         if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = true; }
         if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = true; }
         if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = true; }
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
+        if ( action.name() == "INTERACT" ) { m_ECS.getComponent<CInputs>(m_player).interact = true; }
 
         if ( action.name() == "ATTACK"){
             m_ECS.getComponent<CScript>(m_player).Instance->OnAttackFunction();
         }
     }
-    else if ( action.type() == "END") {
+    else if ( action.type() == "END")
+    {
         if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = false; }
         if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = false; }
         if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = false; }
         if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = false; }
         if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = false; }
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
+        if ( action.name() == "INTERACT") { m_ECS.getComponent<CInputs>(m_player).interact = false; }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
             saveGame("config_files/game_save.txt");
@@ -401,154 +405,6 @@ void Scene_Play::sMovement() {
 
 }
 
-void Scene_Play::playerCollisions()
-{
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
-    auto& transformPlayer = transformPool.getComponent(m_player);
-    auto& collisionPlayer = collisionPool.getComponent(m_player);
-
-    auto& viewLoot = m_ECS.getComponentPool<CLoot>();
-    for ( auto e : viewLoot ){
-        auto& transform = transformPool.getComponent(e);
-        auto& collision = collisionPool.getComponent(e);
-        if ( m_physics.isCollided(transformPlayer, collisionPlayer, transform, collision) )
-        {
-            m_ECS.queueRemoveEntity(e);
-            Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
-        }
-    }
-
-    auto& viewWeapon = m_ECS.getComponentPool<CWeapon>();
-    for ( auto e : viewWeapon ){
-        auto& transform = transformPool.getComponent(e);
-        auto& collision = collisionPool.getComponent(e);
-        if ( m_physics.isCollided(transformPlayer, collisionPlayer, transform, collision) )
-        {
-            m_ECS.queueRemoveComponent<CCollisionBox>(e);
-            m_ECS.queueRemoveComponent<CWeapon>(e);
-            m_ECS.addComponent<CWeaponChild>(m_player, e);
-            m_ECS.addComponent<CParent>(e, m_player, Vec2{8, -4});
-            Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
-        }
-    }
-
-    auto& scriptPool = m_ECS.getComponentPool<CScript>();
-    auto viewScript = m_ECS.signatureView<CScript, CCollisionBox>();
-    for ( auto e : viewScript ){
-        auto& transform = transformPool.getComponent(e);
-        auto& collision = collisionPool.getComponent(e);
-        if (m_physics.isCollided(transformPlayer, collisionPlayer, transform, collision))
-        {
-            auto& sc = scriptPool.getComponent(e);
-            sc.Instance->OnInteractFunction();
-        }
-    }
-
-    auto &viewImmovable = m_ECS.view<CImmovable>();
-    for ( auto e : viewImmovable ){
-        auto& transform = transformPool.getComponent(e);
-        auto& collision = collisionPool.getComponent(e);
-        if (m_physics.isCollided(transformPlayer, collisionPlayer, transform, collision))
-        {
-            Vec2 overlap = m_physics.overlap(transformPlayer, collisionPlayer, transform, collision);
-            if ( m_ECS.hasComponent<CChild>(m_player) )
-            {
-                EntityID childID = m_ECS.getComponent<CChild>(m_player).childID;
-                m_ECS.getComponent<CTransform>(childID).pos += overlap;
-            }      
-            m_ECS.getComponent<CTransform>(m_player).pos += overlap;
-        }
-    }
-}
-
-void Scene_Play::enemyCollisions()
-{
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
-    // auto& transformPlayer = transformPool.getComponent(m_player);
-    // auto& collisionPlayer = collisionPool.getComponent(m_player);
-    auto& viewP = m_ECS.view<CPathfind>();
-    for ( auto enemy : viewP )
-    {
-        auto& transformEnemy = transformPool.getComponent(enemy);
-        auto& collisionEnemy = collisionPool.getComponent(enemy);
-        for (auto enemy2 : viewP)
-        {
-            // if (enemy == enemy2) {continue;}
-            auto& transformEnemy2 = transformPool.getComponent(enemy2);
-            auto& collisionEnemy2 = collisionPool.getComponent(enemy2);
-            if (m_physics.isCollided(transformEnemy, collisionEnemy, transformEnemy2, collisionEnemy2))
-            {
-                transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, collisionEnemy, transformEnemy2, collisionEnemy2);
-            }
-        }
-        // if (m_physics.isCollided(transformEnemy, collisionEnemy, transformPlayer, collisionPlayer))
-        //     {
-        //         transformPool.getComponent(enemy).pos += m_physics.overlap(transformEnemy, collisionEnemy, transformPlayer, collisionPlayer);
-        //         m_ECS.addComponent<CKnockback>(m_player, 120, 10, transformEnemy.vel);
-        //     }
-        auto &viewImmovable = m_ECS.view<CImmovable>();
-        for ( auto e : viewImmovable ){
-            auto& transform = transformPool.getComponent(e);
-            auto& collision = collisionPool.getComponent(e);
-            if (m_physics.isCollided(transformEnemy, collisionEnemy, transform, collision))
-            {
-                m_ECS.getComponent<CTransform>(enemy).pos += m_physics.overlap(transformEnemy, collisionEnemy, transform, collision);
-            }
-        }
-    }
-}
-
-void Scene_Play::projectileCollisions()
-{auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
-    auto& healthPool = m_ECS.getComponentPool<CHealth>();
-    std::vector<EntityID> viewSignaturecollision             = m_ECS.signatureView<CCollisionBox, CHealth>();
-    std::vector<EntityID> viewSignatureImmovable        = m_ECS.signatureView<CCollisionBox, CImmovable>();
-    std::vector<EntityID> viewSignatureProjectileState  = m_ECS.signatureView<CCollisionBox, CProjectileState>();
-    for ( auto projectileID : viewSignatureProjectileState )
-    {
-        auto& transformProjectile = transformPool.getComponent(projectileID);
-        auto& collisionProjectile = collisionPool.getComponent(projectileID);
-        for ( auto enemyID : viewSignaturecollision )
-        {   
-            if (enemyID == m_player ){continue;}
-            auto& transformEnemy = transformPool.getComponent(enemyID);
-            auto& collisionEnemy = collisionPool.getComponent(enemyID);
-            if (!m_physics.isCollided(transformProjectile, collisionProjectile, transformEnemy, collisionEnemy))
-            {
-                continue;
-            }
-            auto& animation     = m_ECS.getComponent<CAnimation>(projectileID);
-            animation.animation = m_game->assets().getAnimation("fireball_explode");
-            animation.repeat    = false;
-            transformProjectile.isMovable = false;
-            m_ECS.queueRemoveComponent<CCollisionBox>(projectileID);
-            m_ECS.queueRemoveComponent<CDamage>(projectileID);
-            auto& health = healthPool.getComponent(enemyID);
-            health.HP--;
-            health.damage_frame = m_currentFrame;
-        }
-        for ( auto enemyID : viewSignatureImmovable )
-        {   
-            auto& transformObstacle = transformPool.getComponent(enemyID);
-            auto& collisionObstacle = collisionPool.getComponent(enemyID);
-            if (!m_physics.isCollided(transformProjectile, collisionProjectile, transformObstacle, collisionObstacle))
-            {
-                continue;
-            }
-            auto& animation     = m_ECS.getComponent<CAnimation>(projectileID);
-            animation.animation = m_game->assets().getAnimation("fireball_explode");
-            animation.repeat    = false;
-            transformProjectile.isMovable = false;
-            m_ECS.queueRemoveComponent<CCollisionBox>(projectileID);
-            m_ECS.queueRemoveComponent<CDamage>(projectileID);
-            // m_ECS.addComponent<CParent>(projectileID, enemyID, Vec2{32, 0}); // Need to remove child if parent dies
-        }
-    }
-}
-
 void Scene_Play::sInteraction()
 {
     auto screenSize = Vec2{(float)width(), (float)height()};
@@ -598,35 +454,6 @@ void Scene_Play::sStatus() {
             Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
         }
     }
-    // ------------------- SHLOULD BE IN sCollision() -------------------
-    // auto viewDamage = m_ECS.signatureView<CDamage, CCollisionBox, CTransform>();
-    // auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
-    // auto& damagePool = m_ECS.getComponentPool<CDamage>();
-    // for ( auto entityDamage : viewDamage)
-    // {
-    //     auto& transformDamage = transformPool.getComponent(entityDamage);
-    //     auto& bboxDamage = collisionPool.getComponent(entityDamage);
-    //     auto& damage = damagePool.getComponent(entityDamage);
-    //     Signature damageSignature = m_ECS.getSignature(entityDamage);
-    //     for ( auto entityHealth : viewHealth )
-    //     {
-    //         if ( entityDamage == entityHealth ){continue;}
-    //         if ( (entityHealth == m_player) && ((damageSignature & CProjectileStateMask) == CProjectileStateMask) ){continue;}
-            
-    //         auto& transforHealth = transformPool.getComponent(entityHealth);
-    //         auto& bboxHealth = collisionPool.getComponent(entityHealth);
-    //         auto& health = healthPool.getComponent(entityHealth);
-    //         if ( m_physics.isCollided(transformDamage, bboxDamage, transforHealth, bboxHealth) )
-    //         {
-    //             if ( (int)(m_currentFrame-health.damage_frame) > health.i_frames ) {
-    //                 int damageMultiplier = 1;
-    //                 // m_ECS.addComponent<CKnockback>(entityHealth, 50/4, 64/4, transformDamage.pos-transforHealth.pos);
-    //                 health.HP = health.HP-(int)(damage.damage*damageMultiplier);
-    //                 health.damage_frame = m_currentFrame;
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 void Scene_Play::sAnimation() {
@@ -1014,8 +841,8 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    // Vec2 midGrid = gridToMidPixel(pos, entity);
+    m_ECS.addComponent<CTransform>(entity, pos, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
 
     InterationMask interactionMask = PLAYER_LAYER1;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8 ,8}, LOOT_LAYER, interactionMask);

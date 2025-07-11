@@ -63,7 +63,7 @@ public:
         // }
     }
 
-    void OnInteractionCollisionFunction(EntityID colliderID, CollisionMask colliderLayer)
+    void OnInteractFunction(EntityID colliderID, CollisionMask colliderLayer)
     {
         addComponent<CParent>(colliderID, Vec2{8, -4});
         m_ECS->addComponent<CWeaponChild>(colliderID, m_entity.getID());

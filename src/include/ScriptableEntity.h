@@ -34,20 +34,17 @@ class ScriptableEntity{
         void removeEntity() {
             m_entity.removeEntity();
         }
-        Entity m_entity; // private
+        Entity m_entity;
         ECS* m_ECS;
         Physics* m_physics;
         Game* m_game;
         Scene* m_scene;
-        virtual void OnCreateFunction() {} //protected
-        virtual void OnDestroyFunction() {} //protected
-        virtual void OnUpdateFunction() {} //protected
+        virtual void OnCreateFunction() {}
+        virtual void OnDestroyFunction() {}
+        virtual void OnUpdateFunction() {}
         virtual void OnAttackFunction() {}
         virtual void OnAttackFunction(EntityID victimID) {}
-        virtual void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap) {} //protected
-        virtual void OnInteractionCollisionFunction(EntityID colliderID, CollisionMask colliderLayer) {} //protected
-        virtual void OnInteractFunction() {} //protected
-    // protected:
-    private:
-        // friend class Scene;
+        virtual void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap) {}
+        virtual void OnInteractFunction(EntityID colliderID, CollisionMask colliderLayer) {}
+        virtual void showMessage();
 };
