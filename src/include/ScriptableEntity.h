@@ -14,7 +14,6 @@ class ScriptableEntity{
         T& addComponent(Args&&... args) {
             return m_entity.addComponent<T>(std::forward<Args>(args)...);
         }
-
         template<typename T>
         T& getComponent(){
             return m_entity.getComponent<T>();
