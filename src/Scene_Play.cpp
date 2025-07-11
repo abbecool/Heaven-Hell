@@ -146,16 +146,18 @@ void Scene_Play::loadConfig(const std::string& confPath){
 }
 
 // Function to save the game state to a file
-void Scene_Play::saveGame(const std::string& filename) {
+void Scene_Play::saveGame(const std::string& filename) 
+{
     std::ofstream saveFile(filename);
-
-    if (saveFile.is_open()) {
-        saveFile << "Player_pos " << (int)(m_ECS.getComponent<CTransform>(m_player).pos.x/m_gridSize.x) << " " << (int)(m_ECS.getComponent<CTransform>(m_player).pos.y/m_gridSize.y) << std::endl;
-        saveFile << "Player_hp " << m_ECS.getComponent<CHealth>(m_player).HP << std::endl;
-        saveFile.close();
-    } else {
+    if ( !saveFile.is_open() ) 
+    {
         std::cerr << "Unable to open file for saving!" << std::endl;
+        return;
     }
+    Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos;
+    saveFile << "Player_pos " << (int)(playerPos.x/m_gridSize.x) << " " << (int)(playerPos.y/m_gridSize.y) << std::endl;
+    saveFile << "Player_hp " << m_ECS.getComponent<CHealth>(m_player).HP << std::endl;
+    saveFile.close();
 }
 
 void Scene_Play::loadLevel(const std::string& levelPath){
@@ -824,7 +826,10 @@ EntityID Scene_Play::spawnPlayer()
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
-    m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, m_game->assets().getAnimation("heart_full"), m_game->assets().getAnimation("heart_half"), m_game->assets().getAnimation("heart_empty"));
+    auto heart_full = m_game->assets().getAnimation("heart_full");
+    auto heart_half = m_game->assets().getAnimation("heart_half");
+    auto heart_empty = m_game->assets().getAnimation("heart_empty");
+    m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, heart_full, heart_half, heart_empty);
     
     auto& sc= m_ECS.addComponent<CScript>(entityID);
     InitiateScript<PlayerController>(sc, entityID);
@@ -986,7 +991,8 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CTransform>(entity, m_ECS.getComponent<CTransform>(creator).pos, vel, Vec2{1, 1}, vel.angle(), 200.0f, true);
+    Vec2 creatorPos = m_ECS.getComponent<CTransform>(creator).pos;
+    m_ECS.addComponent<CTransform>(entity, creatorPos, vel, Vec2{1, 1}, vel.angle(), 200.0f, true);
     m_ECS.addComponent<CDamage>(entity, 1);
     m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
     // m_ECS.addComponent<CProjectileState>(entity, "Create");

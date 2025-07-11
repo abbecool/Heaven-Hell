@@ -25,8 +25,8 @@ public:
 template<typename T>
 class ComponentPool : public BaseComponentPool{
 public:
+
     // Add a component to the pool for a specific entity
-    
     template<typename... Args>
     T& addComponent(EntityID entityId, Args... args) {
         auto& component = pool.emplace(entityId, T(std::forward<Args>(args)...)).first->second;
@@ -115,7 +115,7 @@ public:
     }
 
     size_t size() {
-    return pool.size();
+        return pool.size();
     }
     
     std::unordered_map<EntityID, T>& getPool() {

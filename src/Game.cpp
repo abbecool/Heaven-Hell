@@ -60,7 +60,6 @@ void Game::changeScene( const std::string& sceneName, std::shared_ptr<Scene> sce
     if (m_sceneMap.find(sceneName) == m_sceneMap.end()) {
         m_sceneMap[sceneName] = scene;
     }
-    std::cout << "Current scenes in m_sceneMap: ";
     for (const auto& pair : m_sceneMap) {
         std::cout << pair.first << " ";
     }
