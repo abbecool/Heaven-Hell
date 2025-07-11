@@ -46,5 +46,5 @@ class ScriptableEntity{
         virtual void OnAttackFunction(EntityID victimID) {}
         virtual void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap) {}
         virtual void OnInteractFunction(EntityID colliderID, CollisionMask colliderLayer) {}
-        virtual void showMessage();
+        virtual void showMessage() {}
 };

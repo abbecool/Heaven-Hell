@@ -37,7 +37,7 @@ public:
 
     void showMessage()
     {
-        m_scene->showDialog(m_entity.getID())
+        std::cout << "call story manager" << std::endl;
     }
 };
 
