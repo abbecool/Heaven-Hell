@@ -286,7 +286,7 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize)
                 {
                     continue; // No collision detected
                 }
-                std::cout << "interaction triggered" << std::endl;
+                // std::cout << "interaction triggered" << std::endl;
                 scriptA.Instance->OnInteractFunction(entityIDB, interactionB.layer);
                 scriptB.Instance->OnInteractFunction(entityIDA, interactionA.layer);                
             }

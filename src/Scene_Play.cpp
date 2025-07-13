@@ -30,7 +30,7 @@
 #include <algorithm>
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
-    : Scene(game), m_levelPath(levelPath), m_collisionManager(&m_ECS, this), m_interactionManager(&m_ECS, this), m_newGame(newGame)
+    : Scene(game), m_levelPath(levelPath), m_collisionManager(&m_ECS, this), m_interactionManager(&m_ECS, this), m_storyManager(&m_ECS, this), m_newGame(newGame)
 {
     registerAction(SDLK_w, "UP");
     registerAction(SDLK_UP, "UP");
@@ -402,7 +402,6 @@ void Scene_Play::sMovement() {
         auto& parent = parentPool.getComponent(e);
         transform.pos = transformPool.getComponent(parent.parent).pos + parent.relativePos;
     }
-
 }
 
 void Scene_Play::sInteraction()
@@ -972,4 +971,8 @@ Vec2 Scene_Play::levelSize(){
 
 Vec2 Scene_Play::getCameraPosition() {
     return m_camera.position;
+}
+
+std::string Scene_Play::getDialog(){
+    return m_storyManager.getDialog();
 }

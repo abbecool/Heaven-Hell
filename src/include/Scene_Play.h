@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "Physics.h"
 #include "CollisionManager.h"
+#include "StoryManager.h"
 #include "Camera.h"
 #include "Scene.h"
 #include "Scene_Inventory.h"
@@ -33,6 +34,7 @@ class Scene_Play : public Scene
     Physics m_physics;
     CollisionManager m_collisionManager;
     InteractionManager m_interactionManager;
+    StoryManager m_storyManager;
     float m_zoomStep = 2;
     Vec2 m_currentChunk = Vec2{1, 0};
     Vec2 m_chunkSize = Vec2{8, 8};
@@ -71,7 +73,6 @@ class Scene_Play : public Scene
     EntityID spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation);
     
     EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
-    EntityID spawnDragon    (const Vec2 pos, bool movable, const std::string &ani);
     EntityID spawnGrass     (const Vec2 pos, const int frame);
     EntityID spawnDirt      (const Vec2 pos, const int frame);
     EntityID spawnCampfire  (const Vec2 pos, int layer);
@@ -83,9 +84,6 @@ class Scene_Play : public Scene
     void sLoader();
     void sScripting();
     void sMovement();
-    void playerCollisions();
-    void enemyCollisions();
-    void projectileCollisions();
     void sInteraction();
     void sCollision();
     void sStatus();
@@ -110,4 +108,7 @@ class Scene_Play : public Scene
     
     void update();
     void setPaused(bool);
+
+    std::string getDialog();
+
 };

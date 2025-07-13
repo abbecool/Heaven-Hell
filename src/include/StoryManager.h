@@ -12,7 +12,9 @@ class StoryManager
     Progression m_progression = 0;
     
     public:
+    StoryManager() {};
+    StoryManager(ECS* ecs, Scene* scene);
     std::string getDialog();
-    int getProgression();
+    Progression getProgression();
     void updateProgression();
-}
+};
