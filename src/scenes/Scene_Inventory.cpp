@@ -1,14 +1,12 @@
-#include "Scene_Inventory.h"
-#include "Sprite.h"
-#include "Assets.h"
-#include "Components.h"
-#include "Action.h"
-
-#include "RandomArray.h"
+#include "../scenes/Scene_Inventory.h"
+#include "../assets/Sprite.h"
+#include "../assets/Assets.h"
+#include "../ecs/Components.h"
+#include "../core/Action.h"
+#include "../physics/RandomArray.h"
 
 #include <SDL_image.h>
 #include <SDL_mixer.h>
-
 #include <iostream>
 #include <string>
 #include <fstream>

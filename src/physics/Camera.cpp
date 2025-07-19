@@ -137,7 +137,7 @@ bool Camera::update(Vec2 playerPos, bool pause) {
     return m_cameraPause;
 }
 
-#include "ScriptableEntity.h"
+#include "../ecs/ScriptableEntity.h"
 #include <iostream>
 
 class CameraController : public ScriptableEntity 

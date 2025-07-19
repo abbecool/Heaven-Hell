@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "Entity.h"
-#include "Vec2.h"
+#include "../ecs/Entity.h"
+#include "../physics/Vec2.h"
 
 class Quadtree
 {

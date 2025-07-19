@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Action.h"
-#include "ECS.hpp"
-#include "Renderer.hpp"
-#include "Game.h"
-#include "Camera.h"
+#include "../core/Action.h"
+#include "../ecs/ECS.hpp"
+#include "../physics/Renderer.hpp"
+#include "../core/Game.h"
+#include "../physics/Camera.h"
 
 #include <cstddef>
 #include <map>

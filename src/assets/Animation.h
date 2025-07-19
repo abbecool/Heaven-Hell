@@ -1,7 +1,8 @@
 #pragma once
 
+#include "../physics/Vec2.h"
+
 #include <SDL.h>
-#include "Vec2.h"
 #include <string>
 class Animation
 {

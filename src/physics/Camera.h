@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Vec2.h"
-#include "Entity.h"
+#include "../physics/Vec2.h"
+#include "../ecs/Entity.h"
 
 struct CameraConfig
 {

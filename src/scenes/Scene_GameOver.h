@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Components.h"
-#include "Physics.h"
-#include "Scene.h"
+#include "../ecs/Components.h"
+#include "../physics/Physics.h"
+#include "../scenes/Scene.h"
 #include <memory>
 
 class Scene_GameOver : public Scene

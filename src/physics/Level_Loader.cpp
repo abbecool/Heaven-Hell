@@ -1,16 +1,14 @@
-#include "Scene_Play.h"
-#include "Scene_Menu.h"
-#include "Sprite.h"
-#include "Assets.h"
-#include "Game.h"
-#include "Components.h"
-#include "Action.h"
-#include "Level_Loader.h"
-
-#include "RandomArray.h"
+#include "../scenes/Scene_Play.h"
+#include "../scenes/Scene_Menu.h"
+#include "../assets/Sprite.h"
+#include "../assets/Assets.h"
+#include "../core/Game.h"
+#include "../ecs/Components.h"
+#include "../core/Action.h"
+#include "../physics/Level_Loader.h"
+#include "../physics/RandomArray.h"
 
 #include <SDL_image.h>
-
 #include <iostream>
 #include <string>
 #include <fstream>

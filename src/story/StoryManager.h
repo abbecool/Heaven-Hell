@@ -1,6 +1,6 @@
 #pragma once
-#include "ECS.hpp"
-#include "Scene.h"
+#include "../ecs/ECS.hpp"
+#include "../scenes/Scene.h"
 
 using Progression = uint8_t;
 

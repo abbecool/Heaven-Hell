@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Components.h"
+#include "../ecs/Components.h"
 #include "ComponentPool.hpp"
 
 #include <iostream>

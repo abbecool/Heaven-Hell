@@ -1,12 +1,11 @@
 #pragma once
 
-#include "ECS.hpp"
+#include "../ecs/ECS.hpp"
+#include "../scenes/Scene.h"
+#include "../assets/Assets.h"
 
-#include "Scene.h"
-#include "Assets.h"
 #include <chrono>
 #include <ctime>
-
 #include <memory>
 #include <map>
 

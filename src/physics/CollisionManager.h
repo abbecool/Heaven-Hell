@@ -2,10 +2,10 @@
 #include <functional>
 #include <array>
 
-#include "Components.h"
-#include "ECS.hpp"
-#include "Quadtree.h"
-#include "Scene.h"
+#include "../ecs/Components.h"
+#include "../ecs/ECS.hpp"
+#include "../physics/Quadtree.h"
+#include "../scenes/Scene.h"
 
 using Handler = std::function<void(Entity, Entity, Vec2)>;
 using CollisionMatrix = std::array<std::array<Handler, MAX_LAYERS>, MAX_LAYERS>;

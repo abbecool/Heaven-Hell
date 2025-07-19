@@ -1,4 +1,4 @@
-#include "ScriptableEntity.h"
+#include "../ecs/ScriptableEntity.h"
 #include <iostream>
 
 class WeaponController : public ScriptableEntity 

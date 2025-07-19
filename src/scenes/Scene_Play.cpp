@@ -1,27 +1,25 @@
-#include "Scene_Menu.h"
-#include "Scene_Play.h"
-#include "Scene_GameOver.h"
-#include "Scene_Inventory.h"
-#include "Sprite.h"
-#include "Assets.h"
-#include "Game.h"
-#include "Components.h"
-#include "Action.h"
-#include "Level_Loader.h"
-#include "Camera.h"
-#include "ScriptableEntity.h"
-#include "scripts/player.cpp"
-#include "scripts/npc.cpp"
-#include "scripts/rooter.cpp"
-#include "scripts/weapon.cpp"
-#include "scripts/projectile.cpp"
-#include "scripts/coin.cpp"
-
-#include "RandomArray.h"
+#include "../scenes/Scene_Menu.h"
+#include "../scenes/Scene_Play.h"
+#include "../scenes/Scene_GameOver.h"
+#include "../scenes/Scene_Inventory.h"
+#include "../assets/Sprite.h"
+#include "../assets/Assets.h"
+#include "../core/Game.h"
+#include "../ecs/Components.h"
+#include "../core/Action.h"
+#include "../physics/Level_Loader.h"
+#include "../physics/Camera.h"
+#include "../ecs/ScriptableEntity.h"
+#include "../scripts/player.cpp"
+#include "../scripts/npc.cpp"
+#include "../scripts/rooter.cpp"
+#include "../scripts/weapon.cpp"
+#include "../scripts/projectile.cpp"
+#include "../scripts/coin.cpp"
+#include "../physics/RandomArray.h"
 
 #include <SDL_image.h>
 #include <SDL_mixer.h>
-
 #include <iostream>
 #include <string>
 #include <fstream>

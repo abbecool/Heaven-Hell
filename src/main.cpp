@@ -1,14 +1,9 @@
 #include <SDL.h>
 #include <SDL_main.h>
-#include "include/json.hpp"
-using json = nlohmann::json;
-#include "Game.h"
 
-// Top part is heaven, bot part is hell. arrows control both.
-// add function to switch places at certain points. AND OR invert colors to avoid obsticals / fly over or 
-// add obsticles that GAME OVER when touch.
-// add obsticles that can be touched in order to move one rect but not the other.
-// make key for one of the players that is needed to unlock other player and make it movable
+#include "core/Game.h"
+#include "external/json.hpp"
+using json = nlohmann::json;
 
 // Alternative idea for game. RPG like with different weapons and upgrades. zelda/pokemon still with quests and side-quests! 
 // Fundemental idea is the same, during nighttime player sleepwalks in a dreamworld with different world and enemies. Either both day and night world are visible at the same time, 

@@ -1,7 +1,7 @@
 #include <cmath>
 
-#include "CollisionManager.h"
-#include "ScriptableEntity.h"
+#include "../physics/CollisionManager.h"
+#include "../ecs/ScriptableEntity.h"
 
 void handlePlayerObstacleCollision(Entity player, Entity obstacle, Vec2 overlap)
 {
