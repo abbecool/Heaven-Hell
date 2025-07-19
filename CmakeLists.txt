@@ -3,14 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(DSDL2_DIR "../SDL2")
-
-set(CMAKE_PREFIX_PATH
-    "${SDL2_DIR}/SDL2-2.32.8"
-    "${SDL2_DIR}/SDL2_image-2.8.8"
-    "${SDL2_DIR}/SDL2_mixer-2.8.1"
-    "${SDL2_DIR}/SDL2_ttf-2.24.0"
-)
+set(CMAKE_PREFIX_PATH "../SDL2")
 
 project(heavenhell VERSION 0.1 LANGUAGES CXX)
 
