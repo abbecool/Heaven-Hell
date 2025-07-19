@@ -6,15 +6,3 @@ build/*
 
 # Ignore everything in run/
 run/**
-
-# But don't ignore the run/ folder itself and its subfolders
-!run/
-!run/Release/
-!run/Debug/
-
-# Optional: allow keeping empty folders using .gitkeep files
-!run/Release/.gitkeep
-!run/Debug/.gitkeep
-
-# Command for removing files from git index 
-# git rm --cached config.json
