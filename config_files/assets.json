@@ -1,0 +1,324 @@
+{
+    "fonts": [
+        {
+            "name": "Minecraft",
+            "path": "assets/fonts/Minecraft.ttf",
+            "size": 24
+        }
+    ],
+    "textures": {
+        "master_path": "assets/images/",
+        "individual_paths": [
+            "campfire.png",
+            "heart_full.png",
+            "heart_half.png",
+            "heart_empty.png",
+            "fireball.png",
+            "fireball_explode.png",
+            "fireball_create.png",
+            "dual_sheets/grass_dual_sheet.png",
+            "dual_sheets/water_dual_sheet.png",
+            "dual_sheets/mountain_dual_sheet.png",
+            "dual_sheets/dirt_dual_sheet.png",
+            "levels/levelStartingArea.png",
+            "levels/level1.png",
+            "levels/level2.png",
+            "shadow.png",
+            "level0_screenshot.png",
+            "buttons/button_unpressed.png",
+            "buttons/button_pressed.png",
+            "game_title.png",
+            "coin.png",
+            "tree.png",
+            "House1.png",
+            "staff.png",
+            "sword.png",
+            "demon-sheet.png",
+            "wiz-sheet.png",
+            "dwarf-sheet.png",
+            "goblin-sheet.png",
+            "rooter-sheet.png",
+            "inventory.png",
+            "inventory_open.png"
+        ]
+    },
+    "animations": [
+        {
+            "name": "heart_full",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 16,
+            "height": 16
+        },
+        {
+            "name": "heart_half",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 16,
+            "height": 16
+        },
+        {
+            "name": "heart_empty",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 16,
+            "height": 16
+        },
+        {
+            "name": "levelStartingArea",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 1104,
+            "height": 704
+        },
+        {
+            "name": "shadow",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "name": "level0_screenshot",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 640,
+            "height": 360
+        },
+        {
+            "name": "button_unpressed",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 32,
+            "height": 16
+        },
+        {
+            "name": "button_pressed",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 32,
+            "height": 16
+        },
+        {
+            "name": "game_title",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 356,
+            "height": 80
+        },
+        {
+            "name": "tree",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 32,
+            "height": 80
+        },
+        {
+            "name": "House1",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 80,
+            "height": 80
+        },
+        {
+            "name": "sword",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "name": "staff",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 24,
+            "height": 24
+        },
+        {
+            "name": "inventory",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 96,
+            "height": 32
+        },
+        {
+            "name": "inventory_open",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 160,
+            "height": 160
+        },
+        {
+            "name": "fireball",
+            "frames": 4,
+            "frametime": 15,
+            "cols": 4,
+            "rows": 1,
+            "width": 16,
+            "height": 16
+        },
+        {
+            "name": "fireball_explode",
+            "frames": 9,
+            "frametime": 3,
+            "cols": 9,
+            "rows": 1,
+            "width": 16,
+            "height": 16
+        },
+        {
+            "name": "fireball_create",
+            "frames": 3,
+            "frametime": 15,
+            "cols": 3,
+            "rows": 1,
+            "width": 16,
+            "height": 16
+        },
+        {
+            "name": "coin",
+            "frames": 4,
+            "frametime": 15,
+            "cols": 4,
+            "rows": 1,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "name": "campfire",
+            "frames": 6,
+            "frametime": 10,
+            "cols": 6,
+            "rows": 1,
+            "width": 16,
+            "height": 32
+        },
+        {
+            "name": "demon-sheet",
+            "frames": 4,
+            "frametime": 40,
+            "cols": 4,
+            "rows": 5,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "name": "wiz-sheet",
+            "frames": 4,
+            "frametime": 10,
+            "cols": 4,
+            "rows": 5,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "name": "dwarf-sheet",
+            "frames": 6,
+            "frametime": 7,
+            "cols": 6,
+            "rows": 5,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "name": "rooter-sheet",
+            "frames": 4,
+            "frametime": 20,
+            "cols": 4,
+            "rows": 5,
+            "width": 48,
+            "height": 48
+        },
+        {
+            "name": "goblin-sheet",
+            "frames": 4,
+            "frametime": 20,
+            "cols": 4,
+            "rows": 5,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "name": "grass_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 7,
+            "width": 16,
+            "height": 16
+        },
+        {
+            "name": "water_dual_sheet",
+            "frames": 2,
+            "frametime": 100,
+            "cols": 8,
+            "rows": 7,
+            "width": 16,
+            "height": 16
+        },
+        {
+            "name": "mountain_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 4,
+            "width": 16,
+            "height": 16
+        },
+        {
+            "name": "dirt_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 4,
+            "width": 16,
+            "height": 16
+        }
+    ],
+    "audio": [
+        {
+            "name": "loot_pickup",
+            "path": "loot_pickup.wav"
+        },
+        {
+            "name": "enemy_death",
+            "path": "enemy_death.wav"
+        }
+    ],
+    "music": [
+        {
+            "name": "AbbeGameTrack1ogg",
+            "path": "AbbeGameTrack1ogg.ogg"
+        }
+    ]
+}

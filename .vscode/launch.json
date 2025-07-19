@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cppvsdbg", // cmake --build build --config release
+            "request": "launch",
+            "name": "Run HeavenHell",
+            "program": "${workspaceFolder}/run/Release/heavenhell.exe",
+            "cwd": "${workspaceFolder}/run/Release",
+            "preLaunchTask": "build-release",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "cppvsdbg", // cmake --build build --config debug
+            "request": "launch",
+            "name": "Debug HeavenHell",
+            "program": "${workspaceFolder}/run/Debug/heavenhell.exe",
+            "cwd": "${workspaceFolder}/run/Debug",
+            "preLaunchTask": "build-debug",
+            "console": "integratedTerminal"
+        }
+    ]
+}

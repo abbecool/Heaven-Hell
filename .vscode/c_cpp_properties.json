@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "name": "Win32",
+      "includePath": [
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/../SDL2/SDL2-2.32.8/include",
+        "${workspaceFolder}/../SDL2/SDL2_image-2.8.8/include",
+        "${workspaceFolder}/../SDL2/SDL2_mixer-2.8.1/include",
+        "${workspaceFolder}/../SDL2/SDL2_ttf-2.24.0/include"
+      ],
+      "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
+      "intelliSenseMode": "windows-gcc-x64"
+    }
+  ],
+  "version": 4
+}

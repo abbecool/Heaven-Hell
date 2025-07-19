@@ -1,70 +1,20 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-*.sarif
-*.tlog
-*.log
-*.recipe
-*.idb
-*.pdb
-*.ini
-*.ilk
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.agit 
-*.lib
-*.vcxproj
-*.dll
-*.a
-
-Core/Source/lib/*
-Core/Source/include/SDL2/*
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Large audio files
-*.wav
-
-# # Build dirs
-Binaries/*
-!Binaries/.gitkeep
-
 # Test scripts
 test_*
 
-# Env settings
-.vscode/
-.vs/
-Core/Core.vcxproj
-Game.sln
+# Build directories
+build/*
 
-# FMOD
-Core/assets/audio/FMOD/*
+# Ignore everything in run/
+run/**
 
-Core/config_files/game_save.txt
+# But don't ignore the run/ folder itself and its subfolders
+!run/
+!run/Release/
+!run/Debug/
+
+# Optional: allow keeping empty folders using .gitkeep files
+!run/Release/.gitkeep
+!run/Debug/.gitkeep
 
 # Command for removing files from git index 
 # git rm --cached config.json

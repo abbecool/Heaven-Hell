@@ -1,0 +1,53 @@
+cmake_minimum_required(VERSION 3.15)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_PREFIX_PATH "../SDL2")
+
+project(heavenhell VERSION 0.1 LANGUAGES CXX)
+
+find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL2_image CONFIG REQUIRED)
+find_package(SDL2_mixer CONFIG REQUIRED)
+find_package(SDL2_ttf CONFIG REQUIRED)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/run/Release")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/run/Debug")
+
+# Your executables
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*.cpp")
+add_executable(heavenhell ${SOURCES})
+
+# Your included header files
+include_directories(${CMAKE_SOURCE_DIR}/src)
+
+target_link_libraries(heavenhell PRIVATE
+    SDL2::SDL2main
+    SDL2::SDL2
+    SDL2_image::SDL2_image
+    SDL2_mixer::SDL2_mixer
+    SDL2_ttf::SDL2_ttf
+)
+
+# SDL2 base path (one folder up from project root)
+set(SDL2_BASE "${CMAKE_SOURCE_DIR}/../SDL2")
+
+# Copy SDL2 DLLs to the output directory after build
+add_custom_command(TARGET heavenhell POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${SDL2_BASE}/SDL2-2.32.8/lib/x64/SDL2.dll"
+        "${SDL2_BASE}/SDL2_ttf-2.24.0/lib/x64/SDL2_ttf.dll"
+        "${SDL2_BASE}/SDL2_image-2.8.8/lib/x64/SDL2_image.dll"
+        "${SDL2_BASE}/SDL2_mixer-2.8.1/lib/x64/SDL2_mixer.dll"
+        $<TARGET_FILE_DIR:heavenhell>)
+
+add_custom_command(TARGET heavenhell POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:heavenhell>/assets")
+        
+add_custom_command(TARGET heavenhell POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/config_files"
+        "$<TARGET_FILE_DIR:heavenhell>/config_files")
