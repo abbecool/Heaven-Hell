@@ -8,8 +8,8 @@
 #include <thread>
 
 #include "Game.h"
-#include "../assets/Assets.h"
-#include "../scenes/Scene_Menu.h"
+#include "assets/Assets.h"
+#include "scenes/Scene_Menu.h"
 
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {

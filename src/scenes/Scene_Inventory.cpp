@@ -1,9 +1,9 @@
-#include "../scenes/Scene_Inventory.h"
-#include "../assets/Sprite.h"
-#include "../assets/Assets.h"
-#include "../ecs/Components.h"
-#include "../core/Action.h"
-#include "../physics/RandomArray.h"
+#include "scenes/Scene_Inventory.h"
+#include "assets/Sprite.h"
+#include "assets/Assets.h"
+#include "ecs/Components.h"
+#include "core/Action.h"
+#include "physics/RandomArray.h"
 
 #include <SDL_image.h>
 #include <SDL_mixer.h>

@@ -1,4 +1,4 @@
-#include "../story/StoryManager.h"
+#include "story/StoryManager.h"
 
 StoryManager::StoryManager(ECS* ecs, Scene* scene)
 {

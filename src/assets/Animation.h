@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../physics/Vec2.h"
+#include "physics/Vec2.h"
 
 #include <SDL.h>
 #include <string>

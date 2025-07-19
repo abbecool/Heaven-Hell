@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../ecs/ECS.hpp"
-#include "../scenes/Scene.h"
-#include "../assets/Assets.h"
+#include "ecs/ECS.hpp"
+#include "scenes/Scene.h"
+#include "assets/Assets.h"
 
 #include <chrono>
 #include <ctime>

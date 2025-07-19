@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../ecs/Components.h"
-#include "../physics/Physics.h"
-#include "../scenes/Scene.h"
+#include "ecs/Components.h"
+#include "physics/Physics.h"
+#include "scenes/Scene.h"
 
 #include <memory>
 

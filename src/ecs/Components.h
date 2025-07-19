@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../assets/Animation.h"
+#include "assets/Animation.h"
 
 #include <memory>
 #include <unordered_set>

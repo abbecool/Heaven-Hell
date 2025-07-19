@@ -1,13 +1,13 @@
-#include "../scenes/Scene_Pause.h"
-#include "../scenes/Scene_Play.h"
-#include "../scenes/Scene_Menu.h"
-#include "../assets/Sprite.h"
-#include "../assets/Assets.h"
-#include "../core/Game.h"
-#include "../ecs/Components.h"
-#include "../core/Action.h"
-#include "../physics/RandomArray.h"
-#include "../external/json.hpp"
+#include "scenes/Scene_Pause.h"
+#include "scenes/Scene_Play.h"
+#include "scenes/Scene_Menu.h"
+#include "assets/Sprite.h"
+#include "assets/Assets.h"
+#include "core/Game.h"
+#include "ecs/Components.h"
+#include "core/Action.h"
+#include "physics/RandomArray.h"
+#include "external/json.hpp"
 using json = nlohmann::json;
 
 #include <SDL_image.h>

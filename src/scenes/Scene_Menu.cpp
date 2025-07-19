@@ -1,11 +1,11 @@
-#include "../scenes/Scene_Menu.h"
-#include "../scenes/Scene_Play.h"
-#include "../assets/Sprite.h"
-#include "../assets/Assets.h"
-#include "../core/Game.h"
-#include "../ecs/Components.h"
-#include "../core/Action.h"
-#include "../physics/RandomArray.h"
+#include "scenes/Scene_Menu.h"
+#include "scenes/Scene_Play.h"
+#include "assets/Sprite.h"
+#include "assets/Assets.h"
+#include "core/Game.h"
+#include "ecs/Components.h"
+#include "core/Action.h"
+#include "physics/RandomArray.h"
 
 #include <SDL_image.h>
 #include <SDL_ttf.h>

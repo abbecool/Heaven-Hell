@@ -1,7 +1,7 @@
-#include "../physics/Physics.h"
-#include "../ecs/Entity.h"
-#include "../ecs/ECS.hpp"
-#include "../ecs/Components.h"
+#include "physics/Physics.h"
+#include "ecs/Entity.h"
+#include "ecs/ECS.hpp"
+#include "ecs/Components.h"
 #include <cstdlib>
 #include <memory>
 

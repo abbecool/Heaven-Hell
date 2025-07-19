@@ -1,14 +1,14 @@
 #pragma once
 
-#include "../ecs/Components.h"
-#include "../physics/Physics.h"
-#include "../physics/CollisionManager.h"
-#include "../story/StoryManager.h"
-#include "../physics/Camera.h"
-#include "../scenes/Scene.h"
-#include "../scenes/Scene_Inventory.h"
-#include "../scenes/Scene_Pause.h"
-#include "../physics/Level_Loader.h"
+#include "ecs/Components.h"
+#include "physics/Physics.h"
+#include "physics/CollisionManager.h"
+#include "story/StoryManager.h"
+#include "physics/Camera.h"
+#include "scenes/Scene.h"
+#include "scenes/Scene_Inventory.h"
+#include "scenes/Scene_Pause.h"
+#include "physics/Level_Loader.h"
 
 #include <memory>
 #include <unordered_map>

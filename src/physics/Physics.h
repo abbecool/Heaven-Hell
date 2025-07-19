@@ -2,9 +2,9 @@
 
 #include <memory>
 
-#include "../physics/Quadtree.h"
-#include "../ecs/Entity.h"
-#include "../physics/Vec2.h"
+#include "physics/Quadtree.h"
+#include "ecs/Entity.h"
+#include "physics/Vec2.h"
 
 class Physics
 {   

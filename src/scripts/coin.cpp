@@ -1,4 +1,4 @@
-#include "../ecs/ScriptableEntity.h"
+#include "ecs/ScriptableEntity.h"
 #include <iostream>
 
 class CoinController : public ScriptableEntity 
