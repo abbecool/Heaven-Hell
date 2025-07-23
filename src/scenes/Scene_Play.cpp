@@ -584,17 +584,16 @@ void Scene_Play::sRender() {
             spriteRender(animation);
         }
     }
+
     auto totalZoom = windowScale - m_camera.getCameraZoom();
     auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
     auto camPos = m_camera.position;
     if (m_drawCollision)
     {
-        // m_physics.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
         m_collisionManager.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
     }
     if (m_drawInteraction)
     {
-        // m_physics.renderInteractionQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
         m_interactionManager.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
     }
 }
@@ -636,6 +635,7 @@ EntityID Scene_Play::spawnPlayer()
             }
         }
     }
+    
     Vec2 pos = Vec2{16*(float)pos_x, 16*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos, entityID);
 
