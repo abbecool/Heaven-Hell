@@ -76,9 +76,8 @@ class Scene
     Vec2 getMousePosition();
     virtual Vec2 getCameraPosition();
 
-    // template<typename T>
-    // void InitiateScript(CScript& sc, EntityID entityID);
     virtual void InitiateProjectileScript(CScript& sc, EntityID entityID){};
+
     virtual std::string getDialog() {
         std::string dialog = "Scene virtual function!";
         return dialog;

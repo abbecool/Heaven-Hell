@@ -40,7 +40,6 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_RIGHT, "RIGHT");
     
     registerAction(SDLK_e, "INVENTORY");
-    // registerAction(SDLK_XXX, "USE");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
     registerAction(SDL_MOUSEWHEEL , "ATTACK");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
@@ -72,9 +71,10 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     spawnPlayer();
     spawnNPC(Vec2{353, 63});
     loadLevel(levelPath); 
+
     loadMobsNItems("config_files/mobs.txt"); // mobs have to spawn after player, so they can target the player
-    spawnWeapon(Vec2{364, 91}*m_gridSize, 7);
-    spawnSword(Vec2{345, 60}*m_gridSize, 7);
+    spawnWeapon(Vec2{345, 59}*m_gridSize, 7);
+    spawnSword(Vec2{364, 91}*m_gridSize, 7);
 
     m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
     m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
@@ -101,7 +101,7 @@ void Scene_Play::loadMobsNItems(const std::string& path){
             spawnCoin(pos*m_gridSize, layer);
         }
         else if (head == "tree") {
-            spawnDecoration(pos*m_gridSize, Vec2 {24/4, 32/4}, layer, "tree");
+            spawnDecoration(pos*m_gridSize, Vec2 {6, 8}, layer, "tree");
         }
         else if (head == "House1") {
             spawnDecoration(pos*m_gridSize, Vec2 {56, 44}, layer, "House1");
@@ -276,6 +276,7 @@ void Scene_Play::update()
         sAnimation();
         sAudio();
         m_currentFrame++;
+        // m_ECS.temp(); // Debugging: prints the number of entities created
     }
     sRender();
     m_ECS.update();
@@ -290,9 +291,9 @@ void Scene_Play::update()
 void Scene_Play::sLoader()
 {
     m_currentChunk = ( ( (m_ECS.getComponent<CTransform>(m_player).pos / m_gridSize).toInt() ) / m_chunkSize ).toInt();
-    for (int dx = -3; dx <= 3; ++dx) 
+    for (int dx = -1; dx <= 1; ++dx) 
     {
-        for (int dy = -2; dy <= 2; ++dy) 
+        for (int dy = -1; dy <= 1; ++dy) 
         {
             Vec2 neighborChunk = {m_currentChunk.x + dx, m_currentChunk.y + dy};
             if ( neighborChunk.smaller(Vec2{0,0}) || neighborChunk.greater(m_levelSize/m_chunkSize) )
@@ -340,7 +341,7 @@ void Scene_Play::sMovement() {
     }
 
     auto& inputPool = m_ECS.getComponentPool<CInputs>();
-    auto& viewInputs = m_ECS.view<CInputs>();
+    auto viewInputs = m_ECS.signatureView<CInputs>();
     for (auto e : viewInputs){
         auto &transform = transformPool.getComponent(e);
         auto &inputs = inputPool.getComponent(e);
@@ -380,7 +381,7 @@ void Scene_Play::sMovement() {
     //     }
     // }       
 
-    auto& viewTransform = m_ECS.view<CTransform>();
+    auto viewTransform = m_ECS.signatureView<CTransform>();
     for (auto e : viewTransform){    
         auto &transform = transformPool.getComponent(e);
         
@@ -392,7 +393,7 @@ void Scene_Play::sMovement() {
         
     }
 
-    auto& viewParent = m_ECS.view<CParent>();
+    auto viewParent = m_ECS.signatureView<CParent>();
     auto& parentPool = m_ECS.getOrCreateComponentPool<CParent>();
     for (auto e : viewParent)
     {
@@ -495,7 +496,7 @@ void Scene_Play::sAnimation() {
         }
     }
 
-    auto& view2 = m_ECS.view<CAnimation>();
+    auto view2 = m_ECS.signatureView<CAnimation>();
     for ( auto e : view2 ){
         auto& animation = animationPool.getComponent(e);
         if (animation.animation.hasEnded() && !animation.repeat) {
@@ -622,8 +623,8 @@ EntityID Scene_Play::spawnPlayer()
             std::cerr << "Could not load game_save.txt file!\n";
             exit(-1);
         }
+
         std::string head;
-        
         while (file >> head) {
             if (head == "Player_pos") {
                 file >> pos_x >> pos_y;

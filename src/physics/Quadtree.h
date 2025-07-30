@@ -30,7 +30,11 @@ public:
     template<typename T>
     void insert(Entity entity)
     {
-        if (!Collision<T>(entity, *this)) { return; } // If the entity does not collide with this quadtree, do not insert it
+        Vec2 entityPos = entity.getComponent<CTransform>().pos;
+        Vec2 entitySize = entity.getComponent<T>().size;
+
+        if (!Collision1(entityPos, entitySize, m_position, m_size)) { return; } // If the entity does not collide with this quadtree, do not insert it
+        //if (!Collision<T>(entity, *this)) { return; } // If the entity does not collide with this quadtree, do not insert it
         if (m_divided){
             m_northWest->insert<T>(entity);
             m_northEast->insert<T>(entity);
@@ -41,6 +45,36 @@ public:
         m_objects.push_back(entity);
         if ((int)m_objects.size() >= m_capacity)
         {  
+            if (!m_divided)
+            {
+                subdivide();
+            }
+            for (auto entity1 : m_objects)
+            {
+                m_northWest->insert<T>(entity1);
+                m_northEast->insert<T>(entity1);
+                m_southWest->insert<T>(entity1);
+                m_southEast->insert<T>(entity1);
+            }
+            m_objects.clear();
+        }
+    }
+
+    template<typename T>
+    void insert1(Entity entity, Vec2 entityPos, Vec2 entitySize)
+    {
+        if (!Collision1(entityPos, entitySize, m_position, m_size)) { return; } // If the entity does not collide with this quadtree, do not insert it
+        //if (!Collision<T>(entity, *this)) { return; } // If the entity does not collide with this quadtree, do not insert it
+        if (m_divided) {
+            m_northWest->insert1<T>(entity, entityPos, entitySize);
+            m_northEast->insert1<T>(entity, entityPos, entitySize);
+            m_southWest->insert1<T>(entity, entityPos, entitySize);
+            m_southEast->insert1<T>(entity, entityPos, entitySize);
+            return;
+        }
+        m_objects.push_back(entity);
+        if ((int)m_objects.size() > m_capacity)
+        {
             if (!m_divided)
             {
                 subdivide();
@@ -68,7 +102,24 @@ public:
 
         Vec2 treePos = quadtree.getPos();
         Vec2 treeSize = quadtree.getSize();
-        Vec2 treeHalfSize = quadtree.getSize()/2;
+        Vec2 treeHalfSize = treeSize/2;
+
+        Vec2 aPos = entityPos - entityHalfSize;
+        Vec2 aSize = entitySize;
+
+        Vec2 bPos = treePos - treeHalfSize;
+        Vec2 bSize = treeSize;
+
+        bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
+        bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
+
+        return (x_overlap && y_overlap);
+    }
+
+    bool Collision1(Vec2 entityPos, Vec2 entitySize, Vec2 treePos, Vec2 treeSize)
+    {
+        Vec2 entityHalfSize = entitySize / 2;
+        Vec2 treeHalfSize = treeSize / 2;
 
         Vec2 aPos = entityPos - entityHalfSize;
         Vec2 aSize = entitySize;

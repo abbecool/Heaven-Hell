@@ -59,6 +59,7 @@ struct CParent
 {
     EntityID parent;
     Vec2 relativePos = {0,0};
+    CParent() {}
     CParent(EntityID p) : parent(p){}
     CParent(EntityID p, Vec2 relPos) : parent(p), relativePos(relPos) {}
 };
@@ -66,6 +67,7 @@ struct CParent
 struct CProjectile
 {
     EntityID projectileID;
+    CProjectile() {}
     CProjectile(EntityID p) : projectileID(p){}
 };
 
@@ -110,6 +112,7 @@ struct CVelocity
     float angle = 0;
     float speed = 0;
     float tempo = 1.0f;
+    CVelocity() {}
 };
 
 struct CBox 
@@ -151,6 +154,7 @@ struct CHitBox
 
 struct CInteractionBox : public CBox
 {
+    CInteractionBox(){}    
     CInteractionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
         : CBox(size, layer, mask, 0, 0, 255) {}
 };
@@ -162,12 +166,16 @@ struct CImmovable
 
 struct CWater {
     bool isDeep = false;  // Differentiates deep vs shallow water
+    CWater() {}
+    CWater(bool d) 
+        : isDeep(d) {}
 };
 
 struct CSwimming
 {
     bool isSwimming = false;
     float swimSpeedMultiplier = 0.5f;
+    CSwimming() {}    
 };
 
 struct CHealth
@@ -188,6 +196,7 @@ struct CHealth
 struct CLifespan
 {
     int lifespan;
+    CLifespan() {}
     CLifespan(int lf) : lifespan(lf){}
 };
 
@@ -318,6 +327,7 @@ struct CWeapon
 struct CWeaponChild
 {
     EntityID weaponID;
+    CWeaponChild() {}
     CWeaponChild(EntityID wID)
                 : weaponID(wID){}
 };
@@ -329,6 +339,7 @@ struct CChild
 
     EntityID childID;
     bool removeOnDeath;
+    CChild() {}
     CChild(EntityID cID)
                 : childID(cID), removeOnDeath(true){}
     CChild(EntityID cID, bool remove)
@@ -347,6 +358,7 @@ struct CScript
         InstantiateScript    = []() {return static_cast<ScriptableEntity*>(new T()); }; 
         DestroyInstanceScript = [](CScript* sc) { delete sc->Instance; sc->Instance = nullptr;};
     }
+    CScript() {}
 
 };
 
@@ -356,4 +368,5 @@ struct CChunk
     std::vector<EntityID> chunkChildern;
     CChunk(Vec2 cPos)
             : chunkPos(cPos){}
+    CChunk() {}
 };

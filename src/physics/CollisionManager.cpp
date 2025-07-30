@@ -64,10 +64,16 @@ template <typename T>
 void BaseCollisionManager::newQuadtree(Vec2 pos, Vec2 size)
 {
     auto view = m_ECS->signatureView<T, CTransform>();
+    auto& transformPool = m_ECS->getComponentPool<CTransform>();
+    auto& TPool = m_ECS->getComponentPool<T>();
+
     m_quadRoot = std::make_unique<Quadtree>(pos, size);
     for ( auto e : view ){
         Entity entity = {e, m_ECS};
-        m_quadRoot->insert<T>(entity);
+        //m_quadRoot->insert<T>(entity);
+        auto entityPos = transformPool.getComponent(e).pos;
+        auto entitySize = TPool.getComponent(e).size;
+        m_quadRoot->insert1<T>(entity, entityPos, entitySize);
     }
 }
 
@@ -78,21 +84,20 @@ void BaseCollisionManager::handleCollision(
     uint8_t indexA = std::log2((uint8_t)layerA.to_ulong());
     uint8_t indexB = std::log2((uint8_t)layerB.to_ulong());
     
-    if (!m_handlerMatrix[indexA][indexB])
-    {
-        return;
-    }
     // Ensure entityA always corresponds to the smaller index for handler signature consistency
     if (indexA > indexB) {
         std::swap(entityIDA, entityIDB);
         std::swap(indexA, indexB);
         overlap*=-1;
     }
-
+    
     Entity entityA = {entityIDA, m_ECS};
     Entity entityB = {entityIDB, m_ECS};
-
-    m_handlerMatrix[indexA][indexB](entityA, entityB, overlap);
+    
+    if (m_handlerMatrix[indexA][indexB])
+    {
+        m_handlerMatrix[indexA][indexB](entityA, entityB, overlap);
+    }
 }
 
 Vec2 BaseCollisionManager::collisionOverlap(CTransform t1, CTransform t2, Vec2 b1, Vec2 b2)
@@ -219,10 +224,10 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize)
                 EntityID entityIDB = entityVector[b].getID();
                 
                 auto& collisionB = collisionPool.getComponent(entityIDB);
-                if ( ((collisionB.layer & collisionA.mask) != collisionB.layer) | 
-                     ((collisionA.layer & collisionB.mask) != collisionA.layer) ){
-                    continue; // No collision layer match
-                }
+                // if ( ((collisionB.layer & collisionA.mask) != collisionB.layer) | 
+                //      ((collisionA.layer & collisionB.mask) != collisionA.layer) ){
+                //     continue; // No collision layer match
+                // }
                 auto& transformA = transformPool.getComponent(entityIDA);
                 auto& transformB = transformPool.getComponent(entityIDB);
                 auto overlap = collisionOverlap(transformA, transformB, collisionA.size, collisionB.size);

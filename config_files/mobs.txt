@@ -1,8 +1,10 @@
-goblin 350 79 5
-goblin 330 77 5
-rooter 345 60 5
-rooter 340 75 5
+goblin 392 78 5
+goblin 398 81 5
+
+rooter 395 84 5
+rooter 333 81 5
 coin 345 62 6
+coin 345 97 6
 
 tree 330 80 6
 tree 395 67 6

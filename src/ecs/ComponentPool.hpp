@@ -20,6 +20,7 @@ public:
     virtual ~BaseComponentPool() = default;  // Virtual destructor to allow proper deletion
     virtual void removeComponent(EntityID entityId){};
     std::vector<EntityID> entitiesToRemove;
+    std::vector<bool> poolUsed;  // Vector to track used components
 };
 
 template<typename T>
@@ -28,20 +29,36 @@ public:
 
     // Add a component to the pool for a specific entity
     template<typename... Args>
-    T& addComponent(EntityID entityId, Args... args) {
+    T& addComponentOG(EntityID entityId, Args... args) {
         auto& component = pool.emplace(entityId, T(std::forward<Args>(args)...)).first->second;
         return component;
     }
+    template<typename... Args>
+    T& addComponent(EntityID entityId, Args... args) {
+        if (entityId >= poolVector.size()) {
+            poolVector.resize(entityId + 1);
+            poolUsed.resize(entityId + 1, false);
+        }
+        poolVector[entityId] = T(std::forward<Args>(args)...);
+        poolUsed[entityId] = true;  // Mark this component as used
+        return poolVector[entityId];
+    }
 
     // Remove a component from the pool
-    void removeComponent(EntityID entityId) {
+    void removeComponentOG(EntityID entityId) {
         auto it = pool.find(entityId);
         if (it != pool.end()) {
             pool.erase(it);  // Erase element using the iterator to avoid invalidation issues
         }
     }
+    void removeComponent(EntityID entityId) {
+        if (entityId < poolVector.size()) {
+            poolVector[entityId] = T();  // Set to default-constructed value
+            poolUsed[entityId] = false;  // Mark this component as unused
+        }
+    }
 
-    void queueRemoveEntity(EntityID entity) {
+    void queueRemoveEntityOG(EntityID entity) {
         if (entity == 1)
         {
             std::cerr << "Warning: Attempting to remove player entity." << std::endl;
@@ -49,9 +66,17 @@ public:
         }
         entitiesToRemove.push_back(entity);
     }
+    void queueRemoveEntity(EntityID entity) {
+        if (entity == 1)
+        {
+            std::cerr << "Warning: Attempting to remove player entity." << std::endl;
+            std::cout << "Type of pool: " << typeid(poolVector).name() << std::endl;
+        }
+        entitiesToRemove.push_back(entity);
+    }
 
     // Check if an entityId has the component
-    bool hasComponent(EntityID entityId) const {
+    bool hasComponentOG(EntityID entityId) const {
         if (pool.empty()) {
             return false;  // Safeguard against checking an empty pool
         }
@@ -64,16 +89,28 @@ public:
         return true;  // Component exists for this entity
     }
 
-    // Retrieve the component for an entityId
-    T& getComponent(EntityID entityId) {
-        std::string typeName = typeid(T).name();
-        
-        try {
-            return pool.at(entityId);
-        } catch (const std::out_of_range& e) {
-            std::cerr << "Error at " << __FILE__ << ":" << __LINE__ << " in function " << __func__ << std::endl;
-            throw std::runtime_error("Component " + typeName + " not found for entity: " + std::to_string(entityId) + ". std::out_of_range");
+    // Check if an entityId has the component
+    const bool hasComponent(EntityID entityId) const {
+        if (entityId >= poolUsed.size()) {
+            return false;  // Safeguard against checking an out-of-bounds entity ID
         }
+        return poolUsed[entityId];  // Component exists for this entity
+    }
+
+    T& getComponentOG(EntityID entityId)
+    {
+        auto it = pool.find(entityId);
+        assert(it != pool.end() && "Component not found for this entity!");
+        return it->second;
+    }
+
+    T& getComponent(EntityID entityId)
+    {
+        if (entityId >= poolVector.size() || !poolUsed[entityId]) {
+            throw std::runtime_error("Component not found for this entity!");
+        }
+        assert(poolUsed[entityId] && "Component not found for this entity!");
+        return poolVector[entityId];
     }
 
     // Custom iterator for range-based for loops
@@ -124,7 +161,7 @@ public:
 
 private:
     std::unordered_map<EntityID, T> pool;  // Map of components indexed by EntityID
-
+    std::vector<T> poolVector;  // Vector of components
 };
 
 template<typename T, typename Other> 
