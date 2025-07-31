@@ -62,6 +62,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_c, "TOGGLE_COLLISION");
     registerAction(SDLK_F3, "TOGGLE_COLLISION");
     registerAction(SDLK_i, "TOGGLE_INTERACTION");
+    registerAction(SDLK_g, "TOGGLE_GRID");
     registerAction(SDLK_F4, "TOGGLE_INTERACTION");
     registerAction(SDLK_1, "TP1");
     registerAction(SDLK_2, "TP2");
@@ -280,6 +281,9 @@ void Scene_Play::update()
     }
     sRender();
     m_ECS.update();
+    if (m_currentFrame % 300 == 0) {
+        m_ECS.component_status<CAnimation>(); // Debugging: prints the ECS status
+    }
     m_inventory_scene->update();
     if (m_restart) {
         // std::cerr << "Player entity is not initialized!" << std::endl;
@@ -291,9 +295,11 @@ void Scene_Play::update()
 void Scene_Play::sLoader()
 {
     m_currentChunk = ( ( (m_ECS.getComponent<CTransform>(m_player).pos / m_gridSize).toInt() ) / m_chunkSize ).toInt();
-    for (int dx = -1; dx <= 1; ++dx) 
+    // std::cout << "Current chunk: " << m_currentChunk.x << ", " << m_currentChunk.y << std::endl;
+    // m_currentChunk = Vec2{43, 7};
+    for (int dx = -3; dx <= 3; ++dx) 
     {
-        for (int dy = -1; dy <= 1; ++dy) 
+        for (int dy = -2; dy <= 2; ++dy) 
         {
             Vec2 neighborChunk = {m_currentChunk.x + dx, m_currentChunk.y + dy};
             if ( neighborChunk.smaller(Vec2{0,0}) || neighborChunk.greater(m_levelSize/m_chunkSize) )
@@ -308,7 +314,10 @@ void Scene_Play::sLoader()
             }
         }
     }
-    m_levelLoader.clearChunks(35); // Will leave x number of chunks
+    if (m_drawDrawGrid) // Keep only 35 chunks loaded
+    {
+        m_levelLoader.clearChunks(35);
+    }
 }
 
 void Scene_Play::sScripting() 
@@ -545,11 +554,12 @@ void Scene_Play::sRender() {
 
     Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& viewHealth = m_ECS.getComponentPool<CHealth>();
+    auto& healthPool = m_ECS.getComponentPool<CHealth>();
+    auto viewHealth = m_ECS.signatureView<CHealth>();
     for (auto entityID : viewHealth)
     {   
         if (entityID == m_player) { continue; }
-        auto& health = viewHealth.getComponent(entityID);
+        auto& health = healthPool.getComponent(entityID);
         if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
         {
             continue;

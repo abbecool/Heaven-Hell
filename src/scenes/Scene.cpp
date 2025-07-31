@@ -64,7 +64,7 @@ void Scene::sRenderBasic() {
             }
         }
         auto& dialogPool = m_ECS.getComponentPool<CDialog>();
-        auto dialogView = m_ECS.view<CDialog, CTransform>();
+        auto dialogView = m_ECS.signatureView<CDialog, CTransform>();
         for (const auto& e : dialogView)
         {
             auto& dialog = dialogPool.getComponent(e);

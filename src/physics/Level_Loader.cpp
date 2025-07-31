@@ -269,7 +269,6 @@ void LevelLoader::removeChunk()
         if ( m_scene->m_ECS.hasComponent<CAnimation>(id) )
         {
             auto layer = m_scene->m_ECS.getComponent<CAnimation>(id).layer;
-            // std::cout << "layer: " << layer << std::endl;
             m_scene->m_rendererManager.removeEntityFromLayer(id, layer);
         }
     }

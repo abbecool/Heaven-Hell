@@ -149,6 +149,9 @@ private:
     SignaturePool m_signaturePool;
     std::vector<EntityID> m_entitiesToRemove;
 
+    std::vector<bool> mask;
+    std::vector<EntityID> matchingEntities;
+
 public:
 
     ECS(){}
@@ -162,8 +165,8 @@ public:
             id = m_usedIDs.size();
             // id = m_numEntities++;
         }
-        m_numEntities = m_usedIDs.size();
         m_usedIDs.push_back(id);
+        m_numEntities = m_usedIDs.size();
         m_signaturePool.setSignature(id, 0);
         return id;
     }
@@ -247,14 +250,25 @@ public:
         m_entitiesToRemove.clear();
 
         for (auto& [type, pool] : m_componentPools) {
-            if (pool != nullptr) {
-                auto& entitiesToRemove = pool->entitiesToRemove;
-                for (auto e : entitiesToRemove) {
-                    pool->removeComponent(e);
-                }
-                entitiesToRemove.clear();
+            if (pool == nullptr) continue;
+            
+            auto& entitiesToRemove = pool->entitiesToRemove;
+            for (auto e : entitiesToRemove) {
+                pool->removeComponent(e);
             }
+            entitiesToRemove.clear();
         }
+    }
+
+    void status() {
+        std::cout << "\r m_numEntities: " << m_numEntities 
+                    << " | m_usedIDs size: " << m_usedIDs.size()
+                    << " | m_freeIDs size: " << m_freeIDs.size();
+    }
+
+    template<typename T>
+    void component_status() {
+        m_componentPools[typeid(T)]->status();
     }
 
     EntityID getNumEntities(){
@@ -320,93 +334,33 @@ public:
         return getOrCreateComponentPool<T>();
     };
 
-    template<typename T, typename Other>
-    BasicView<T, Other> view() {
-        ComponentPool<T>& poolT = getComponentPool<T>();
-        ComponentPool<Other>& poolOther = getComponentPool<Other>();
-        BasicView<T, Other> viewCache;
-        // viewCache = BasicView<T, Other>();
-
-        for (const auto& [entityID, componentT] : poolT.getPool()) {
-            if (poolOther.hasComponent(entityID)) {
-                const Other& componentOther = poolOther.getComponent(entityID);
-                viewCache.addEntity(entityID, componentT, componentOther);
-            }
-        }
-        return viewCache;
-    }
-
     template <typename T>
     void printComponentType() {
         std::cout << "Smallest component type: " << typeid(T).name() << std::endl;
     }
 
-    template<typename... Components>
-    std::vector<EntityID> signatureViewOG()
-    {
-        // Tuple of pointers to component pools
-        auto componentPools = std::make_tuple(&getOrCreateComponentPool<Components>()...);
-
-        // Variables to track the smallest pool and its size
-        std::size_t smallestPoolSize = std::numeric_limits<std::size_t>::max();
-        void* smallestPoolPtr = nullptr;  // Pointer to the smallest pool
-
-        // Lambda to find the smallest pool
-        std::apply([&](auto&... pools) {
-            // Check the size of each pool
-            (([&]{
-                if (pools->size() < smallestPoolSize) {
-                    smallestPoolSize = pools->size();
-                    smallestPoolPtr = reinterpret_cast<void*>(pools);  // Store it as a void pointer
-                }
-            }()), ...);  // Expand the lambda over the component pools
-        }, componentPools);
-        
-        // Combine all component masks using bitwise OR
-        Signature combinedMask = (m_signaturePool.getComponentMask<Components>() | ...);
-
-        std::vector<EntityID> matchingEntities;
-
-        // Helper lambda to iterate over the smallest pool based on type
-        auto iterateSmallestPool = [&](auto* pool) {
-            for (const auto& entity : *pool) {
-                Signature signature = m_signaturePool.getSignature(entity);
-                // Check if the entity matches the combined component mask
-                if ((signature & combinedMask) == combinedMask) {
-                    matchingEntities.push_back(entity);
-                }
-            }
-        };
-
-        // Use std::apply to find the correct pool and cast the void* back to its original type
-        std::apply([&](auto&... pools) {
-            // Expand the lambda and compare the stored pointer to cast it back
-            ((smallestPoolPtr == reinterpret_cast<void*>(pools) ? iterateSmallestPool(pools) : void()), ...);
-        }, componentPools);
-
-        auto x = signatureView<Components...>();
-        return matchingEntities;
-    }
+    
     template<typename... Components>
     std::vector<EntityID> signatureView()
     {
         // Create a vector of pointers to component pools
         std::vector<BaseComponentPool*> componentPoolsVec = { (&getOrCreateComponentPool<Components>())... };
 
-        size_t maxSize = 0;
+        size_t minSize = componentPoolsVec[0]->poolUsed.size();
         for (auto* pool : componentPoolsVec) {
-            if (pool->poolUsed.size() > maxSize){
-                maxSize = pool->poolUsed.size();
+            if (pool->poolUsed.size() < minSize){
+                minSize = pool->poolUsed.size();
             }
         }
-        std::vector<bool> mask(maxSize, true); // Start with all true
 
+        mask.assign(minSize, true);
         for (auto* pool : componentPoolsVec) {
             auto poolUsed = pool->poolUsed;
-            for (size_t i = 0; i < poolUsed.size(); ++i) {
+            for (size_t i = 0; i < mask.size(); ++i) {
                 mask[i] = mask[i] && poolUsed[i];
             }
         }
+        
         std::vector<EntityID> matchingEntities;
         for (EntityID entity = 0; entity < mask.size(); ++entity) {
             if (mask[entity]) {

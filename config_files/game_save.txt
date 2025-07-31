@@ -1,2 +1,2 @@
-Player_pos 349 63
-Player_hp 0
+Player_pos 350 78
+Player_hp 2

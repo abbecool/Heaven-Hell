@@ -93,7 +93,7 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
-            auto view = m_ECS.view<CCollisionBox>();
+            auto view = m_ECS.signatureView<CCollisionBox, CTransform, CAnimation, CDialog>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
@@ -111,7 +111,7 @@ void Scene_Pause::sDoAction(const Action& action) {
     if (action.type() == "END") {
         if (action.name() == "CLICK") {
             m_hold_CLICK = false;
-            auto view = m_ECS.view<CCollisionBox>();
+            auto view = m_ECS.signatureView<CCollisionBox>();
             for (auto e : view){
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
@@ -182,7 +182,7 @@ void Scene_Pause::update() {
 }
 
 void Scene_Pause::sAnimation() {
-    auto view = m_ECS.view<CAnimation>();
+    auto view = m_ECS.signatureView<CAnimation>();
     for ( auto e : view){
         m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
     }
