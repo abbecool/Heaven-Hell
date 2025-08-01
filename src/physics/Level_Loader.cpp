@@ -238,19 +238,19 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
                 EntityID id = m_scene->spawnObstacle(Vec2 {16*(float)x, 16*(float)y}, false, textureIndex);
                 chunkChildren.push_back(id);
             }
-            else
-            {
-                if (pixel == "lava") 
-                {
-                    EntityID id = m_scene->spawnLava(Vec2 {16*(float)x,16*(float)y}, "Lava", textureIndex);
-                    chunkChildren.push_back(id);
-                } 
-                else if (pixel == "water" && textureIndex != 10) 
-                {
-                    EntityID id = m_scene->spawnWater(Vec2 {16*(float)x,16*(float)y}, "Water", textureIndex);
-                    chunkChildren.push_back(id);
-                }
-            }
+            // else
+            // {
+            //     if (pixel == "lava") 
+            //     {
+            //         EntityID id = m_scene->spawnLava(Vec2 {16*(float)x,16*(float)y}, "Lava", textureIndex);
+            //         chunkChildren.push_back(id);
+            //     } 
+            //     else if (pixel == "water" && textureIndex != 10) 
+            //     {
+            //         EntityID id = m_scene->spawnWater(Vec2 {16*(float)x,16*(float)y}, "Water", textureIndex);
+            //         chunkChildren.push_back(id);
+            //     }
+            // }
         }
     }
     EntityID chunkID = m_scene->m_ECS.addEntity();

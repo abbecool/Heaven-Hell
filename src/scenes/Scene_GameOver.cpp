@@ -93,7 +93,7 @@ void Scene_GameOver::sDoAction(const Action& action)
         }
         else if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.signatureView<CCollisionBox, CTransform, CAnimation, CDialog>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CDialog>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
@@ -113,7 +113,7 @@ void Scene_GameOver::sDoAction(const Action& action)
     {
         if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.signatureView<CCollisionBox, CTransform, CName>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CName>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
@@ -146,7 +146,7 @@ void Scene_GameOver::update()
 
 void Scene_GameOver::sAnimation() 
 {
-    auto view = m_ECS.signatureView<CAnimation>();
+    auto view = m_ECS.View<CAnimation>();
     for ( auto e : view){
         m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
     }

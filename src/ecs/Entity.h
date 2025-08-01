@@ -39,7 +39,7 @@ public:
 
     template<typename T>
     std::vector<EntityID> view() {
-        return m_ECS->signatureView<T>();
+        return m_ECS->View<T>();
     }
 
     void removeEntity() {

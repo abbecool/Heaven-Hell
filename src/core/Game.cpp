@@ -113,7 +113,7 @@ void Game::FrametimeHandler()
         double average_fps = 1000.0 / average_frame_time;
 
         // Print the average FPS followed by a carriage return
-        // std::cout << "FPS: " << (int)average_fps << " / " << (int)average_frame_time << "ms \r";
+        std::cout << "FPS: " << (int)average_fps << " / " << (int)average_frame_time << "ms \r";
 
         // Reset counters for the next second
         accumulated_frame_time = 0.0;

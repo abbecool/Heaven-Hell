@@ -63,7 +63,7 @@ void Scene_Inventory::sRender() {
     hotbar.setDestRect( Vec2{m_game->getWidth()-hotbar.getDestSize().x, 0} + Vec2{-4, 4});
     spriteRender(hotbar);
 
-    auto view = m_ECS.signatureView<CTransform, CAnimation>();
+    auto view = m_ECS.View<CTransform, CAnimation>();
     auto& transformPool2 = m_ECS.getComponentPool<CTransform>();
     auto& animationPool2 = m_ECS.getComponentPool<CAnimation>();
 

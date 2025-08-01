@@ -63,7 +63,7 @@ void BaseCollisionManager::registerHandler(CollisionMask layerA, CollisionMask l
 template <typename T>
 void BaseCollisionManager::newQuadtree(Vec2 pos, Vec2 size)
 {
-    auto view = m_ECS->signatureView<T, CTransform>();
+    auto view = m_ECS->View<T, CTransform>();
     auto& transformPool = m_ECS->getComponentPool<CTransform>();
     auto& TPool = m_ECS->getComponentPool<T>();
 

@@ -144,13 +144,17 @@ private:
     std::vector<EntityID> m_freeIDs;
     std::vector<EntityID> m_usedIDs;
     
-    // Map to store component pools for each component type
-    std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> m_componentPools;
+    // Map to store component pools for each component type 
+    // std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> m_componentPools;
+    // new: store ComponentPool<T> as void* behind the scenes
+    std::unordered_map<std::type_index, std::unique_ptr<BasePoolInterface>> m_componentPools;
+
     SignaturePool m_signaturePool;
     std::vector<EntityID> m_entitiesToRemove;
 
     std::vector<bool> mask;
     std::vector<EntityID> matchingEntities;
+    static constexpr size_t maxEntities = 10000;
 
 public:
 
@@ -200,9 +204,9 @@ public:
         }
         m_numEntities = m_usedIDs.size();
         
-        for (auto& [type, pool]: m_componentPools) {
+        for (auto& [type, pool] : m_componentPools) {
             if (pool != nullptr) {
-                pool->removeComponent(entity);
+                pool->processRemovals();
             }
         }
         m_signaturePool.removeSignature(entity);
@@ -211,7 +215,6 @@ public:
     void queueRemoveEntity(EntityID entity, bool condition = true) {
         if (entity == 1) {
             std::cerr << "Error: Attempting to remove player entity!" << std::endl;
-            
             return;
         }
         if ( hasComponent<CChild>(entity) & condition )
@@ -249,14 +252,18 @@ public:
         }
         m_entitiesToRemove.clear();
 
-        for (auto& [type, pool] : m_componentPools) {
-            if (pool == nullptr) continue;
+        // for (auto& [type, pool] : m_componentPools) {
+        //     if (pool == nullptr) continue;
             
-            auto& entitiesToRemove = pool->entitiesToRemove;
-            for (auto e : entitiesToRemove) {
-                pool->removeComponent(e);
-            }
-            entitiesToRemove.clear();
+        //     auto& entitiesToRemove = pool->entitiesToRemove;
+        //     for (auto e : entitiesToRemove) {
+        //         pool->removeComponent(e);
+        //     }
+        //     entitiesToRemove.clear();
+        // }
+        for (auto& [type, poolPtr] : m_componentPools) {
+            auto* pool = static_cast<BasePoolInterface*>(poolPtr.get());
+            pool->processRemovals();
         }
     }
 
@@ -266,10 +273,10 @@ public:
                     << " | m_freeIDs size: " << m_freeIDs.size();
     }
 
-    template<typename T>
-    void component_status() {
-        m_componentPools[typeid(T)]->status();
-    }
+    // template<typename T>
+    // void component_status() {
+    //     m_componentPools[typeid(T)]->status();
+    // }
 
     EntityID getNumEntities(){
         return m_numEntities;
@@ -321,13 +328,27 @@ public:
     }
 
     template <typename T>
-    ComponentPool<T>& getOrCreateComponentPool() {
+    ComponentPool<T>& getOrCreateComponentPool1() {
         std::type_index typeIdx(typeid(T));
         if (m_componentPools.find(typeIdx) == m_componentPools.end()) {
             m_componentPools[typeIdx] = std::make_unique<ComponentPool<T>>();
         }
         return *reinterpret_cast<ComponentPool<T>*>(m_componentPools[typeIdx].get());
     }
+
+    template<typename T>
+    ComponentPool<T>& getOrCreateComponentPool() {
+        std::type_index idx(typeid(T));
+        auto it = m_componentPools.find(idx);
+        if (it == m_componentPools.end()) {
+            // Allocate a new sparse-set ComponentPool<T> and hide it behind void*
+            auto* raw = new ComponentPool<T>(maxEntities);  
+            it = m_componentPools.emplace(idx, std::unique_ptr<BasePoolInterface>(raw)).first;
+        }
+        // Cast back to the correct type
+        return *static_cast<ComponentPool<T>*>(it->second.get());
+}
+
 
     template<typename T>
     ComponentPool<T>& view(){
@@ -339,34 +360,66 @@ public:
         std::cout << "Smallest component type: " << typeid(T).name() << std::endl;
     }
 
-    
     template<typename... Components>
-    std::vector<EntityID> signatureView()
-    {
-        // Create a vector of pointers to component pools
-        std::vector<BaseComponentPool*> componentPoolsVec = { (&getOrCreateComponentPool<Components>())... };
+    std::vector<EntityID> View() {
+        // 1) Collect pointers to each pool's entity list
+        std::vector<const std::vector<EntityID>*> lists = {
+            &getOrCreateComponentPool<Components>().entities()...
+        };
 
-        size_t minSize = componentPoolsVec[0]->poolUsed.size();
-        for (auto* pool : componentPoolsVec) {
-            if (pool->poolUsed.size() < minSize){
-                minSize = pool->poolUsed.size();
-            }
-        }
+        // 2) Find the shortest list
+        auto cmp = [](auto *a, auto *b){ return a->size() < b->size(); };
+        const auto* smallest = *std::min_element(lists.begin(), lists.end(), cmp);
 
-        mask.assign(minSize, true);
-        for (auto* pool : componentPoolsVec) {
-            auto poolUsed = pool->poolUsed;
-            for (size_t i = 0; i < mask.size(); ++i) {
-                mask[i] = mask[i] && poolUsed[i];
+        // 3) Reserve result capacity
+        std::vector<EntityID> result;
+        result.reserve(smallest->size());
+
+
+        // Combine all component masks using bitwise OR
+        // Signature combinedMask = (m_signaturePool.getComponentMask<Components>() | ...);
+        // 4) For each entity in the smallest list, test presence in all pools
+        for (EntityID e : *smallest) {
+            if ((getOrCreateComponentPool<Components>().hasComponent(e) && ...)) {
+                result.push_back(e);
             }
+            // Signature signature = m_signaturePool.getSignature(e);
+            // // Check if the entity matches the combined component mask
+            // if ((signature & combinedMask) == combinedMask) {
+            //     result.push_back(e);
+            // }
         }
-        
-        std::vector<EntityID> matchingEntities;
-        for (EntityID entity = 0; entity < mask.size(); ++entity) {
-            if (mask[entity]) {
-                matchingEntities.push_back(entity);
-            }
-        }
-        return matchingEntities;
+        std::sort(result.begin(), result.end());
+        return result;
     }
+    
+    // template<typename... Components>
+    // std::vector<EntityID> View1()
+    // {
+    //     // Create a vector of pointers to component pools
+    //     std::vector<BaseComponentPool*> componentPoolsVec = { (&getOrCreateComponentPool<Components>())... };
+
+    //     size_t minSize = componentPoolsVec[0]->poolUsed.size();
+    //     for (auto* pool : componentPoolsVec) {
+    //         if (pool->poolUsed.size() < minSize){
+    //             minSize = pool->poolUsed.size();
+    //         }
+    //     }
+
+    //     mask.assign(minSize, true);
+    //     for (auto* pool : componentPoolsVec) {
+    //         auto poolUsed = pool->poolUsed;
+    //         for (size_t i = 0; i < mask.size(); ++i) {
+    //             mask[i] = mask[i] && poolUsed[i];
+    //         }
+    //     }
+        
+    //     std::vector<EntityID> matchingEntities;
+    //     for (EntityID entity = 0; entity < mask.size(); ++entity) {
+    //         if (mask[entity]) {
+    //             matchingEntities.push_back(entity);
+    //         }
+    //     }
+    //     return matchingEntities;
+    // }
 };

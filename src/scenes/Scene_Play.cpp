@@ -281,9 +281,9 @@ void Scene_Play::update()
     }
     sRender();
     m_ECS.update();
-    if (m_currentFrame % 300 == 0) {
-        m_ECS.component_status<CAnimation>(); // Debugging: prints the ECS status
-    }
+    // if (m_currentFrame % 300 == 0) {
+    //     m_ECS.component_status<CAnimation>(); // Debugging: prints the ECS status
+    // }
     m_inventory_scene->update();
     if (m_restart) {
         // std::cerr << "Player entity is not initialized!" << std::endl;
@@ -314,6 +314,7 @@ void Scene_Play::sLoader()
             }
         }
     }
+    
     if (m_drawDrawGrid) // Keep only 35 chunks loaded
     {
         m_levelLoader.clearChunks(35);
@@ -322,7 +323,7 @@ void Scene_Play::sLoader()
 
 void Scene_Play::sScripting() 
 {
-    auto view = m_ECS.signatureView<CScript>();
+    auto view = m_ECS.View<CScript>();
     auto& scriptPool = m_ECS.getComponentPool<CScript>();
     for ( auto e : view ) 
     {
@@ -336,7 +337,7 @@ void Scene_Play::sMovement() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
 
     auto& pathfindPool = m_ECS.getComponentPool<CPathfind>();
-    auto viewPathfind = m_ECS.signatureView<CPathfind, CTransform>();
+    auto viewPathfind = m_ECS.View<CPathfind, CTransform>();
     for (auto e : viewPathfind)
     {
         auto& transform = transformPool.getComponent(e);
@@ -350,7 +351,7 @@ void Scene_Play::sMovement() {
     }
 
     auto& inputPool = m_ECS.getComponentPool<CInputs>();
-    auto viewInputs = m_ECS.signatureView<CInputs>();
+    auto viewInputs = m_ECS.View<CInputs>();
     for (auto e : viewInputs){
         auto &transform = transformPool.getComponent(e);
         auto &inputs = inputPool.getComponent(e);
@@ -379,7 +380,7 @@ void Scene_Play::sMovement() {
         }
     }
 
-    // auto viewKnockback = m_ECS.signatureView<CKnockback, CTransform>();
+    // auto viewKnockback = m_ECS.View<CKnockback, CTransform>();
     // auto& knockbackPool = m_ECS.getComponentPool<CKnockback>();
     // for (auto entityKnockback : viewKnockback){    
     //     auto &transform = transformPool.getComponent(entityKnockback);
@@ -390,7 +391,7 @@ void Scene_Play::sMovement() {
     //     }
     // }       
 
-    auto viewTransform = m_ECS.signatureView<CTransform>();
+    auto viewTransform = m_ECS.View<CTransform>();
     for (auto e : viewTransform){    
         auto &transform = transformPool.getComponent(e);
         
@@ -402,7 +403,7 @@ void Scene_Play::sMovement() {
         
     }
 
-    auto viewParent = m_ECS.signatureView<CParent>();
+    auto viewParent = m_ECS.View<CParent>();
     auto& parentPool = m_ECS.getOrCreateComponentPool<CParent>();
     for (auto e : viewParent)
     {
@@ -434,7 +435,7 @@ void Scene_Play::sStatus() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
   
     auto& lifespanPool = m_ECS.getComponentPool<CLifespan>();
-    auto viewLifespan = m_ECS.signatureView<CLifespan>();
+    auto viewLifespan = m_ECS.View<CLifespan>();
     for ( auto entityID : viewLifespan)
     {   
         auto& lifespan = lifespanPool.getComponent(entityID).lifespan;
@@ -442,7 +443,7 @@ void Scene_Play::sStatus() {
         m_ECS.queueRemoveEntity(entityID, lifespan <= 0);
     }
 
-    auto viewHealth = m_ECS.signatureView<CHealth>();
+    auto viewHealth = m_ECS.View<CHealth>();
     auto& healthPool = m_ECS.getComponentPool<CHealth>();
     for ( auto entityID : viewHealth)
     {
@@ -464,7 +465,7 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
-    auto view = m_ECS.signatureView<CState, CAnimation, CTransform>();
+    auto view = m_ECS.View<CState, CAnimation, CTransform>();
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& statePool = m_ECS.getComponentPool<CState>();
     auto& animationPool = m_ECS.getComponentPool<CAnimation>();
@@ -489,7 +490,7 @@ void Scene_Play::sAnimation() {
         }
     }
 
-    auto viewProjectileState = m_ECS.signatureView<CProjectileState, CAnimation>();
+    auto viewProjectileState = m_ECS.View<CProjectileState, CAnimation>();
     auto& projectileStatePool = m_ECS.getComponentPool<CProjectileState>();
     for ( auto e : viewProjectileState ) {
         auto& animation = animationPool.getComponent(e);
@@ -505,7 +506,7 @@ void Scene_Play::sAnimation() {
         }
     }
 
-    auto view2 = m_ECS.signatureView<CAnimation>();
+    auto view2 = m_ECS.View<CAnimation>();
     for ( auto e : view2 ){
         auto& animation = animationPool.getComponent(e);
         if (animation.animation.hasEnded() && !animation.repeat) {
@@ -515,7 +516,7 @@ void Scene_Play::sAnimation() {
         }
     }
 
-    auto view3 = m_ECS.signatureView<CSwimming, CAnimation>();
+    auto view3 = m_ECS.View<CSwimming, CAnimation>();
     for ( auto e : view3 ){
         auto& animation = animationPool.getComponent(e);
         SDL_Rect* rect = animation.animation.getSrcRect();
@@ -555,7 +556,7 @@ void Scene_Play::sRender() {
     Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& healthPool = m_ECS.getComponentPool<CHealth>();
-    auto viewHealth = m_ECS.signatureView<CHealth>();
+    auto viewHealth = m_ECS.View<CHealth>();
     for (auto entityID : viewHealth)
     {   
         if (entityID == m_player) { continue; }
@@ -872,8 +873,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1,1}, 0.0f, 50.0f, true);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, m_goblinConfig.SPEED, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, m_goblinConfig.SPEED, true);
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 12}, ENEMY_LAYER, collisionMask);
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
