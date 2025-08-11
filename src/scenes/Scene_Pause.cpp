@@ -37,7 +37,7 @@ void Scene_Pause::saveLayout(const std::string& filename) {
     
     auto dialogPool = m_ECS.getComponentPool<CDialog>();    
     auto transformPool = m_ECS.getComponentPool<CTransform>();
-    auto view = m_ECS.signatureView<CDialog, CCollisionBox, CTransform>();
+    auto view = m_ECS.View<CDialog, CCollisionBox, CTransform>();
     json j;
     for (auto e : view) {
         json button;
@@ -93,7 +93,7 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
-            auto view = m_ECS.signatureView<CCollisionBox, CTransform, CAnimation, CDialog>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CDialog>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
@@ -111,7 +111,7 @@ void Scene_Pause::sDoAction(const Action& action) {
     if (action.type() == "END") {
         if (action.name() == "CLICK") {
             m_hold_CLICK = false;
-            auto view = m_ECS.signatureView<CCollisionBox>();
+            auto view = m_ECS.View<CCollisionBox>();
             for (auto e : view){
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
@@ -161,7 +161,7 @@ void Scene_Pause::sDoAction(const Action& action) {
 
 void Scene_Pause::sDragButton() {
     if (m_hold_CTRL && m_hold_CLICK) {
-        auto view = m_ECS.signatureView<CCollisionBox, CTransform, CName>();
+        auto view = m_ECS.View<CCollisionBox, CTransform, CName>();
         for (auto e : view) {
             auto& transform = m_ECS.getComponent<CTransform>(e);
             auto& collision = m_ECS.getComponent<CCollisionBox>(e);
@@ -182,7 +182,7 @@ void Scene_Pause::update() {
 }
 
 void Scene_Pause::sAnimation() {
-    auto view = m_ECS.signatureView<CAnimation>();
+    auto view = m_ECS.View<CAnimation>();
     for ( auto e : view){
         m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
     }

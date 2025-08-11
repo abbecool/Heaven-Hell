@@ -16,22 +16,19 @@
 using EntityID = uint32_t;
 
 class BaseComponentPool {
-public:
+    public:
     virtual ~BaseComponentPool() = default;  // Virtual destructor to allow proper deletion
     virtual void removeComponent(EntityID entityId){};
     std::vector<EntityID> entitiesToRemove;
-    virtual size_t numComponents(){ return 0; };
-    virtual void status() {};
     std::vector<bool> poolUsed;  // Vector to track used components
 };
 
 template<typename T>
 class ComponentPool : public BaseComponentPool{
+private:
+    std::unordered_map<EntityID, T> pool;  // Map of components indexed by EntityID
+    std::vector<T> poolVector;  // Vector of components
 public:
-
-    size_t numComponents() override {
-        return poolVector.size();
-    }
 
     template<typename... Args>
     T& addComponent(EntityID entityId, Args... args) {
@@ -70,18 +67,4 @@ public:
         }
         return poolVector[e];
     }
-
-
-    void status() override {
-        size_t poolUsedSum = std::count(poolUsed.begin(), poolUsed.end(), true);
-        std::cout << "\rComponent pool: " << typeid(T).name() 
-                  << " | poolVector size: " << poolVector.size()
-                  << " | poolUsed sum: " << poolUsedSum
-                  << " | poolUsed size: " << poolUsed.size() << "...";
-
-    }
-
-private:
-    std::unordered_map<EntityID, T> pool;  // Map of components indexed by EntityID
-    std::vector<T> poolVector;  // Vector of components
 };

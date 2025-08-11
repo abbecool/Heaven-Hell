@@ -100,7 +100,7 @@ void Scene_Menu::sDoAction(const Action& action)
         }
         else if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.signatureView<CCollisionBox, CTransform, CDialog, CAnimation>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CDialog, CAnimation>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
@@ -120,7 +120,7 @@ void Scene_Menu::sDoAction(const Action& action)
     {
         if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.signatureView<CCollisionBox, CTransform, CDialog, CAnimation, CName>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CDialog, CAnimation, CName>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
@@ -177,7 +177,7 @@ void Scene_Menu::update()
 
 void Scene_Menu::sAnimation() 
 {
-    auto view = m_ECS.signatureView<CAnimation>();
+    auto view = m_ECS.View<CAnimation>();
     for ( auto e : view){
         m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
     }

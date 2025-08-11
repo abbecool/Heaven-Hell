@@ -64,7 +64,7 @@ void Scene::sRenderBasic() {
             }
         }
         auto& dialogPool = m_ECS.getComponentPool<CDialog>();
-        auto dialogView = m_ECS.signatureView<CDialog, CTransform>();
+        auto dialogView = m_ECS.View<CDialog, CTransform>();
         for (const auto& e : dialogView)
         {
             auto& dialog = dialogPool.getComponent(e);
@@ -89,13 +89,13 @@ void Scene::sRenderBasic() {
     }
     if (m_drawCollision)
     {
-        auto viewCollisions = m_ECS.signatureView<CCollisionBox, CTransform>();
+        auto viewCollisions = m_ECS.View<CCollisionBox, CTransform>();
         auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
         renderBox<CCollisionBox>(viewCollisions, transformPool, collisionPool, screenCenterZoomed, totalZoom);
     }
     if (m_drawInteraction)
     {
-        auto viewInteractions = m_ECS.signatureView<CInteractionBox, CTransform>();
+        auto viewInteractions = m_ECS.View<CInteractionBox, CTransform>();
         auto& interactionPool = m_ECS.getComponentPool<CInteractionBox>();
         renderBox<CInteractionBox>(viewInteractions, transformPool, interactionPool, screenCenterZoomed, totalZoom);
     }
