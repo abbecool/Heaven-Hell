@@ -1,60 +1,72 @@
 #include "story/StoryManager.h"
+#include <fstream>
 
-StoryManager::StoryManager(ECS* ecs, Scene* scene)
+#include "external/json.hpp"
+using json = nlohmann::json;
+
+StoryManager::StoryManager(ECS* ecs, Scene* scene, std::string storyFilePath)
 {
     m_ECS = ecs;
     m_scene = scene;
+    loadStory(storyFilePath);
 }
 
-std::string StoryManager::getDialog()
+void StoryManager::loadStory(const std::string& storyFilePath)
 {
-    std::string dialog;
-    if ( m_progression == 0 )
-    {
-        dialog = "hello, traveler!: "+std::to_string(m_progression);
+    std::ifstream file_assets(storyFilePath);
+    if (!file_assets) {
+        std::cerr << "Could not load assets file!\n";
+        exit(-1);
     }
-    else
-    {
-        dialog = "hello again, traveler!: "+std::to_string(m_progression);
+    json j;
+    file_assets >> j;
+    file_assets.close();
+
+    for (const auto& step : j["story_steps"]) {
+        StoryStep storyStep;
+        storyStep.id = step["id"];
+        storyStep.description = step["description"];
+        storyStep.triggerType = step["trigger"]["type"];
+        storyStep.triggerType = step["trigger"]["type"];
+        storyStep.triggerType = step["trigger"]["type"];
+
+        if (step.contains("on_complete")) {
+            storyStep.onCompleteType = step["on_complete"]["type"];
+            if (storyStep.onCompleteType == "flag") {
+                storyStep.onCompleteName = step["on_complete"]["name"];
+                storyStep.onCompleteValue = step["on_complete"]["value"];
+            }
+            else if (storyStep.onCompleteType == "spawn") {
+                storyStep.onCompleteEntity = step["on_complete"]["entity"];
+                storyStep.onCompleteLocation = Vec2(step["on_complete"]["location"]["x"], step["on_complete"]["location"]["y"]);
+            }
+        }
+
+        // storyStep.setTrigger(step["trigger"]);
+        // storyStep.setOnComplete(step["on_complete"]);
+
+        m_storySteps.push_back(storyStep);
     }
-    updateProgression();
-    return dialog;
 }
 
-
-Progression StoryManager::getProgression()
+void StoryManager::getCurrentQuest()
 {
-    return m_progression;
+    std::cout << "Current quest: " << m_progression << std::endl;
 }
 
-void StoryManager::updateProgression()
-{
-    m_progression++;
-}
 
-void StoryManagerChat::setFlag(const std::string& flagName, bool value) {
-    storyFlags[flagName] = value;
-}
-
-bool StoryManagerChat::getFlag(const std::string& flagName) const {
-    auto it = storyFlags.find(flagName);
-    return it != storyFlags.end() && it->second;
-}
-
-void StoryManagerChat::registerDialog(const std::string& npcId, const std::vector<std::string>& lines) {
-    npcDialogs[npcId] = lines;
-    npcTalkCounts[npcId] = 0;
-}
-
-const std::string& StoryManagerChat::getDialog(const std::string& npcId) {
-    auto it = npcDialogs.find(npcId);
-    if (it == npcDialogs.end()) return defaultDialog;
-
-    int& count = npcTalkCounts[npcId];
-    const auto& lines = it->second;
-
-    const std::string& line = lines[std::min(count, static_cast<int>(lines.size() - 1))];
-    count++;
-    return line;
-}
-
+    // ,
+    // {
+    //   "id": 1,
+    //   "description": "Defeat the forest rooter.",
+    //   "trigger": {
+    //     "type": "event",
+    //     "name": "enemy_killed",
+    //     "target": "forest_rooter"
+    //   },
+    //   "on_complete": {
+    //     "type": "flag",
+    //     "name": "rooter_defeated",
+    //     "value": true
+    //   }
+    // }

@@ -34,10 +34,8 @@ private:
     
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> m_componentPools;
-    // SignaturePool m_signaturePool;
     std::vector<EntityID> m_entitiesToRemove;
 
-    std::vector<bool> mask;
     std::vector<EntityID> matchingEntities;
 
 public:
@@ -84,15 +82,10 @@ public:
             auto childID = getComponent<CChild>(entity).childID;
             queueRemoveComponent<CParent>(childID);
             queueRemoveComponent<CChild>(entity);
-            if (childID == 1) {
-                std::cerr << "Error: Attempting to remove child player entity!" << std::endl;
-                return;
-            }
             if ( getComponent<CChild>(entity).removeOnDeath )
             {
                 m_entitiesToRemove.push_back(childID);
             }
-
         }
         m_entitiesToRemove.push_back(entity);
     }
@@ -156,7 +149,6 @@ public:
             static ComponentPool<T> emptyPool;
             return emptyPool;
             std::cout << "Component pool not found for type: " << typeid(T).name() << std::endl;
-            // throw std::out_of_range("Component pool not found for the given type");
         }
     }
     

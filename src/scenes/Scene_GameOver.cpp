@@ -131,7 +131,7 @@ void Scene_GameOver::sDoAction(const Action& action)
                 m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y - 3;
                 if ( name == "restart" )
                 {
-                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
+                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", true), true);
                 }
             }
         }   

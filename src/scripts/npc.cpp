@@ -38,8 +38,8 @@ public:
     void showMessage()
     {
         // std::cout << "call story manager" << std::endl;
-        std::string dialog = m_scene->getDialog();
-        std::cout << dialog << std::endl;
+        // std::string dialog = m_scene->getDialog();
+        // std::cout << dialog << std::endl;
     }
 };
 

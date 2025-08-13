@@ -1,0 +1,45 @@
+{
+  "story_steps": 
+  [
+    {
+      "id":0,
+      "description": "Talk to the wizard.",
+      "trigger": {
+        "type": "flag",
+        "name": "talked_to_wizard",
+        "value": true
+      },
+      "on_complete": {
+        "type": "spawn",
+        "entity": "copper_staff",
+        "location": {
+          "x": 100,
+          "y": 150
+        }
+      }
+    },
+    {
+      "id": 1,
+      "description": "Find the staff.",
+      "trigger": {
+        "type": "flag",
+        "name": "staff_found",
+        "value": true
+      }
+    },
+    {
+      "id": 2,
+      "description": "Go to the house.",
+      "trigger": {
+        "type": "flag",
+        "name": "house_entered",
+        "value": true
+      },
+      "on_complete": {
+        "type": "flag",
+        "name": "home_found",
+        "value": true
+      }
+    }
+  ]
+}

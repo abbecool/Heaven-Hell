@@ -59,10 +59,6 @@ void Game::changeScene( const std::string& sceneName, std::shared_ptr<Scene> sce
     if (m_sceneMap.find(sceneName) == m_sceneMap.end()) {
         m_sceneMap[sceneName] = scene;
     }
-    // for (const auto& pair : m_sceneMap) {
-    //     std::cout << pair.first << " ";
-    // }
-    // std::cout << std::endl;
 }
 
 void Game::changeSceneBack( const std::string& sceneName) {
@@ -103,7 +99,7 @@ void Game::FrametimeHandler()
 
     accumulated_frame_time += frame_time_ms;
     frame_count++;
-    // std::this_thread::sleep_until(next_frame);
+    std::this_thread::sleep_until(next_frame);
 
     // Check if one second has passed
     if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(1))

@@ -62,7 +62,6 @@ class Scene_Play : public Scene
     
     void saveGame(const std::string& filename);
     
-    // void spawnHUD();
     EntityID spawnPlayer();
     EntityID spawnNPC(Vec2 pos);
     EntityID spawnWeapon(Vec2 pos, int layer);
@@ -79,7 +78,6 @@ class Scene_Play : public Scene
     EntityID spawnCampfire  (const Vec2 pos, int layer);
     EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
     EntityID spawnLava      (const Vec2 pos, const std::string tag, const int frame );
-    EntityID spawnBridge    (const Vec2 pos, const int frame );
     std::vector<EntityID> spawnDualTiles (const Vec2 pos, std::unordered_map<std::string, int> tileIndex);
     
     void sLoader();
@@ -109,7 +107,4 @@ class Scene_Play : public Scene
     
     void update();
     void setPaused(bool);
-
-    std::string getDialog();
-
 };

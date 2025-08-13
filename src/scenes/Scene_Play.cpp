@@ -28,7 +28,12 @@
 #include <algorithm>
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
-    : Scene(game), m_levelPath(levelPath), m_collisionManager(&m_ECS, this), m_interactionManager(&m_ECS, this), m_storyManager(&m_ECS, this), m_newGame(newGame)
+    : Scene(game), 
+    m_levelPath(levelPath), 
+    m_collisionManager(&m_ECS, this), 
+    m_interactionManager(&m_ECS, this), 
+    m_storyManager(&m_ECS, this, "config_files/story.json"), 
+    m_newGame(newGame)
 {
     registerAction(SDLK_w, "UP");
     registerAction(SDLK_UP, "UP");
@@ -223,7 +228,7 @@ void Scene_Play::sDoAction(const Action& action) {
         }else if ( action.name() == "TP3") {
             m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*64/4, 181*64/4};
         } else if ( action.name() == "RESET") { 
-            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelStartingArea.png", true), true);
+            m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", true), true);
         } else if ( action.name() == "KILL_PLAYER") { 
             m_ECS.getComponent<CHealth>(m_player).HP = 0;
         }
@@ -836,6 +841,7 @@ EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{12, 12}, PROJECTILE_LAYER, collisionMask);
     // m_ECS.getComponent<CTransform>(entity).isMovable = true;
     m_ECS.addComponent<CProjectileState>(entity, "Free");
+    m_ECS.addComponent<CLifespan>(entity, 60); // 1 second lifespan
     // m_ECS.getComponent<CTransform>(entity).vel = (m_game->currentScene()->getMousePosition()-m_ECS.getComponent<CTransform>(entity).pos+m_game->currentScene()->getCameraPosition());
     // m_ECS.getComponent<CTransform>(entity).angle = m_ECS.getComponent<CTransform>(entity).vel.angle();
 
@@ -981,8 +987,4 @@ Vec2 Scene_Play::levelSize(){
 
 Vec2 Scene_Play::getCameraPosition() {
     return m_camera.position;
-}
-
-std::string Scene_Play::getDialog(){
-    return m_storyManager.getDialog();
 }
