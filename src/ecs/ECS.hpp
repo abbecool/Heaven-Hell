@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ecs/Components.h"
-#include "ecs/signaturePool.hpp"
+// #include "ecs/signaturePool.hpp"
 #include "ComponentPool.hpp"
 
 #include <iostream>
@@ -22,6 +22,9 @@
 
 using EntityID = uint32_t;
 
+static bool comp(int a, int b) {
+    return a > b;
+}
 class ECS
 {
 private:
@@ -31,7 +34,7 @@ private:
     
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> m_componentPools;
-    SignaturePool m_signaturePool;
+    // SignaturePool m_signaturePool;
     std::vector<EntityID> m_entitiesToRemove;
 
     std::vector<bool> mask;
@@ -45,12 +48,11 @@ public:
         EntityID id;
         if (!m_freeIDs.empty()) {
             id = m_freeIDs.back();
-            m_freeIDs.push_back(0);
+            m_freeIDs.pop_back();
         } else {
             id = m_usedIDs.size();
         }
         m_usedIDs.push_back(id);
-        m_signaturePool.setSignature(id, 0);
         return id;
     }
 
@@ -58,30 +60,26 @@ public:
         auto it = std::find(m_usedIDs.begin(), m_usedIDs.end(), entity);
         assert(it != m_usedIDs.end() && "Entity not found in used IDs!");
         
-        if (it != m_usedIDs.end()) {
-            m_usedIDs.erase(it);
-        }
-        else {
+        if (it == m_usedIDs.end()) {
             std::cerr << "Warning: Attempting to remove non-existent entity " << entity << "." << std::endl;
-        }
+        }        
+        m_usedIDs.erase(it);
         m_freeIDs.push_back(entity);
-        std::sort(m_freeIDs.begin(), m_freeIDs.end(), comp);
         
         for (auto& [type, pool]: m_componentPools) {
             if (pool != nullptr) {
                 pool->removeComponent(entity);
             }
         }
-        m_signaturePool.removeSignature(entity);
     }
 
-    void queueRemoveEntity(EntityID entity, bool condition = true) {
+    void queueRemoveEntity(EntityID entity) {
         if (entity == 1) {
             std::cerr << "Error: Attempting to remove player entity!" << std::endl;
             
             return;
         }
-        if ( hasComponent<CChild>(entity) & condition )
+        if (hasComponent<CChild>(entity))
         {
             auto childID = getComponent<CChild>(entity).childID;
             queueRemoveComponent<CParent>(childID);
@@ -103,11 +101,6 @@ public:
     void queueRemoveComponent(EntityID entity) {
         auto& pool = getComponentPool<T>();
         pool.queueRemoveEntity(entity);
-
-        Signature currentSignature = m_signaturePool.getSignature(entity);
-        Signature componentMask = m_signaturePool.getComponentMask<T>();
-        currentSignature &= ~componentMask;  // Clear the bit for the component
-        m_signaturePool.setSignature(entity, currentSignature);
     }
 
     void update(){
@@ -126,16 +119,11 @@ public:
             entitiesToRemove.clear();
         }
     }
-    
-    Signature getSignature(EntityID entity){
-        return m_signaturePool.getSignature(entity);
-    }
-    
+        
     // Add a component to an entity
     template<typename T, typename... Args>
     T& addComponent(EntityID entity, Args &&... args) {
         auto& pool = getOrCreateComponentPool<T>();
-        m_signaturePool.addComponentToMask<T>(entity);
         return pool.addComponent(entity, T(std::forward<Args>(args)...));
     };
     
@@ -184,65 +172,31 @@ public:
     template<typename... Components>
     std::vector<EntityID> View()
     {
-        // Create a vector of pointers to component pools
-        std::vector<BaseComponentPool*> componentPoolsVec = { (&getOrCreateComponentPool<Components>())... };
-        
-        size_t minSize = componentPoolsVec[0]->poolUsed.size();
-        for (auto* pool : componentPoolsVec) {
-            if (pool->poolUsed.size() < minSize){
-                minSize = pool->poolUsed.size();
-            }
-        }
-        
-        mask.assign(minSize, true);
-        for (auto* pool : componentPoolsVec) {
-            auto poolUsed = pool->poolUsed;
-            for (size_t i = 0; i < mask.size(); ++i) {
-                mask[i] = mask[i] && poolUsed[i];
-            }
-        }
-        
+        BaseComponentPool* smallestPoolBase = nullptr;
+        size_t minSize = std::numeric_limits<size_t>::max();
+
+        ((
+            [&] {
+                auto& pool = getOrCreateComponentPool<Components>();
+                size_t sz = pool.getDense().size(); // dense is the vector<T> in your sparse set
+                if (sz < minSize) {
+                    minSize = sz;
+                    smallestPoolBase = &pool;
+                }
+            }()
+        ), ...);
+
+        if (!smallestPoolBase) return {};
+
         std::vector<EntityID> matchingEntities;
-        for (EntityID entity = 0; entity < mask.size(); ++entity) {
-            if (mask[entity]) {
-                matchingEntities.push_back(entity);
+        matchingEntities.reserve(minSize);
+
+        for (EntityID e : smallestPoolBase->getEntities()) {
+            if ((getOrCreateComponentPool<Components>().hasComponent(e) && ...)) {
+                matchingEntities.push_back(e);
             }
         }
+
         return matchingEntities;
     }
-    
-    void temp()
-    {
-        std::cout << "\rTotal entities: " << m_usedIDs.size() << ". Free IDs (" << m_freeIDs.size() << "): ";
-        for (size_t i = 0; i < std::min<size_t>(m_freeIDs.size(), 40); ++i) {
-            std::cout << m_freeIDs[i] << " ";
-        }
-        if (m_freeIDs.size() > 40)
-        {
-            std::cout << "...";
-        }
-        else{
-            std::cout << "-----";
-        }
-        std::cout << std::flush;
-    }
-    
-    template <typename T>
-    void printComponentType() {
-        std::cout << "Component type: " << typeid(T).name() << std::endl;
-    }
-
-    void status() {
-        std::cout << "\r m_usedIDs size: " << m_usedIDs.size() 
-                    << " | m_freeIDs size: " << m_freeIDs.size();
-    }
-
-    template<typename T>
-    void component_status() {
-        m_componentPools[typeid(T)]->status();
-    }
 };
-
-bool comp(int a, int b) {
-    return a > b;
-}

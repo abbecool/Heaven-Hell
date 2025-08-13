@@ -19,7 +19,7 @@ public:
         auto& transformPlayer = getComponent<CTransform>();
         auto& playerCollider = getComponent<CCollisionBox>();
 
-        auto viewWater = view<CWater>();
+        auto viewWater = view<CWater, CTransform, CCollisionBox>();
         for (auto entity : viewWater) 
         {
             auto& waterTransform = m_ECS->getComponent<CTransform>(entity);

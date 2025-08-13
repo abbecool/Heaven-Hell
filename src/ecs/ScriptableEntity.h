@@ -27,9 +27,9 @@ class ScriptableEntity{
         void removeComponent(){
             m_entity.removeComponent<T>();
         }
-        template<typename T>
+        template<typename... T>
         std::vector<EntityID> view(){
-            return m_entity.view<T>();
+            return m_entity.view<T...>();
         }
         void removeEntity() {
             m_entity.removeEntity();

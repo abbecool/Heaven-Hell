@@ -269,7 +269,7 @@ void LevelLoader::removeChunk()
         if ( m_scene->m_ECS.hasComponent<CAnimation>(id) )
         {
             auto layer = m_scene->m_ECS.getComponent<CAnimation>(id).layer;
-            m_scene->m_rendererManager.removeEntityFromLayer(id, layer);
+            m_scene->m_rendererManager.queueRemoveEntityFromLayer(id, layer);
         }
     }
     m_scene->m_loadedChunks.erase(m_scene->m_loadedChunks.begin());

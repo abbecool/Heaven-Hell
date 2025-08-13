@@ -17,7 +17,7 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
     SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");    
 
     m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_width, m_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-    SDL_SetWindowPosition(m_window, 0, 0);
+    SDL_SetWindowPosition(m_window, 0, 30);
     if ( NULL == m_window )
     {
         std::cout << "Could not create window: " << SDL_GetError( ) << std::endl;
@@ -33,11 +33,10 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
     
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
 
-    SDL_DisplayMode DM;
     SDL_GetCurrentDisplayMode(0, &DM);
-    updateResolution(int(DM.h / VIRTUAL_HEIGHT));
+    updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
-    
+    std::cout << "Game initialized with resolution: " << m_width << "x" << m_height << std::endl;
 }
 
 void Game::updateResolution(int scale)

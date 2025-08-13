@@ -21,9 +21,36 @@ public:
     // Removes an entity ID from the specified layer
     void removeEntityFromLayer(EntityID entityID, uint8_t layer) {
         if (layer < layers.size()) {
-            auto& entities = layers[layer];
-            entities.erase(std::remove(entities.begin(), entities.end(), entityID), entities.end());
+            // auto& entities = layers[layer];
+            layers[layer].erase(std::remove(layers[layer].begin(), layers[layer].end(), entityID), layers[layer].end());
+            // layers[layer].erase(entityID);
         }
+    }
+
+    void queueRemoveEntityFromLayer(EntityID entityID, uint8_t layer) {
+        entitiesToRemove.resize(layers.size());
+        entitiesToRemove[layer].push_back(entityID);
+    }
+
+    void update() {
+        for (int layer = 0; layer < entitiesToRemove.size(); layer++) {
+        // for (auto& layer : entitiesToRemove) {
+            for (auto entityID : entitiesToRemove[layer]) {
+                removeEntityFromLayer(entityID, layer);
+            }
+        }
+        entitiesToRemove.clear();
+        // std::cout << "\r" << getEntities().size() << " entities in renderer manager.";;
+    }
+
+    std::vector<EntityID> getEntities() {
+        std::vector<EntityID> entities;
+        for (const auto& layer : layers) {
+            for (const auto& entityID : layer) {
+                entities.push_back(entityID);
+            }
+        }
+        return entities;
     }
 
     // Gets the entities in the specified layer
@@ -41,6 +68,7 @@ public:
 
 private:
     std::vector<std::vector<EntityID>> layers;
+    std::vector<std::vector<EntityID>> entitiesToRemove; // Entities to be removed in the next update
 };
 
 #endif // RENDERER_HPP

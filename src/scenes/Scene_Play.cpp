@@ -281,6 +281,7 @@ void Scene_Play::update()
     sRender();
     m_inventory_scene->update();
     m_ECS.update();
+    m_rendererManager.update();
     if (m_restart) {
         // std::cerr << "Player entity is not initialized!" << std::endl;
         m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
@@ -423,6 +424,7 @@ void Scene_Play::sCollision()
     Vec2 treeSize = Vec2{1048, 1048};
 
     m_collisionManager.doCollisions(treePos, treeSize);
+    
 }
 
 void Scene_Play::sStatus() {
@@ -434,7 +436,9 @@ void Scene_Play::sStatus() {
     {   
         auto& lifespan = lifespanPool.getComponent(entityID).lifespan;
         lifespan--;
-        m_ECS.queueRemoveEntity(entityID, lifespan <= 0);
+        if (lifespan <= 0) {
+            m_ECS.queueRemoveEntity(entityID);
+        }
     }
 
     auto viewHealth = m_ECS.View<CHealth>();
@@ -459,7 +463,9 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
+
     auto view = m_ECS.View<CState, CAnimation, CTransform>();
+
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& statePool = m_ECS.getComponentPool<CState>();
     auto& animationPool = m_ECS.getComponentPool<CAnimation>();
@@ -523,6 +529,7 @@ void Scene_Play::sRender() {
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     SDL_RenderClear(m_game->renderer());
     sRenderBasic();
+    
     int windowScale = m_game->getScale();
 
     Animation animation;
@@ -548,48 +555,48 @@ void Scene_Play::sRender() {
     }
 
     Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& healthPool = m_ECS.getComponentPool<CHealth>();
-    auto viewHealth = m_ECS.View<CHealth>();
-    for (auto entityID : viewHealth)
-    {   
-        if (entityID == m_player) { continue; }
-        auto& health = healthPool.getComponent(entityID);
-        if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
-        {
-            continue;
-        }
-        auto& transform = transformPool.getComponent(entityID);
+    // auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    // auto& healthPool = m_ECS.getComponentPool<CHealth>();
+    // auto viewHealth = m_ECS.View<CHealth>();
+    // for (auto entityID : viewHealth)
+    // {   
+    //     if (entityID == m_player) { continue; }
+    //     auto& health = healthPool.getComponent(entityID);
+    //     if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
+    //     {
+    //         continue;
+    //     }
+    //     auto& transform = transformPool.getComponent(entityID);
 
-        Vec2 adjustedPosition = (transform.pos - m_camera.position) * (windowScale - m_camera.getCameraZoom());
-        adjustedPosition += screenCenter*m_camera.getCameraZoom();
+    //     Vec2 adjustedPosition = (transform.pos - m_camera.position) * (windowScale - m_camera.getCameraZoom());
+    //     adjustedPosition += screenCenter*m_camera.getCameraZoom();
 
-        Animation animation;
-        auto hearts = float(health.HP) / 2;
+    //     Animation animation;
+    //     auto hearts = float(health.HP) / 2;
 
-        for (int i = 1; i <= health.HP_max / 2; i++)
-        {   
-            if (hearts >= i)
-            {
-                animation = health.animation_full;
-            }
-            else if (i - hearts == 0.5f)
-            {
-                animation = health.animation_half;
-            }
-            else
-            {
-                animation = health.animation_empty;
-            }
+    //     for (int i = 1; i <= health.HP_max / 2; i++)
+    //     {   
+    //         if (hearts >= i)
+    //         {
+    //             animation = health.animation_full;
+    //         }
+    //         else if (i - hearts == 0.5f)
+    //         {
+    //             animation = health.animation_half;
+    //         }
+    //         else
+    //         {
+    //             animation = health.animation_empty;
+    //         }
 
-            animation.setScale(transform.scale * windowScale);
-            animation.setDestRect(Vec2{
-                adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
-                adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
-            });
-            spriteRender(animation);
-        }
-    }
+    //         animation.setScale(transform.scale * windowScale);
+    //         animation.setDestRect(Vec2{
+    //             adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
+    //             adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
+    //         });
+    //         spriteRender(animation);
+    //     }
+    // }
 
     auto totalZoom = windowScale - m_camera.getCameraZoom();
     auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
@@ -713,7 +720,7 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
 
     m_ECS.addComponent<CName>(entity, "staff");
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, 2);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, layer);
     m_rendererManager.addEntityToLayer(entity, 5);
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
@@ -733,7 +740,7 @@ EntityID Scene_Play::spawnSword(Vec2 pos, int layer){
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
     
     m_ECS.addComponent<CName>(entity, "sword");
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("sword"), true, 2);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("sword"), true, layer);
     m_rendererManager.addEntityToLayer(entity, 5);
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
@@ -862,7 +869,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
 {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CName>(entity, type);
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(type), true, 3);
+    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(type), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos, entity);
@@ -905,7 +912,7 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
         }
         EntityID entity = m_ECS.addEntity();
         entityIDs.push_back(entity);
-        m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, 10);
+        m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, layer);
         Vec2 tilePosition = Vec2{   (float)(textureIndex % 4), 
                                     (float)(int)(textureIndex / 4)};
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(tilePosition);   
