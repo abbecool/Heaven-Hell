@@ -222,8 +222,14 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
     // Process the pixels
     for (int y = chunk.y*m_scene->m_chunkSize.y; y < (chunk.y+1)*m_scene->m_chunkSize.y; ++y) 
     {
+        if (y >= m_height) {
+            continue; // Skip if out of bounds
+        }
         for (int x = chunk.x*m_scene->m_chunkSize.x; x < (chunk.x+1)*m_scene->m_chunkSize.x; ++x) 
         {
+            if (x >= m_width) {
+                continue; // Skip if out of bounds
+            }
             const std::string& pixel = m_scene->m_pixelMatrix[y][x];
             std::vector<bool> neighbors = neighborCheck(m_scene->m_pixelMatrix, pixel, x, y, m_width, m_height);
             std::vector<std::string> neighborsTags = neighborTag(m_scene->m_pixelMatrix, pixel, x, y, m_width, m_height);

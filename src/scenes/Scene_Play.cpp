@@ -313,7 +313,7 @@ void Scene_Play::sLoader()
     }
     if (m_drawDrawGrid) // Keep only 35 chunks loaded
     {
-        m_levelLoader.clearChunks(16);
+        m_levelLoader.clearChunks(15);
     }
 }
 
