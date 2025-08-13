@@ -174,14 +174,14 @@ void Assets::loadFromFile(const std::string & pathAssets, const std::string & pa
             std::getline(file_text, dialog, '"');  // Read until the closing quote
 
             SDL_Surface* textSurface = TTF_RenderText_Solid(getFont(font_name), dialog.c_str(), textColor);
-            // if (textSurface == nullptr) {
-            //     std::cerr << "Unable to render text surface! TTF_Error: " << TTF_GetError() << std::endl;
-            // }
+            if (textSurface == nullptr) {
+                std::cerr << "Unable to render text surface! TTF_Error: " << TTF_GetError() << std::endl;
+            }
 
             SDL_Texture* textTexture = SDL_CreateTextureFromSurface(ren, textSurface);
-            // if (textTexture == nullptr) {
-            //     std::cerr << "Unable to create texture from rendered text! SDL_Error: " << SDL_GetError() << std::endl;
-            // }
+            if (textTexture == nullptr) {
+                std::cerr << "Unable to create texture from rendered text! SDL_Error: " << SDL_GetError() << std::endl;
+            }
             SDL_FreeSurface(textSurface);
             m_textures[dialog] = textTexture;
         }
