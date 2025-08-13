@@ -827,30 +827,6 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
     return entity;
 }
 
-EntityID Scene_Play::spawnProjectile(EntityID creator, Vec2 vel, int layer)
-{
-    auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball"), true, layer);
-    m_rendererManager.addEntityToLayer(entity, layer);
-    Vec2 creatorPos = m_ECS.getComponent<CTransform>(creator).pos;
-    m_ECS.addComponent<CTransform>(entity, creatorPos, vel, Vec2{1, 1}, vel.angle(), 200.0f, true);
-    m_ECS.addComponent<CDamage>(entity, 1);
-    m_ECS.getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
-    // m_ECS.addComponent<CProjectileState>(entity, "Create");
-    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
-    m_ECS.addComponent<CCollisionBox>(entity, Vec2{12, 12}, PROJECTILE_LAYER, collisionMask);
-    // m_ECS.getComponent<CTransform>(entity).isMovable = true;
-    m_ECS.addComponent<CProjectileState>(entity, "Free");
-    m_ECS.addComponent<CLifespan>(entity, 60); // 1 second lifespan
-    // m_ECS.getComponent<CTransform>(entity).vel = (m_game->currentScene()->getMousePosition()-m_ECS.getComponent<CTransform>(entity).pos+m_game->currentScene()->getCameraPosition());
-    // m_ECS.getComponent<CTransform>(entity).angle = m_ECS.getComponent<CTransform>(entity).vel.angle();
-
-    spawnShadow(entity, Vec2{0,0}, 1, layer-1);
-    // auto& script = m_ECS.addComponent<CScript>(entity);
-    // InitiateScript<ProjectileController>(script, entity);
-    return entity;
-}
-
 EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();

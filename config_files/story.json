@@ -6,8 +6,7 @@
       "description": "Talk to the wizard.",
       "trigger": {
         "type": "flag",
-        "name": "talked_to_wizard",
-        "value": true
+        "name": "talked_to_wizard"
       },
       "on_complete": {
         "type": "spawn",
@@ -23,8 +22,7 @@
       "description": "Find the staff.",
       "trigger": {
         "type": "flag",
-        "name": "staff_found",
-        "value": true
+        "name": "staff_found"
       }
     },
     {
@@ -32,13 +30,11 @@
       "description": "Go to the house.",
       "trigger": {
         "type": "flag",
-        "name": "house_entered",
-        "value": true
+        "name": "house_entered"
       },
       "on_complete": {
         "type": "flag",
-        "name": "home_found",
-        "value": true
+        "name": "home_found"
       }
     }
   ]

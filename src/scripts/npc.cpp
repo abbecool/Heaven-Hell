@@ -31,15 +31,22 @@ public:
             // std::cout << "Player entity is not interacting." << std::endl;
             return;
         }
-        // std::cout << "NPC interaction triggered!" << std::endl;
-        showMessage();
-    }
+        int currentQuestID = m_scene->getStoryManager().getCurrentQuestID();
 
-    void showMessage()
-    {
-        // std::cout << "call story manager" << std::endl;
-        // std::string dialog = m_scene->getDialog();
-        // std::cout << dialog << std::endl;
+        if (currentQuestID == 0) {
+            m_scene->getStoryManager().setFlag("talked_to_wizard", true);
+            std::cout << "Go and look for the staff!" << std::endl;
+        }
+        else if (currentQuestID == 1) {
+            std::cout << "Have you found the staff yet?" << std::endl;
+        }
+        else if (currentQuestID == 2) {
+            std::cout << "Have you found you're home?" << std::endl;
+        }
+        else
+        {
+            std::cout << "I am a wizard, what are you?" << std::endl;
+        }
     }
 };
 

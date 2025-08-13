@@ -23,50 +23,34 @@ void StoryManager::loadStory(const std::string& storyFilePath)
     file_assets.close();
 
     for (const auto& step : j["story_steps"]) {
-        StoryStep storyStep;
-        storyStep.id = step["id"];
-        storyStep.description = step["description"];
-        storyStep.triggerType = step["trigger"]["type"];
-        storyStep.triggerType = step["trigger"]["type"];
-        storyStep.triggerType = step["trigger"]["type"];
+        StoryQuest storyQuest;
+        storyQuest.id = step["id"];
+        storyQuest.description = step["description"];
+        storyQuest.triggerType = step["trigger"]["type"];
+        storyQuest.triggerName = step["trigger"]["name"];
 
         if (step.contains("on_complete")) {
-            storyStep.onCompleteType = step["on_complete"]["type"];
-            if (storyStep.onCompleteType == "flag") {
-                storyStep.onCompleteName = step["on_complete"]["name"];
-                storyStep.onCompleteValue = step["on_complete"]["value"];
+            storyQuest.onCompleteType = step["on_complete"]["type"];
+            if (storyQuest.onCompleteType == "flag") {
+                storyQuest.onCompleteName = step["on_complete"]["name"];
             }
-            else if (storyStep.onCompleteType == "spawn") {
-                storyStep.onCompleteEntity = step["on_complete"]["entity"];
-                storyStep.onCompleteLocation = Vec2(step["on_complete"]["location"]["x"], step["on_complete"]["location"]["y"]);
+            else if (storyQuest.onCompleteType == "spawn") {
+                storyQuest.onCompleteEntity = step["on_complete"]["entity"];
+                storyQuest.onCompleteLocation = Vec2(step["on_complete"]["location"]["x"], step["on_complete"]["location"]["y"]);
             }
         }
-
-        // storyStep.setTrigger(step["trigger"]);
-        // storyStep.setOnComplete(step["on_complete"]);
-
-        m_storySteps.push_back(storyStep);
+        m_storyQuests.push_back(storyQuest);
     }
 }
 
-void StoryManager::getCurrentQuest()
+int StoryManager::getCurrentQuestID()
 {
-    std::cout << "Current quest: " << m_progression << std::endl;
+    return m_questID;
 }
 
-
-    // ,
-    // {
-    //   "id": 1,
-    //   "description": "Defeat the forest rooter.",
-    //   "trigger": {
-    //     "type": "event",
-    //     "name": "enemy_killed",
-    //     "target": "forest_rooter"
-    //   },
-    //   "on_complete": {
-    //     "type": "flag",
-    //     "name": "rooter_defeated",
-    //     "value": true
-    //   }
-    // }
+void StoryManager::setFlag(const std::string& flagName, bool value)
+{
+    if (m_currentQuest.triggerType == "flag" && m_currentQuest.triggerName == flagName) {
+        m_currentQuest.triggerValue = value;
+    }
+}
