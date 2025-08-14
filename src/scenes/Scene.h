@@ -75,11 +75,4 @@ class Scene
     MouseState getMouseState();
     Vec2 getMousePosition();
     virtual Vec2 getCameraPosition();
-
-    virtual void InitiateProjectileScript(CScript& sc, EntityID entityID){};
-
-    virtual std::string getDialog() {
-        std::string dialog = "Scene virtual function!";
-        return dialog;
-    };
 };

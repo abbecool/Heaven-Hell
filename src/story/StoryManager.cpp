@@ -1,14 +1,16 @@
 #include "story/StoryManager.h"
+#include "scenes/Scene_Play.h"
 #include <fstream>
 
 #include "external/json.hpp"
 using json = nlohmann::json;
 
-StoryManager::StoryManager(ECS* ecs, Scene* scene, std::string storyFilePath)
+StoryManager::StoryManager(ECS* ecs, Scene_Play* scene, std::string storyFilePath)
 {
     m_ECS = ecs;
     m_scene = scene;
     loadStory(storyFilePath);
+    m_currentQuest = m_storyQuests[m_questID];
 }
 
 void StoryManager::loadStory(const std::string& storyFilePath)
@@ -52,5 +54,24 @@ void StoryManager::setFlag(const std::string& flagName, bool value)
 {
     if (m_currentQuest.triggerType == "flag" && m_currentQuest.triggerName == flagName) {
         m_currentQuest.triggerValue = value;
+    }
+}
+
+void StoryManager::update()
+{
+    if (m_questID >= m_storyQuests.size()) {
+        std::cout << "All quests completed!" << std::endl;
+    }
+    StoryQuest quest = m_currentQuest;
+    if (quest.triggerType == "flag" && quest.triggerValue) {
+        m_questID++;
+        std::cout << "Quest " << quest.id << " started: " << quest.description << std::endl;
+        if (quest.onCompleteType == "flag") {
+            setFlag(quest.onCompleteName, true);
+        }
+        else if (quest.onCompleteType == "spawn") {
+            EntityID id = m_scene->Spawn(quest.onCompleteEntity, quest.onCompleteLocation);
+        }
+        m_currentQuest = m_storyQuests[m_questID];
     }
 }

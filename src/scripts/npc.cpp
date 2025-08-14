@@ -31,6 +31,7 @@ public:
             // std::cout << "Player entity is not interacting." << std::endl;
             return;
         }
+        
         int currentQuestID = m_scene->getStoryManager().getCurrentQuestID();
 
         if (currentQuestID == 0) {

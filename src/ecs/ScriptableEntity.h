@@ -3,6 +3,7 @@
 #include "core/Game.h"
 #include "ecs/Entity.h"
 #include "physics/Physics.h"
+#include "scenes/Scene_Play.h"
 
 #include <memory>
 #include <iostream>
@@ -38,7 +39,7 @@ class ScriptableEntity{
         ECS* m_ECS;
         Physics* m_physics;
         Game* m_game;
-        Scene* m_scene;
+        Scene_Play* m_scene;
         virtual void OnCreateFunction() {}
         virtual void OnDestroyFunction() {}
         virtual void OnUpdateFunction() {}

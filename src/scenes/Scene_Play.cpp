@@ -286,6 +286,7 @@ void Scene_Play::update()
     sRender();
     m_inventory_scene->update();
     m_ECS.update();
+    m_storyManager.update();
     m_rendererManager.update();
     if (m_restart) {
         // std::cerr << "Player entity is not initialized!" << std::endl;
@@ -622,6 +623,13 @@ void Scene_Play::sAudio()
     {
         Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1ogg"), -1);
     }
+}
+
+
+EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
+{
+    std::cout << "Spawning entity!" << std::endl;
+    return 0;
 }
 
 EntityID Scene_Play::spawnPlayer()

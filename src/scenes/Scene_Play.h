@@ -95,11 +95,11 @@ class Scene_Play : public Scene
     void togglePause();
     void changePlayerStateTo(EntityID entity, PlayerState s);
     
+    
+    public:
     template<typename T>
     void InitiateScript(CScript& sc, EntityID entityID);
     void InitiateProjectileScript(CScript& sc, EntityID entityID);
-    
-    public:
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 gridSize();
     Vec2 levelSize();
@@ -107,4 +107,10 @@ class Scene_Play : public Scene
     
     void update();
     void setPaused(bool);
+
+    StoryManager& getStoryManager() {
+        return m_storyManager;
+    }
+
+    EntityID Spawn(std::string name, Vec2 pos);
 };
