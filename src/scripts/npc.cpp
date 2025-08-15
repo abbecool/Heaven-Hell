@@ -34,19 +34,23 @@ public:
         
         int currentQuestID = m_scene->getStoryManager().getCurrentQuestID();
 
+        std::string dialog;
         if (currentQuestID == 0) {
             m_scene->getStoryManager().setFlag("talked_to_wizard", true);
-            std::cout << "Go and look for the staff!" << std::endl;
+            dialog = "Go and look for the staff!";
         }
         else if (currentQuestID == 1) {
-            std::cout << "Have you found the staff yet?" << std::endl;
+            dialog = "Have you found the staff yet?";
         }
         else if (currentQuestID == 2) {
-            std::cout << "Have you found you're home?" << std::endl;
+            dialog = "Have you found you're home?";
         }
         else
         {
-            std::cout << "I am a wizard, what are you?" << std::endl;
+            dialog = "I am a wizard, what are you?";
+        }
+        if (!hasComponent<CChild>()) {
+            m_scene->SpawnDialog(dialog, 16, "Minecraft", m_entity.getID());
         }
     }
 };

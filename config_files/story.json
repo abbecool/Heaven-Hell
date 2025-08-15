@@ -12,8 +12,8 @@
         "type": "spawn",
         "entity": "copper_staff",
         "location": {
-          "x": 100,
-          "y": 150
+          "x": 353,
+          "y": 61
         }
       }
     },

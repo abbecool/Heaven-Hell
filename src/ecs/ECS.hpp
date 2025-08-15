@@ -72,10 +72,15 @@ public:
     }
 
     void queueRemoveEntity(EntityID entity) {
-        if (entity == 1) {
+        if (entity == 0) {
             std::cerr << "Error: Attempting to remove player entity!" << std::endl;
-            
             return;
+        }
+        if (hasComponent<CParent>(entity))
+        {
+            auto parentID = getComponent<CParent>(entity).parent;
+            queueRemoveComponent<CChild>(parentID);
+            queueRemoveComponent<CParent>(entity);
         }
         if (hasComponent<CChild>(entity))
         {

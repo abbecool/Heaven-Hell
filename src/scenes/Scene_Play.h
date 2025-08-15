@@ -64,8 +64,8 @@ class Scene_Play : public Scene
     
     EntityID spawnPlayer();
     EntityID spawnNPC(Vec2 pos);
-    EntityID spawnWeapon(Vec2 pos, int layer);
-    EntityID spawnSword(Vec2 pos, int layer);
+    EntityID spawnWeapon(Vec2 pos, std::string weaponName = "staff");
+    EntityID spawnSword(Vec2 pos, std::string weaponName = "sword");
     EntityID spawnProjectile(EntityID player, Vec2 vel, int layer);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
@@ -113,4 +113,6 @@ class Scene_Play : public Scene
     }
 
     EntityID Spawn(std::string name, Vec2 pos);
+    EntityID SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID);
+
 };

@@ -35,13 +35,13 @@ Scene_Pause::Scene_Pause(Game* game)
 
 void Scene_Pause::saveLayout(const std::string& filename) {
     
-    auto dialogPool = m_ECS.getComponentPool<CDialog>();    
+    auto dialogPool = m_ECS.getComponentPool<CText>();    
     auto transformPool = m_ECS.getComponentPool<CTransform>();
-    auto view = m_ECS.View<CDialog, CCollisionBox, CTransform>();
+    auto view = m_ECS.View<CText, CCollisionBox, CTransform>();
     json j;
     for (auto e : view) {
         json button;
-        button["label"] = dialogPool.getComponent(e).dialog_text;
+        button["label"] = dialogPool.getComponent(e).text;
         button["position"]["x"] = transformPool.getComponent(e).pos.x;
         button["position"]["y"] = transformPool.getComponent(e).pos.y;
         j["buttons"].push_back(button);
@@ -83,7 +83,8 @@ void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, cons
     entity.getComponent<CTransform>().scale = Vec2{dynamic_length,1};
     entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1});
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1}, m_game->assets().getTexture(dialog), dialog);
+    // entity.addComponent<CText>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1}, m_game->assets().getTexture(dialog), dialog);
+    entity.addComponent<CText>(dialog, 16, "Minecraft");
 }
 
 void Scene_Pause::sDoAction(const Action& action) {
@@ -93,7 +94,7 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
-            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CDialog>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CText>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
@@ -102,7 +103,7 @@ void Scene_Pause::sDoAction(const Action& action) {
                 if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
-                        m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y + 3;
+                        m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y + 3;
                     }
                 }
             }
@@ -122,7 +123,7 @@ void Scene_Pause::sDoAction(const Action& action) {
                 if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
-                        m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y - 3;
+                        m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y - 3;
                         if ( name == "CONTINUE" ){
                             if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
                                 auto playScene = std::dynamic_pointer_cast<Scene_Play>(m_game->sceneMap().at("PLAY"));

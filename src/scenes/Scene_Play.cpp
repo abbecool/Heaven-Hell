@@ -79,8 +79,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     loadLevel(levelPath); 
 
     loadMobsNItems("config_files/mobs.txt"); // mobs have to spawn after player, so they can target the player
-    spawnWeapon(Vec2{345, 59}*m_gridSize, 7);
-    spawnSword(Vec2{364, 91}*m_gridSize, 7);
+    spawnWeapon(Vec2{345, 59}*m_gridSize);
+    spawnSword(Vec2{364, 91}*m_gridSize);
 
     m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
     m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
@@ -262,8 +262,6 @@ void Scene_Play::sDoAction(const Action& action) {
         {
             std::cout << "Collisions:" << std::endl;
             m_physics.m_quadRoot->printTree("", "");
-            // std::cout << "Interactions:" << std::endl;
-            // m_physics.m_interactionQuadRoot->printTree("", "");
         }
     }
 }
@@ -628,8 +626,22 @@ void Scene_Play::sAudio()
 
 EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
 {
-    std::cout << "Spawning entity!" << std::endl;
-    return 0;
+    if (name == "copper_staff") {
+        return spawnWeapon(pos*m_gridSize, name);
+    }
+    return 0; // Return 0 if the entity type is not recognized
+}
+
+EntityID Scene_Play::SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID)
+{
+    auto id = m_ECS.addEntity();
+    m_ECS.addComponent<CText>(id, dialog, size, font);
+    // m_ECS.addComponent<CChild>(parentID, id);
+    // m_ECS.addComponent<CParent>(id, parentID);
+    m_ECS.addComponent<CTransform>(id, Vec2{100, 100});
+    m_rendererManager.addEntityToLayer(id, 10);
+    m_ECS.addComponent<CLifespan>(id, 60);
+    return id;
 }
 
 EntityID Scene_Play::spawnPlayer()
@@ -723,19 +735,18 @@ EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int l
     return shadowID;
 }
 
-EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
+EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
     auto entity = m_ECS.addEntity();
-
+    int layer = 7;
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
     
     InterationMask interactionMask = PLAYER_LAYER1;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
 
-    m_ECS.addComponent<CName>(entity, "staff");
+    m_ECS.addComponent<CName>(entity, weaponName);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, layer);
-    m_rendererManager.addEntityToLayer(entity, 5);
-    // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
+    m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CWeapon>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
     auto& sc = m_ECS.addComponent<CScript>(entity);
@@ -743,9 +754,9 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, int layer){
     return entity;
 }
 
-EntityID Scene_Play::spawnSword(Vec2 pos, int layer){
+EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
     auto entity = m_ECS.addEntity();
-
+    int layer = 7;
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
     

@@ -270,26 +270,31 @@ struct CDamage
     CDamage() {}
     CDamage(int dmg) : damage(dmg) {}
     CDamage(int dmg, std::unordered_set<std::string> dmgType) : damage(dmg), damageType(dmgType) {}
-}; 
+};
 
-struct CDialog
+// enum struct TextBackground {
+//     dialog = 0,
+//     button = 1,
+//     title = 2
+// };
+
+struct CText
 {    
     Vec2 size;
-    SDL_Texture * dialog;
-    std::string dialog_text;
-    Vec2 offset = Vec2{0, 1};
+    std::string text;
+    std::string font_name;
 
-    CDialog() {}
-    CDialog(const Vec2 sz, SDL_Texture* dia, std::string txt) 
-        : size(sz), dialog(dia), dialog_text(txt){}
+    CText() {}
+    CText(std::string txt, const float sz, std::string fnt)
+        : text(txt), size(Vec2{sz*txt.length()/4, sz}), font_name(fnt){}
 };
 
 struct CPathfind
-{    
+{
     Vec2 target;
 
     CPathfind() {}
-    CPathfind( Vec2 trg) 
+    CPathfind( Vec2 trg)
         : target(trg){}
 };
 
@@ -306,7 +311,7 @@ struct CKnockback
     int timeElapsed = 0;
 
     CKnockback() {}
-    CKnockback( int dur, int mag, Vec2 dir) 
+    CKnockback( int dur, int mag, Vec2 dir)
         : duration(dur), magnitude(mag), direction(dir) {}
 };
 
@@ -317,7 +322,7 @@ struct CWeapon
     int speed;
     int range;
     bool ranged;
-    
+
     std::string type;
     CWeapon() {}
     CWeapon(const Animation& animation, int damage, int speed, int range)

@@ -41,7 +41,8 @@ void Scene_GameOver::loadGameOver()
     Vec2 size = Vec2{512, 128};
     // entity.addComponent<CCollisionBox>(size);
     entity.addComponent<CName>("death_text");
-    entity.addComponent<CDialog>(size, m_game->assets().getTexture("You Died!"), "You Died!");
+    // entity.addComponent<CText>(size, m_game->assets().getTexture("You Died!"), "You Died!");
+    entity.addComponent<CText>("You Died!", 16, "Minecraft");
 
 
     spawnButton(Vec2{float(m_game->getVirtualWidth()*0.5), float(m_game->getVirtualHeight()*0.75)}, "button_unpressed", "restart", "RESTART");
@@ -67,7 +68,8 @@ void Scene_GameOver::spawnButton(const Vec2 pos, const std::string& unpressed, c
     entity.getComponent<CTransform>().scale = Vec2{1,1};
     entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
     entity.addComponent<CName>(name);
-    entity.addComponent<CDialog>(entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
+    // entity.addComponent<CText>(entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
+    entity.addComponent<CText>(dialog, 64, "Minecraft");
 
 }
 
@@ -93,7 +95,7 @@ void Scene_GameOver::sDoAction(const Action& action)
         }
         else if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CDialog>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CText>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
@@ -102,7 +104,7 @@ void Scene_GameOver::sDoAction(const Action& action)
                 if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
                     if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
                         m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
-                        m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y + 3;
+                        m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y + 3;
                     }
                 }
             }
@@ -128,7 +130,7 @@ void Scene_GameOver::sDoAction(const Action& action)
                     continue;
                 }
                 m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
-                m_ECS.getComponent<CDialog>(e).offset.y = m_ECS.getComponent<CDialog>(e).offset.y - 3;
+                m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y - 3;
                 if ( name == "restart" )
                 {
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", true), true);

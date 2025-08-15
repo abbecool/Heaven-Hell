@@ -63,28 +63,66 @@ void Scene::sRenderBasic() {
                 }
             }
         }
-        auto& dialogPool = m_ECS.getComponentPool<CDialog>();
-        auto dialogView = m_ECS.View<CDialog, CTransform>();
+        auto& dialogPool = m_ECS.getComponentPool<CText>();
+        auto dialogView = m_ECS.View<CText, CTransform>();
         for (const auto& e : dialogView)
         {
-            auto& dialog = dialogPool.getComponent(e);
-            auto& transform = transformPool.getComponent(e);
-    
-            SDL_Rect texRect;
-            texRect.x = (int)(transform.pos.x + dialog.offset.x - dialog.size.x/2 * 0.9f) * totalZoom + screenCenterZoomed.x;
-            texRect.y = (int)(transform.pos.y + dialog.offset.y - dialog.size.y/2 * 0.8f) * totalZoom + screenCenterZoomed.y;
-            texRect.w = (int)(dialog.size.x * 0.9f) * totalZoom;
-            texRect.h = (int)(dialog.size.y * 0.8f) * totalZoom;
-    
-            SDL_RenderCopyEx(
-                m_game->renderer(), 
-                dialog.dialog, 
-                nullptr,
-                &texRect, 
-                0,
-                NULL,
-                SDL_FLIP_NONE
+            for (const auto& e : dialogView)
+            {
+                auto& dialog = dialogPool.getComponent(e);
+                auto& transform = transformPool.getComponent(e);
+
+                // Prepare destination rectangle (same as before)
+                SDL_Rect texRect;
+                texRect.x = static_cast<int>((transform.pos.x - dialog.size.x/2) * totalZoom + screenCenterZoomed.x);
+                texRect.y = static_cast<int>((transform.pos.y - dialog.size.y/2) * totalZoom + screenCenterZoomed.y);
+                texRect.w = static_cast<int>(dialog.size.x * totalZoom);
+                texRect.h = static_cast<int>(dialog.size.y * totalZoom);
+                // Render from string instead of pre-made texture
+                SDL_Color color = {255, 255, 255, 255};
+                SDL_Surface* surface = TTF_RenderText_Blended(m_game->assets().getFont(dialog.font_name), dialog.text.c_str(), color);
+                if (!surface) {
+                    SDL_Log("TTF_RenderText_Blended error: %s", TTF_GetError());
+                    continue;
+                }
+
+                SDL_Texture* texture = SDL_CreateTextureFromSurface(m_game->renderer(), surface);
+                SDL_FreeSurface(surface);
+                if (!texture) {
+                    SDL_Log("SDL_CreateTextureFromSurface error: %s", SDL_GetError());
+                    continue;
+                }
+
+                SDL_RenderCopyEx(
+                    m_game->renderer(),
+                    texture,
+                    nullptr,
+                    &texRect,
+                    0,
+                    nullptr,
+                    SDL_FLIP_NONE
                 );
+
+                SDL_DestroyTexture(texture); // Free after rendering to avoid leaks
+            }
+            // auto& dialog = dialogPool.getComponent(e);
+            // auto& transform = transformPool.getComponent(e);
+    
+            // SDL_Rect texRect;
+            // texRect.x = (int)(transform.pos.x + dialog.offset.x - dialog.size.x/2 * 0.9f) * totalZoom + screenCenterZoomed.x;
+            // texRect.y = (int)(transform.pos.y + dialog.offset.y - dialog.size.y/2 * 0.8f) * totalZoom + screenCenterZoomed.y;
+            // texRect.w = (int)(dialog.size.x * 0.9f) * totalZoom;
+            // texRect.h = (int)(dialog.size.y * 0.8f) * totalZoom;
+    
+            // SDL_RenderCopyEx(
+            //     m_game->renderer(), 
+            //     dialog.dialog, 
+            //     nullptr,
+            //     &texRect, 
+            //     0,
+            //     NULL,
+            //     SDL_FLIP_NONE
+            //     );
         } 
     }
     if (m_drawCollision)
