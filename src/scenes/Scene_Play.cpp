@@ -635,11 +635,13 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
 EntityID Scene_Play::SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID)
 {
     auto id = m_ECS.addEntity();
+    m_ECS.addComponent<CTransform>(id);
+    m_ECS.addComponent<CChild>(parentID, id);
+    Vec2 relativePosition = {0, -2*m_gridSize.y};
+    m_ECS.addComponent<CParent>(id, parentID, relativePosition);
     m_ECS.addComponent<CText>(id, dialog, size, font);
-    // m_ECS.addComponent<CChild>(parentID, id);
-    // m_ECS.addComponent<CParent>(id, parentID);
-    m_ECS.addComponent<CTransform>(id, Vec2{100, 100});
-    m_rendererManager.addEntityToLayer(id, 10);
+    m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("button_unpressed"), true, 5);
+    m_rendererManager.addEntityToLayer(id, 8);
     m_ECS.addComponent<CLifespan>(id, 60);
     return id;
 }

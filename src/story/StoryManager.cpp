@@ -65,7 +65,7 @@ void StoryManager::update()
     StoryQuest quest = m_currentQuest;
     if (quest.triggerType == "flag" && quest.triggerValue) {
         m_questID++;
-        std::cout << "Quest " << quest.id << " started: " << quest.description << std::endl;
+        // std::cout << "Quest " << quest.id << " started: " << quest.description << std::endl;
         if (quest.onCompleteType == "flag") {
             setFlag(quest.onCompleteName, true);
         }
