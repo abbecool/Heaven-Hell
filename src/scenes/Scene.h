@@ -38,7 +38,7 @@ class Scene
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawInteraction = false;
-    bool m_drawDrawGrid = false;
+    bool m_drawDrawGrid = true;
     Vec2 m_gridSize = {16, 16};    
     virtual void onEnd() = 0;
     Vec2 gridToMidPixel(Vec2 grid, EntityID);
@@ -75,11 +75,4 @@ class Scene
     MouseState getMouseState();
     Vec2 getMousePosition();
     virtual Vec2 getCameraPosition();
-
-    virtual void InitiateProjectileScript(CScript& sc, EntityID entityID){};
-
-    virtual std::string getDialog() {
-        std::string dialog = "Scene virtual function!";
-        return dialog;
-    };
 };

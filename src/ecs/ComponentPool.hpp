@@ -12,76 +12,92 @@
 #include <typeindex>
 #include <functional>
 #include <cassert>
+#include <limits>
+#include <array>
 
 using EntityID = uint32_t;
+static constexpr EntityID tombstone = std::numeric_limits<EntityID>::max();
 
 class BaseComponentPool {
-public:
+    public:
+    std::vector<EntityID> entitiesToRemove;
+    std::vector<EntityID> entities;  // Dense vector of IDs
     virtual ~BaseComponentPool() = default;  // Virtual destructor to allow proper deletion
     virtual void removeComponent(EntityID entityId){};
-    std::vector<EntityID> entitiesToRemove;
-    virtual size_t numComponents(){ return 0; };
-    virtual void status() {};
-    std::vector<bool> poolUsed;  // Vector to track used components
+    const std::vector<EntityID>& getEntities() const {return entities;};
 };
+
+static constexpr EntityID MAX_ENTITIES = 8192;  // Define a maximum number of entities 
 
 template<typename T>
 class ComponentPool : public BaseComponentPool{
+    private:
+    
+    std::array<EntityID, MAX_ENTITIES> sparse; // Sparse vector of IDs
+    std::vector<T> dense;  // Dense vector of components
 public:
 
-    size_t numComponents() override {
-        return poolVector.size();
+    ComponentPool() {
+        sparse.fill(tombstone);  // Initialize sparse array with tombstone value
     }
 
     template<typename... Args>
-    T& addComponent(EntityID entityId, Args... args) {
-        if (entityId >= poolVector.size()) {
-            poolVector.resize(entityId + 1);
-            poolUsed.resize(entityId + 1, false);
-        }
-        poolVector[entityId] = T(std::forward<Args>(args)...);
-        poolUsed[entityId] = true;  // Mark this component as used
-        return poolVector[entityId];
-    }
+    T& addComponent(EntityID id, Args... args) {
+        T component = T(std::forward<Args>(args)...);
 
-    void removeComponent(EntityID entityId) {
-        if (entityId < poolVector.size()) {
-            // poolVector[entityId] = T();  // Set to default-constructed value
-            poolUsed[entityId] = false;  // Mark this component as unused
-        }
-    }
+        // Sparse set implementation
+        // assert(id < sparse.size());
+        sparse[id] = dense.size();
+        dense.push_back(component);
+        entities.push_back(id);
 
-    void queueRemoveEntity(EntityID entity) {
-        if (entity == 1)
-        {
-            std::cerr << "Warning: Attempting to remove player entity." << std::endl;
-            std::cout << "Type of pool: " << typeid(poolVector).name() << std::endl;
-        }
-        entitiesToRemove.push_back(entity);
+        return dense[sparse[id]];  // Return a reference to the added component
     }
-
+    
     inline bool hasComponent(EntityID e) const noexcept {
-        return e < poolUsed.size() && poolUsed[e];
+        return sparse[e] != tombstone && sparse[e] < dense.size();
     }
-
+    
     inline T& getComponent(EntityID e) {
-        if (!hasComponent(e)) {
+        
+        EntityID index = sparse[e];
+        if (index == tombstone) {
             throw std::out_of_range("Component not found.");
         }
-        return poolVector[e];
+        T& component = dense[index];
+        return component;
+    }
+    
+    void queueRemoveEntity(EntityID id) {
+        if (id == 0)
+        {
+            // std::cerr << "Warning: Attempting to remove player entity." << std::endl;
+            return;
+        }
+        entitiesToRemove.push_back(id);
     }
 
+    void removeComponent(EntityID id) {
+        if (id == 0) {
+            return;
+        }
+        EntityID index = sparse[id];
+        if (index == tombstone) {
+            return;
+        }
+        EntityID lastId = entities.back();
 
-    void status() override {
-        size_t poolUsedSum = std::count(poolUsed.begin(), poolUsed.end(), true);
-        std::cout << "\rComponent pool: " << typeid(T).name() 
-                  << " | poolVector size: " << poolVector.size()
-                  << " | poolUsed sum: " << poolUsedSum
-                  << " | poolUsed size: " << poolUsed.size() << "...";
+        std::swap(dense[index], dense.back());  // Swap with the last element
+        std::swap(entities[index], entities.back());  // Swap with the last element
 
+        sparse[lastId] = index;  // Update the sparse index for the moved element
+        sparse[id] = tombstone;
+
+        dense.pop_back();  // Remove the last element
+        entities.pop_back();  // Remove the last ID
     }
 
-private:
-    std::unordered_map<EntityID, T> pool;  // Map of components indexed by EntityID
-    std::vector<T> poolVector;  // Vector of components
+    std::vector<T>& getDense() {
+        return dense;
+    }
 };

@@ -31,15 +31,27 @@ public:
             // std::cout << "Player entity is not interacting." << std::endl;
             return;
         }
-        // std::cout << "NPC interaction triggered!" << std::endl;
-        showMessage();
-    }
+        
+        int currentQuestID = m_scene->getStoryManager().getCurrentQuestID();
 
-    void showMessage()
-    {
-        // std::cout << "call story manager" << std::endl;
-        std::string dialog = m_scene->getDialog();
-        std::cout << dialog << std::endl;
+        std::string dialog;
+        if (currentQuestID == 0) {
+            m_scene->getStoryManager().setFlag("talked_to_wizard", true);
+            dialog = "Go and look for the staff!";
+        }
+        else if (currentQuestID == 1) {
+            dialog = "Have you found the staff yet?";
+        }
+        else if (currentQuestID == 2) {
+            dialog = "Have you found you're home?";
+        }
+        else
+        {
+            dialog = "I am a wizard, what are you?";
+        }
+        if (!hasComponent<CChild>()) {
+            m_scene->SpawnDialog(dialog, 16, "Minecraft", m_entity.getID());
+        }
     }
 };
 

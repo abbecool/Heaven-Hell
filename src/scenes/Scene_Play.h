@@ -38,7 +38,7 @@ class Scene_Play : public Scene
     StoryManager m_storyManager;
     float m_zoomStep = 2;
     Vec2 m_currentChunk = Vec2{1, 0};
-    Vec2 m_chunkSize = Vec2{8, 8};
+    Vec2 m_chunkSize = Vec2{12, 12};
     std::vector<Vec2> m_loadedChunks;
     std::vector<EntityID> m_loadedChunkIDs;
     LevelLoader m_levelLoader;
@@ -62,11 +62,10 @@ class Scene_Play : public Scene
     
     void saveGame(const std::string& filename);
     
-    // void spawnHUD();
     EntityID spawnPlayer();
     EntityID spawnNPC(Vec2 pos);
-    EntityID spawnWeapon(Vec2 pos, int layer);
-    EntityID spawnSword(Vec2 pos, int layer);
+    EntityID spawnWeapon(Vec2 pos, std::string weaponName = "staff");
+    EntityID spawnSword(Vec2 pos, std::string weaponName = "sword");
     EntityID spawnProjectile(EntityID player, Vec2 vel, int layer);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
@@ -79,7 +78,6 @@ class Scene_Play : public Scene
     EntityID spawnCampfire  (const Vec2 pos, int layer);
     EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
     EntityID spawnLava      (const Vec2 pos, const std::string tag, const int frame );
-    EntityID spawnBridge    (const Vec2 pos, const int frame );
     std::vector<EntityID> spawnDualTiles (const Vec2 pos, std::unordered_map<std::string, int> tileIndex);
     
     void sLoader();
@@ -97,11 +95,11 @@ class Scene_Play : public Scene
     void togglePause();
     void changePlayerStateTo(EntityID entity, PlayerState s);
     
+    
+    public:
     template<typename T>
     void InitiateScript(CScript& sc, EntityID entityID);
     void InitiateProjectileScript(CScript& sc, EntityID entityID);
-    
-    public:
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 gridSize();
     Vec2 levelSize();
@@ -110,6 +108,11 @@ class Scene_Play : public Scene
     void update();
     void setPaused(bool);
 
-    std::string getDialog();
+    StoryManager& getStoryManager() {
+        return m_storyManager;
+    }
+
+    EntityID Spawn(std::string name, Vec2 pos);
+    EntityID SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID);
 
 };

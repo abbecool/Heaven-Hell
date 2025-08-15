@@ -37,9 +37,9 @@ public:
         m_ECS->queueRemoveComponent<T>(m_entityId);  // Get component via ECS
     }
 
-    template<typename T>
+    template<typename... T>
     std::vector<EntityID> view() {
-        return m_ECS->signatureView<T>();
+        return m_ECS->View<T...>();
     }
 
     void removeEntity() {
