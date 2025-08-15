@@ -115,8 +115,6 @@ Mix_Music* Assets::getMusic(const std::string& name) const {
 
 void Assets::loadFromFile(const std::string & pathAssets, const std::string & pathText, SDL_Renderer * ren) {
     std::ifstream file_assets(pathAssets);
-    // std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
-    // std::cout << "Loading assets from: " << pathAssets << std::endl;
     if (!file_assets) {
         std::cerr << "Could not load assets file!\n";
         exit(-1);

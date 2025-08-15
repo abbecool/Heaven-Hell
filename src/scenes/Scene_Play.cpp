@@ -17,6 +17,7 @@
 #include "scripts/projectile.cpp"
 #include "scripts/coin.cpp"
 #include "physics/RandomArray.h"
+#include "external/json.hpp"
 
 #include <SDL_image.h>
 #include <SDL_mixer.h>
@@ -26,6 +27,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
+
+using json = nlohmann::json;
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), 
@@ -87,39 +90,29 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
-    std::ifstream file(path);
+    std::ifstream file("config_files/mobs.json");
     if (!file) {
-        std::cerr << "Could not load mobs.txt file!\n";
+        std::cerr << "Could not load assets file!\n";
         exit(-1);
     }
-    std::string head;
+    json j;
+    file >> j;
+    file.close();
+    
     Vec2 pos;
-    int layer;
-    while (file >> head) {
-        file >>  pos.x >> pos.y >> layer;           
-        if (head == "rooter") {
-            spawnSmallEnemy(pos*m_gridSize, layer, "rooter-sheet");
-        }
-        else if (head == "goblin") {
-            spawnSmallEnemy(pos*m_gridSize, layer, "goblin-sheet");
-        }
-        else if (head == "coin") {
-            spawnCoin(pos*m_gridSize, layer);
-        }
-        else if (head == "tree") {
-            spawnDecoration(pos*m_gridSize, Vec2 {6, 8}, layer, "tree");
-        }
-        else if (head == "House1") {
-            spawnDecoration(pos*m_gridSize, Vec2 {56, 44}, layer, "House1");
-        }
-        else if (head == "campfire") {
-            spawnCampfire(pos*m_gridSize, layer);
-        }
-        else {
-            std::cerr << "The mobs file format is incorrect!\n";
-            exit(-1);
+    for (auto& [mobType, mobArray] : j["mobs"].items()) {
+        for (auto& mob : mobArray) {
+            pos = Vec2{mob["x"], mob["y"]};
+            spawnDecoration(pos*m_gridSize, Vec2 {6, 8}, 6, mobType);
+            // EntityID id = Spawn(mobType, pos);
         }
     }
+    // spawnSmallEnemy(pos*m_gridSize, layer, "rooter-sheet");
+    // spawnSmallEnemy(pos*m_gridSize, layer, "goblin-sheet");
+    // spawnCoin(pos*m_gridSize, layer);
+    // spawnDecoration(pos*m_gridSize, Vec2 {6, 8}, layer, "tree");
+    // spawnDecoration(pos*m_gridSize, Vec2 {56, 44}, layer, "house");
+    // spawnCampfire(pos*m_gridSize, layer);
 }
 
 void Scene_Play::loadConfig(const std::string& confPath){
@@ -260,7 +253,6 @@ void Scene_Play::sDoAction(const Action& action) {
         }
         if ( action.name() == "WRITE QUADTREE")
         {
-            std::cout << "Collisions:" << std::endl;
             m_physics.m_quadRoot->printTree("", "");
         }
     }
@@ -296,8 +288,6 @@ void Scene_Play::update()
 void Scene_Play::sLoader()
 {
     m_currentChunk = ( ( (m_ECS.getComponent<CTransform>(m_player).pos / m_gridSize).toInt() ) / m_chunkSize ).toInt();
-    // std::cout << "Current chunk: " << m_currentChunk.x << ", " << m_currentChunk.y << std::endl;
-    // m_currentChunk = Vec2{43, 7};
     for (int dx = -2; dx <= 2; ++dx) 
     {
         for (int dy = -1; dy <= 1; ++dy) 
@@ -504,7 +494,6 @@ void Scene_Play::sAnimation() {
                 projectileState.state = "Ready";
                 animation.animation = m_game->assets().getAnimation("fireball");
                 animation.repeat = true;
-                std::cout << "Projectile created!\n";
                 m_camera.startShake(50, 100);
             }
         }

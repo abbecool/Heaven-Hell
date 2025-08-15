@@ -40,7 +40,7 @@ struct StoryStep
 
     std::string onCompleteType;
     std::string onCompleteEntity;
-    Vec2        onCompleteLocation;
+    Vec2        onCompleteposition;
     std::string onCompleteName;
     bool        onCompleteValue;
     

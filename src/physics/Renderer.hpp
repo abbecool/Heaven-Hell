@@ -40,7 +40,6 @@ public:
             }
         }
         entitiesToRemove.clear();
-        // std::cout << "\r" << getEntities().size() << " entities in renderer manager.";;
     }
 
     std::vector<EntityID> getEntities() {

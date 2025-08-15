@@ -171,11 +171,9 @@ size_t Animation::frames(){
 }
 
 Vec2 Animation::getRowColumn() const {
-    // std::cout << "currentCol: " << m_currentCol << ", currentRow: " << m_currentRow << "\n";
     return Vec2{(float)m_currentCol, (float)m_currentRow};
 }
 
 Vec2 Animation::getShape() const {
-    // std::cout << "cols: " << m_cols << ", rows: " << m_rows << "\n";
     return Vec2{(float)m_cols, (float)m_rows};
 }

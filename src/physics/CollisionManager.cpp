@@ -5,13 +5,11 @@
 
 void handlePlayerObstacleCollision(Entity player, Entity obstacle, Vec2 overlap)
 {
-    // std::cout << "Player collided with obstacle: " << obstacle.getID() << std::endl;
     player.getComponent<CTransform>().pos += overlap;
 }
 
 void handlePlayerEnemyCollision(Entity player, Entity enemy, Vec2 overlap)
 {
-    // std::cout << "Player collided with enemy: " << enemy.getID() << std::endl;
     player.getComponent<CTransform>().pos += overlap/2;
     enemy.getComponent<CTransform>().pos -= overlap/2;
 
@@ -19,25 +17,21 @@ void handlePlayerEnemyCollision(Entity player, Entity enemy, Vec2 overlap)
 
 void handleFriendlyObstacleCollision(Entity friendly, Entity obstacle, Vec2 overlap)
 {
-    // std::cout << "Friendly: " << friendly.getID() << " collided with obstacle: " << obstacle.getID() << std::endl;
 }
 
 void handleProjectileObstacleCollision(Entity projectile, Entity obstacle, Vec2 overlap)
 {
-    // std::cout << "Projectile: " << projectile.getID() << " collided with obstacle: " << obstacle.getID() << std::endl;
     projectile.getComponent<CScript>().Instance->OnDestroyFunction();
 }
 
 void handleEnemyProjectileCollision(Entity enemy, Entity projectile, Vec2 overlap)
 {
-    // std::cout << "Enemy: " << enemy.getID() << " collided with projectile: " << projectile.getID() << std::endl;
     projectile.getComponent<CScript>().Instance->OnDestroyFunction();
     projectile.getComponent<CScript>().Instance->OnAttackFunction(enemy.getID());
 }
 
 void handleEnemyEnemyCollision(Entity enemyA, Entity enemyB, Vec2 overlap)
 {
-    // std::cout << "EnemyA: " << enemyA.getID() << " collided with enemyB: " << enemyB.getID() << std::endl;
     enemyA.getComponent<CTransform>().pos += overlap/2;
     enemyB.getComponent<CTransform>().pos -= overlap/2;
 }
@@ -45,7 +39,6 @@ void handleEnemyEnemyCollision(Entity enemyA, Entity enemyB, Vec2 overlap)
 
 void handleEnemyObstacleCollision(Entity enemy, Entity obstacle, Vec2 overlap)
 {
-    // std::cout << "Enemy: " << enemy.getID() << " collided with obstacle: " << obstacle.getID() << std::endl;
     enemy.getComponent<CTransform>().pos -= overlap;
 }
 
@@ -70,7 +63,6 @@ void BaseCollisionManager::newQuadtree(Vec2 pos, Vec2 size)
     m_quadRoot = std::make_unique<Quadtree>(pos, size);
     for ( auto e : view ){
         Entity entity = {e, m_ECS};
-        //m_quadRoot->insert<T>(entity);
         auto entityPos = transformPool.getComponent(e).pos;
         auto entitySize = TPool.getComponent(e).size;
         m_quadRoot->insert1<T>(entity, entityPos, entitySize);
@@ -291,7 +283,6 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize)
                 {
                     continue; // No collision detected
                 }
-                // std::cout << "interaction triggered" << std::endl;
                 scriptA.Instance->OnInteractFunction(entityIDB, interactionB.layer);
                 scriptB.Instance->OnInteractFunction(entityIDA, interactionA.layer);                
             }

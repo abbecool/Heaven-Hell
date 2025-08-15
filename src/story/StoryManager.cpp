@@ -38,7 +38,7 @@ void StoryManager::loadStory(const std::string& storyFilePath)
             }
             else if (storyQuest.onCompleteType == "spawn") {
                 storyQuest.onCompleteEntity = step["on_complete"]["entity"];
-                storyQuest.onCompleteLocation = Vec2(step["on_complete"]["location"]["x"], step["on_complete"]["location"]["y"]);
+                storyQuest.onCompleteposition = Vec2(step["on_complete"]["position"]["x"], step["on_complete"]["position"]["y"]);
             }
         }
         m_storyQuests.push_back(storyQuest);
@@ -65,12 +65,11 @@ void StoryManager::update()
     StoryQuest quest = m_currentQuest;
     if (quest.triggerType == "flag" && quest.triggerValue) {
         m_questID++;
-        // std::cout << "Quest " << quest.id << " started: " << quest.description << std::endl;
         if (quest.onCompleteType == "flag") {
             setFlag(quest.onCompleteName, true);
         }
         else if (quest.onCompleteType == "spawn") {
-            EntityID id = m_scene->Spawn(quest.onCompleteEntity, quest.onCompleteLocation);
+            EntityID id = m_scene->Spawn(quest.onCompleteEntity, quest.onCompleteposition);
         }
         m_currentQuest = m_storyQuests[m_questID];
     }

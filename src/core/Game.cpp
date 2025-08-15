@@ -34,9 +34,9 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
 
     SDL_GetCurrentDisplayMode(0, &DM);
-    updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
+    // updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
+    updateResolution(1);
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
-    std::cout << "Game initialized with resolution: " << m_width << "x" << m_height << std::endl;
 }
 
 void Game::updateResolution(int scale)

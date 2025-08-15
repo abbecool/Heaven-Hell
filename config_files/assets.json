@@ -21,8 +21,6 @@
             "dual_sheets/mountain_dual_sheet.png",
             "dual_sheets/dirt_dual_sheet.png",
             "levels/levelWorld.png",
-            "levels/level1.png",
-            "levels/level2.png",
             "shadow.png",
             "level0_screenshot.png",
             "buttons/button_unpressed.png",
@@ -30,7 +28,7 @@
             "game_title.png",
             "coin.png",
             "tree.png",
-            "House1.png",
+            "house.png",
             "staff.png",
             "sword.png",
             "demon-sheet.png",
@@ -134,7 +132,7 @@
             "height": 80
         },
         {
-            "name": "House1",
+            "name": "house",
             "frames": 1,
             "frametime": 100,
             "cols": 1,
