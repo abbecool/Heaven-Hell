@@ -8,7 +8,8 @@ class WeaponController : public ScriptableEntity
         auto entity = m_ECS->addEntity();
         m_ECS->addComponent<CAnimation>(entity, m_game->assets().getAnimation("fireball"), true, layer);
         m_scene->m_rendererManager.addEntityToLayer(entity, layer);
-        m_ECS->addComponent<CTransform>(entity, m_ECS->getComponent<CTransform>(creator).pos, vel, Vec2{1, 1}, vel.angle(), 200.0f, true);
+        m_ECS->addComponent<CTransform>(entity, m_ECS->getComponent<CTransform>(creator).pos, vel.angle());
+        m_ECS->addComponent<CVelocity>(entity, vel, 200.0f);
         m_ECS->addComponent<CDamage>(entity, 1);
         m_ECS->getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
         CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;

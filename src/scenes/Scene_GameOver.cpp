@@ -36,7 +36,7 @@ void Scene_GameOver::loadGameOver()
     // entity.addComponent<CAnimation>(m_game->assets().getAnimation("sword"), true, 5);
     m_rendererManager.addEntityToLayer(entityId, 3);
     Vec2 pos = Vec2{float(m_game->getVirtualWidth()), float(m_game->getVirtualHeight()/2)}/2;
-    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity.addComponent<CTransform>(pos);
     // entity.getComponent<CTransform>().scale = Vec2{1,1};
     Vec2 size = Vec2{512, 128};
     // entity.addComponent<CCollisionBox>(size);
@@ -54,7 +54,7 @@ void Scene_GameOver::spawnLevel(const Vec2 pos, std::string level)
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation> (m_game->assets().getAnimation(level), true, 9);
-    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity.addComponent<CTransform>(pos);
     entity.addComponent<CName>(level);
 }
 
@@ -64,11 +64,9 @@ void Scene_GameOver::spawnButton(const Vec2 pos, const std::string& unpressed, c
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
     m_rendererManager.addEntityToLayer(entityId, 3);
-    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
-    entity.getComponent<CTransform>().scale = Vec2{1,1};
+    entity.addComponent<CTransform>(pos);
     entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
     entity.addComponent<CName>(name);
-    // entity.addComponent<CText>(entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
     entity.addComponent<CText>(dialog, 64, "Minecraft");
 
 }

@@ -73,8 +73,6 @@ void Scene::sRenderBasic() {
         auto& transform = transformPool.getComponent(e);
         auto pos = (transform.pos - m_camera.position) * totalZoom + screenCenterZoomed - dialog.size / 2;
         SDL_Rect texRect;
-        // texRect.x = static_cast<int>((transform.pos.x - dialog.size.x/2) * totalZoom + screenCenterZoomed.x);
-        // texRect.y = static_cast<int>((transform.pos.y - dialog.size.y/2) * totalZoom + screenCenterZoomed.y);
         texRect.x = int(pos.x);
         texRect.y = int(pos.y);
         texRect.w = int(dialog.size.x * totalZoom);

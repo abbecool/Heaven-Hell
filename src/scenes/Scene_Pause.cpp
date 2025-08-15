@@ -78,7 +78,7 @@ void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, cons
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
     m_rendererManager.addEntityToLayer(entityId, 5);
-    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity.addComponent<CTransform>(pos);
     float dynamic_length = (float)(dialog.length()/4);
     entity.getComponent<CTransform>().scale = Vec2{dynamic_length,1};
     entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1});

@@ -114,7 +114,7 @@ Vec2 Vec2::norm () const
 
 Vec2 Vec2::norm (const float val) const
 {   
-    float len = length();
+    float len = length() ? length() : 1.0f; // Avoid division by zero
     return Vec2 {val*x/len, val*y/len};
 }
 

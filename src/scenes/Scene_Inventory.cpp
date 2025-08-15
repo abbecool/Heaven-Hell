@@ -95,7 +95,7 @@ void Scene_Inventory::spawnItem(std::string sprite)
     auto entityID = m_ECS.addEntity();
     m_item = entityID;
     Vec2 pos = {(float)((int)(entityID-1)%(int)m_inventorySize.x), (float)((int)(entityID-1)/(int)m_inventorySize.x)};
-    m_ECS.addComponent<CTransform>(entityID, pos, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
+    m_ECS.addComponent<CTransform>(entityID, pos);
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8});
 
     m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation(sprite), true, 3);

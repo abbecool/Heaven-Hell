@@ -90,29 +90,29 @@ struct CTransform
 {
     Vec2 pos = {0, 0};  
     Vec2 prevPos = {0, 0};  
-    Vec2 vel = {0, 0};    
     Vec2 scale = {1, 1};    
     float angle = 0;
-    float speed = 0;
-    bool isMovable = false;
-    float tempo = 1.0f;
     CTransform() {}
-    CTransform(const Vec2 & p) : pos(p), prevPos(p) {}
-    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(300), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), speed(300), isMovable(mvbl){}
-    CTransform(const Vec2 & p, const Vec2 & v, const Vec2 & scl, const float ang, float spd, bool mvbl) 
-        : pos(p), prevPos(p), vel(v), scale(scl), angle(ang), speed(spd), isMovable(mvbl){}
+    CTransform(const Vec2 & p)
+        : pos(p), prevPos(p) {}
+    CTransform(const Vec2 & p, float a)
+        : pos(p), prevPos(p), angle(a) {}
+    CTransform(const Vec2 & p, float a, Vec2 s)
+        : pos(p), prevPos(p), angle(a), scale(s){}
+    CTransform(const Vec2 & p, Vec2 s)
+        : pos(p), prevPos(p), scale(s){}
 };
 
 struct CVelocity
 {
     Vec2 vel = {0, 0};    
-    float angle = 0;
     float speed = 0;
     float tempo = 1.0f;
     CVelocity() {}
+    CVelocity(const float s) 
+        : speed(s){}
+    CVelocity(Vec2 v, const float s) 
+        : vel(v), speed(s){}
 };
 
 struct CBox 

@@ -36,14 +36,14 @@ void Scene_Menu::loadMenu()
     entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true, 9);
     m_rendererManager.addEntityToLayer(entityId, 1);
     Vec2 midPixel = gridToMidPixel(Vec2{0, 0}, entityId);
-    entity.addComponent<CTransform>(midPixel, Vec2{0, 0}, false);
+    entity.addComponent<CTransform>(midPixel);
     entity.addComponent<CName>("title_screen");
 
     EntityID entityId1 = m_ECS.addEntity();
     Entity entity1 = {entityId1, &m_ECS};
     entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
     m_rendererManager.addEntityToLayer(entityId1, 2);
-    entity1.addComponent<CTransform>(Vec2 {300, 45},Vec2 {0, 0}, false);
+    entity1.addComponent<CTransform>(Vec2 {300, 45});
     entity1.addComponent<CName>("game_title");
 
     spawnButton(Vec2 {64.f, 64.f}, "button_unpressed", "new", "NEW GAME");
@@ -60,7 +60,7 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation> (m_game->assets().getAnimation(level), true, 9);
-    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity.addComponent<CTransform>(pos);
     entity.addComponent<CName>(level);
 }
 
@@ -70,7 +70,7 @@ void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
     m_rendererManager.addEntityToLayer(entityId, 3);
-    entity.addComponent<CTransform>(pos,Vec2 {0, 0}, false);
+    entity.addComponent<CTransform>(pos);
     entity.getComponent<CTransform>().scale = Vec2{1,1};
     entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
     entity.addComponent<CName>(name);

@@ -325,48 +325,49 @@ void Scene_Play::sScripting()
 
 void Scene_Play::sMovement() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& velocityPool = m_ECS.getComponentPool<CVelocity>();
 
     auto& pathfindPool = m_ECS.getComponentPool<CPathfind>();
-    auto viewPathfind = m_ECS.View<CPathfind, CTransform>();
+    auto viewPathfind = m_ECS.View<CPathfind, CTransform, CVelocity>();
     for (auto e : viewPathfind)
     {
         auto& transform = transformPool.getComponent(e);
+        auto& velocity = velocityPool.getComponent(e);
         auto& pathfind = pathfindPool.getComponent(e);
         if ((pathfind.target - transform.pos).length() < 16*2) {
-            transform.vel = pathfind.target - transform.pos;
+            velocity.vel = pathfind.target - transform.pos;
         } else {
-            transform.vel = Vec2 {0,0};
+            velocity.vel = Vec2 {0,0};
         }
         pathfind.target = transformPool.getComponent(m_player).pos;
     }
 
     auto& inputPool = m_ECS.getComponentPool<CInputs>();
-    auto viewInputs = m_ECS.View<CInputs>();
+    auto viewInputs = m_ECS.View<CInputs, CTransform, CVelocity>();
     for (auto e : viewInputs){
         auto &transform = transformPool.getComponent(e);
+        auto &velocity = velocityPool.getComponent(e);
         auto &inputs = inputPool.getComponent(e);
 
-        if ( e == m_player ){
-            transform.vel = { 0,0 };
-            if (inputs.up){
-                transform.vel.y--;
-            } if (inputs.down){
-                transform.vel.y++;
-            } if (inputs.left){
-                transform.vel.x--;
-            } if (inputs.right){
-                transform.vel.x++;
-            } if (inputs.shift){
-                transform.tempo = 0.5f;
-            } else if (inputs.ctrl){
-                transform.tempo = 2.0f;
-            } else{
-                transform.tempo = 1.0f;
-            }
+        velocity.vel = { 0,0 };
+        if (inputs.up){
+            velocity.vel.y--;
+        } if (inputs.down){
+            velocity.vel.y++;
+        } if (inputs.left){
+            velocity.vel.x--;
+        } if (inputs.right){
+            velocity.vel.x++;
+        } if (inputs.shift){
+            velocity.tempo = 0.5f;
+        } else if (inputs.ctrl){
+            velocity.tempo = 2.0f;
+        } else{
+            velocity.tempo = 1.0f;
+        }
 
-            if (m_ECS.hasComponent<CSwimming>(m_player)){
-                transform.tempo *= m_ECS.getComponent<CSwimming>(m_player).swimSpeedMultiplier;
-            }
+        if (m_ECS.hasComponent<CSwimming>(e)){
+            velocity.tempo *= m_ECS.getComponent<CSwimming>(e).swimSpeedMultiplier;
         }
     }
 
@@ -381,18 +382,19 @@ void Scene_Play::sMovement() {
     //     }
     // }       
 
-    auto viewTransform = m_ECS.View<CTransform>();
+    auto viewTransform = m_ECS.View<CTransform, CVelocity>();
     for (auto e : viewTransform){    
         auto &transform = transformPool.getComponent(e);
+        auto &velocity = velocityPool.getComponent(e);
         
         // Update position
         transform.prevPos = transform.pos;
-        if (!(transform.vel.isNull()) && transform.isMovable ){
-            transform.pos += transform.vel.norm(transform.tempo*transform.speed/m_game->framerate());
+        if (!velocity.vel.isNull()){
+            transform.pos += velocity.vel.norm(velocity.tempo*velocity.speed/m_game->framerate());
         }
     }
 
-    auto viewParent = m_ECS.View<CParent>();
+    auto viewParent = m_ECS.View<CParent, CTransform>();
     auto& parentPool = m_ECS.getOrCreateComponentPool<CParent>();
     for (auto e : viewParent)
     {
@@ -458,24 +460,24 @@ void Scene_Play::sStatus() {
 
 void Scene_Play::sAnimation() {
 
-    auto view = m_ECS.View<CState, CAnimation, CTransform>();
+    auto view = m_ECS.View<CState, CAnimation, CVelocity>();
 
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& velocityPool = m_ECS.getComponentPool<CVelocity>();
     auto& statePool = m_ECS.getComponentPool<CState>();
     auto& animationPool = m_ECS.getComponentPool<CAnimation>();
     for ( auto e : view ){
-        auto& transform = transformPool.getComponent(e);
+        auto& velocity = velocityPool.getComponent(e);
         auto& state = statePool.getComponent(e);
         auto& animation = animationPool.getComponent(e).animation;
-        if( transform.vel.isNull() ) {
+        if( velocity.vel.isNull() ) {
             changePlayerStateTo(e, PlayerState::STAND);
-        } else if( transform.vel.mainDir().x > 0 ) {
+        } else if( velocity.vel.mainDir().x > 0 ) {
             changePlayerStateTo(e, PlayerState::RUN_RIGHT);
-        } else if(transform.vel.mainDir().x < 0) {
+        } else if(velocity.vel.mainDir().x < 0) {
             changePlayerStateTo(e, PlayerState::RUN_LEFT);
-        } else if(transform.vel.mainDir().y > 0) {
+        } else if(velocity.vel.mainDir().y > 0) {
             changePlayerStateTo(e, PlayerState::RUN_DOWN);
-        } else if(transform.vel.mainDir().y < 0) {
+        } else if(velocity.vel.mainDir().y < 0) {
             changePlayerStateTo(e, PlayerState::RUN_UP);
         }
         // // change player animation
@@ -668,7 +670,8 @@ EntityID Scene_Play::spawnPlayer()
     Vec2 pos = Vec2{16*(float)pos_x, 16*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos, entityID);
 
-    m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
+    m_ECS.addComponent<CTransform>(entityID, midGrid);
+    m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, PLAYER_LAYER, collisionMask);
     InterationMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER;
@@ -696,7 +699,8 @@ EntityID Scene_Play::spawnNPC(Vec2 pos)
 
     Vec2 midGrid = gridToMidPixel(pos*16, entityID);
 
-    m_ECS.addComponent<CTransform>(entityID, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, m_playerConfig.SPEED, true);
+    m_ECS.addComponent<CTransform>(entityID, midGrid);
+    m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
     
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, FRIENDLY_LAYER, collisionMask);
@@ -727,29 +731,31 @@ EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int l
 }
 
 EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
-    auto entity = m_ECS.addEntity();
+    auto entityID = m_ECS.addEntity();
     int layer = 7;
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
+    Vec2 midGrid = gridToMidPixel(pos, entityID);
+    m_ECS.addComponent<CTransform>(entityID, midGrid);
+    m_ECS.addComponent<CVelocity>(entityID);
     
     InterationMask interactionMask = PLAYER_LAYER1;
-    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
+    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
 
-    m_ECS.addComponent<CName>(entity, weaponName);
-    m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("staff"), true, layer);
-    m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CWeapon>(entity);
-    spawnShadow(entity, Vec2{0,0}, 1, layer-1);
-    auto& sc = m_ECS.addComponent<CScript>(entity);
-    InitiateScript<WeaponController>(sc, entity);
-    return entity;
+    m_ECS.addComponent<CName>(entityID, weaponName);
+    m_ECS.addComponent<CAnimation>(entityID, m_game->assets().getAnimation("staff"), true, layer);
+    m_rendererManager.addEntityToLayer(entityID, layer);
+    m_ECS.addComponent<CWeapon>(entityID);
+    spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
+    auto& sc = m_ECS.addComponent<CScript>(entityID);
+    InitiateScript<WeaponController>(sc, entityID);
+    return entityID;
 }
 
 EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
     auto entity = m_ECS.addEntity();
     int layer = 7;
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
+    m_ECS.addComponent<CTransform>(entity, midGrid);
+    m_ECS.addComponent<CVelocity>(entity, m_playerConfig.SPEED);
     
     InterationMask interactionMask = PLAYER_LAYER1;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
@@ -769,7 +775,7 @@ EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t l
     auto entity = m_ECS.addEntity();
 
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1, 1}, 0.0f, 0.0f, true);
+    m_ECS.addComponent<CTransform>(entity, midGrid);
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
     m_ECS.addComponent<CCollisionBox>(entity, collisionBox, OBSTACLE_LAYER, collisionMask);
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(animation), true, layer);
@@ -782,7 +788,7 @@ EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t l
 EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2 {0.5,0.5}, 0.0f, movable);
+    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0.5,0.5});
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
     m_ECS.addComponent<CCollisionBox>(entity, Vec2 {16, 16}, OBSTACLE_LAYER, collisionMask);
 
@@ -794,7 +800,7 @@ EntityID Scene_Play::spawnGrass(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid);
     return entity;
 }
 
@@ -802,7 +808,7 @@ EntityID Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid);
     return entity;
 }
 
@@ -812,7 +818,7 @@ EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
     m_ECS.addComponent<CAnimation>(entity,m_game->assets().getAnimation("campfire"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid);
     return entity;
 }
 
@@ -820,7 +826,7 @@ EntityID Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int 
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid);
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{64/4, 64/4});
     return entity;
 }
@@ -829,7 +835,7 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid);
     m_ECS.addComponent<CWater>(entity, CWater{false});
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{64/4, 64/4});
 
@@ -842,7 +848,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation("coin"), true, layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     // Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, pos, Vec2 {0, 0}, Vec2{1, 1}, 0.0f, false);
+    m_ECS.addComponent<CTransform>(entity, pos);
 
     InterationMask interactionMask = PLAYER_LAYER1;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8 ,8}, LOOT_LAYER, interactionMask);
@@ -863,8 +869,8 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0,0}, Vec2{1,1}, 0.0f, 50.0f, true);
-    m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, m_goblinConfig.SPEED, false);
+    m_ECS.addComponent<CTransform>(entity, midGrid);
+    m_ECS.addComponent<CVelocity>(entity, m_goblinConfig.SPEED);
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 12}, ENEMY_LAYER, collisionMask);
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
@@ -908,7 +914,7 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(tilePosition);   
         m_rendererManager.addEntityToLayer(entity, layer);
         Vec2 midGrid = gridToMidPixel(pos, entity);
-        m_ECS.addComponent<CTransform>(entity, midGrid, Vec2{0, 0}, Vec2{1, 1}, 0.0f, false);
+        m_ECS.addComponent<CTransform>(entity, midGrid);
     }
     return entityIDs;
 }
