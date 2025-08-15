@@ -847,7 +847,6 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     InterationMask interactionMask = PLAYER_LAYER1;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8 ,8}, LOOT_LAYER, interactionMask);
 
-    m_ECS.addComponent<CLoot>(entity);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
 
     auto& sc= m_ECS.addComponent<CScript>(entity);

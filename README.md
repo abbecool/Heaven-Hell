@@ -21,7 +21,7 @@ Add the ability climb trees to see further
 # Developer Setup
 Install MSYS2 installer (C++ compiler) by clicking the link: https://github.com/msys2/msys2-installer/releases/download/2024-12-08/msys2-x86_64-20241208.exe. Make sure the compiler is installed at this location: "C:/msys64/ucrt64/bin/gcc.exe", otherwise c_cpp_properties.json needs to be adjusted. 
 
-General Visual Studio Code setup guide caan be found here: https://code.visualstudio.com/docs/cpp/config-mingw
+General Visual Studio Code setup guide can be found here: https://code.visualstudio.com/docs/cpp/config-mingw
 
 Install CMake (Windows x64 Installer): https://cmake.org/download/
 

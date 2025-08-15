@@ -144,14 +144,6 @@ struct CCollisionBox : public CBox
         : CBox(size, layer, mask, 255, 255, 255) {}
 };
 
-struct CHitBox
-{
-    Vec2 size;
-    Vec2 halfSize;
-
-    CHitBox() {}
-};
-
 struct CInteractionBox : public CBox
 {
     CInteractionBox(){}    
@@ -200,14 +192,6 @@ struct CLifespan
     CLifespan(int lf) : lifespan(lf){}
 };
 
-struct CKey
-{
-    std::string unlocks;
-    CKey() {}
-    CKey(const std::string & unlcks)
-        : unlocks(unlcks) {}
-};
-
 struct CAnimation
 {
     Animation animation;
@@ -241,15 +225,6 @@ struct CName
     CName() {}
     CName(const std::string nm) : name(nm) {}
 }; 
-
-struct CShadow
-{
-    Animation animation;
-    size_t size;
-    CShadow() {}
-    CShadow(const Animation& animation, size_t sz)
-                : animation(animation), size(sz){}
-};  
 
 struct CAttack
 {
@@ -296,11 +271,6 @@ struct CPathfind
     CPathfind() {}
     CPathfind( Vec2 trg)
         : target(trg){}
-};
-
-struct CLoot
-{
-    CLoot() {}
 };
 
 struct CKnockback
