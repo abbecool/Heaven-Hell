@@ -1,3 +1,4 @@
+#include "physics/Level_Loader.h"
 #include "scenes/Scene_Play.h"
 #include "scenes/Scene_Menu.h"
 #include "assets/Sprite.h"
@@ -5,7 +6,6 @@
 #include "core/Game.h"
 #include "ecs/Components.h"
 #include "core/Action.h"
-#include "physics/Level_Loader.h"
 #include "physics/RandomArray.h"
 
 #include <SDL_image.h>
@@ -22,7 +22,7 @@ void LevelLoader::init(Scene_Play* scene, const int width, const int height)
     m_height = height;
 }
 
-std::vector<bool> LevelLoader::neighborCheck(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
+std::vector<bool> LevelLoader::neighborCheck(const std::string &pixel, int x, int y, int width, int height) {
     std::vector<std::string> friendlyPixels(1, "");
     std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
     if ( pixel == "grass" || pixel == "dirt"){
@@ -36,22 +36,22 @@ std::vector<bool> LevelLoader::neighborCheck(const std::vector<std::vector<std::
         friendlyPixels = {pixel};
     }
     for ( auto pix : friendlyPixels){
-        if(!neighbors[0]){neighbors[0] = (y > 0 && pixelMatrix[y - 1][x] == pix);}           // top
-        if(!neighbors[1]){neighbors[1] = (x < width - 1 && pixelMatrix[y][x + 1] == pix);}   // right
-        if(!neighbors[2]){neighbors[2] = (y < height - 1 && pixelMatrix[y + 1][x] == pix);}  // bottom
-        if(!neighbors[3]){neighbors[3] = (x > 0 && pixelMatrix[y][x - 1] == pix);}           // left
+        if(!neighbors[0]){neighbors[0] = (y > 0 && m_pixelMatrix[y - 1][x] == pix);}           // top
+        if(!neighbors[1]){neighbors[1] = (x < width - 1 && m_pixelMatrix[y][x + 1] == pix);}   // right
+        if(!neighbors[2]){neighbors[2] = (y < height - 1 && m_pixelMatrix[y + 1][x] == pix);}  // bottom
+        if(!neighbors[3]){neighbors[3] = (x > 0 && m_pixelMatrix[y][x - 1] == pix);}           // left
     }
     return neighbors;
 
 }
 
-std::vector<std::string> LevelLoader::neighborTag(const std::vector<std::vector<std::string>>& pixelMatrix, const std::string &pixel, int x, int y, int width, int height) {
+std::vector<std::string> LevelLoader::neighborTag(const std::string &pixel, int x, int y, int width, int height) {
     
     std::vector<std::string> neighborsTags(4, "nan"); // {top, bottom, left, right}
-    if(y > 0){neighborsTags[0] = pixelMatrix[y - 1][x];}            // top
-    if(x < width - 1){neighborsTags[1] = pixelMatrix[y][x + 1];}    // right
-    if(y < height - 1){neighborsTags[2] = pixelMatrix[y + 1][x];}   // bottom
-    if(x > 0 ){neighborsTags[3] = pixelMatrix[y][x - 1];}           // left
+    if(y > 0){neighborsTags[0] = m_pixelMatrix[y - 1][x];}            // top
+    if(x < width - 1){neighborsTags[1] = m_pixelMatrix[y][x + 1];}    // right
+    if(y < height - 1){neighborsTags[2] = m_pixelMatrix[y + 1][x];}   // bottom
+    if(x > 0 ){neighborsTags[3] = m_pixelMatrix[y][x - 1];}           // left
 
     return neighborsTags;
 }
@@ -81,8 +81,9 @@ int LevelLoader::getObstacleTextureIndex(const std::vector<bool>& neighbors) {
     return 0; // No neighbors are obstacles
 }
 
-std::vector<std::vector<std::string>> LevelLoader::createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height) {
-    std::vector<std::vector<std::string>> pixelMatrix(height, std::vector<std::string>(width, ""));
+void LevelLoader::createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height) {
+    m_pixelMatrix = std::vector<std::vector<std::string>>(height, std::vector<std::string>(width, ""));
+
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             Uint32 pixel = pixels[y * width + x];
@@ -91,47 +92,46 @@ std::vector<std::vector<std::string>> LevelLoader::createPixelMatrix(Uint32* pix
             SDL_GetRGBA(pixel, format, &r, &g, &b, &a);
             
             if ((int)r == 192 && (int)g == 192 && (int)b == 192) {
-                pixelMatrix[y][x] = "obstacle";
+                m_pixelMatrix[y][x] = "obstacle";
             } else if ((int)r == 200 && (int)g == 240 && (int)b == 255) {
-                pixelMatrix[y][x] = "cloud";
+                m_pixelMatrix[y][x] = "cloud";
             } else if ((int)r == 203 && (int)g == 129 && (int)b == 56) {
-                pixelMatrix[y][x] = "dirt";
+                m_pixelMatrix[y][x] = "dirt";
             } else if ((int)r == 0 && (int)g == 255 && (int)b == 0) {
-                pixelMatrix[y][x] = "grass";
+                m_pixelMatrix[y][x] = "grass";
             } else if ((int)r == 255 && (int)g == 255 && (int)b == 255) {
-                pixelMatrix[y][x] = "player_God";
+                m_pixelMatrix[y][x] = "player_God";
             } else if ((int)r == 0 && (int)g == 0 && (int)b == 0) {
-                pixelMatrix[y][x] = "player_Devil";
+                m_pixelMatrix[y][x] = "player_Devil";
             } else if ((int)r == 255 && (int)g == 0 && (int)b == 255) {
-                pixelMatrix[y][x] = "key";
+                m_pixelMatrix[y][x] = "key";
             } else if ((int)r == 255 && (int)g == 255 && (int)b == 0) {
-                pixelMatrix[y][x] = "goal";
+                m_pixelMatrix[y][x] = "goal";
             } else if ((int)r == 9 && (int)g == 88 && (int)b == 9) {
-                pixelMatrix[y][x] = "dragon";
+                m_pixelMatrix[y][x] = "dragon";
             } else if ((int)r == 255 && (int)g == 0 && (int)b == 0) {
-                pixelMatrix[y][x] = "lava";
+                m_pixelMatrix[y][x] = "lava";
             } else if ((int)r == 0 && (int)g == 0 && (int)b == 255) {
-                pixelMatrix[y][x] = "water";
+                m_pixelMatrix[y][x] = "water";
             } else if ((int)r == 179 && (int)g == 0 && (int)b == 255) {
-                pixelMatrix[y][x] = "bridge";
+                m_pixelMatrix[y][x] = "bridge";
             } else {
-                pixelMatrix[y][x] = "unknown";
+                m_pixelMatrix[y][x] = "unknown";
             }
         }
     }
-    return pixelMatrix;
 }
 
 
-std::unordered_map<std::string, int> LevelLoader::createDualGrid( std::vector<std::vector<std::string>>& pixelMatrix,  int x, int y) 
+std::unordered_map<std::string, int> LevelLoader::createDualGrid(int x, int y) 
 {
     std::vector<std::string> tileQ(4, "");
     std::unordered_map<std::string, int> tileTextureMap;
 
-    tileQ[1] = pixelMatrix[y][x];   // Q4
-    tileQ[0] = (x > 0) ? pixelMatrix[y][x - 1] : pixelMatrix[y][x];  // Q3
-    tileQ[2] = (y > 0) ? pixelMatrix[y - 1][x] : pixelMatrix[y][x];  // Q1
-    tileQ[3] = (x > 0 && y > 0) ? pixelMatrix[y - 1][x - 1] : pixelMatrix[y][x];  // Q2
+    tileQ[1] = m_pixelMatrix[y][x];   // Q4
+    tileQ[0] = (x > 0) ? m_pixelMatrix[y][x - 1] : m_pixelMatrix[y][x];  // Q3
+    tileQ[2] = (y > 0) ? m_pixelMatrix[y - 1][x] : m_pixelMatrix[y][x];  // Q1
+    tileQ[3] = (x > 0 && y > 0) ? m_pixelMatrix[y - 1][x - 1] : m_pixelMatrix[y][x];  // Q2
 
     std::unordered_map<std::string, std::unordered_set<std::string>> friendlyNeighbors = {
         {"grass", {"key", "goal", "player_God", "dragon"}},
@@ -230,11 +230,11 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             if (x >= m_width) {
                 continue; // Skip if out of bounds
             }
-            const std::string& pixel = m_scene->m_pixelMatrix[y][x];
-            std::vector<bool> neighbors = neighborCheck(m_scene->m_pixelMatrix, pixel, x, y, m_width, m_height);
-            std::vector<std::string> neighborsTags = neighborTag(m_scene->m_pixelMatrix, pixel, x, y, m_width, m_height);
+            const std::string& pixel = m_pixelMatrix[y][x];
+            std::vector<bool> neighbors = neighborCheck(pixel, x, y, m_width, m_height);
+            std::vector<std::string> neighborsTags = neighborTag(pixel, x, y, m_width, m_height);
             int textureIndex = getObstacleTextureIndex(neighbors);
-            std::unordered_map<std::string, int> tileIndex = createDualGrid(m_scene->m_pixelMatrix, x, y);
+            std::unordered_map<std::string, int> tileIndex = createDualGrid(x, y);
             std::vector<EntityID> ids = m_scene->spawnDualTiles(Vec2 {16*(float)x - 16/2, 16*(float)y - 16/2},  tileIndex);
             chunkChildren.insert(chunkChildren.end(), ids.begin(), ids.end());
 

@@ -1,5 +1,5 @@
-#include "scenes/Scene_Menu.h"
 #include "scenes/Scene_Play.h"
+#include "scenes/Scene_Menu.h"
 #include "scenes/Scene_GameOver.h"
 #include "scenes/Scene_Inventory.h"
 #include "assets/Sprite.h"
@@ -80,8 +80,9 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     spawnPlayer();
     spawnNPC(Vec2{353, 63});
     loadLevel(levelPath); 
-
-    loadMobsNItems("config_files/mobs.txt"); // mobs have to spawn after player, so they can target the player
+    
+    // mobs have to spawn after player, so they can target the player
+    loadMobsNItems("config_files/mobs.txt");
     spawnWeapon(Vec2{345, 59}*m_gridSize);
     spawnSword(Vec2{364, 91}*m_gridSize);
 
@@ -124,16 +125,16 @@ void Scene_Play::loadConfig(const std::string& confPath){
     std::string head;
     while (file >> head) {
         if (head == "Player") {
-            file >> m_playerConfig.x >> m_playerConfig.y >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.HP >> m_playerConfig.DAMAGE;           
+            file >> m_playerConfig.x >> m_playerConfig.y >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.HP >> m_playerConfig.DAMAGE; // long line to be replaced when saving to json      
         }
         else if (head == "Rooter") {
-            file >> m_rooterConfig.SPEED >> m_rooterConfig.ATTACK_SPEED >> m_rooterConfig.HP >> m_rooterConfig.DAMAGE;           
+            file >> m_rooterConfig.SPEED >> m_rooterConfig.ATTACK_SPEED >> m_rooterConfig.HP >> m_rooterConfig.DAMAGE;
         }
         else if (head == "Goblin") {
-            file >> m_goblinConfig.SPEED >> m_goblinConfig.ATTACK_SPEED >> m_goblinConfig.HP >> m_goblinConfig.DAMAGE;           
+            file >> m_goblinConfig.SPEED >> m_goblinConfig.ATTACK_SPEED >> m_goblinConfig.HP >> m_goblinConfig.DAMAGE;
         }
         else if (head == "Camera") {
-            file >> m_camera.config.SHAKE_DURATION_SMALL >> m_camera.config.SHAKE_INTENSITY_SMALL;           
+            file >> m_camera.config.SHAKE_DURATION_SMALL >> m_camera.config.SHAKE_INTENSITY_SMALL;
         }
         else {
             std::cerr << "head to " << head << "\n";
@@ -153,7 +154,7 @@ void Scene_Play::saveGame(const std::string& filename)
         return;
     }
     Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos;
-    saveFile << "Player_pos " << (int)(playerPos.x/m_gridSize.x) << " " << (int)(playerPos.y/m_gridSize.y) << std::endl;
+    saveFile << "Player_pos " << (int)(playerPos.x/m_gridSize.x) << " " << (int)(playerPos.y/m_gridSize.y) << std::endl; // long line to be replaced when saving to json
     saveFile << "Player_hp " << m_ECS.getComponent<CHealth>(m_player).HP << std::endl;
     saveFile.close();
 }
@@ -164,7 +165,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     SDL_Surface* loadedSurface = IMG_Load(path);
     if (loadedSurface == nullptr) 
     {
-        std::cerr << "Unable to load image " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
+        std::cerr << "Not loaded " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
     }
 
     // Lock the surface to access the pixels
@@ -174,7 +175,7 @@ void Scene_Play::loadLevel(const std::string& levelPath){
     const int HEIGHT_PIX = loadedSurface->h;
     const int WIDTH_PIX = loadedSurface->w;
     m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
-    m_pixelMatrix = m_levelLoader.createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
+    m_levelLoader.createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
     // Unlock and free the surface
     SDL_UnlockSurface(loadedSurface);
     SDL_FreeSurface(loadedSurface);
@@ -226,7 +227,7 @@ void Scene_Play::sDoAction(const Action& action) {
             m_ECS.getComponent<CHealth>(m_player).HP = 0;
         }
         if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = true; }
-        if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = true;  }
+        if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = true;}
         if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = true; }
         if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = true; }
         if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = true; }
@@ -904,14 +905,14 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
             layer = layer + 1;
         } else if (tile == "obstacle") {
             layer = layer + 1;
-            tile = "mountain";  // Change the tile name for "obstacle"
+            tile = "mountain";// Change the tile name for "obstacle"
         }
         EntityID entity = m_ECS.addEntity();
         entityIDs.push_back(entity);
         m_ECS.addComponent<CAnimation>(entity, m_game->assets().getAnimation(tile + "_dual_sheet"), true, layer);
         Vec2 tilePosition = Vec2{   (float)(textureIndex % 4), 
                                     (float)(int)(textureIndex / 4)};
-        m_ECS.getComponent<CAnimation>(entity).animation.setTile(tilePosition);   
+        m_ECS.getComponent<CAnimation>(entity).animation.setTile(tilePosition); 
         m_rendererManager.addEntityToLayer(entity, layer);
         Vec2 midGrid = gridToMidPixel(pos, entity);
         m_ECS.addComponent<CTransform>(entity, midGrid);

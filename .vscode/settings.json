@@ -87,5 +87,19 @@
         "semaphore": "cpp",
         "cinttypes": "cpp",
         "variant": "cpp"
-    }
+    },
+    "editor.rulers": [
+   {
+     "column": 100,    // spacing of 1st column from left
+     "color": "#ffffff"   // orange, Go Vols!
+   },
+//    {
+//      "column": 100,    // spacing of 1st column from left
+//      "color": "#ff9900"   // orange, Go Vols!
+//    },
+//    {
+//     "column": 120,      // third ruler
+//     "color": "#ff0000"  // purple, go Pirates! 
+//    },
+],
 }

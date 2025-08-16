@@ -30,23 +30,16 @@ Scene_GameOver::Scene_GameOver(Game* game)
 
 void Scene_GameOver::loadGameOver()
 {
-    
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    // entity.addComponent<CAnimation>(m_game->assets().getAnimation("sword"), true, 5);
     m_rendererManager.addEntityToLayer(entityId, 3);
     Vec2 pos = Vec2{float(m_game->getVirtualWidth()), float(m_game->getVirtualHeight()/2)}/2;
     entity.addComponent<CTransform>(pos);
-    // entity.getComponent<CTransform>().scale = Vec2{1,1};
     Vec2 size = Vec2{512, 128};
-    // entity.addComponent<CCollisionBox>(size);
     entity.addComponent<CName>("death_text");
-    // entity.addComponent<CText>(size, m_game->assets().getTexture("You Died!"), "You Died!");
     entity.addComponent<CText>("You Died!", 16, "Minecraft");
 
-
     spawnButton(Vec2{float(m_game->getVirtualWidth()*0.5), float(m_game->getVirtualHeight()*0.75)}, "button_unpressed", "restart", "RESTART");
-    // spawnButton(Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()}*0.75, "button_unpressed", "dead", "You Died!");
 }
 
 void Scene_GameOver::spawnLevel(const Vec2 pos, std::string level)
@@ -58,7 +51,11 @@ void Scene_GameOver::spawnLevel(const Vec2 pos, std::string level)
     entity.addComponent<CName>(level);
 }
 
-void Scene_GameOver::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
+void Scene_GameOver::spawnButton(
+    const Vec2 pos, 
+    const std::string& unpressed, 
+    const std::string& name, 
+    const std::string& dialog)
 {   
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
