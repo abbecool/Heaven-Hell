@@ -5,6 +5,7 @@
 #include "physics/Renderer.hpp"
 #include "core/Game.h"
 #include "physics/Camera.h"
+#include "physics/Physics.h"
 
 #include <cstddef>
 #include <map>
@@ -30,6 +31,7 @@ class Scene
     bool m_hasEnded = false;
     size_t m_currentFrame = 0;
     bool m_restart = false;
+    // Physics m_physics;
 
     Camera m_camera;
     Vec2 m_mousePosition;

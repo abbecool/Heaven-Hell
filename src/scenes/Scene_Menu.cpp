@@ -30,7 +30,6 @@ Scene_Menu::Scene_Menu(Game* game)
 
 void Scene_Menu::loadMenu()
 {
-    // spawnTitleScreen
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
     entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true, 9);
@@ -74,9 +73,7 @@ void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const
     entity.getComponent<CTransform>().scale = Vec2{1,1};
     entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
     entity.addComponent<CName>(name);
-    // entity.addComponent<CText>(entity.getComponent<CAnimation>().animation.getSize()*1, m_game->assets().getTexture(dialog), dialog);
     entity.addComponent<CText>(dialog, 16, "Minecraft");
-
 }
 
 void Scene_Menu::sDoAction(const Action& action)

@@ -9,18 +9,6 @@
 
 constexpr uint8_t MAX_LAYERS = 8;
 
-// using ChildMask = std::bitset<MAX_LAYERS>;
-// constexpr ChildMask EMPTY_MASK              = 0;        // 00000000, No bits set
-// constexpr ChildMask SHADOW_LAYER            = 1 << 0;   // 00000001, Bit 1
-// constexpr ChildMask PRIMARY_WEAPON_LAYER    = 1 << 1;   // 00000010, Bit 2
-// constexpr ChildMask SECONDARY_WEAPON_LAYER  = 1 << 2;   // 00000100, Bit 3
-// constexpr ChildMask DIALOG_LAYER            = 1 << 3;   // 00001000, Bit 4
-// constexpr ChildMask HEALTH_BAR_LAYER        = 1 << 4;   // 00010000, Bit 5
-
-// constexpr ChildMask DAMAGE_LAYER            = 1 << 5;   // 00100000, Bit 6
-// constexpr ChildMask WATER_LAYER             = 1 << 6;   // 01000000, Bit 7
-// constexpr ChildMask FINAL_MASK              = 1 << 7;   // 10000000, Final bit set
-
 using CollisionMask = std::bitset<MAX_LAYERS>;
 constexpr CollisionMask EMPTY_MASK              = 0;        // 00000000, No bits set
 constexpr CollisionMask PLAYER_LAYER            = 1 << 0;   // 00000001, Bit 1
@@ -33,15 +21,9 @@ constexpr CollisionMask WATER_LAYER             = 1 << 6;   // 01000000, Bit 7
 constexpr CollisionMask FINAL_MASK              = 1 << 7;   // 10000000, Final bit set
 
 using InterationMask = std::bitset<MAX_LAYERS>;
-// constexpr InterationMask EMPTY_MASK                 = 0;         // 00000000, No bits set
 constexpr InterationMask PLAYER_LAYER1              = 1 << 0;   // 00000001, Bit 0
 constexpr InterationMask LOOT_LAYER                 = 1 << 1;   // 00000010, Bit 1
-// constexpr InterationMask ENEMY_LAYER                = 1 << 2;    // 00000100, Bit 2
 constexpr InterationMask FRIENDLY_LAYER1            = 1 << 3;   // 00001000, Bit 3
-// constexpr InterationMask DAMAGE_LAYER               = 1 << 4;    // 00010000, Bit 4
-// constexpr InterationMask INTERACTABLE_LAYER         = 1 << 5;    // 00100000, Bit 5
-// constexpr InterationMask PROJECTILE_LAYER           = 1 << 6;    // 01000000, Bit 6
-// constexpr InterationMask FINAL_MASK                 = 1 << 7;    // 10000000, Final bit set
 
 enum struct PlayerState {
     STAND = 0,

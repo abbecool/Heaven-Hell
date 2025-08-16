@@ -83,7 +83,6 @@ void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, cons
     entity.getComponent<CTransform>().scale = Vec2{dynamic_length,1};
     entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1});
     entity.addComponent<CName>(name);
-    // entity.addComponent<CText>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1}, m_game->assets().getTexture(dialog), dialog);
     entity.addComponent<CText>(dialog, 16, "Minecraft");
 }
 

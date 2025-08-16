@@ -34,7 +34,6 @@ public:
         Vec2 entitySize = entity.getComponent<T>().size;
 
         if (!Collision1(entityPos, entitySize, m_position, m_size)) { return; } // If the entity does not collide with this quadtree, do not insert it
-        //if (!Collision<T>(entity, *this)) { return; } // If the entity does not collide with this quadtree, do not insert it
         if (m_divided){
             m_northWest->insert<T>(entity);
             m_northEast->insert<T>(entity);
@@ -64,7 +63,6 @@ public:
     void insert1(Entity entity, Vec2 entityPos, Vec2 entitySize)
     {
         if (!Collision1(entityPos, entitySize, m_position, m_size)) { return; } // If the entity does not collide with this quadtree, do not insert it
-        //if (!Collision<T>(entity, *this)) { return; } // If the entity does not collide with this quadtree, do not insert it
         if (m_divided) {
             m_northWest->insert1<T>(entity, entityPos, entitySize);
             m_northEast->insert1<T>(entity, entityPos, entitySize);

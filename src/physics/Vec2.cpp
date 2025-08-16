@@ -75,16 +75,6 @@ void Vec2::operator/= (const float val)
     y /= val;
 }
 
-// Vec2 Vec2::operator% (const int val) const
-// {
-//     return Vec2 {(int)x%val, (int)y%val};
-// }
-
-// Vec2 Vec2::operator% (const Vec2 & rhs) const
-// {
-//     return Vec2 {(int)x%(int)rhs.x, (int)y%(int)rhs.y};
-// }
-
 void Vec2::operator++ (){
     x++;
     y++;
@@ -103,7 +93,6 @@ bool Vec2::isNull () const
 float Vec2::length () const
 {
     return std::hypot(x, y);
-    //return sqrt(pow(x,2) + pow(y,2));
 }
 
 Vec2 Vec2::norm () const

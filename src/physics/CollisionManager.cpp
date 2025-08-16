@@ -216,10 +216,6 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize)
                 EntityID entityIDB = entityVector[b].getID();
                 
                 auto& collisionB = collisionPool.getComponent(entityIDB);
-                // if ( ((collisionB.layer & collisionA.mask) != collisionB.layer) | 
-                //      ((collisionA.layer & collisionB.mask) != collisionA.layer) ){
-                //     continue; // No collision layer match
-                // }
                 auto& transformA = transformPool.getComponent(entityIDA);
                 auto& transformB = transformPool.getComponent(entityIDB);
                 auto overlap = collisionOverlap(transformA, transformB, collisionA.size, collisionB.size);
@@ -289,57 +285,3 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize)
         }
     }
 }
-
-// template <typename T>
-// void BaseCollisionManager::loopQuadEntityPairs(std::vector<std::shared_ptr<Quadtree>> quadVector)
-// {
-//     ComponentPool<T> boxPool = m_ECS->getComponentPool<T>();
-//     ComponentPool<CTransform> transformPool = m_ECS->getComponentPool<CTransform>();
-//     ComponentPool<CScript> scriptPool = m_ECS->getComponentPool<CScript>();
-
-//     boxPool = static_cast<ComponentPool<T>>( new ComponentPool<CBox>() );
-//     for (std::shared_ptr<Quadtree> quadleaf : quadVector)
-//     {
-//         std::vector<Entity> entityVector = quadleaf->getObjects();
-//         loopEntityPairs(entityVector, boxPool, transformPool, scriptPool);
-//     }
-// }
-
-// void BaseCollisionManager::loopEntityPairs( std::vector<Entity> entityVector, 
-//                                             ComponentPool<CBox> boxPool,    
-//                                             ComponentPool<CTransform> transformPool,
-//                                             ComponentPool<CScript> scriptPool)
-// {
-//     for (size_t a = 0; a < entityVector.size(); ++a) 
-//     {
-//         EntityID entityIDA = entityVector[a].getID();
-//         for (size_t b = a + 1; b < entityVector.size(); ++b) 
-//         {
-//             EntityID entityIDB = entityVector[b].getID();
-//             if ( !layerCollision(entityIDA, entityIDB, boxPool, transformPool) )
-//             {
-//                 continue;
-//             }
-
-//         }
-//     }
-// }
-
-// bool BaseCollisionManager::layerCollision(EntityID entityIDA, EntityID entityIDB, ComponentPool<CBox> boxPool, ComponentPool<CTransform> transformPool)
-// {
-//     if ( entityIDA == entityIDB ) {
-//         return false; // Skip self-collision
-//     }
-//     auto& boxA = boxPool.getComponent(entityIDA);
-//     auto& boxB = boxPool.getComponent(entityIDB);
-//     if ( ((boxB.layer & boxA.mask) != boxB.layer) | ((boxB.layer & boxB.mask) != boxB.layer) ){
-//         return false; // No interaction layer match
-//     }
-//     auto& transformA = transformPool.getComponent(entityIDA);
-//     auto& transformB = transformPool.getComponent(entityIDB);
-//     if ( !isCollided(transformA, transformB, boxA, boxB) )
-//     {
-//         return false; // No collision detected
-//     }
-//     return true;
-// }

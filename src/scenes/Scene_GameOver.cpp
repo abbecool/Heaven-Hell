@@ -116,7 +116,9 @@ void Scene_GameOver::sDoAction(const Action& action)
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 auto &name = m_ECS.getComponent<CName>(e).name;
-                if ( m_mousePosition.x >= transform.pos.x + collision.halfSize.x || m_mousePosition.x < transform.pos.x -collision.halfSize.x )
+                bool x = m_mousePosition.x >= transform.pos.x + collision.halfSize.x;
+                bool y = m_mousePosition.x < transform.pos.x -collision.halfSize.x;
+                if ( x || y )
                 {
                     continue;
                 }

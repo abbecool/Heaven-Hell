@@ -8,21 +8,13 @@ SDL_Sprite::SDL_Sprite(){
 SDL_Sprite::SDL_Sprite(SDL_Texture* texture)
     : texture(texture), rotation(0.0), scaleX(1.0f), scaleY(1.0f) {
     initialize();
-    // srcRect = {0, 0, 0, 0};
-    // destRect = {0.0f, 0.0f, 0.0f, 0.0f};
     }
 
 SDL_Sprite::~SDL_Sprite() {
-    // Do not destroy the texture as it is managed externally
 }
 
 void SDL_Sprite::initialize() {
     if (texture) {
-        // srcRect.w = 64;
-        // srcRect.h = 64;
-        // SDL_QueryTexture(texture, NULL, NULL, &srcRect.w, &srcRect.h);
-        // destRect.w = srcRect.w;
-        // destRect.h = srcRect.h;
         center = {destRect.w / 2.0f, destRect.h / 2.0f};
     }
 }
@@ -64,15 +56,4 @@ SDL_Texture* SDL_Sprite::getTexture() {
 }
 
 void SDL_Sprite::render(SDL_Renderer* renderer) {
-    // SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-
-    // SDL_RenderCopyExF(
-    //     renderer,
-    //     texture,
-    //     srcRect,
-    //     destRect,
-    //     rotation,
-    //     NULL,
-    //     SDL_FLIP_NONE
-    // );
 }

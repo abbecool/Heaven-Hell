@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ecs/Components.h"
-// #include "ecs/signaturePool.hpp"
 #include "ComponentPool.hpp"
 
 #include <iostream>

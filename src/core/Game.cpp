@@ -40,8 +40,8 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
 
     SDL_GetCurrentDisplayMode(0, &DM);
-    // updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
-    updateResolution(1);
+    updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
+    // updateResolution(1);
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
 }
 
@@ -224,27 +224,12 @@ void Game::sUserInput()
         if (event.type == SDL_MOUSEWHEEL) 
         {
             const std::string actionType = (event.type == SDL_MOUSEBUTTONDOWN ) ? "START" : "END";
-            // currentScene()->doAction(Action(currentScene()->getActionMap().at(event.button.button), actionType));
             currentScene()->updateMouseScroll(event.wheel.y);
             // Determine scroll direction: up or down
             if (currentScene()->getActionMap().find(event.wheel.direction) != currentScene()->getActionMap().end())
             {
                 currentScene()->doAction(Action(currentScene()->getActionMap().at(event.wheel.direction), "START"));
             }
-            // if (event.wheel.y > 0) // Scroll up
-            // {
-            //     if (currentScene()->getActionMap().find(event.wheel.direction) != currentScene()->getActionMap().end())
-            //     {
-            //         currentScene()->doAction(Action(currentScene()->getActionMap().at(event.wheel.direction), "START"));
-            //     }
-            // }
-            // else if (event.wheel.y < 0) // Scroll down
-            // {
-            //     if (currentScene()->getActionMap().find("SCROLL_DOWN") != currentScene()->getActionMap().end())
-            //     {
-            //         currentScene()->doAction(Action(currentScene()->getActionMap().at("SCROLL_DOWN"), "START"));
-            //     }
-            // }
         }
     }
 }

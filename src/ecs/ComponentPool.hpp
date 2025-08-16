@@ -46,7 +46,6 @@ public:
         T component = T(std::forward<Args>(args)...);
 
         // Sparse set implementation
-        // assert(id < sparse.size());
         sparse[id] = dense.size();
         dense.push_back(component);
         entities.push_back(id);
@@ -71,7 +70,7 @@ public:
     void queueRemoveEntity(EntityID id) {
         if (id == 0)
         {
-            // std::cerr << "Warning: Attempting to remove player entity." << std::endl;
+            std::cerr << "Warning: Attempting to remove player entity." << std::endl;
             return;
         }
         entitiesToRemove.push_back(id);

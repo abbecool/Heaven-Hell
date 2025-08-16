@@ -33,8 +33,6 @@ void Camera::movement(Vec2 playerPos){
         if (originalPosition.y + (float)height > gridY*levelY){ originalPosition.y = gridY*levelY - (float)height;}     // bottom wall
         if (originalPosition.y < 0){ originalPosition.y = 0;}     // top wall
     } else{
-        // originalPosition = Vec2{   gridX*30*(int)((int)(playerPos.x)/(30*gridX)),
-                            // gridY*17*(int)((int)(playerPos.y)/(17*gridY))};
         originalPosition = Vec2{   gridX*32*(int)((int)(playerPos.x)/(32*gridX)),
                             gridY*32*(int)((int)(playerPos.y)/(32*gridY))};
     }
