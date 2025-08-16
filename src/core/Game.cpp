@@ -16,7 +16,13 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
     SDL_Init(SDL_INIT_EVERYTHING);
     SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");    
 
-    m_window = SDL_CreateWindow("Heaven & Hell", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_width, m_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    m_window = SDL_CreateWindow(
+        "Heaven & Hell", 
+        SDL_WINDOWPOS_CENTERED, 
+        SDL_WINDOWPOS_CENTERED, 
+        m_width, m_height, 
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+    );
     SDL_SetWindowPosition(m_window, 0, 30);
     if ( NULL == m_window )
     {
@@ -51,7 +57,11 @@ std::shared_ptr<Scene> Game::currentScene() {
     return m_sceneMap[m_currentScene];
 }
 
-void Game::changeScene( const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene ) {
+void Game::changeScene(
+    const std::string& sceneName, 
+    std::shared_ptr<Scene> scene, 
+    bool endCurrentScene)
+    {
     if (endCurrentScene) {
         m_sceneMap.erase(m_currentScene);
     }
