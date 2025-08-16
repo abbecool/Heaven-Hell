@@ -103,67 +103,59 @@ void Scene_Menu::sDoAction(const Action& action)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
-
-                if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
-                    if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
-                        m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
-                        m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y + 3;
-                    }
+                if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
+                {
+                    continue;
                 }
+                m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
             }
         }   
     }
-
     else if (action.type() == "END")
     {
-        if (action.name() == "MOUSE LEFT CLICK")
+        if (!(action.name() == "MOUSE LEFT CLICK"))
         {
-            auto view = m_ECS.View<CCollisionBox, CTransform, CText, CAnimation, CName>();
-            for (auto e : view)
-            {
-                auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
-                auto &name = m_ECS.getComponent<CName>(e).name;
-                if ( m_mousePosition.x >= transform.pos.x + collision.halfSize.x || m_mousePosition.x < transform.pos.x -collision.halfSize.x )
-                {
-                    continue;
-                }
-                if ( m_mousePosition.y >= transform.pos.y + collision.halfSize.y || m_mousePosition.y < transform.pos.y -collision.halfSize.y )
-                {
-                    continue;
-                }
-                m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
-                m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y - 3;
-                if ( name == "new" )
-                {
-                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", true), true);
-                }
-                else if ( name == "continue" )
-                {
-                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", false), true);
-                }
-                else if ( name == "360p" )
-                {
-                    m_game->updateResolution(1);
-                }
-                else if ( name == "720p" )
-                {
-                    m_game->updateResolution(2);
-                }
-                else if ( name == "1080p" )
-                {
-                    m_game->updateResolution(3);
-                }
-                else if ( name == "1440p" )
-                {
-                    m_game->updateResolution(4);
-                }
-                else if ( name == "4K" )
-                {
-                    m_game->updateResolution(6);
-                }
-            }
+            return;
         }   
+        auto view = m_ECS.View<CCollisionBox, CTransform, CText, CAnimation, CName>();
+        for (auto e : view)
+        {
+            auto &transform = m_ECS.getComponent<CTransform>(e);
+            auto &collision = m_ECS.getComponent<CCollisionBox>(e);
+            if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
+                continue;
+            }
+            auto &name = m_ECS.getComponent<CName>(e).name;
+            m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
+            if ( name == "new" )
+            {
+                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", true), true);
+            }
+            else if ( name == "continue" )
+            {
+                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", false), true);
+            }
+            else if ( name == "360p" )
+            {
+                m_game->updateResolution(1);
+            }
+            else if ( name == "720p" )
+            {
+                m_game->updateResolution(2);
+            }
+            else if ( name == "1080p" )
+            {
+                m_game->updateResolution(3);
+            }
+            else if ( name == "1440p" )
+            {
+                m_game->updateResolution(4);
+            }
+            else if ( name == "4K" )
+            {
+                m_game->updateResolution(6);
+            }
+        }
     }
 }
 

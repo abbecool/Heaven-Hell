@@ -37,7 +37,7 @@ void Scene_GameOver::loadGameOver()
     entity.addComponent<CTransform>(pos);
     Vec2 size = Vec2{512, 128};
     entity.addComponent<CName>("death_text");
-    entity.addComponent<CText>("You Died!", 16, "Minecraft");
+    entity.addComponent<CText>("You Died!", 64, "Minecraft");
 
     spawnButton(Vec2{float(m_game->getVirtualWidth()*0.5), float(m_game->getVirtualHeight()*0.75)}, "button_unpressed", "restart", "RESTART");
 }
@@ -64,7 +64,7 @@ void Scene_GameOver::spawnButton(
     entity.addComponent<CTransform>(pos);
     entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
     entity.addComponent<CName>(name);
-    entity.addComponent<CText>(dialog, 64, "Minecraft");
+    entity.addComponent<CText>(dialog, 16, "Minecraft");
 
 }
 
@@ -95,17 +95,13 @@ void Scene_GameOver::sDoAction(const Action& action)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
-
-                if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
-                    if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
-                        m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
-                        m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y + 3;
-                    }
+                if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
+                {
+                    m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
                 }
             }
         }   
     }
-
     else if (action.type() == "END")
     {
         if (action.name() == "MOUSE LEFT CLICK")
@@ -115,19 +111,12 @@ void Scene_GameOver::sDoAction(const Action& action)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
+                if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
+                {
+                    continue;
+                }
                 auto &name = m_ECS.getComponent<CName>(e).name;
-                bool x = m_mousePosition.x >= transform.pos.x + collision.halfSize.x;
-                bool y = m_mousePosition.x < transform.pos.x -collision.halfSize.x;
-                if ( x || y )
-                {
-                    continue;
-                }
-                if ( m_mousePosition.y >= transform.pos.y + collision.halfSize.y || m_mousePosition.y < transform.pos.y -collision.halfSize.y )
-                {
-                    continue;
-                }
                 m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
-                m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y - 3;
                 if ( name == "restart" )
                 {
                     m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", true), true);

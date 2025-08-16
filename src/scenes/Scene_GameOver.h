@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ecs/Components.h"
-#include "physics/Physics.h"
 #include "scenes/Scene.h"
 #include <memory>
 
@@ -18,7 +17,6 @@ class Scene_GameOver : public Scene
     EntityID m_player;
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
-    Physics m_physics;
     Vec2 levelSize;
 
     void loadGameOver();

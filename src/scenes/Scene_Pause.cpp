@@ -98,12 +98,8 @@ void Scene_Pause::sDoAction(const Action& action) {
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
-    
-                if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
-                    if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
-                        m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
-                        m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y + 3;
-                    }
+                if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
+                    m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
                 }
             }
         }
@@ -119,23 +115,20 @@ void Scene_Pause::sDoAction(const Action& action) {
                 if (m_hold_CTRL) {
                     continue;
                 }
-                if ( m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x -collision.halfSize.x ){
-                    if ( m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y -collision.halfSize.y ){
-                        m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
-                        m_ECS.getComponent<CTransform>(e).pos.y = m_ECS.getComponent<CTransform>(e).pos.y - 3;
-                        if ( name == "CONTINUE" ){
-                            if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
-                                auto playScene = std::dynamic_pointer_cast<Scene_Play>(m_game->sceneMap().at("PLAY"));
-                                playScene->setPaused(false);
-                            }
-                            m_game->changeScene("PLAY", nullptr, true);
-                            
-                        } else if ( name == "Quit" ){
-                            m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
-                            if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
-                                m_game->sceneMap().erase("PLAY");
-                            }
-                        }
+                if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
+                    continue;
+                }
+                if ( name == "CONTINUE" ){
+                    if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
+                        auto playScene = std::dynamic_pointer_cast<Scene_Play>(m_game->sceneMap().at("PLAY"));
+                        playScene->setPaused(false);
+                    }
+                    m_game->changeScene("PLAY", nullptr, true);
+                    
+                } else if ( name == "Quit" ){
+                    m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game), true);
+                    if (m_game->sceneMap().find("PLAY") != m_game->sceneMap().end()) {
+                        m_game->sceneMap().erase("PLAY");
                     }
                 }
             }

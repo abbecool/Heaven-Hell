@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ecs/Components.h"
-#include "physics/Physics.h"
 #include "physics/CollisionManager.h"
 #include "story/StoryManager.h"
 #include "physics/Camera.h"
@@ -32,7 +31,6 @@ class Scene_Play : public Scene
     PlayerConfig m_playerConfig;
     PlayerConfig m_rooterConfig;
     PlayerConfig m_goblinConfig;
-    Physics m_physics;
     CollisionManager m_collisionManager;
     InteractionManager m_interactionManager;
     StoryManager m_storyManager;

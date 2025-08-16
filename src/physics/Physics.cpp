@@ -5,6 +5,11 @@
 #include <cstdlib>
 #include <memory>
 
+bool Physics::PointInRect(const Vec2& point, const Vec2& rectPos, const Vec2& rectSize){
+    return (point.x >= rectPos.x - rectSize.x/2 && point.x <= rectPos.x + rectSize.x/2 &&
+            point.y >= rectPos.y - rectSize.y/2 && point.y <= rectPos.y + rectSize.y/2);
+}
+
 Vec2 Physics::knockback(CKnockback& knockback){
     knockback.timeElapsed += 16;
     if (knockback.timeElapsed < knockback.duration) {
