@@ -57,21 +57,6 @@ void Scene_GameOver::spawnLevel(const Vec2 pos, std::string level)
     entity.addComponent<CName>(level);
 }
 
-void Scene_GameOver::spawnButton(
-    const Vec2 pos, 
-    const std::string& unpressed, 
-    const std::string& name, 
-    const std::string& dialog)
-{   
-    EntityID id = m_ECS.addEntity();
-    CAnimation animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed), 5);
-    m_rendererManager.addEntityToLayer(id, 3);
-    m_ECS.addComponent<CTransform>(id, pos);
-    m_ECS.addComponent<CCollisionBox>(id, animation.animation.getSize());
-    m_ECS.addComponent<CName>(id, name);
-    m_ECS.addComponent<CText>(id, dialog, 16, "Minecraft");
-}
-
 void Scene_GameOver::sDoAction(const Action& action)
 {
     if (action.type() == "START")

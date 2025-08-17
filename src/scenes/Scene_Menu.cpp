@@ -62,21 +62,6 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
     m_ECS.addComponent<CName>(id, level);
 }
 
-void Scene_Menu::spawnButton(
-    const Vec2 pos, 
-    const std::string& unpressed, 
-    const std::string& name, 
-    const std::string& dialog)
-{   
-    EntityID id = m_ECS.addEntity();
-    m_rendererManager.addEntityToLayer(id, 3);
-    CAnimation animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed), 5);
-    m_ECS.addComponent<CTransform>(id, pos);
-    m_ECS.addComponent<CCollisionBox>(id, animation.animation.getSize());
-    m_ECS.addComponent<CName>(id, name);
-    m_ECS.addComponent<CText>(id, dialog, 16, "Minecraft");
-}
-
 void Scene_Menu::sDoAction(const Action& action)
 {
     if (action.type() == "START")

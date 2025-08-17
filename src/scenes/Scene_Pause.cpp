@@ -72,23 +72,6 @@ void Scene_Pause::loadLayout(const std::string& filename) {
     }
 }
 
-void Scene_Pause::spawnButton(
-    const Vec2 pos, 
-    const std::string& unpressed, 
-    const std::string& name, 
-    const std::string& dialog
-) {   
-    EntityID id = m_ECS.addEntity();
-    CAnimation animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed), 5);
-    m_rendererManager.addEntityToLayer(id, 5);
-    m_ECS.addComponent<CTransform>(id, pos);
-    Vec2 dynamic_size = {float(dialog.length())/4, 0.0f};
-    m_ECS.getComponent<CTransform>(id).scale = dynamic_size;
-    m_ECS.addComponent<CCollisionBox>(id, animation.animation.getSize()*dynamic_size);
-    m_ECS.addComponent<CName>(id, name);
-    m_ECS.addComponent<CText>(id, dialog, 16, "Minecraft");
-}
-
 void Scene_Pause::sDoAction(const Action& action) {
     if (action.type() == "START") {
         if (action.name() == "CTRL") {

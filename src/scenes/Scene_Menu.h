@@ -21,13 +21,6 @@ class Scene_Menu : public Scene
     Vec2 levelSize;
 
     void loadMenu();
-
-    void spawnButton(
-        const Vec2 pos, 
-        const std::string& button_name, 
-        const std::string& name, 
-        const std::string& dialog
-    );
     void spawnLevel(const Vec2 pos, const std::string tile);
 
     void sAnimation();

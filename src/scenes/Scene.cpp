@@ -206,3 +206,18 @@ const Animation& Scene::getAnimation(const std::string& name) const {
 TTF_Font* Scene::getFont(const std::string& name) const {
     return m_game->assets().getFont(name);
 }
+
+void Scene::spawnButton(
+    const Vec2 pos, 
+    const std::string& unpressed, 
+    const std::string& name, 
+    const std::string& dialog)
+{   
+    EntityID id = m_ECS.addEntity();
+    m_rendererManager.addEntityToLayer(id, 3);
+    CAnimation animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed), 5);
+    m_ECS.addComponent<CTransform>(id, pos);
+    m_ECS.addComponent<CCollisionBox>(id, animation.animation.getSize());
+    m_ECS.addComponent<CName>(id, name);
+    m_ECS.addComponent<CText>(id, dialog, 16, "Minecraft");
+}

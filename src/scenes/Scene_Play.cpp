@@ -84,16 +84,14 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     loadLevel(levelPath); 
     
     // mobs have to spawn after player, so they can target the player
-    loadMobsNItems("config_files/mobs.txt");
-    spawnWeapon(Vec2{345, 59}*m_gridSize);
-    spawnSword(Vec2{364, 91}*m_gridSize);
+    loadMobsNItems("config_files/mobs.json");
 
-    m_camera.calibrate(Vec2 {(float)width(), (float)height()}, m_levelSize, m_gridSize);
+    m_camera.calibrate(Vec2 {width(), height()}, m_levelSize, m_gridSize);
     m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
-    std::ifstream file("config_files/mobs.json");
+    std::ifstream file(path);
     if (!file) {
         std::cerr << "Could not load assets file!\n";
         exit(-1);
@@ -106,16 +104,9 @@ void Scene_Play::loadMobsNItems(const std::string& path){
     for (auto& [mobType, mobArray] : j["mobs"].items()) {
         for (auto& mob : mobArray) {
             pos = Vec2{mob["x"], mob["y"]};
-            spawnDecoration(pos*m_gridSize, Vec2 {6, 8}, 6, mobType);
-            // EntityID id = Spawn(mobType, pos);
+            EntityID id = Spawn(mobType, pos*m_gridSize);
         }
     }
-    // spawnSmallEnemy(pos*m_gridSize, layer, "rooter-sheet");
-    // spawnSmallEnemy(pos*m_gridSize, layer, "goblin-sheet");
-    // spawnCoin(pos*m_gridSize, layer);
-    // spawnDecoration(pos*m_gridSize, Vec2 {6, 8}, layer, "tree");
-    // spawnDecoration(pos*m_gridSize, Vec2 {56, 44}, layer, "house");
-    // spawnCampfire(pos*m_gridSize, layer);
 }
 
 void Scene_Play::loadConfig(const std::string& confPath){
@@ -622,7 +613,28 @@ void Scene_Play::sAudio()
 EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
 {
     if (name == "copper_staff") {
-        return spawnWeapon(pos*m_gridSize, name);
+        return spawnWeapon(pos, name);
+    }
+    else if (name == "rooter-sheet") {
+        return spawnSmallEnemy(pos, 6, "rooter-sheet");
+    }
+    else if (name == "goblin-sheet") {
+        return spawnSmallEnemy(pos, 6, "goblin-sheet");
+    }
+    else if (name == "coin") {
+        return spawnCoin(pos, 6);
+    }
+    else if (name == "tree") {
+        return spawnDecoration(pos, Vec2 {6, 8}, 6, "tree");
+    }
+    else if (name == "house") {
+        return spawnDecoration(pos, Vec2 {56, 44}, 6, "house");
+    }
+    else if (name == "campfire") {
+        return spawnCampfire(pos, 6);
+    }
+    else if (name == "sword") {
+        return spawnSword(pos);
     }
     return 0; // Return 0 if the entity type is not recognized
 }

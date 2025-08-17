@@ -80,4 +80,12 @@ class Scene
     virtual Vec2 getCameraPosition();
     const Animation& getAnimation(const std::string& name) const;
     TTF_Font* getFont(const std::string& name) const;
+
+    void spawnButton(
+        const Vec2 pos, 
+        const std::string& button_name, 
+        const std::string& name, 
+        const std::string& dialog
+    );
+
 };

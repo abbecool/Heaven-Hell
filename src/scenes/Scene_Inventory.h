@@ -16,7 +16,7 @@ class Scene_Inventory : public Scene
     bool m_drawCollision = false;
     bool m_open = false;
 
-    void spawnBox(Vec2 pos, std::string sprite);
+    // void spawnBox(Vec2 pos, std::string sprite);
     void spawnItem(std::string sprite);
 
     void sScripting();
