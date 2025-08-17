@@ -7,6 +7,7 @@
 #include "physics/Camera.h"
 #include "physics/Physics.h"
 
+#include <SDL_ttf.h>
 #include <cstddef>
 #include <map>
 

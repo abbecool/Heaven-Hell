@@ -119,18 +119,23 @@ void Scene::sRenderBasic() {
 }
 
 template<typename BoxType>
-void Scene::renderBox(std::vector<EntityID> view, ComponentPool<CTransform> transformPool, ComponentPool<BoxType> boxPool, const Vec2& screenCenterZoomed, int totalZoom)
-{
+void Scene::renderBox(
+    std::vector<EntityID> view, 
+    ComponentPool<CTransform> transformPool, 
+    ComponentPool<BoxType> boxPool, 
+    const Vec2& screenCenterZoomed, 
+    int totalZoom
+) {
     for (auto e : view)
     {   
         auto& transform = transformPool.getComponent(e);
         auto& box = boxPool.getComponent(e);
         // Adjust the box box position based on the camera position
         SDL_Rect boxRect;
-        boxRect.x = (int)(transform.pos.x - box.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x;
-        boxRect.y = (int)(transform.pos.y - box.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
-        boxRect.w = (int)(box.size.x) * totalZoom;
-        boxRect.h = (int)(box.size.y) * totalZoom;
+        boxRect.x = (transform.pos.x - box.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x;
+        boxRect.y = (transform.pos.y - box.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
+        boxRect.w = box.size.x * totalZoom;
+        boxRect.h = box.size.y * totalZoom;
         SDL_Color color = box.color;
         SDL_SetRenderDrawColor(m_game->renderer(), color.r, color.g, color.b, color.a);
         SDL_RenderDrawRect(m_game->renderer(), &boxRect);

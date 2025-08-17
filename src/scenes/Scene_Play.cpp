@@ -457,8 +457,8 @@ void Scene_Play::sStatus() {
         } else {
             spawnCoin(transform.pos, 6);
             m_ECS.queueRemoveEntity(entityID);
-            Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
         }
+        Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
     }
 }
 
