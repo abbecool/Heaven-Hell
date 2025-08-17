@@ -15,6 +15,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+using PixelMatrix = std::vector<std::vector<std::string>>;
+// TODO: rework Level_Loader
 void LevelLoader::init(Scene_Play* scene, const int width, const int height)
 {
     m_scene = scene;
@@ -22,7 +24,13 @@ void LevelLoader::init(Scene_Play* scene, const int width, const int height)
     m_height = height;
 }
 
-std::vector<bool> LevelLoader::neighborCheck(const std::string &pixel, int x, int y, int width, int height) {
+std::vector<bool> LevelLoader::neighborCheck(
+    const std::string &pixel, 
+    int x, 
+    int y, 
+    int width, 
+    int height
+) {
     std::vector<std::string> friendlyPixels(1, "");
     std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
     if ( pixel == "grass" || pixel == "dirt"){
@@ -45,7 +53,13 @@ std::vector<bool> LevelLoader::neighborCheck(const std::string &pixel, int x, in
 
 }
 
-std::vector<std::string> LevelLoader::neighborTag(const std::string &pixel, int x, int y, int width, int height) {
+std::vector<std::string> LevelLoader::neighborTag(
+    const std::string &pixel, 
+    int x, 
+    int y, 
+    int width, 
+    int height
+) {
     
     std::vector<std::string> neighborsTags(4, "nan"); // {top, bottom, left, right}
     if(y > 0){neighborsTags[0] = m_pixelMatrix[y - 1][x];}            // top
@@ -81,8 +95,13 @@ int LevelLoader::getObstacleTextureIndex(const std::vector<bool>& neighbors) {
     return 0; // No neighbors are obstacles
 }
 
-void LevelLoader::createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height) {
-    m_pixelMatrix = std::vector<std::vector<std::string>>(height, std::vector<std::string>(width, ""));
+void LevelLoader::createPixelMatrix(
+    Uint32* pixels, 
+    SDL_PixelFormat* format, 
+    int width, 
+    int height
+) {
+    m_pixelMatrix = PixelMatrix(height, std::vector<std::string>(width, ""));
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {

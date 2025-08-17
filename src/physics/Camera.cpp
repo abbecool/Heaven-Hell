@@ -28,13 +28,25 @@ void Camera::movement(Vec2 playerPos){
 
     if (!m_cameraFollow){
         originalPosition = playerPos - Vec2(width / 2, height / 2);
-        if (originalPosition.x + (float)width > gridX*levelX){ originalPosition.x = gridX*levelX - (float)width;}     // right wall
-        if (originalPosition.x < 0){originalPosition.x = 0;}      // left wall 
-        if (originalPosition.y + (float)height > gridY*levelY){ originalPosition.y = gridY*levelY - (float)height;}     // bottom wall
-        if (originalPosition.y < 0){ originalPosition.y = 0;}     // top wall
+        if (originalPosition.x + width > gridX*levelX) // right wall
+        {
+            originalPosition.x = gridX*levelX - width;
+        }
+        if (originalPosition.x < 0) // left wall
+        {
+            originalPosition.x = 0;
+        } 
+        if (originalPosition.y + height > gridY*levelY) // bottom wall
+        {
+            originalPosition.y = gridY*levelY - height;
+        }
+        if (originalPosition.y < 0) // top wall
+        {
+            originalPosition.y = 0;
+        }
     } else{
-        originalPosition = Vec2{   gridX*32*(int)((int)(playerPos.x)/(32*gridX)),
-                            gridY*32*(int)((int)(playerPos.y)/(32*gridY))};
+        originalPosition = Vec2{gridX*32*(int)((int)(playerPos.x)/(32*gridX)),
+                                gridY*32*(int)((int)(playerPos.y)/(32*gridY))};
     }
     position = originalPosition;
 }
@@ -102,22 +114,25 @@ bool Camera::startPan(float speed, int duration, Vec2 pos, bool pause) {
 
 void Camera::panCamera(){
     Vec2 panVelocity = (panPos - panStartPos).norm()*(float)i* panSpeed / 60;
-    if (panDuration > 0) {
-        if ( ( (panPos-(panStartPos + panVelocity)).length() > 32) && !(panTimeElapsed >= panDuration) ) {
-            i++;
-        } else {
-            panTimeElapsed += 16; // Assuming 60 FPS, increase time (16ms per frame)
-        }
-        if ( panTimeElapsed >= panDuration ) {
-            if ( ( panStartPos-(panStartPos + panVelocity) ).length() > 32 ) {
-                i--;
-            } else {
-                panDuration = 0;
-                m_cameraPause = panInitPause;
-            }
-        }
-        position = panStartPos + panVelocity;
+    if (panDuration <= 0) {
+        return;
     }
+    bool dontKnow = (panPos-(panStartPos + panVelocity)).length() > 32;
+    if (dontKnow && (panTimeElapsed < panDuration)) {
+        i++;
+    }
+    else {
+        panTimeElapsed += 16; // Assuming 60 FPS, increase time (16ms per frame)
+    }
+    if ( panTimeElapsed >= panDuration ) {
+        if ( ( panStartPos-(panStartPos + panVelocity) ).length() > 32 ) {
+            i--;
+        } else {
+            panDuration = 0;
+            m_cameraPause = panInitPause;
+        }
+    }
+    position = panStartPos + panVelocity;
 }
 
 bool Camera::update(Vec2 playerPos, bool pause) {

@@ -19,12 +19,12 @@ public:
     }
 
     // Removes an entity ID from the specified layer
-    void removeEntityFromLayer(EntityID entityID, uint8_t layer) {
-        if (layer < layers.size()) {
-            // auto& entities = layers[layer];
-            layers[layer].erase(std::remove(layers[layer].begin(), layers[layer].end(), entityID), layers[layer].end());
-            // layers[layer].erase(entityID);
+    void removeEntityFromLayer(EntityID id, uint8_t layer) {
+        if (layer >= layers.size()) {
+            return; // layer does not exist
         }
+        auto& l = layers[layer];
+        l.erase(std::remove(l.begin(), l.end(), id), l.end());
     }
 
     void queueRemoveEntityFromLayer(EntityID entityID, uint8_t layer) {

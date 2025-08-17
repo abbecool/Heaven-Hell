@@ -11,6 +11,11 @@
 #include "assets/Assets.h"
 #include "scenes/Scene_Menu.h"
 
+using seconds = std::chrono::seconds;
+using milliseconds = std::chrono::milliseconds;
+using nanoseconds = std::chrono::nanoseconds;
+using steady_clock = std::chrono::steady_clock;
+
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -29,7 +34,7 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
         std::cout << "Could not create window: " << SDL_GetError( ) << std::endl;
     }
     
-    current_frame = std::chrono::steady_clock::now();
+    current_frame = steady_clock::now();
     last_fps_update = current_frame;
     
     m_renderer = SDL_CreateRenderer( m_window, -1 , SDL_RENDERER_ACCELERATED);
@@ -104,31 +109,31 @@ void Game::FrametimeHandler()
 {
     m_currentFrame++;
 
-    auto frame_time = std::chrono::steady_clock::now() - current_frame;
-    auto frame_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(frame_time).count();
+    nanoseconds frame_time = steady_clock::now() - current_frame;
+    int64_t frame_time_ms = std::chrono::duration_cast<milliseconds>(frame_time).count();
 
     accumulated_frame_time += frame_time_ms;
     frame_count++;
     std::this_thread::sleep_until(next_frame);
 
     // Check if one second has passed
-    if (std::chrono::steady_clock::now() - last_fps_update >= std::chrono::seconds(1))
+    if (steady_clock::now() - last_fps_update >= seconds(1))
     {
-        double average_frame_time = accumulated_frame_time / frame_count;
-        double average_fps = 1000.0 / average_frame_time;
+        int average_frame_time = accumulated_frame_time / frame_count;
+        int average_fps = 1000.0 / average_frame_time;
 
         // Print the average FPS followed by a carriage return
-        std::cout << "\rFPS: " << (int)average_fps << " / " << (int)average_frame_time << "ms";
+        std::cout << "\rFPS: " << average_fps << " / " << average_frame_time << "ms";
 
         // Reset counters for the next second
         accumulated_frame_time = 0.0;
         frame_count = 0;
-        last_fps_update = std::chrono::steady_clock::now();
+        last_fps_update = steady_clock::now();
     }
 
     // FPS cap
-    current_frame = std::chrono::steady_clock::now();
-    next_frame = current_frame + std::chrono::milliseconds(1000 / m_framerate); // 60Hz
+    current_frame = steady_clock::now();
+    next_frame = current_frame + milliseconds(1000 / m_framerate); // 60Hz
     // 
 }
 

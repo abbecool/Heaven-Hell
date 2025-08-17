@@ -103,15 +103,15 @@ struct CBox
     Vec2 halfSize;
     CollisionMask layer = FINAL_MASK;
     CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
-    Uint8 red;
-    Uint8 green;
-    Uint8 blue;
+    SDL_Color color;
 
     CBox() {}
     CBox(const Vec2& s) 
-        : size(s), halfSize(s/2.0), red(255), green(255), blue(255) {}
-    CBox(const Vec2& s, CollisionMask l, CollisionMask m, const Uint8 r, const Uint8 g, const Uint8 b) // only use this after the new collision system is implemented
-        : size(s), halfSize(s/2.0), layer(l), mask(m), red(r), green(g), blue(b) {}
+        : size(s), halfSize(s/2.0), color({255, 255, 255, 255}) {}
+    CBox(const Vec2& s, CollisionMask l, CollisionMask m, SDL_Color c) // only use this after the new collision system is implemented
+        : size(s), halfSize(s/2.0), layer(l), mask(m), color(c) {}
+    CBox(const Vec2& s, SDL_Color c) // only use this after the new collision system is implemented
+        : size(s), halfSize(s/2.0), color(c) {}
 };
 
 struct CCollisionBox : public CBox 
@@ -119,18 +119,18 @@ struct CCollisionBox : public CBox
     CCollisionBox() {}
     CCollisionBox(const Vec2& s) 
         : CBox(s) {}
-    CCollisionBox(const Vec2& s, const Uint8 r, const Uint8 g, const Uint8 b) 
+    CCollisionBox(const Vec2& s, const SDL_Color color) 
         : CBox(s) {}
 
     CCollisionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
-        : CBox(size, layer, mask, 255, 255, 255) {}
+        : CBox(size, layer, mask, {255, 255, 255, 255}) {}
 };
 
 struct CInteractionBox : public CBox
 {
     CInteractionBox(){}    
     CInteractionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
-        : CBox(size, layer, mask, 0, 0, 255) {}
+        : CBox(size, layer, mask, {0, 0, 255, 255}) {}
 };
 
 struct CImmovable
@@ -163,6 +163,7 @@ struct CHealth
     size_t damage_frame = 0;
     std::unordered_set<std::string> HPType;
     CHealth() {}
+    //TODO: rework the animation, especially when used in CHealth
     CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
         : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), i_frames(hrt_frms){}
 };
@@ -184,6 +185,8 @@ struct CAnimation
                 : animation(animation), repeat(r){}
     CAnimation(const Animation& animation, bool r, int l)
             : animation(animation), repeat(r), layer(l){}
+    CAnimation(const Animation& animation, int l)
+            : animation(animation), layer(l){}
 };  
 
 struct CState
@@ -217,7 +220,8 @@ struct CAttack
     int range = 3*64;
     Vec2 area = {16, 16};
     CAttack() {}
-    CAttack(int dmg, int spd, int dur, int rg, Vec2 ae) : damage(dmg), speed(spd), attackTimer(spd), duration(dur), range(rg), area(ae){}
+    CAttack(int dmg, int spd, int dur, int rg, Vec2 ae) 
+        : damage(dmg), speed(spd), attackTimer(spd), duration(dur), range(rg), area(ae){}
 };
 
 struct CDamage
@@ -226,7 +230,8 @@ struct CDamage
     std::unordered_set<std::string> damageType;
     CDamage() {}
     CDamage(int dmg) : damage(dmg) {}
-    CDamage(int dmg, std::unordered_set<std::string> dmgType) : damage(dmg), damageType(dmgType) {}
+    CDamage(int dmg, std::unordered_set<std::string> dmgType) 
+        : damage(dmg), damageType(dmgType) {}
 };
 
 // enum struct TextBackground {

@@ -42,7 +42,11 @@ void handleEnemyObstacleCollision(Entity enemy, Entity obstacle, Vec2 overlap)
     enemy.getComponent<CTransform>().pos -= overlap;
 }
 
-void BaseCollisionManager::registerHandler(CollisionMask layerA, CollisionMask layerB, Handler handler)
+void BaseCollisionManager::registerHandler(
+    CollisionMask layerA, 
+    CollisionMask layerB, 
+    Handler handler
+)
 {
     uint8_t indexA = std::log2((uint8_t)layerA.to_ulong());
     uint8_t indexB = std::log2((uint8_t)layerB.to_ulong());
@@ -111,11 +115,11 @@ Vec2 BaseCollisionManager::collisionOverlap(CTransform t1, CTransform t2, Vec2 b
     {
         if ((aPos.x + aSize.x) > (bPos.x + bSize.x))
         {
-            move += Vec2 { overlap.x, 0 };
+            move += Vec2 { overlap.x, 0.0f };
         }
         if ((aPos.x + aSize.x) < (bPos.x + bSize.x))
         {
-            move -= Vec2 { overlap.x, 0 };
+            move -= Vec2 { overlap.x, 0.0f };
         }
     }
     
@@ -123,18 +127,23 @@ Vec2 BaseCollisionManager::collisionOverlap(CTransform t1, CTransform t2, Vec2 b
     {
         if ((aPos.y + aSize.y/2) > (bPos.y + bSize.y/2))
         {
-            move +=  Vec2 { 0, overlap.y };
+            move +=  Vec2 { 0.0f, overlap.y };
         }
         if ((aPos.y + aSize.y/2) < (bPos.y + bSize.y/2))
         {
-            move -=  Vec2 { 0, overlap.y };
+            move -=  Vec2 { 0.0f, overlap.y };
         }
     }
     
     return move;
 }
 
-bool BaseCollisionManager::isCollided(CTransform t1, CTransform t2, CCollisionBox b1, CCollisionBox b2)
+bool BaseCollisionManager::isCollided(
+    CTransform t1, 
+    CTransform t2, 
+    CCollisionBox b1, 
+    CCollisionBox b2
+)
 {
     Vec2 aSize = b1.size;
     Vec2 bSize = b2.size;
@@ -147,7 +156,11 @@ bool BaseCollisionManager::isCollided(CTransform t1, CTransform t2, CCollisionBo
     return (x_overlap && y_overlap);
 }
 
-bool BaseCollisionManager::isCollided(CTransform t1, CTransform t2, CInteractionBox b1, CInteractionBox b2)
+bool BaseCollisionManager::isCollided(
+    CTransform t1, 
+    CTransform t2, 
+    CInteractionBox b1, 
+    CInteractionBox b2)
 {
     Vec2 aSize = b1.size;
     Vec2 bSize = b2.size;
@@ -173,7 +186,12 @@ bool BaseCollisionManager::isCollided(CTransform t1, CTransform t2, CBox b1, CBo
     return (x_overlap && y_overlap);
 }
 
-void BaseCollisionManager::renderQuadtree(SDL_Renderer* renderer, int zoom, Vec2 center, Vec2 cameraPosition)
+void BaseCollisionManager::renderQuadtree(
+    SDL_Renderer* renderer, 
+    int zoom, 
+    Vec2 center, 
+    Vec2 cameraPosition
+)
 {
     SDL_Color color = {255, 0, 0, 255};
     m_quadRoot->renderBoundary(renderer, zoom, center, cameraPosition, color);
@@ -201,8 +219,6 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize)
     
     auto quadVector = m_quadRoot->createQuadtreeVector();
     
-    // loopQuadEntityPairs<CCollisionBox>(quadVector);
-
     // loop all quadtrees that are not divided
     for (auto quadleaf : quadVector){
         std::vector<Entity> entityVector = quadleaf->getObjects();
@@ -218,12 +234,23 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize)
                 auto& collisionB = collisionPool.getComponent(entityIDB);
                 auto& transformA = transformPool.getComponent(entityIDA);
                 auto& transformB = transformPool.getComponent(entityIDB);
-                auto overlap = collisionOverlap(transformA, transformB, collisionA.size, collisionB.size);
+                auto overlap = collisionOverlap(
+                    transformA, 
+                    transformB, 
+                    collisionA.size, 
+                    collisionB.size
+                );
                 if ( !isCollided(transformA, transformB, collisionA, collisionB) )
                 {
                     continue; // No collision detected
                 }
-                handleCollision(entityIDA, collisionA.layer, entityIDB, collisionB.layer, overlap);
+                handleCollision(
+                    entityIDA, 
+                    collisionA.layer, 
+                    entityIDB, 
+                    collisionB.layer, 
+                    overlap
+                );
             }
         }
     }

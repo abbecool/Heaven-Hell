@@ -32,7 +32,7 @@ void Scene_Menu::loadMenu()
 {
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (m_game->assets().getAnimation("level0_screenshot"), true, 9);
+    entity.addComponent<CAnimation> (getAnimation("level0_screenshot"), true, 9);
     m_rendererManager.addEntityToLayer(entityId, 1);
     Vec2 midPixel = gridToMidPixel(Vec2{0, 0}, entityId);
     entity.addComponent<CTransform>(midPixel);
@@ -40,7 +40,7 @@ void Scene_Menu::loadMenu()
 
     EntityID entityId1 = m_ECS.addEntity();
     Entity entity1 = {entityId1, &m_ECS};
-    entity1.addComponent<CAnimation> (m_game->assets().getAnimation("game_title"), true, 7);
+    entity1.addComponent<CAnimation> (getAnimation("game_title"), true, 7);
     m_rendererManager.addEntityToLayer(entityId1, 2);
     entity1.addComponent<CTransform>(Vec2 {300, 45});
     entity1.addComponent<CName>("game_title");
@@ -56,24 +56,25 @@ void Scene_Menu::loadMenu()
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
 {   
-    EntityID entityId = m_ECS.addEntity();
-    Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (m_game->assets().getAnimation(level), true, 9);
-    entity.addComponent<CTransform>(pos);
-    entity.addComponent<CName>(level);
+    EntityID id = m_ECS.addEntity();
+    m_ECS.addComponent<CAnimation>(id, getAnimation(level), 9);
+    m_ECS.addComponent<CTransform>(id, pos);
+    m_ECS.addComponent<CName>(id, level);
 }
 
-void Scene_Menu::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
+void Scene_Menu::spawnButton(
+    const Vec2 pos, 
+    const std::string& unpressed, 
+    const std::string& name, 
+    const std::string& dialog)
 {   
-    EntityID entityId = m_ECS.addEntity();
-    Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
-    m_rendererManager.addEntityToLayer(entityId, 3);
-    entity.addComponent<CTransform>(pos);
-    entity.getComponent<CTransform>().scale = Vec2{1,1};
-    entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
-    entity.addComponent<CName>(name);
-    entity.addComponent<CText>(dialog, 16, "Minecraft");
+    EntityID id = m_ECS.addEntity();
+    m_rendererManager.addEntityToLayer(id, 3);
+    CAnimation animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed), 5);
+    m_ECS.addComponent<CTransform>(id, pos);
+    m_ECS.addComponent<CCollisionBox>(id, animation.animation.getSize());
+    m_ECS.addComponent<CName>(id, name);
+    m_ECS.addComponent<CText>(id, dialog, 16, "Minecraft");
 }
 
 void Scene_Menu::sDoAction(const Action& action)
@@ -107,7 +108,7 @@ void Scene_Menu::sDoAction(const Action& action)
                 {
                     continue;
                 }
-                m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
+                m_ECS.getComponent<CAnimation>(e).animation = getAnimation("button_pressed");
             }
         }   
     }
@@ -126,14 +127,21 @@ void Scene_Menu::sDoAction(const Action& action)
                 continue;
             }
             auto &name = m_ECS.getComponent<CName>(e).name;
-            m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
+            m_ECS.getComponent<CAnimation>(e).animation = getAnimation("button_unpressed");
+            std::string levelPath = "assets/images/levels/levelWorld.png";
             if ( name == "new" )
             {
-                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", true), true);
+                m_game->changeScene(
+                    "PLAY", 
+                    std::make_shared<Scene_Play>(m_game, levelPath, true), 
+                    true);
             }
             else if ( name == "continue" )
             {
-                m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", false), true);
+                m_game->changeScene(
+                    "PLAY", 
+                    std::make_shared<Scene_Play>(m_game, levelPath, false), 
+                    true);
             }
             else if ( name == "360p" )
             {

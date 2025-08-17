@@ -43,8 +43,13 @@ void Quadtree::printTree(const std::string& prefix, const std::string& branch)
     }
 }
 
-void Quadtree::renderBoundary(SDL_Renderer* renderer, int zoom, Vec2 screenCenter, Vec2 camPos, SDL_Color color)
-{
+void Quadtree::renderBoundary(
+    SDL_Renderer* renderer, 
+    int zoom, 
+    Vec2 screenCenter, 
+    Vec2 camPos, 
+    SDL_Color color
+) {
     if (m_divided)
     {
         m_northWest->renderBoundary(renderer, zoom, screenCenter, camPos, color);

@@ -13,7 +13,7 @@ bool Physics::PointInRect(const Vec2& point, const Vec2& rectPos, const Vec2& re
 Vec2 Physics::knockback(CKnockback& knockback){
     knockback.timeElapsed += 16;
     if (knockback.timeElapsed < knockback.duration) {
-        return knockback.direction.norm( (float)knockback.magnitude ) / (float)(knockback.duration/16);
+        return knockback.direction.norm(knockback.magnitude)*16/knockback.duration;
     } else {
         // Reset the  when the duration is over
         knockback.duration = 0;

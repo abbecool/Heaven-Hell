@@ -23,7 +23,13 @@ void Assets::addTexture(const std::string & path, SDL_Renderer * ren)
     SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, tempSurface);
     SDL_FreeSurface(tempSurface);
     if (texture == nullptr) {
-        std::cerr << "Failed to load texture: " << name << ", from path: " << path_char << ", IMG_Error: " << IMG_GetError() << std::endl;
+        std::cerr   << "Failed to load texture: " 
+                    << name 
+                    << ", from path: " 
+                    << path_char 
+                    << ", IMG_Error: " 
+                    << IMG_GetError() 
+                    << std::endl;
         return;
     }
     m_textures[name] = texture;
@@ -106,7 +112,11 @@ Mix_Music* Assets::getMusic(const std::string& name) const {
     }
 }
 
-void Assets::loadFromFile(const std::string & pathAssets, const std::string & pathText, SDL_Renderer * ren) {
+void Assets::loadFromFile(
+    const std::string & pathAssets, 
+    const std::string & pathText, 
+    SDL_Renderer * ren
+){
     std::ifstream file_assets(pathAssets);
     if (!file_assets) {
         std::cerr << "Could not load assets file!\n";

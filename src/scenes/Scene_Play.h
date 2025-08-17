@@ -68,7 +68,12 @@ class Scene_Play : public Scene
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
-    EntityID spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation);
+    EntityID spawnDecoration(
+        Vec2 pos, 
+        Vec2 collisionBox, 
+        const size_t layer, 
+        std::string animation
+    );
     
     EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
     EntityID spawnGrass     (const Vec2 pos, const int frame);
@@ -76,7 +81,10 @@ class Scene_Play : public Scene
     EntityID spawnCampfire  (const Vec2 pos, int layer);
     EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
     EntityID spawnLava      (const Vec2 pos, const std::string tag, const int frame );
-    std::vector<EntityID> spawnDualTiles (const Vec2 pos, std::unordered_map<std::string, int> tileIndex);
+    std::vector<EntityID> spawnDualTiles(
+        const Vec2 pos, 
+        std::unordered_map<std::string, int> tileIndex
+    );
     
     void sLoader();
     void sScripting();

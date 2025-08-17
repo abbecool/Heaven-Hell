@@ -11,7 +11,7 @@ class Animation
     SDL_Texture* m_texture;
     SDL_Rect m_srcRect;
     SDL_Rect m_destRect;
-    Vec2 m_scale = {1.0, 1.0};    
+    Vec2 m_scale = Vec2{1, 1};    
     float m_angle = 0;
     size_t m_frameCount = 1; // total number of frames of animation
     size_t m_currentFrame = 0; // the current frame of animation being played

@@ -29,7 +29,15 @@ Animation::Animation(
     setSrcRect( 0, 0, (int)m_size.x, (int)m_size.y );
 }
 
-Animation::Animation(const std::string& name, SDL_Texture* t, size_t frameCount, size_t speed, int rows, int cols, int width, int height)
+Animation::Animation(
+    const std::string& name, 
+    SDL_Texture* t, 
+    size_t frameCount, 
+    size_t speed, 
+    int rows, 
+    int cols, 
+    int width, 
+    int height)
 {
     m_texture = t;
     m_frameCount = rows*cols;

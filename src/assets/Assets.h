@@ -31,5 +31,9 @@ public:
 	Mix_Chunk* getAudio(const std::string& name) const;
 	Mix_Music* getMusic(const std::string& name) const;
 
-	void loadFromFile(const std::string & pathImages, const std::string & pathText, SDL_Renderer * ren);
+	void loadFromFile(
+		const std::string & pathImages, 
+		const std::string & pathText, 
+		SDL_Renderer * ren
+	);
 };

@@ -3,8 +3,11 @@
 
 Vec2::Vec2(){}
 
-Vec2::Vec2(float xin, float yin)
-    : x(float(xin)), y(float(yin)) {}
+// Vec2::Vec2(int xin, int yin)
+//     : x(float(xin)), y(float(yin)) {}
+
+// Vec2::Vec2(float xin, float yin)
+//     : x(xin), y(yin) {}
 
 bool Vec2::operator== (const Vec2 & rhs) const
 {
@@ -119,9 +122,9 @@ float Vec2::angle() const
 
 Vec2 Vec2::mainDir() const {
         if (std::fabs(x) >= std::fabs(y)) {
-            return Vec2{x, 0.0};
+            return Vec2{x, 0.0f};
         } else {
-            return Vec2{0.0, y};
+            return Vec2{0.0f, y};
         }
     }
 

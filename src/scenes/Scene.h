@@ -77,4 +77,6 @@ class Scene
     MouseState getMouseState();
     Vec2 getMousePosition();
     virtual Vec2 getCameraPosition();
+    const Animation& getAnimation(const std::string& name) const;
+    TTF_Font* getFont(const std::string& name) const;
 };

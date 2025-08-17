@@ -38,7 +38,7 @@ protected:
     std::chrono::steady_clock::time_point last_fps_update;
 
     int frame_count = 0;
-    double accumulated_frame_time = 0.0;
+    int accumulated_frame_time = 0.0;
     
     void update();
     void setPaused(bool paused);

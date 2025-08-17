@@ -58,7 +58,7 @@ public:
         assert(it != m_usedIDs.end() && "Entity not found in used IDs!");
         
         if (it == m_usedIDs.end()) {
-            std::cerr << "Warning: Attempting to remove non-existent entity " << entity << "." << std::endl;
+            std::cerr << "Tried to remove non-existent entity: " << entity << std::endl;
         }        
         m_usedIDs.erase(it);
         m_freeIDs.push_back(entity);
@@ -152,7 +152,7 @@ public:
         } else {
             static ComponentPool<T> emptyPool;
             return emptyPool;
-            std::cout << "Component pool not found for type: " << typeid(T).name() << std::endl;
+            std::cout << typeid(T).name() << " pool doesnt exist." << std::endl;
         }
     }
     
@@ -174,7 +174,8 @@ public:
         ((
             [&] {
                 auto& pool = getOrCreateComponentPool<Components>();
-                size_t sz = pool.getDense().size(); // dense is the vector<T> in your sparse set
+                // dense is the vector<T> in your sparse set
+                size_t sz = pool.getDense().size();
                 if (sz < minSize) {
                     minSize = sz;
                     smallestPoolBase = &pool;

@@ -33,20 +33,26 @@ void Scene_GameOver::loadGameOver()
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
     m_rendererManager.addEntityToLayer(entityId, 3);
-    Vec2 pos = Vec2{float(m_game->getVirtualWidth()), float(m_game->getVirtualHeight()/2)}/2;
+    Vec2 pos = Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()/2}/2;
     entity.addComponent<CTransform>(pos);
     Vec2 size = Vec2{512, 128};
     entity.addComponent<CName>("death_text");
     entity.addComponent<CText>("You Died!", 64, "Minecraft");
 
-    spawnButton(Vec2{float(m_game->getVirtualWidth()*0.5), float(m_game->getVirtualHeight()*0.75)}, "button_unpressed", "restart", "RESTART");
+    spawnButton(
+        Vec2{float(m_game->getVirtualWidth()*0.5), 
+        float(m_game->getVirtualHeight()*0.75)}, 
+        "button_unpressed", 
+        "restart", 
+        "RESTART"
+    );
 }
 
 void Scene_GameOver::spawnLevel(const Vec2 pos, std::string level)
 {   
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (m_game->assets().getAnimation(level), true, 9);
+    entity.addComponent<CAnimation> (getAnimation(level), true, 9);
     entity.addComponent<CTransform>(pos);
     entity.addComponent<CName>(level);
 }
@@ -57,15 +63,13 @@ void Scene_GameOver::spawnButton(
     const std::string& name, 
     const std::string& dialog)
 {   
-    EntityID entityId = m_ECS.addEntity();
-    Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
-    m_rendererManager.addEntityToLayer(entityId, 3);
-    entity.addComponent<CTransform>(pos);
-    entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*1);
-    entity.addComponent<CName>(name);
-    entity.addComponent<CText>(dialog, 16, "Minecraft");
-
+    EntityID id = m_ECS.addEntity();
+    CAnimation animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed), 5);
+    m_rendererManager.addEntityToLayer(id, 3);
+    m_ECS.addComponent<CTransform>(id, pos);
+    m_ECS.addComponent<CCollisionBox>(id, animation.animation.getSize());
+    m_ECS.addComponent<CName>(id, name);
+    m_ECS.addComponent<CText>(id, dialog, 16, "Minecraft");
 }
 
 void Scene_GameOver::sDoAction(const Action& action)
@@ -95,9 +99,10 @@ void Scene_GameOver::sDoAction(const Action& action)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
+                auto &animation = m_ECS.getComponent<CAnimation>(e);
                 if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
                 {
-                    m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
+                    animation.animation = getAnimation("button_pressed");
                 }
             }
         }   
@@ -116,10 +121,16 @@ void Scene_GameOver::sDoAction(const Action& action)
                     continue;
                 }
                 auto &name = m_ECS.getComponent<CName>(e).name;
-                m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_unpressed");
+                auto &animation = m_ECS.getComponent<CAnimation>(e);
+                animation.animation = getAnimation("button_unpressed");
                 if ( name == "restart" )
                 {
-                    m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, "assets/images/levels/levelWorld.png", true), true);
+                    std::string levelPath = "assets/images/levels/levelWorld.png";
+                    m_game->changeScene(
+                        "PLAY", 
+                        std::make_shared<Scene_Play>(m_game, levelPath, true), 
+                        true
+                    );
                 }
             }
         }   

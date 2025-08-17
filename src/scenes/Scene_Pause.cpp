@@ -72,18 +72,21 @@ void Scene_Pause::loadLayout(const std::string& filename) {
     }
 }
 
-void Scene_Pause::spawnButton(const Vec2 pos, const std::string& unpressed, const std::string& name, const std::string& dialog)
-{   
-    EntityID entityId = m_ECS.addEntity();
-    Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation>(m_game->assets().getAnimation(unpressed), true, 5);
-    m_rendererManager.addEntityToLayer(entityId, 5);
-    entity.addComponent<CTransform>(pos);
-    float dynamic_length = (float)(dialog.length()/4);
-    entity.getComponent<CTransform>().scale = Vec2{dynamic_length,1};
-    entity.addComponent<CCollisionBox>(entity.getComponent<CAnimation>().animation.getSize()*Vec2{dynamic_length,1});
-    entity.addComponent<CName>(name);
-    entity.addComponent<CText>(dialog, 16, "Minecraft");
+void Scene_Pause::spawnButton(
+    const Vec2 pos, 
+    const std::string& unpressed, 
+    const std::string& name, 
+    const std::string& dialog
+) {   
+    EntityID id = m_ECS.addEntity();
+    CAnimation animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed), 5);
+    m_rendererManager.addEntityToLayer(id, 5);
+    m_ECS.addComponent<CTransform>(id, pos);
+    Vec2 dynamic_size = {float(dialog.length())/4, 0.0f};
+    m_ECS.getComponent<CTransform>(id).scale = dynamic_size;
+    m_ECS.addComponent<CCollisionBox>(id, animation.animation.getSize()*dynamic_size);
+    m_ECS.addComponent<CName>(id, name);
+    m_ECS.addComponent<CText>(id, dialog, 16, "Minecraft");
 }
 
 void Scene_Pause::sDoAction(const Action& action) {
@@ -99,7 +102,7 @@ void Scene_Pause::sDoAction(const Action& action) {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
-                    m_ECS.getComponent<CAnimation>(e).animation = m_game->assets().getAnimation("button_pressed");
+                    m_ECS.getComponent<CAnimation>(e).animation = getAnimation("button_pressed");
                 }
             }
         }

@@ -43,24 +43,21 @@ void Scene::sRenderBasic() {
         {
             for (const auto& e : layer)
             {                
-                if (!transformPool.hasComponent(e))
+                if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e))
                 {
                     continue;
                 }
+                auto& transform = transformPool.getComponent(e);
+                auto& animation = animationPool.getComponent(e).animation;
+                
+                // Adjust the entity's position based on the camera position
+                Vec2 adjustedPosition = (transform.pos - m_camera.position)*totalZoom 
+                                            + screenCenterZoomed;
 
-                if (animationPool.hasComponent(e))
-                {
-                    auto& transform = transformPool.getComponent(e);
-                    auto& animation = animationPool.getComponent(e).animation;
-                    
-                    // Adjust the entity's position based on the camera position
-                    Vec2 adjustedPosition = (transform.pos - m_camera.position) * totalZoom + screenCenterZoomed;
-
-                    animation.setScale(transform.scale * totalZoom);
-                    animation.setAngle(transform.angle);
-                    animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
-                    spriteRender(animation);
-                }
+                animation.setScale(transform.scale * totalZoom);
+                animation.setAngle(transform.angle);
+                animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
+                spriteRender(animation);
             }
         }
     }
@@ -71,7 +68,9 @@ void Scene::sRenderBasic() {
     {
         auto& dialog = dialogPool.getComponent(e);
         auto& transform = transformPool.getComponent(e);
-        auto pos = (transform.pos - m_camera.position) * totalZoom + screenCenterZoomed - dialog.size / 2;
+        auto pos = (transform.pos - m_camera.position)*totalZoom 
+                    + screenCenterZoomed 
+                    - dialog.size / 2;
         SDL_Rect texRect;
         texRect.x = int(pos.x);
         texRect.y = int(pos.y);
@@ -79,7 +78,7 @@ void Scene::sRenderBasic() {
         texRect.h = int(dialog.size.y * totalZoom);
 
         SDL_Color color = {255, 255, 255, 255};
-        SDL_Surface* surface = TTF_RenderText_Blended(m_game->assets().getFont(dialog.font_name), dialog.text.c_str(), color);
+        SDL_Surface* surface = TTF_RenderText_Blended(getFont(dialog.font_name), dialog.text.c_str(), color);
         if (!surface) {
             SDL_Log("TTF_RenderText_Blended error: %s", TTF_GetError());
             continue;
@@ -104,6 +103,7 @@ void Scene::sRenderBasic() {
 
         SDL_DestroyTexture(texture); // Free after rendering to avoid leaks
     }
+    // TODO: fix line count after this point
     if (m_drawCollision)
     {
         auto viewCollisions = m_ECS.View<CCollisionBox, CTransform>();
@@ -131,7 +131,8 @@ void Scene::renderBox(std::vector<EntityID> view, ComponentPool<CTransform> tran
         boxRect.y = (int)(transform.pos.y - box.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
         boxRect.w = (int)(box.size.x) * totalZoom;
         boxRect.h = (int)(box.size.y) * totalZoom;
-        SDL_SetRenderDrawColor(m_game->renderer(), box.red, box.green, box.blue, 255);
+        SDL_Color color = box.color;
+        SDL_SetRenderDrawColor(m_game->renderer(), color.r, color.g, color.b, color.a);
         SDL_RenderDrawRect(m_game->renderer(), &boxRect);
     }
 }
@@ -191,4 +192,12 @@ Vec2 Scene::gridToMidPixel(Vec2 grid, EntityID entity) {
 
 Vec2 Scene::getCameraPosition() {
     return Vec2{0,0};
+}
+
+const Animation& Scene::getAnimation(const std::string& name) const {
+    return m_game->assets().getAnimation(name);
+}
+
+TTF_Font* Scene::getFont(const std::string& name) const {
+    return m_game->assets().getFont(name);
 }

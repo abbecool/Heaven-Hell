@@ -28,7 +28,7 @@ public:
         m_ECS->getComponent<CHealth>(victimID).HP -= damage;
     }
 
-    void OnCollisionFunction(EntityID colliderID, CollisionMask colliderLayer, Vec2 overlap)
+    void OnCollisionFunction(EntityID colliderID, Vec2 overlap)
     {
         OnDestroyFunction();
     }

@@ -24,7 +24,13 @@ class BaseCollisionManager
     BaseCollisionManager(){};
 
     void registerHandler(CollisionMask layerA, CollisionMask layerB, Handler handler);
-    void handleCollision(EntityID entityA, CollisionMask layerA, EntityID entityB, CollisionMask layerB, Vec2 overlap);
+    void handleCollision(
+        EntityID entityA, 
+        CollisionMask layerA, 
+        EntityID entityB, 
+        CollisionMask layerB, 
+        Vec2 overlap
+    );
     Vec2 collisionOverlap(CTransform t1, CTransform t2, Vec2 box1, Vec2 box2);
     bool isCollided(CTransform t1, CTransform t2, CCollisionBox b1, CCollisionBox b2);
     bool isCollided(CTransform t1, CTransform t2, CInteractionBox b1, CInteractionBox b2);

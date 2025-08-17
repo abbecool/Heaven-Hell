@@ -38,7 +38,7 @@ void StoryManager::loadStory(const std::string& storyFilePath)
             }
             else if (storyQuest.onCompleteType == "spawn") {
                 storyQuest.onCompleteEntity = step["on_complete"]["entity"];
-                storyQuest.onCompleteposition = Vec2(step["on_complete"]["position"]["x"], step["on_complete"]["position"]["y"]);
+                storyQuest.onCompleteposition = Vec2(step["on_complete"]["position"]);
             }
         }
         m_storyQuests.push_back(storyQuest);
