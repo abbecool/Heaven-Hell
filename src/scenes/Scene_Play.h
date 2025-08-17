@@ -62,6 +62,7 @@ class Scene_Play : public Scene
     
     EntityID spawnPlayer();
     EntityID spawnNPC(Vec2 pos);
+    EntityID spawnDwarf(Vec2 pos);
     EntityID spawnWeapon(Vec2 pos, std::string weaponName = "staff");
     EntityID spawnSword(Vec2 pos, std::string weaponName = "sword");
     EntityID spawnProjectile(EntityID player, Vec2 vel, int layer);

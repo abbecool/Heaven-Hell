@@ -21,6 +21,7 @@
 
 #include <SDL_image.h>
 #include <SDL_mixer.h>
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -81,13 +82,14 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     loadConfig("config_files/config.txt");
     spawnPlayer();
     spawnNPC(Vec2{353, 63});
-    loadLevel(levelPath); 
+    spawnDwarf(Vec2{343, 60});
+    loadLevel(levelPath);
     
     // mobs have to spawn after player, so they can target the player
     loadMobsNItems("config_files/mobs.json");
 
-    m_camera.calibrate(Vec2 {width(), height()}, m_levelSize, m_gridSize);
-    m_inventory_scene =  std::make_shared<Scene_Inventory>(m_game);
+    m_camera.calibrate(Vec2{width(), height()}, m_levelSize, m_gridSize);
+    m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
@@ -588,16 +590,23 @@ void Scene_Play::sRender() {
     //     }
     // }
 
-    auto totalZoom = windowScale - m_camera.getCameraZoom();
-    auto screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
-    auto camPos = m_camera.position;
     if (m_drawCollision)
     {
-        m_collisionManager.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+        m_collisionManager.renderQuadtree(
+            m_game->renderer(), 
+            windowScale - m_camera.getCameraZoom(), 
+            screenCenter * m_camera.getCameraZoom(), 
+            m_camera.position
+        );
     }
     if (m_drawInteraction)
     {
-        m_interactionManager.renderQuadtree(m_game->renderer(), totalZoom, screenCenterZoomed, camPos);
+        m_interactionManager.renderQuadtree(
+            m_game->renderer(), 
+            windowScale - m_camera.getCameraZoom(), 
+            screenCenter * m_camera.getCameraZoom(), 
+            m_camera.position
+        );
     }
 }
 
@@ -608,7 +617,6 @@ void Scene_Play::sAudio()
         Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1ogg"), -1);
     }
 }
-
 
 EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
 {
@@ -639,7 +647,12 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
     return 0; // Return 0 if the entity type is not recognized
 }
 
-EntityID Scene_Play::SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID)
+EntityID Scene_Play::SpawnDialog(
+    std::string dialog, 
+    int size, 
+    std::string font, 
+    EntityID parentID
+)
 {
     auto id = m_ECS.addEntity();
     m_ECS.addComponent<CTransform>(id);
@@ -708,13 +721,38 @@ EntityID Scene_Play::spawnPlayer()
     return entityID;
 }
 
+EntityID Scene_Play::spawnDwarf(Vec2 pos)
+{
+    uint8_t layer = 10;
+    auto entityID = m_ECS.addEntity();
+
+    Vec2 midGrid = gridToMidPixel(pos*16, entityID);
+    m_ECS.addComponent<CTransform>(entityID, midGrid);
+    m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
+    
+    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
+    m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, FRIENDLY_LAYER, collisionMask);
+
+    InterationMask interactionMask = PLAYER_LAYER1;
+    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {48, 32}, FRIENDLY_LAYER, interactionMask);
+
+    m_ECS.addComponent<CName>(entityID, "NPC2");
+    m_ECS.addComponent<CAnimation>(entityID, getAnimation("dwarf-sheet"), true, layer);
+    m_rendererManager.addEntityToLayer(entityID, layer);
+    spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
+    m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
+    
+    auto& sc= m_ECS.addComponent<CScript>(entityID);
+    InitiateScript<NPCController>(sc, entityID);
+    return entityID;
+}
+
 EntityID Scene_Play::spawnNPC(Vec2 pos)
 {
     uint8_t layer = 10;
     auto entityID = m_ECS.addEntity();
 
     Vec2 midGrid = gridToMidPixel(pos*16, entityID);
-
     m_ECS.addComponent<CTransform>(entityID, midGrid);
     m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
     
