@@ -2,6 +2,7 @@
 
 #include "ecs/Components.h"
 #include "ComponentPool.hpp"
+// #include "ComponentFactory.hpp"
 
 #include <iostream>
 #include <unordered_map>
@@ -36,7 +37,7 @@ private:
     std::vector<EntityID> m_entitiesToRemove;
 
     std::vector<EntityID> matchingEntities;
-
+    // ComponentFactory m_factory;
 public:
 
     ECS(){}

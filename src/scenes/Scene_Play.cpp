@@ -55,6 +55,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDL_MOUSEWHEEL , "ATTACK");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
     registerAction(SDLK_SPACE , "ATTACK");
+    registerAction(SDLK_y , "ATTACK");
     registerAction(SDLK_f, "INTERACT");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
@@ -78,11 +79,24 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_1, "TP1");
     registerAction(SDLK_2, "TP2");
     registerAction(SDLK_3, "TP3");
+    // ComponentFactory::registerComponent(
+    //     "CTransform", 
+    //     &ComponentFactory::createComponent<CTransform>
+    // );
+    // ComponentFactory::registerComponent(
+    //     "CCollisionBox", 
+    //     &ComponentFactory::createComponent<CCollisionBox>
+    // );
+    // ComponentFactory::registerComponent(
+    //     "CAnimation", 
+    //     &ComponentFactory::createComponent<CAnimation>
+    // );
 
     loadConfig("config_files/config.txt");
     spawnPlayer();
     spawnNPC(Vec2{353, 63});
     spawnDwarf(Vec2{343, 60});
+    SpawnFromJSON("wizard", Vec2{348, 65});
     loadLevel(levelPath);
     
     // mobs have to spawn after player, so they can target the player
@@ -106,7 +120,7 @@ void Scene_Play::loadMobsNItems(const std::string& path){
     for (auto& [mobType, mobArray] : j["mobs"].items()) {
         for (auto& mob : mobArray) {
             pos = Vec2{mob["x"], mob["y"]};
-            EntityID id = Spawn(mobType, pos*m_gridSize);
+            EntityID id = Spawn(mobType, pos);
         }
     }
 }
@@ -618,8 +632,45 @@ void Scene_Play::sAudio()
     }
 }
 
+EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
+{
+    std::ifstream file("config_files/mobs/"+name+".json");
+    assert(file && "Could not load file!");
+    json j;
+    file >> j;
+    file.close();
+    json components = j[name]["components"];
+    
+    EntityID id = m_ECS.addEntity();
+    
+    std::cout << components.contains("CTransform") << std::endl; 
+    if (components.contains("CTransform")){
+        m_ECS.addComponent<CTransform>(id, pos*m_gridSize);
+    }
+    if (components.contains("CVelocity")){
+        m_ECS.addComponent<CVelocity>(id);
+    }
+    if (components.contains("CInteractionBox")){
+        m_ECS.addComponent<CInteractionBox>(id, components["CInteractionBox"]);
+    }
+    if (components.contains("CCollisionBox")){
+        m_ECS.addComponent<CCollisionBox>(id, components["CCollisionBox"]);
+    }
+    if (components.contains("CAnimation")){
+        m_ECS.addComponent<CAnimation>(id, 
+            getAnimation(components["CAnimation"]["animation"]), 
+            components["CAnimation"]["animation"].get<std::string>()
+        );
+        m_rendererManager.addEntityToLayer(id, components["CAnimation"]["layer"]);
+    }
+    auto& sc= m_ECS.addComponent<CScript>(id);
+    InitiateScript<NPCController>(sc, id);
+    return id;
+}
+
 EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
 {
+    pos = pos*m_gridSize;
     if (name == "copper_staff") {
         return spawnWeapon(pos, name);
     }
@@ -703,10 +754,10 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, PLAYER_LAYER, collisionMask);
-    InterationMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {16, 16}, PLAYER_LAYER1, interactionMask);
+    CollisionMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER;
+    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {16, 16}, PLAYER_LAYER, interactionMask);
     m_ECS.addComponent<CName>(entityID, "demon");
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("demon-sheet"), true, layer);
+    m_ECS.addComponent<CAnimation>(entityID, getAnimation("demon-sheet"));
     m_rendererManager.addEntityToLayer(entityID, layer);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
     m_ECS.addComponent<CInputs>(entityID);
@@ -731,13 +782,13 @@ EntityID Scene_Play::spawnDwarf(Vec2 pos)
     m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
     
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
-    m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, FRIENDLY_LAYER, collisionMask);
+    m_ECS.addComponent<CCollisionBox>(entityID, Vec2{8, 8}, FRIENDLY_LAYER, collisionMask);
 
-    InterationMask interactionMask = PLAYER_LAYER1;
-    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {48, 32}, FRIENDLY_LAYER, interactionMask);
+    CollisionMask interactionMask = PLAYER_LAYER;
+    m_ECS.addComponent<CInteractionBox>(entityID, Vec2{48, 32}, FRIENDLY_LAYER, interactionMask);
 
     m_ECS.addComponent<CName>(entityID, "NPC2");
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("dwarf-sheet"), true, layer);
+    m_ECS.addComponent<CAnimation>(entityID, getAnimation("dwarf-sheet"));
     m_rendererManager.addEntityToLayer(entityID, layer);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
@@ -759,11 +810,11 @@ EntityID Scene_Play::spawnNPC(Vec2 pos)
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, FRIENDLY_LAYER, collisionMask);
 
-    InterationMask interactionMask = PLAYER_LAYER1;
+    CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {48, 32}, FRIENDLY_LAYER, interactionMask);
 
     m_ECS.addComponent<CName>(entityID, "NPC1");
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("wiz-sheet"), true, layer);
+    m_ECS.addComponent<CAnimation>(entityID, getAnimation("wiz-sheet"));
     m_rendererManager.addEntityToLayer(entityID, layer);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
@@ -778,7 +829,7 @@ EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int l
     // m_ECS.addComponent<CTransform>(shadowID);
     // m_ECS.getComponent<CTransform>(shadowID).scale *= size;
     // m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
-    // m_ECS.addComponent<CAnimation>(shadowID, getAnimation("shadow"), true, layer);
+    // m_ECS.addComponent<CAnimation>(shadowID, getAnimation("shadow"));
     // m_rendererManager.addEntityToLayer(shadowID, layer);
     // m_ECS.addComponent<CChild>(parentID, shadowID);
     return shadowID;
@@ -791,11 +842,11 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
     m_ECS.addComponent<CTransform>(entityID, midGrid);
     m_ECS.addComponent<CVelocity>(entityID);
     
-    InterationMask interactionMask = PLAYER_LAYER1;
+    CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
 
     m_ECS.addComponent<CName>(entityID, weaponName);
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("staff"), true, layer);
+    m_ECS.addComponent<CAnimation>(entityID, getAnimation("staff"));
     m_rendererManager.addEntityToLayer(entityID, layer);
     m_ECS.addComponent<CWeapon>(entityID);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
@@ -811,11 +862,11 @@ EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
     m_ECS.addComponent<CTransform>(entity, midGrid);
     m_ECS.addComponent<CVelocity>(entity, m_playerConfig.SPEED);
     
-    InterationMask interactionMask = PLAYER_LAYER1;
+    CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
     
     m_ECS.addComponent<CName>(entity, "sword");
-    m_ECS.addComponent<CAnimation>(entity, getAnimation("sword"), true, layer);
+    m_ECS.addComponent<CAnimation>(entity, getAnimation("sword"));
     m_rendererManager.addEntityToLayer(entity, 5);
     // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(entity);
@@ -832,7 +883,7 @@ EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t l
     m_ECS.addComponent<CTransform>(entity, midGrid);
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
     m_ECS.addComponent<CCollisionBox>(entity, collisionBox, OBSTACLE_LAYER, collisionMask);
-    m_ECS.addComponent<CAnimation>(entity, getAnimation(animation), true, layer);
+    m_ECS.addComponent<CAnimation>(entity, getAnimation(animation));
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CImmovable>(entity);
     spawnShadow(entity, Vec2{0,-16/4}, 3, layer-1);
@@ -869,7 +920,7 @@ EntityID Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity,getAnimation("campfire"), true, layer);
+    m_ECS.addComponent<CAnimation>(entity,getAnimation("campfire"));
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid);
@@ -899,12 +950,12 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
 EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, getAnimation("coin"), true, layer);
+    m_ECS.addComponent<CAnimation>(entity, getAnimation("coin"));
     m_rendererManager.addEntityToLayer(entity, layer);
     // Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, pos);
 
-    InterationMask interactionMask = PLAYER_LAYER1;
+    CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8 ,8}, LOOT_LAYER, interactionMask);
 
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
@@ -919,7 +970,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
 {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CName>(entity, type);
-    m_ECS.addComponent<CAnimation>(entity, getAnimation(type), true, layer);
+    m_ECS.addComponent<CAnimation>(entity, getAnimation(type));
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CState>(entity, PlayerState::STAND);
     Vec2 midGrid = gridToMidPixel(pos, entity);
@@ -962,7 +1013,7 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
         }
         EntityID entity = m_ECS.addEntity();
         entityIDs.push_back(entity);
-        m_ECS.addComponent<CAnimation>(entity, getAnimation(tile + "_dual_sheet"), true, layer);
+        m_ECS.addComponent<CAnimation>(entity, getAnimation(tile + "_dual_sheet"));
         Vec2 tilePosition = Vec2{   (float)(textureIndex % 4), 
                                     (float)(int)(textureIndex / 4)};
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(tilePosition); 

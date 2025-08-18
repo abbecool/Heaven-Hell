@@ -7,7 +7,9 @@
 #include <functional>
 #include <bitset>
 
-constexpr uint8_t MAX_LAYERS = 8;
+using json = nlohmann::json;
+
+constexpr uint8_t MAX_LAYERS = 16;
 
 using CollisionMask = std::bitset<MAX_LAYERS>;
 constexpr CollisionMask EMPTY_MASK              = 0;        // 00000000, No bits set
@@ -19,11 +21,20 @@ constexpr CollisionMask FRIENDLY_LAYER          = 1 << 4;   // 00010000, Bit 5
 constexpr CollisionMask DAMAGE_LAYER            = 1 << 5;   // 00100000, Bit 6
 constexpr CollisionMask WATER_LAYER             = 1 << 6;   // 01000000, Bit 7
 constexpr CollisionMask FINAL_MASK              = 1 << 7;   // 10000000, Final bit set
+constexpr CollisionMask LOOT_LAYER              = 1 << 8;   // 10000000, Final bit set
 
-using InterationMask = std::bitset<MAX_LAYERS>;
-constexpr InterationMask PLAYER_LAYER1              = 1 << 0;   // 00000001, Bit 0
-constexpr InterationMask LOOT_LAYER                 = 1 << 1;   // 00000010, Bit 1
-constexpr InterationMask FRIENDLY_LAYER1            = 1 << 3;   // 00001000, Bit 3
+inline std::unordered_map<std::string, CollisionMask> componentMaskMap = 
+{
+    {"EMPTY_MASK", EMPTY_MASK},
+    {"PLAYER_LAYER", PLAYER_LAYER},
+    {"ENEMY_LAYER", ENEMY_LAYER},
+    {"PROJECTILE_LAYER", PROJECTILE_LAYER},
+    {"OBSTACLE_LAYER", OBSTACLE_LAYER},
+    {"FRIENDLY_LAYER", FRIENDLY_LAYER},
+    {"DAMAGE_LAYER", DAMAGE_LAYER},
+    {"WATER_LAYER", WATER_LAYER},
+    {"FINAL_MASK", FINAL_MASK},
+};
 
 enum struct PlayerState {
     STAND = 0,
@@ -83,12 +94,14 @@ struct CTransform
         : pos(p), prevPos(p), angle(a), scale(s){}
     CTransform(const Vec2 & p, Vec2 s)
         : pos(p), prevPos(p), scale(s){}
+
+    
 };
 
 struct CVelocity
 {
     Vec2 vel = {0, 0};    
-    float speed = 0;
+    float speed = 100;
     float tempo = 1.0f;
     CVelocity() {}
     CVelocity(const float s) 
@@ -103,7 +116,7 @@ struct CBox
     Vec2 halfSize;
     CollisionMask layer = FINAL_MASK;
     CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
-    SDL_Color color;
+    SDL_Color color = {255, 255, 255, 255};
 
     CBox() {}
     CBox(const Vec2& s) 
@@ -112,6 +125,23 @@ struct CBox
         : size(s), halfSize(s/2.0), layer(l), mask(m), color(c) {}
     CBox(const Vec2& s, SDL_Color c) // only use this after the new collision system is implemented
         : size(s), halfSize(s/2.0), color(c) {}
+    CBox(json j, SDL_Color c){
+        color = c;
+        size = j["size"];
+        halfSize = size/2;
+        if (j.contains("color")){
+            color = {j["color"]["r"], j["color"]["g"], j["color"]["b"], j["color"]["a"]};
+        }
+        if (j.contains("layer")){
+            layer = componentMaskMap[j["layer"]];
+        }
+        if (j.contains("mask")){
+            mask = EMPTY_MASK;
+            for (const auto& maskStr : j["mask"]) {
+                mask = mask | componentMaskMap.at(maskStr.get<std::string>());
+            }
+        }
+    }
 };
 
 struct CCollisionBox : public CBox 
@@ -124,6 +154,8 @@ struct CCollisionBox : public CBox
 
     CCollisionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
         : CBox(size, layer, mask, {255, 255, 255, 255}) {}
+    CCollisionBox(json j) 
+        : CBox(j, {255, 255, 255, 255}) {}    
 };
 
 struct CInteractionBox : public CBox
@@ -131,6 +163,8 @@ struct CInteractionBox : public CBox
     CInteractionBox(){}    
     CInteractionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
         : CBox(size, layer, mask, {0, 0, 255, 255}) {}
+    CInteractionBox(json j) 
+        : CBox(j, {0, 0, 255, 255}) {} 
 };
 
 struct CImmovable
@@ -178,9 +212,16 @@ struct CLifespan
 struct CAnimation
 {
     Animation animation;
+    std::string animation_name;
     bool repeat = true;
     int layer = 5;
     CAnimation() {}
+    CAnimation(const Animation& animation)
+                : animation(animation){}
+    CAnimation(std::string name)
+                : animation_name(name){}
+    CAnimation(const Animation& animation, std::string name)
+                : animation(animation), animation_name(name){}
     CAnimation(const Animation& animation, bool r)
                 : animation(animation), repeat(r){}
     CAnimation(const Animation& animation, bool r, int l)
@@ -191,9 +232,9 @@ struct CAnimation
 
 struct CState
 {
-    PlayerState state;
-    PlayerState preState; 
-    bool changeAnimate = false;
+    PlayerState state = PlayerState::STAND;
+    PlayerState preState = PlayerState::STAND; 
+    bool changeAnimate = true;
     CState() {}
     CState(const PlayerState s) : state(s), preState(s) {}
 }; 

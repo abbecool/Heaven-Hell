@@ -49,7 +49,7 @@ void Scene::sRenderBasic() {
                 }
                 auto& transform = transformPool.getComponent(e);
                 auto& animation = animationPool.getComponent(e).animation;
-                
+
                 // Adjust the entity's position based on the camera position
                 Vec2 adjustedPosition = (transform.pos - m_camera.position)*totalZoom 
                                             + screenCenterZoomed;

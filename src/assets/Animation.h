@@ -7,7 +7,6 @@
 class Animation
 {
     // SDL_Sprite m_sprite;
-    SDL_Renderer* m_renderer;
     SDL_Texture* m_texture;
     SDL_Rect m_srcRect;
     SDL_Rect m_destRect;

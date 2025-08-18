@@ -1,3 +1,30 @@
 {
-
+    "wizard": {
+        "dialog": [
+            {"quest":0, "text":"Go and look for the staff!"},
+            {"quest":1, "text":"Have you found the staff yet?"},
+            {"quest":2, "text":"Have you found you're home?"},
+            {"quest":3, "text":"I am a wizard, what are you?"}
+        ],
+        "components": {
+            "CTransform": "default",
+            "CVelocity": "default",
+            "CCollisionBox": {
+                "size": {"x": 8, "y":8}, 
+                "layer": "FRIENDLY_LAYER", 
+                "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
+            },
+            "CInteractionBox": {
+                "size": {"x": 48,"y": 32}, 
+                "layer": "FRIENDLY_LAYER", 
+                "mask": ["PLAYER_LAYER", "FRIENDLY_LAYER"]
+            },
+            "CAnimation": {
+                "animation": "wiz-sheet",
+                "layer": 10
+            },
+            "CState": "default",
+            "CScript": "NPCController"
+        }
+    }
 }

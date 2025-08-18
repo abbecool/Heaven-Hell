@@ -6,6 +6,7 @@
 #include "core/Game.h"
 #include "physics/Camera.h"
 #include "physics/Physics.h"
+#include "ecs/ComponentFactory.hpp"
 
 #include <SDL_ttf.h>
 #include <cstddef>

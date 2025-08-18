@@ -295,17 +295,18 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize)
                     continue; // Skip self-collision
                 }
                 auto& interactionB = interactionPool.getComponent(entityIDB);
-                if ( ((interactionB.layer & interactionA.mask) != interactionB.layer) |
-                     ((interactionA.layer & interactionB.mask) != interactionA.layer) )
-                {
-                    continue; // No interaction layer match
-                }
                 auto& transformB = transformPool.getComponent(entityIDB);
-                auto& scriptB = scriptPool.getComponent(entityIDB);
                 if ( !isCollided(transformA, transformB, interactionA, interactionB) )
                 {
                     continue; // No collision detected
                 }
+                bool BLayer = (interactionB.layer & interactionA.mask) != interactionB.layer;
+                bool ALayer = (interactionA.layer & interactionB.mask) != interactionA.layer;
+                if ( BLayer || ALayer)
+                {
+                    continue; // No interaction layer match
+                }
+                auto& scriptB = scriptPool.getComponent(entityIDB);
                 scriptA.Instance->OnInteractFunction(entityIDB, interactionB.layer);
                 scriptB.Instance->OnInteractFunction(entityIDA, interactionA.layer);                
             }

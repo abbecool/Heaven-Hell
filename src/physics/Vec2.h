@@ -11,12 +11,8 @@ public:
     float y = 0;
 
     Vec2();
-    // Vec2(int xin, int yin);
-    // Vec2(float xin, float yin);
 
-    // Constructor from floats
     Vec2(float x_, float y_) : x(x_), y(y_) {}
-    // Constructor from ints (converts to float)
     Vec2(int x_, int y_) : x(static_cast<float>(x_)), y(static_cast<float>(y_)) {}
     Vec2(int x_, float y_) : x(static_cast<float>(x_)), y(y_) {}
     Vec2(float x_, int y_) : x(x_), y(static_cast<float>(y_)) {}
