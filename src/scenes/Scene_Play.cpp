@@ -33,6 +33,16 @@
 
 using json = nlohmann::json;
 
+// inline std::unordered_map<std::string, ScriptInitFn> ScriptRegistry = {
+//     {"NPCController", [](Scene_Play* scene, CScript& sc, EntityID id){ 
+//         scene->InitiateScript<NPCController>(sc, id); 
+//     }},
+//     {"PlayerController", [](Scene_Play* scene, CScript& sc, EntityID id){ 
+//         scene->InitiateScript<PlayerController>(sc, id); 
+//     }},
+//     // etc.
+// };
+
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), 
     m_levelPath(levelPath), 
@@ -663,8 +673,23 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         );
         m_rendererManager.addEntityToLayer(id, components["CAnimation"]["layer"]);
     }
-    auto& sc= m_ECS.addComponent<CScript>(id);
-    InitiateScript<NPCController>(sc, id);
+    if (components.contains("CScript")){
+        auto& sc = m_ECS.addComponent<CScript>(id);
+        std::string controllerType = components["CScript"].get<std::string>();
+        if        (controllerType == "NPCController"){
+            InitiateScript<NPCController>(sc, id);
+        } else if (controllerType == "WeaponController"){
+            InitiateScript<WeaponController>(sc, id);
+        } else if (controllerType == "CoinController"){
+            InitiateScript<CoinController>(sc, id);
+        } else if (controllerType == "PlayerController"){
+            InitiateScript<PlayerController>(sc, id);
+        } else if (controllerType == "RooterController"){
+            InitiateScript<RooterController>(sc, id);
+        } else if (controllerType == "ProjectileController"){
+            InitiateScript<ProjectileController>(sc, id);
+        }
+    }
     return id;
 }
 
