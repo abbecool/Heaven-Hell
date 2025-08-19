@@ -8,7 +8,7 @@
         ],
         "components": {
             "CTransform": "default",
-            "CVelocity": "default",
+            "CVelocity": {"speed": 100},
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
                 "layer": "FRIENDLY_LAYER", 

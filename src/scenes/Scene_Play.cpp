@@ -106,7 +106,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     spawnPlayer();
     spawnNPC(Vec2{353, 63});
     spawnDwarf(Vec2{343, 60});
-    SpawnFromJSON("wizard", Vec2{348, 65});
+    SpawnFromJSON("wizard", Vec2{348, 65}*m_gridSize);
+    SpawnFromJSON("rooter", Vec2{344, 65}*m_gridSize);
     loadLevel(levelPath);
     
     // mobs have to spawn after player, so they can target the player
@@ -550,20 +551,23 @@ void Scene_Play::sRender() {
 
     Animation animation;
     auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP) / 2;
+    const Animation& heart_full = getAnimation("heart_full");
+    const Animation& heart_half = getAnimation("heart_half");
+    const Animation& heart_empty = getAnimation("heart_empty");
     
     for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max / 2; i++)
     {   
         if (hearts >= i)
         {
-            animation = m_ECS.getComponent<CHealth>(m_player).animation_full;
+            animation = heart_full;
         }
         else if (i - hearts == 0.5f)
         {
-            animation = m_ECS.getComponent<CHealth>(m_player).animation_half;
+            animation = heart_half;
         }
         else
         {
-            animation = m_ECS.getComponent<CHealth>(m_player).animation_empty;
+            animation = heart_empty;
         }
         animation.setScale(Vec2{1, 1}*windowScale);
         animation.setDestRect(Vec2{(float)(i - 1) * animation.getSize().x * animation.getScale().x, 0.0f}*windowScale);
@@ -571,48 +575,48 @@ void Scene_Play::sRender() {
     }
 
     Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
-    // auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    // auto& healthPool = m_ECS.getComponentPool<CHealth>();
-    // auto viewHealth = m_ECS.View<CHealth>();
-    // for (auto entityID : viewHealth)
-    // {   
-    //     if (entityID == m_player) { continue; }
-    //     auto& health = healthPool.getComponent(entityID);
-    //     if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
-    //     {
-    //         continue;
-    //     }
-    //     auto& transform = transformPool.getComponent(entityID);
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& healthPool = m_ECS.getComponentPool<CHealth>();
+    auto viewHealth = m_ECS.View<CHealth>();
+    for (auto entityID : viewHealth)
+    {   
+        if (entityID == m_player) { continue; }
+        auto& health = healthPool.getComponent(entityID);
+        if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
+        {
+            continue;
+        }
+        auto& transform = transformPool.getComponent(entityID);
 
-    //     Vec2 adjustedPosition = (transform.pos - m_camera.position) * (windowScale - m_camera.getCameraZoom());
-    //     adjustedPosition += screenCenter*m_camera.getCameraZoom();
+        Vec2 adjustedPosition = (transform.pos - m_camera.position) * (windowScale - m_camera.getCameraZoom());
+        adjustedPosition += screenCenter*m_camera.getCameraZoom();
 
-    //     Animation animation;
-    //     auto hearts = float(health.HP) / 2;
+        Animation animation;
+        auto hearts = float(health.HP) / 2;
 
-    //     for (int i = 1; i <= health.HP_max / 2; i++)
-    //     {   
-    //         if (hearts >= i)
-    //         {
-    //             animation = health.animation_full;
-    //         }
-    //         else if (i - hearts == 0.5f)
-    //         {
-    //             animation = health.animation_half;
-    //         }
-    //         else
-    //         {
-    //             animation = health.animation_empty;
-    //         }
+        for (int i = 1; i <= health.HP_max / 2; i++)
+        {   
+            if (hearts >= i)
+            {
+                animation = heart_full;
+            }
+            else if (i - hearts == 0.5f)
+            {
+                animation = heart_half;
+            }
+            else
+            {
+                animation = heart_empty;
+            }
 
-    //         animation.setScale(transform.scale * windowScale);
-    //         animation.setDestRect(Vec2{
-    //             adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
-    //             adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
-    //         });
-    //         spriteRender(animation);
-    //     }
-    // }
+            animation.setScale(transform.scale * windowScale);
+            animation.setDestRect(Vec2{
+                adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * animation.getSize().x * animation.getScale().x, 
+                adjustedPosition.y - m_ECS.getComponent<CAnimation>(entityID).animation.getSize().y * m_ECS.getComponent<CAnimation>(entityID).animation.getScale().y / 2
+            });
+            spriteRender(animation);
+        }
+    }
 
     if (m_drawCollision)
     {
@@ -655,10 +659,10 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     
     std::cout << components.contains("CTransform") << std::endl; 
     if (components.contains("CTransform")){
-        m_ECS.addComponent<CTransform>(id, pos*m_gridSize);
+        m_ECS.addComponent<CTransform>(id, pos);
     }
     if (components.contains("CVelocity")){
-        m_ECS.addComponent<CVelocity>(id);
+        m_ECS.addComponent<CVelocity>(id, components["CVelocity"]);
     }
     if (components.contains("CInteractionBox")){
         m_ECS.addComponent<CInteractionBox>(id, components["CInteractionBox"]);
@@ -690,6 +694,19 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
             InitiateScript<ProjectileController>(sc, id);
         }
     }
+    if (components.contains("CState")){
+        m_ECS.addComponent<CState>(id);
+    }
+    if (components.contains("CPathfind")){
+        Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos; 
+        m_ECS.addComponent<CPathfind>(id, playerPos);
+    }
+    if (components.contains("CHealth")){
+        m_ECS.addComponent<CHealth>(id, components["CHealth"]);
+    }
+    if (components.contains("CAttack")){
+        m_ECS.addComponent<CAttack>(id, components["CAttack"]);
+    }
     return id;
 }
 
@@ -699,11 +716,11 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
     if (name == "copper_staff") {
         return spawnWeapon(pos, name);
     }
-    else if (name == "rooter-sheet") {
-        return spawnSmallEnemy(pos, 6, "rooter-sheet");
+    else if (name == "rooter") {
+        return SpawnFromJSON(name, pos);
     }
-    else if (name == "goblin-sheet") {
-        return spawnSmallEnemy(pos, 6, "goblin-sheet");
+    else if (name == "goblin") {
+        return SpawnFromJSON(name, pos);
     }
     else if (name == "coin") {
         return spawnCoin(pos, 6);
@@ -787,10 +804,7 @@ EntityID Scene_Play::spawnPlayer()
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
-    auto heart_full = getAnimation("heart_full");
-    auto heart_half = getAnimation("heart_half");
-    auto heart_empty = getAnimation("heart_empty");
-    m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60, heart_full, heart_half, heart_empty);
+    m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
     
     auto& sc= m_ECS.addComponent<CScript>(entityID);
     InitiateScript<PlayerController>(sc, entityID);
@@ -1005,10 +1019,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 12}, ENEMY_LAYER, collisionMask);
     m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
 
-    m_ECS.addComponent<CHealth>(entity, 4, 4, 30, 
-        getAnimation("heart_full"), 
-        getAnimation("heart_half"), 
-        getAnimation("heart_empty"));
+    m_ECS.addComponent<CHealth>(entity, 4, 4, 30);
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
     m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*16, Vec2{16,16});
 

@@ -13,7 +13,7 @@ class WeaponController : public ScriptableEntity
         m_ECS->addComponent<CDamage>(entity, 1);
         m_ECS->getComponent<CDamage>(entity).damageType = {"Fire", "Explosive"};
         CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
-        m_ECS->addComponent<CCollisionBox>(entity, Vec2{12, 12}, PROJECTILE_LAYER, collisionMask);
+        m_ECS->addComponent<CCollisionBox>(entity, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
         m_ECS->addComponent<CLifespan>(entity, 60);
 
         // spawnShadow(entity, Vec2{0,0}, 1, layer-1);
@@ -36,7 +36,12 @@ public:
 
     void OnAttackFunction()
     {
-        spawnProjectile(m_entity.getID(), m_scene->getMousePosition()-m_ECS->getComponent<CTransform>(m_entity.getID()).pos+m_scene->getCameraPosition(), 8);
+        Vec2 pos = m_ECS->getComponent<CTransform>(m_entity.getID()).pos;
+        spawnProjectile(
+            m_entity.getID(), 
+            m_scene->getMousePosition()-pos+m_scene->getCameraPosition(), 
+            8
+        );
     }
 
     void OnInteractFunction(EntityID colliderID, CollisionMask colliderLayer)

@@ -106,6 +106,8 @@ struct CVelocity
     CVelocity() {}
     CVelocity(const float s) 
         : speed(s){}
+    CVelocity(const json j)
+        : speed(j["speed"]) {}
     CVelocity(Vec2 v, const float s) 
         : vel(v), speed(s){}
 };
@@ -190,16 +192,14 @@ struct CHealth
 {
     int HP = 6;
     int HP_max = 6;
-    Animation animation_full;
-    Animation animation_half;
-    Animation animation_empty;
     int i_frames = 30;
     size_t damage_frame = 0;
     std::unordered_set<std::string> HPType;
     CHealth() {}
-    //TODO: rework the animation, especially when used in CHealth
-    CHealth(int hp, int hp_max, int hrt_frms, const Animation& animation_full, const Animation& animation_half, const Animation& animation_empty)
-        : HP(hp), HP_max(hp_max), animation_full(animation_full), animation_half(animation_half), animation_empty(animation_empty), i_frames(hrt_frms){}
+    CHealth(int hp, int hp_max, int hrt_frms)
+        : HP(hp), HP_max(hp_max), i_frames(hrt_frms){}
+    CHealth(const json j)
+        : HP(j["HP"]), HP_max(j["HP_max"]), i_frames(j["i_frames"]){}
 };
 
 struct CLifespan
@@ -263,6 +263,14 @@ struct CAttack
     CAttack() {}
     CAttack(int dmg, int spd, int dur, int rg, Vec2 ae) 
         : damage(dmg), speed(spd), attackTimer(spd), duration(dur), range(rg), area(ae){}
+    CAttack(json j){
+        damage      = j["damage"];
+        speed       = j["speed"];
+        attackTimer = j["speed"];
+        duration    = j["duration"];
+        range       = j["range"];
+        area        = j["area"];
+    }
 };
 
 struct CDamage
@@ -325,6 +333,11 @@ struct CWeapon
     CWeapon() {}
     CWeapon(const Animation& animation, int damage, int speed, int range)
                 : animation(animation), damage(damage), speed(speed), range(range){}
+};
+
+struct CActiveItem
+{
+    CActiveItem() {}
 };
 
 struct CWeaponChild
