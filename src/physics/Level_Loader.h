@@ -16,10 +16,20 @@ private:
     Scene_Play* m_scene;
     int m_width;
     int m_height;
+    Vec2 m_gridSize;
+    
+    Vec2 m_currentChunk = Vec2{1, 0};
+    Vec2 m_chunkSize = Vec2{12, 12};
+    Vec2 m_levelSize;
+    std::vector<Vec2> m_loadedChunks;
+    std::vector<Vec2> m_chunkQueue;
+    std::vector<Vec2> m_neighboringChunks;
+    std::vector<EntityID> m_loadedChunkIDs;
     
 public:
+    LevelLoader(){}
+    LevelLoader(Scene_Play* scene, const Vec2 gridSize, const std::string levelPath);
     std::vector<std::vector<std::string>> m_pixelMatrix;
-    void init(Scene_Play* scene, const int width, const int height);
     std::vector<bool> neighborCheck(const std::string &pixel, int x, int y, int width, int height);
     std::vector<std::string> neighborTag(const std::string &pixel, int x, int y, int width, int height);
     int getObstacleTextureIndex(const std::vector<bool>& neighbors);
@@ -28,4 +38,6 @@ public:
     EntityID loadChunk(Vec2 chunk);
     void removeChunk();
     void clearChunks(int chunksLeft);
+    void update(Vec2);
+    Vec2 getLevelSize();
 };

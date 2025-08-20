@@ -28,6 +28,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
+#include <queue>
 
 // TODO: fix line count in file
 
@@ -48,7 +49,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_levelPath(levelPath), 
     m_collisionManager(&m_ECS, this), 
     m_interactionManager(&m_ECS, this), 
-    m_storyManager(&m_ECS, this, "config_files/story.json"), 
+    m_storyManager(&m_ECS, this, "config_files/story.json"),
+    m_levelLoader(this, m_gridSize, levelPath),
     m_newGame(newGame)
 {
     registerAction(SDLK_w, "UP");
@@ -89,18 +91,6 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_1, "TP1");
     registerAction(SDLK_2, "TP2");
     registerAction(SDLK_3, "TP3");
-    // ComponentFactory::registerComponent(
-    //     "CTransform", 
-    //     &ComponentFactory::createComponent<CTransform>
-    // );
-    // ComponentFactory::registerComponent(
-    //     "CCollisionBox", 
-    //     &ComponentFactory::createComponent<CCollisionBox>
-    // );
-    // ComponentFactory::registerComponent(
-    //     "CAnimation", 
-    //     &ComponentFactory::createComponent<CAnimation>
-    // );
 
     loadConfig("config_files/config.txt");
     spawnPlayer();
@@ -108,12 +98,11 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     spawnDwarf(Vec2{343, 60});
     SpawnFromJSON("wizard", Vec2{348, 65}*m_gridSize);
     SpawnFromJSON("rooter", Vec2{344, 65}*m_gridSize);
-    loadLevel(levelPath);
     
     // mobs have to spawn after player, so they can target the player
     loadMobsNItems("config_files/mobs.json");
 
-    m_camera.calibrate(Vec2{width(), height()}, m_levelSize, m_gridSize);
+    m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
     m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
 }
 
@@ -182,26 +171,7 @@ void Scene_Play::saveGame(const std::string& filename)
 
 void Scene_Play::loadLevel(const std::string& levelPath){
 
-    const char* path = levelPath.c_str();
-    SDL_Surface* loadedSurface = IMG_Load(path);
-    if (loadedSurface == nullptr) 
-    {
-        std::cerr << "Not loaded " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
-    }
-
-    // Lock the surface to access the pixels
-    SDL_LockSurface(loadedSurface);
-    Uint32* pixels = (Uint32*)loadedSurface->pixels;
-
-    const int HEIGHT_PIX = loadedSurface->h;
-    const int WIDTH_PIX = loadedSurface->w;
-    m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
-    m_levelLoader.createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
-    // Unlock and free the surface
-    SDL_UnlockSurface(loadedSurface);
-    SDL_FreeSurface(loadedSurface);
-    m_levelLoader.init(this, WIDTH_PIX, HEIGHT_PIX);
-    m_levelLoader.loadChunk(m_currentChunk);
+    // m_levelLoader.loadLevel(levelPath);
 }
 
 void Scene_Play::sDoAction(const Action& action) {
@@ -309,28 +279,8 @@ void Scene_Play::update()
 
 void Scene_Play::sLoader()
 {
-    m_currentChunk = ( ( (m_ECS.getComponent<CTransform>(m_player).pos / m_gridSize).toInt() ) / m_chunkSize ).toInt();
-    for (int dx = -2; dx <= 2; ++dx) 
-    {
-        for (int dy = -1; dy <= 1; ++dy) 
-        {
-            Vec2 neighborChunk = {m_currentChunk.x + dx, m_currentChunk.y + dy};
-            if ( neighborChunk.smaller(Vec2{0,0}) || neighborChunk.greater(m_levelSize/m_chunkSize) )
-            {
-                continue;
-            }
-            if (std::find(m_loadedChunks.begin(), m_loadedChunks.end(), neighborChunk) == m_loadedChunks.end())
-            {
-                EntityID chunkID = m_levelLoader.loadChunk(neighborChunk);
-                m_loadedChunkIDs.push_back(chunkID);
-                m_loadedChunks.push_back(neighborChunk);
-            }
-        }
-    }
-    if (m_drawDrawGrid) // Keep only 35 chunks loaded
-    {
-        m_levelLoader.clearChunks(15);
-    }
+    Vec2 playerPosition = m_ECS.getComponent<CTransform>(m_player).pos;
+    m_levelLoader.update(playerPosition);
 }
 
 void Scene_Play::sScripting() 
@@ -1110,10 +1060,6 @@ void Scene_Play::togglePause() {
 
 Vec2 Scene_Play::gridSize(){
     return m_gridSize;
-}
-
-Vec2 Scene_Play::levelSize(){
-    return m_levelSize;
 }
 
 Vec2 Scene_Play::getCameraPosition() {

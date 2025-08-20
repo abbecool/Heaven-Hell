@@ -35,16 +35,11 @@ class Scene_Play : public Scene
     InteractionManager m_interactionManager;
     StoryManager m_storyManager;
     float m_zoomStep = 2;
-    Vec2 m_currentChunk = Vec2{1, 0};
-    Vec2 m_chunkSize = Vec2{12, 12};
-    std::vector<Vec2> m_loadedChunks;
-    std::vector<EntityID> m_loadedChunkIDs;
     LevelLoader m_levelLoader;
     std::shared_ptr<Scene_Inventory> m_inventory_scene;
     Vec2 m_levelSize;
     bool m_inventoryOpen = false;
     bool m_newGame;
-    std::vector<std::vector<std::string>> m_pixelMatrix;
     
     std::unordered_map<std::string, std::unordered_set<std::string>> m_damageToEnemyMap = {
         {"fire", {"grass"}},
