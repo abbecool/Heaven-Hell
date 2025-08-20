@@ -134,28 +134,14 @@ void LevelLoader::createPixelMatrix(
             
             if ((int)r == 192 && (int)g == 192 && (int)b == 192) {
                 m_pixelMatrix[y][x] = "obstacle";
-            } else if ((int)r == 200 && (int)g == 240 && (int)b == 255) {
-                m_pixelMatrix[y][x] = "cloud";
             } else if ((int)r == 203 && (int)g == 129 && (int)b == 56) {
                 m_pixelMatrix[y][x] = "dirt";
             } else if ((int)r == 0 && (int)g == 255 && (int)b == 0) {
                 m_pixelMatrix[y][x] = "grass";
-            } else if ((int)r == 255 && (int)g == 255 && (int)b == 255) {
-                m_pixelMatrix[y][x] = "player_God";
-            } else if ((int)r == 0 && (int)g == 0 && (int)b == 0) {
-                m_pixelMatrix[y][x] = "player_Devil";
-            } else if ((int)r == 255 && (int)g == 0 && (int)b == 255) {
-                m_pixelMatrix[y][x] = "key";
-            } else if ((int)r == 255 && (int)g == 255 && (int)b == 0) {
-                m_pixelMatrix[y][x] = "goal";
-            } else if ((int)r == 9 && (int)g == 88 && (int)b == 9) {
-                m_pixelMatrix[y][x] = "dragon";
-            } else if ((int)r == 255 && (int)g == 0 && (int)b == 0) {
-                m_pixelMatrix[y][x] = "lava";
             } else if ((int)r == 0 && (int)g == 0 && (int)b == 255) {
                 m_pixelMatrix[y][x] = "water";
             } else if ((int)r == 179 && (int)g == 0 && (int)b == 255) {
-                m_pixelMatrix[y][x] = "bridge";
+                m_pixelMatrix[y][x] = "water"; // replaced bridge with water
             } else {
                 m_pixelMatrix[y][x] = "unknown";
             }
@@ -174,31 +160,7 @@ std::unordered_map<std::string, int> LevelLoader::createDualGrid(int x, int y)
     tileQ[2] = (y > 0) ? m_pixelMatrix[y - 1][x] : m_pixelMatrix[y][x];  // Q1
     tileQ[3] = (x > 0 && y > 0) ? m_pixelMatrix[y - 1][x - 1] : m_pixelMatrix[y][x];  // Q2
 
-    std::unordered_map<std::string, std::unordered_set<std::string>> friendlyNeighbors = {
-        {"grass", {"key", "goal", "player_God", "dragon"}},
-        {"dirt", {"key", "goal", "player_Devil", "dragon"}}
-    };
-
-    for ( std::string tile : {"grass", "dirt", "water", "lava", "cloud", "obstacle", "bridge"} ) {
-        if (std::find(tileQ.begin(), tileQ.end(), "bridge") != tileQ.end()) {
-            if (std::find(tileQ.begin(), tileQ.end(), "water") != tileQ.end()) {
-                std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](std::string str) {
-                    return (str == "bridge") ? "water" : str;
-                });
-            } else if (std::find(tileQ.begin(), tileQ.end(), "lava") != tileQ.end()) {
-                std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](std::string str) {
-                    return (str == "bridge") ? "lava" : str;
-                });
-            } else {
-                std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [](std::string str) {
-                    return (str == "bridge") ? "" : str;
-                });
-            }
-        }
-
-        std::transform(tileQ.begin(), tileQ.end(), tileQ.begin(), [&](const std::string& str) {
-            return friendlyNeighbors[tile].count(str) ? tile : str;
-        });
+    for ( std::string tile : tileQ ) {
 
         int numTiles = (int)std::count(tileQ.begin(), tileQ.end(), tile);
         std::unordered_set<std::string> uniqueStrings(tileQ.begin(), tileQ.end());
