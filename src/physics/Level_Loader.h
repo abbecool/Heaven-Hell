@@ -37,7 +37,7 @@ public:
     std::unordered_map<std::string, int> createDualGrid(int x, int y);
     EntityID loadChunk(Vec2 chunk);
     void removeChunk();
-    void clearChunks(int chunksLeft);
+    void removeChunk(Vec2 chunk);
     void update(Vec2);
     Vec2 getLevelSize();
 };

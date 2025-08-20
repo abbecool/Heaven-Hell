@@ -36,6 +36,8 @@ LevelLoader::LevelLoader(Scene_Play* scene, const Vec2 gridSize, const std::stri
 
     const int HEIGHT_PIX = loadedSurface->h;
     const int WIDTH_PIX = loadedSurface->w;
+    m_height = HEIGHT_PIX;
+    m_width = WIDTH_PIX;
     m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
     createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
     // Unlock and free the surface
@@ -304,9 +306,47 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
     return chunkID;
 }
 
-void LevelLoader::removeChunk()
+void LevelLoader::update(Vec2 playerPosition)
 {
-    EntityID chunkID = m_loadedChunkIDs[0];
+    m_currentChunk = ( ( (playerPosition / m_gridSize).toInt() ) / m_chunkSize ).toInt();
+    m_neighboringChunks.clear();
+    for (int dx = -2; dx <= 2; ++dx) 
+    {
+        for (int dy = -1; dy <= 1; ++dy) 
+        {
+            Vec2 neighborChunk = {m_currentChunk.x + dx, m_currentChunk.y + dy};
+            if ( neighborChunk.smaller(Vec2{0,0}) || neighborChunk.greater(m_levelSize/m_chunkSize) )
+            {
+                continue;
+            }
+            m_neighboringChunks.push_back(neighborChunk);
+            if (std::find(m_loadedChunks.begin(), m_loadedChunks.end(), neighborChunk) == m_loadedChunks.end() &&
+                std::find(m_chunkQueue.begin(), m_chunkQueue.end(), neighborChunk) == m_chunkQueue.end())
+            {
+                m_chunkQueue.push_back(neighborChunk);
+            }
+        }
+    }
+    if (m_chunkQueue.empty()){
+        return;
+    }
+    Vec2 chunk = m_chunkQueue.front();
+    m_chunkQueue.erase(m_chunkQueue.begin());
+    EntityID chunkID = loadChunk(chunk);
+    m_loadedChunkIDs.push_back(chunkID);
+    m_loadedChunks.push_back(chunk);
+
+    for (Vec2 chunk : m_loadedChunks){
+        if (std::find(m_neighboringChunks.begin(), m_neighboringChunks.end(), chunk) == m_neighboringChunks.end()){
+            removeChunk(chunk);
+        }
+    }
+ }
+
+void LevelLoader::removeChunk(Vec2 chunk){
+    auto it = std::find(m_loadedChunks.begin(), m_loadedChunks.end(), chunk);
+    int index = std::distance(m_loadedChunks.begin(), it);
+    EntityID chunkID = m_loadedChunkIDs[index];
     std::vector<EntityID> chunkChildren =  m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern;
     for ( EntityID id : chunkChildren )
     {
@@ -317,71 +357,10 @@ void LevelLoader::removeChunk()
             m_scene->m_rendererManager.queueRemoveEntityFromLayer(id, layer);
         }
     }
-    m_loadedChunks.erase(m_loadedChunks.begin());
-    m_loadedChunkIDs.erase(m_loadedChunkIDs.begin());
+    m_loadedChunks.erase(m_loadedChunks.begin() + index);
+    m_loadedChunkIDs.erase(m_loadedChunkIDs.begin()+ index);
     m_scene->m_ECS.queueRemoveEntity(chunkID);
 }
-
-void LevelLoader::clearChunks(int chunksLeft)
-{
-    while ((int)m_loadedChunks.size() > chunksLeft)
-    {
-        removeChunk();
-    }
-}
-
-void LevelLoader::update(Vec2 playerPosition)
-{
-    m_currentChunk = ( ( (playerPosition / m_gridSize).toInt() ) / m_chunkSize ).toInt();
-    m_neighboringChunks = {m_currentChunk};
-    for (int dx = -2; dx <= 2; ++dx) 
-    {
-        for (int dy = -1; dy <= 1; ++dy) 
-        {
-            Vec2 neighborChunk = {m_currentChunk.x + dx, m_currentChunk.y + dy};
-            if ( neighborChunk.smaller(Vec2{0,0}) || neighborChunk.greater(m_levelSize/m_chunkSize) )
-            {
-                continue;
-            }
-            if (std::find(m_loadedChunks.begin(), m_loadedChunks.end(), neighborChunk) == m_loadedChunks.end() &&
-                std::find(m_chunkQueue.begin(), m_chunkQueue.end(), neighborChunk) == m_chunkQueue.end())
-            {
-                m_chunkQueue.push_back(neighborChunk);
-                m_neighboringChunks.push_back(neighborChunk);
-            }
-        }
-    }
-    if (!m_chunkQueue.empty()){
-        Vec2 chunk = m_chunkQueue.front();
-        m_chunkQueue.erase(m_chunkQueue.begin());
-        EntityID chunkID = loadChunk(chunk);
-        m_loadedChunkIDs.push_back(chunkID);
-        m_loadedChunks.push_back(chunk);
-    }
-    clearChunks(15);
-}
-
-// void LevelLoader::loadLevel(Scene_Play* scene, const std::string& levelPath){
-//     const char* path = levelPath.c_str();
-//     SDL_Surface* loadedSurface = IMG_Load(path);
-//     if (loadedSurface == nullptr) 
-//     {
-//         std::cerr << "Not loaded " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
-//     }
-
-//     // Lock the surface to access the pixels
-//     SDL_LockSurface(loadedSurface);
-//     Uint32* pixels = (Uint32*)loadedSurface->pixels;
-
-//     const int HEIGHT_PIX = loadedSurface->h;
-//     const int WIDTH_PIX = loadedSurface->w;
-//     m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
-//     createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
-//     // Unlock and free the surface
-//     SDL_UnlockSurface(loadedSurface);
-//     SDL_FreeSurface(loadedSurface);
-//     loadChunk(m_currentChunk);
-// }
 
 Vec2 LevelLoader::getLevelSize(){
     return m_levelSize;

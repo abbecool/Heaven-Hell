@@ -94,13 +94,13 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
 
     loadConfig("config_files/config.txt");
     spawnPlayer();
+    // mobs have to spawn after player, so they can target the player
+    loadMobsNItems("config_files/mobs.json");
+    
     spawnNPC(Vec2{353, 63});
     spawnDwarf(Vec2{343, 60});
     SpawnFromJSON("wizard", Vec2{348, 65}*m_gridSize);
     SpawnFromJSON("rooter", Vec2{344, 65}*m_gridSize);
-    
-    // mobs have to spawn after player, so they can target the player
-    loadMobsNItems("config_files/mobs.json");
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
     m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
@@ -607,7 +607,6 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     
     EntityID id = m_ECS.addEntity();
     
-    std::cout << components.contains("CTransform") << std::endl; 
     if (components.contains("CTransform")){
         m_ECS.addComponent<CTransform>(id, pos);
     }
@@ -875,7 +874,7 @@ EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t l
     m_ECS.addComponent<CAnimation>(entity, getAnimation(animation));
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CImmovable>(entity);
-    spawnShadow(entity, Vec2{0,-16/4}, 3, layer-1);
+    spawnShadow(entity, Vec2{0,-4}, 3, layer-1);
     return entity;
 }
 
@@ -973,7 +972,7 @@ EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string t
     m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
     m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*16, Vec2{16,16});
 
-    spawnShadow(entity, Vec2{0, 16/4}, 1, layer-1);
+    spawnShadow(entity, Vec2{0, 4}, 1, layer-1);
 
     auto& sc= m_ECS.addComponent<CScript>(entity);
     InitiateScript<RooterController>(sc, entity);
