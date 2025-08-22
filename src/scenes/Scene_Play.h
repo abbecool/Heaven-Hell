@@ -53,7 +53,6 @@ class Scene_Play : public Scene
         {"piercing", {"shielded"}}
     };
     
-    void loadLevel(const std::string& path);
     void loadConfig(const std::string& path);
     void loadMobsNItems(const std::string& path);
     
@@ -123,13 +122,17 @@ class Scene_Play : public Scene
     EntityID SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID);
 
 // event - subscriber: These emit a signal when called
-    void onItemPickedUp(EntityID id, const std::string& itemName) {
-        GameEvent e{ GameEventType::ItemPickedUp, id, itemName };
+    void onItemPickedUp(const std::string& itemName) {
+        Event e{ EventType::ItemPickedUp, itemName };
         m_eventBus.emit(e);
     }
 
-    void onEnemyKilled(EntityID id) {
-        GameEvent e{ GameEventType::EntityKilled, id, "" };
+    void onEnemyKilled(const std::string& itemName) {
+        Event e{ EventType::EntityKilled, itemName };
+        m_eventBus.emit(e);
+    }
+
+    void onEvent(Event e) {
         m_eventBus.emit(e);
     }
 };

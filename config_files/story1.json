@@ -1,0 +1,39 @@
+{
+  "story_steps": [
+    {
+      "id": 0,
+      "description": "Talk to the wizard.",
+      "trigger": {
+        "event_type": "DialogueFinished",
+        "subject": "wizard"
+      },
+      "reaction": {
+        "event_type": "EntitySpawned",
+        "subject": "copper_staff",
+        "position": {"x": 353, "y": 61}
+      }
+    },
+    {
+      "id": 1,
+      "description": "Find the staff.",
+      "trigger": {
+        "event_type": "ItemPickedUp",
+        "subject": "copper_staff",
+        "position": {"x": 0, "y": 0}
+      }
+    },
+    {
+      "id": 2,
+      "description": "Go to the house.",
+      "trigger": {
+        "event_type": "FlagChanged",
+        "subject": "house_entered"
+      },
+      "reaction": {
+        "event_type": "FlagChanged",
+        "subject": "home_found",
+        "position": {"x": 0, "y": 0}
+      }
+    }
+  ]
+}

@@ -8,7 +8,7 @@
 
 class Scene_Play;
 
-class GameEvent;
+class Event;
 
 class StoryManager
 {
@@ -18,6 +18,8 @@ class StoryManager
     int m_questID = 0;
     std::vector<StoryQuest> m_storyQuests;
     StoryQuest m_currentQuest;
+    std::vector<Quest> m_storyQuests1;
+    Quest m_currentQuest1;
     std::unordered_map<std::string, bool> m_storyFlags;
     
     public:
@@ -25,9 +27,11 @@ class StoryManager
     StoryManager(ECS* ecs, Scene_Play* scene, std::string storyFilePath);
 
     void loadStory(const std::string& storyFilePath);
+    void loadStory1(const std::string& storyFilePath);
     int getCurrentQuestID();
     void setFlag(const std::string& flagName, bool value);
     void update();
-    void onEvent(const GameEvent& e);
+    void onEvent(const Event& e);
     void completeQuest(StoryQuest quest);
+    EventType getEventTypeFromString(const std::string& typeStr);
 };

@@ -1,4 +1,5 @@
 #include "ecs/ScriptableEntity.h"
+#include "story/EventBus.h"
 #include <iostream>
 
 class WeaponController : public ScriptableEntity 
@@ -50,7 +51,8 @@ public:
         m_ECS->addComponent<CWeaponChild>(colliderID, m_entity.getID());
         m_ECS->queueRemoveComponent<CInteractionBox>(m_entity.getID());
         Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
+
+        std::string name = m_ECS->getComponent<CName>(m_entity.getID()).name;
+        m_scene->onEvent({EventType::ItemPickedUp, name});
     }
-
 };
-

@@ -7,29 +7,30 @@
 
 using EntityID = uint32_t;
 
-enum class GameEventType {
+enum class EventType {
     ItemPickedUp,
     EntityKilled,
+    EntitySpawned,
     DialogueFinished,
-    Custom
+    FlagChanged,
 };
 
-struct GameEvent {
-    GameEventType type;
-    EntityID entityId = -1;        // optional, -1 if none
-    std::string itemName;     // optional
+struct Event {
+    EventType type;
+    std::string itemName;       // optional
+    Vec2 eventPosition;         // optional
 };
 
 // Simple bus
 class EventBus {
 public:
-    using Listener = std::function<void(const GameEvent&)>;
+    using Listener = std::function<void(const Event&)>;
 
     void subscribe(const Listener& listener) {
         m_listeners.push_back(listener);
     }
 
-    void emit(const GameEvent& e) {
+    void emit(const Event& e) {
         for (auto& l : m_listeners) {
             l(e);
         }

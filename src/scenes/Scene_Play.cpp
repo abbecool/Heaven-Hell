@@ -105,7 +105,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
     m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
     // StoryManager listens to events
-    m_eventBus.subscribe([this](const GameEvent& e) {
+    m_eventBus.subscribe([this](const Event& e) {
         m_storyManager.onEvent(e);
     });
 }
@@ -171,11 +171,6 @@ void Scene_Play::saveGame(const std::string& filename)
     saveFile << "Player_pos " << (int)(playerPos.x/m_gridSize.x) << " " << (int)(playerPos.y/m_gridSize.y) << std::endl; // TODO: long line to be replaced when saving to json
     saveFile << "Player_hp " << m_ECS.getComponent<CHealth>(m_player).HP << std::endl;
     saveFile.close();
-}
-
-void Scene_Play::loadLevel(const std::string& levelPath){
-
-    // m_levelLoader.loadLevel(levelPath);
 }
 
 void Scene_Play::sDoAction(const Action& action) {
@@ -272,7 +267,7 @@ void Scene_Play::update()
     sRender();
     m_inventory_scene->update();
     m_ECS.update();
-    m_storyManager.update();
+    // m_storyManager.update();
     m_rendererManager.update();
     if (m_restart) {
         // std::cerr << "Player entity is not initialized!" << std::endl;
@@ -611,6 +606,7 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     
     EntityID id = m_ECS.addEntity();
     
+    m_ECS.addComponent<CName>(id, name);
     if (components.contains("CTransform")){
         m_ECS.addComponent<CTransform>(id, pos);
     }

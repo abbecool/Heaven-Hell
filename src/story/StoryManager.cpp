@@ -11,14 +11,50 @@ StoryManager::StoryManager(ECS* ecs, Scene_Play* scene, std::string storyFilePat
     m_ECS = ecs;
     m_scene = scene;
     loadStory(storyFilePath);
+    loadStory1("config_files/story1.json");
     m_currentQuest = m_storyQuests[m_questID];
+    m_currentQuest1 = m_storyQuests1[m_questID];
+}
+
+void StoryManager::loadStory1(const std::string& storyFilePath)
+{
+    std::ifstream file_assets(storyFilePath);
+    if (!file_assets) {
+        std::cerr << "Could not load new story file!\n";
+        exit(-1);
+    }
+    json j;
+    file_assets >> j;
+    file_assets.close();
+
+    for (const auto& step : j["story_steps"]) {
+        Quest quest;
+        QuestStep stepQuest;
+        quest.id = step["id"].get<int>();
+        quest.name = step["description"];
+        
+        stepQuest.requiredType = getEventTypeFromString(step["trigger"]["event_type"].get<std::string>());
+
+        stepQuest.requiredSubject = step["trigger"]["subject"].get<std::string>();
+        
+        quest.steps.push_back(stepQuest);
+
+        if (step.contains("reaction")) {
+            quest.onComplete = Event{
+                getEventTypeFromString(step["reaction"]["event_type"].get<std::string>()),
+                step["reaction"]["subject"].get<std::string>(),
+                Vec2(step["reaction"]["position"])
+            };            
+        }
+        m_storyQuests1.push_back(quest);
+    }
 }
 
 void StoryManager::loadStory(const std::string& storyFilePath)
 {
     std::ifstream file_assets(storyFilePath);
     if (!file_assets) {
-        std::cerr << "Could not load assets file!\n";
+        std::cerr << "Could not load story file!\n";
         exit(-1);
     }
     json j;
@@ -32,14 +68,14 @@ void StoryManager::loadStory(const std::string& storyFilePath)
         storyQuest.triggerType = step["trigger"]["type"];
         storyQuest.triggerName = step["trigger"]["name"];
 
-        if (step.contains("on_complete")) {
-            storyQuest.onCompleteType = step["on_complete"]["type"];
+        if (step.contains("reaction")) {
+            storyQuest.onCompleteType = step["reaction"]["type"];
             if (storyQuest.onCompleteType == "flag") {
-                storyQuest.onCompleteName = step["on_complete"]["name"];
+                storyQuest.onCompleteName = step["reaction"]["name"];
             }
             else if (storyQuest.onCompleteType == "spawn") {
-                storyQuest.onCompleteEntity = step["on_complete"]["entity"];
-                storyQuest.onCompleteposition = Vec2(step["on_complete"]["position"]);
+                storyQuest.onCompleteEntity = step["reaction"]["entity"];
+                storyQuest.onCompleteposition = Vec2(step["reaction"]["position"]);
             }
         }
         m_storyQuests.push_back(storyQuest);
@@ -77,23 +113,13 @@ void StoryManager::update()
     }
 }
 
-void StoryManager::onEvent(const GameEvent& e) {
-    for (auto& quest : m_storyQuests) {
-        if (quest.onCompleteValue) continue;
+void StoryManager::onEvent(const Event& e) {
+    Quest quest = m_currentQuest1;
+    QuestStep step = quest.steps[quest.currentStep];
+    if (!step.matches(e)){ return; }
 
-        if (quest.onCompleteType == "pickup" &&
-            e.type == GameEventType::ItemPickedUp &&
-            e.itemName == quest.onCompleteEntity)
-        {
-            completeQuest(quest);
-        }
-
-        // if (quest.onCompleteType == "kill" &&
-        //     e.type == GameEventType::EntityKilled &&
-        //     e.entityId == quest.onCompleteEntity)
-        // {
-        //     completeQuest(quest);
-        // }
+    if (quest.onComplete.type == EventType::EntitySpawned){
+        EntityID id = m_scene->Spawn(quest.onComplete.itemName, quest.onComplete.eventPosition);
     }
 }
 
@@ -112,4 +138,13 @@ void StoryManager::completeQuest(StoryQuest quest){
         }
         m_currentQuest = m_storyQuests[m_questID];
     }
+}
+
+EventType StoryManager::getEventTypeFromString(const std::string& typeStr) {
+    if (typeStr == "ItemPickedUp") return EventType::ItemPickedUp;
+    if (typeStr == "EntityKilled") return EventType::EntityKilled;
+    if (typeStr == "EntitySpawned") return EventType::EntitySpawned;
+    if (typeStr == "DialogueFinished") return EventType::DialogueFinished;
+    if (typeStr == "FlagChanged") return EventType::FlagChanged;
+    throw std::runtime_error("Unknown event type: " + typeStr);
 }

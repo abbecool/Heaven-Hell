@@ -33,6 +33,8 @@ public:
         std::string dialog;
         if (currentQuestID == 0) {
             m_scene->getStoryManager().setFlag("talked_to_wizard", true);
+            std::string name = getComponent<CName>().name;
+            m_scene->onEvent(Event{EventType::DialogueFinished, name});
             dialog = "Go and look for the staff!";
         }
         else if (currentQuestID == 1) {

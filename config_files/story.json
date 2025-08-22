@@ -8,7 +8,7 @@
         "type": "flag",
         "name": "talked_to_wizard"
       },
-      "on_complete": {
+      "reaction": {
         "type": "spawn",
         "entity": "copper_staff",
         "position": {
@@ -32,7 +32,7 @@
         "type": "flag",
         "name": "house_entered"
       },
-      "on_complete": {
+      "reaction": {
         "type": "flag",
         "name": "home_found"
       }
