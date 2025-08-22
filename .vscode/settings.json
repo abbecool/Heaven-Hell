@@ -90,7 +90,7 @@
     },
     "editor.rulers": [
    {
-     "column": 80,    // spacing of 1st column from left
+     "column": 90,    // spacing of 1st column from left
      "color": "#ffffff"   // orange, Go Vols!
    },
 //    {

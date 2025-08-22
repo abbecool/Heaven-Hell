@@ -104,6 +104,10 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
     m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
+    // StoryManager listens to events
+    m_eventBus.subscribe([this](const GameEvent& e) {
+        m_storyManager.onEvent(e);
+    });
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
@@ -343,16 +347,16 @@ void Scene_Play::sMovement() {
         }
     }
 
-    // auto viewKnockback = m_ECS.View<CKnockback, CTransform>();
-    // auto& knockbackPool = m_ECS.getComponentPool<CKnockback>();
-    // for (auto entityKnockback : viewKnockback){    
-    //     auto &transform = transformPool.getComponent(entityKnockback);
-    //     auto& knockback = knockbackPool.getComponent(entityKnockback);
-    //     transform.pos += m_physics.knockback(knockback);
-    //     if (knockback.duration <= 0){
-    //         m_ECS.queueRemoveComponent<CKnockback>(entityKnockback);
-    //     }
-    // }       
+    auto viewKnockback = m_ECS.View<CKnockback, CTransform>();
+    auto& knockbackPool = m_ECS.getComponentPool<CKnockback>();
+    for (auto entityKnockback : viewKnockback){    
+        auto &transform = transformPool.getComponent(entityKnockback);
+        auto& knockback = knockbackPool.getComponent(entityKnockback);
+        transform.pos += m_physics.knockback(knockback);
+        if (knockback.duration <= 0){
+            m_ECS.queueRemoveComponent<CKnockback>(entityKnockback);
+        }
+    }       
 
     auto viewTransform = m_ECS.View<CTransform, CVelocity>();
     for (auto e : viewTransform){    

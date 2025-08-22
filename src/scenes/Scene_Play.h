@@ -8,6 +8,7 @@
 #include "scenes/Scene_Inventory.h"
 #include "scenes/Scene_Pause.h"
 #include "physics/Level_Loader.h"
+#include "story/EventBus.h"
 
 #include <memory>
 #include <unordered_map>
@@ -31,11 +32,14 @@ class Scene_Play : public Scene
     PlayerConfig m_playerConfig;
     PlayerConfig m_rooterConfig;
     PlayerConfig m_goblinConfig;
+    
     CollisionManager m_collisionManager;
     InteractionManager m_interactionManager;
     StoryManager m_storyManager;
-    float m_zoomStep = 2;
     LevelLoader m_levelLoader;
+    EventBus m_eventBus;
+
+    float m_zoomStep = 2;
     std::shared_ptr<Scene_Inventory> m_inventory_scene;
     Vec2 m_levelSize;
     bool m_inventoryOpen = false;
@@ -102,9 +106,9 @@ class Scene_Play : public Scene
     template<typename T>
     void InitiateScript(CScript& sc, EntityID entityID);
     void InitiateProjectileScript(CScript& sc, EntityID entityID);
+
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 gridSize();
-    Vec2 levelSize();
     Vec2 getCameraPosition() override;
     
     void update();
@@ -118,4 +122,14 @@ class Scene_Play : public Scene
     EntityID Spawn(std::string name, Vec2 pos);
     EntityID SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID);
 
+// event - subscriber: These emit a signal when called
+    void onItemPickedUp(EntityID id, const std::string& itemName) {
+        GameEvent e{ GameEventType::ItemPickedUp, id, itemName };
+        m_eventBus.emit(e);
+    }
+
+    void onEnemyKilled(EntityID id) {
+        GameEvent e{ GameEventType::EntityKilled, id, "" };
+        m_eventBus.emit(e);
+    }
 };

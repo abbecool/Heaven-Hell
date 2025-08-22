@@ -1,5 +1,6 @@
 #include "story/StoryManager.h"
 #include "scenes/Scene_Play.h"
+#include "story/EventBus.h"
 #include <fstream>
 
 #include "external/json.hpp"
@@ -55,6 +56,7 @@ void StoryManager::setFlag(const std::string& flagName, bool value)
     if (m_currentQuest.triggerType == "flag" && m_currentQuest.triggerName == flagName) {
         m_currentQuest.triggerValue = value;
     }
+    m_storyFlags[flagName] = true;
 }
 
 void StoryManager::update()
@@ -63,6 +65,43 @@ void StoryManager::update()
         std::cout << "All quests completed!" << std::endl;
     }
     StoryQuest quest = m_currentQuest;
+    if (quest.triggerType == "flag" && quest.triggerValue) {
+        m_questID++;
+        if (quest.onCompleteType == "flag") {
+            setFlag(quest.onCompleteName, true);
+        }
+        else if (quest.onCompleteType == "spawn") {
+            EntityID id = m_scene->Spawn(quest.onCompleteEntity, quest.onCompleteposition);
+        }
+        m_currentQuest = m_storyQuests[m_questID];
+    }
+}
+
+void StoryManager::onEvent(const GameEvent& e) {
+    for (auto& quest : m_storyQuests) {
+        if (quest.onCompleteValue) continue;
+
+        if (quest.onCompleteType == "pickup" &&
+            e.type == GameEventType::ItemPickedUp &&
+            e.itemName == quest.onCompleteEntity)
+        {
+            completeQuest(quest);
+        }
+
+        // if (quest.onCompleteType == "kill" &&
+        //     e.type == GameEventType::EntityKilled &&
+        //     e.entityId == quest.onCompleteEntity)
+        // {
+        //     completeQuest(quest);
+        // }
+    }
+}
+
+void StoryManager::completeQuest(StoryQuest quest){
+    if (m_questID >= m_storyQuests.size()) {
+        std::cout << "All quests completed!" << std::endl;
+    }
+
     if (quest.triggerType == "flag" && quest.triggerValue) {
         m_questID++;
         if (quest.onCompleteType == "flag") {

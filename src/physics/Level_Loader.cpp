@@ -20,14 +20,18 @@ using PixelMatrix = std::vector<std::vector<std::string>>;
 
 // TODO: rework Level_Loader
 
-LevelLoader::LevelLoader(Scene_Play* scene, const Vec2 gridSize, const std::string levelPath){
+LevelLoader::LevelLoader(
+    Scene_Play* scene, 
+    const Vec2 gridSize, 
+    const std::string levelPath
+){
     m_scene = scene;
     m_gridSize = gridSize;
     const char* path = levelPath.c_str();
     SDL_Surface* loadedSurface = IMG_Load(path);
     if (loadedSurface == nullptr) 
     {
-        std::cerr << "Not loaded " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
+        std::cerr << path << " not loaded!" << std::endl;
     }
 
     // Lock the surface to access the pixels
@@ -53,26 +57,13 @@ std::vector<bool> LevelLoader::neighborCheck(
     int width, 
     int height
 ) {
-    std::vector<std::string> friendlyPixels(1, "");
     std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
-    if ( pixel == "grass" || pixel == "dirt"){
-        friendlyPixels = {"grass", "dirt", "key", "goal", "player_God", "player_Devil", "dragon", "water"};
-    } else if ( pixel == "water" ){
-        friendlyPixels = {"water", "bridge"};
-    } else if (pixel == "lava"){
-        friendlyPixels = {"lava", "bridge"};
-    }
-    else{
-        friendlyPixels = {pixel};
-    }
-    for ( auto pix : friendlyPixels){
-        if(!neighbors[0]){neighbors[0] = (y > 0 && m_pixelMatrix[y - 1][x] == pix);}           // top
-        if(!neighbors[1]){neighbors[1] = (x < width - 1 && m_pixelMatrix[y][x + 1] == pix);}   // right
-        if(!neighbors[2]){neighbors[2] = (y < height - 1 && m_pixelMatrix[y + 1][x] == pix);}  // bottom
-        if(!neighbors[3]){neighbors[3] = (x > 0 && m_pixelMatrix[y][x - 1] == pix);}           // left
-    }
+    std::string pix = m_pixelMatrix[y][x];
+    if(!neighbors[0]){neighbors[0] = (y > 0 && m_pixelMatrix[y - 1][x] == pix);}           // top
+    if(!neighbors[1]){neighbors[1] = (x < width - 1 && m_pixelMatrix[y][x + 1] == pix);}   // right
+    if(!neighbors[2]){neighbors[2] = (y < height - 1 && m_pixelMatrix[y + 1][x] == pix);}  // bottom
+    if(!neighbors[3]){neighbors[3] = (x > 0 && m_pixelMatrix[y][x - 1] == pix);}           // left
     return neighbors;
-
 }
 
 std::vector<std::string> LevelLoader::neighborTag(
@@ -235,30 +226,38 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             }
             const std::string& pixel = m_pixelMatrix[y][x];
             std::vector<bool> neighbors = neighborCheck(pixel, x, y, m_width, m_height);
-            std::vector<std::string> neighborsTags = neighborTag(pixel, x, y, m_width, m_height);
+            std::vector<std::string> neighborsTags = neighborTag(
+                pixel, 
+                x, 
+                y, 
+                m_width, 
+                m_height
+            );
             int textureIndex = getObstacleTextureIndex(neighbors);
             std::unordered_map<std::string, int> tileIndex = createDualGrid(x, y);
-            std::vector<EntityID> ids = m_scene->spawnDualTiles(Vec2 {16*(float)x - 16/2, 16*(float)y - 16/2},  tileIndex);
+            std::vector<EntityID> ids = m_scene->spawnDualTiles(
+                Vec2 {16*(float)x - 16/2, 16*(float)y - 16/2},  
+                tileIndex
+            );
             chunkChildren.insert(chunkChildren.end(), ids.begin(), ids.end());
 
             // Spawn obsticle if it is an edge or corner tile
             if (pixel == "obstacle" && textureIndex != 10) 
             {
-                EntityID id = m_scene->spawnObstacle(Vec2 {16*(float)x, 16*(float)y}, false, textureIndex);
+                EntityID id = m_scene->spawnObstacle(
+                    Vec2 {16*(float)x, 16*(float)y}, 
+                    false, textureIndex
+                );
                 chunkChildren.push_back(id);
             }
-            else
+            else if (pixel == "water" && textureIndex != 10) 
             {
-                if (pixel == "lava") 
-                {
-                    EntityID id = m_scene->spawnLava(Vec2 {16*(float)x,16*(float)y}, "Lava", textureIndex);
-                    chunkChildren.push_back(id);
-                } 
-                else if (pixel == "water" && textureIndex != 10) 
-                {
-                    EntityID id = m_scene->spawnWater(Vec2 {16*(float)x,16*(float)y}, "Water", textureIndex);
-                    chunkChildren.push_back(id);
-                }
+                EntityID id = m_scene->spawnWater(
+                    Vec2 {16*(float)x,16*(float)y}, 
+                    "Water", 
+                    textureIndex
+                );
+                chunkChildren.push_back(id);
             }
         }
     }
