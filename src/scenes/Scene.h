@@ -81,6 +81,9 @@ class Scene
     virtual Vec2 getCameraPosition();
     const Animation& getAnimation(const std::string& name) const;
     TTF_Font* getFont(const std::string& name) const;
+    Game* getGamePtr(){
+        return m_game;
+    }
 
     void spawnButton(
         const Vec2 pos, 

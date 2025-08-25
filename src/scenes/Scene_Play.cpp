@@ -97,10 +97,11 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     // mobs have to spawn after player, so they can target the player
     loadMobsNItems("config_files/mobs.json");
     
-    spawnNPC(Vec2{353, 63});
-    spawnDwarf(Vec2{343, 60});
+    // spawnNPC(Vec2{353, 63});
+    // spawnDwarf(Vec2{343, 60});
     SpawnFromJSON("wizard", Vec2{348, 65}*m_gridSize);
-    SpawnFromJSON("rooter", Vec2{344, 65}*m_gridSize);
+    // SpawnFromJSON("dwarf", Vec2{346, 65}*m_gridSize);
+    // SpawnFromJSON("rooter", Vec2{344, 65}*m_gridSize);
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
     m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
@@ -678,7 +679,9 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
         return spawnDecoration(pos, Vec2 {6, 8}, 6, "tree");
     }
     else if (name == "house") {
-        return spawnDecoration(pos, Vec2 {56, 44}, 6, "house");
+        EntityID id = spawnDecoration(pos, Vec2 {56, 44}, 6, "house");
+        m_ECS.addComponent<CInteractionBox>(id, Vec2{64, 64}, LOOT_LAYER, PLAYER_LAYER);
+        return id;
     }
     else if (name == "campfire") {
         return spawnCampfire(pos, 6);
@@ -801,7 +804,7 @@ EntityID Scene_Play::spawnNPC(Vec2 pos)
     CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {48, 32}, FRIENDLY_LAYER, interactionMask);
 
-    m_ECS.addComponent<CName>(entityID, "NPC1");
+    m_ECS.addComponent<CName>(entityID, "wizard");
     m_ECS.addComponent<CAnimation>(entityID, getAnimation("wiz-sheet"));
     m_rendererManager.addEntityToLayer(entityID, layer);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);

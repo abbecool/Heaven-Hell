@@ -115,12 +115,24 @@ void StoryManager::update()
 
 void StoryManager::onEvent(const Event& e) {
     Quest quest = m_currentQuest1;
-    QuestStep step = quest.steps[quest.currentStep];
+    QuestStep& step = quest.steps[quest.currentStep];
     if (!step.matches(e)){ return; }
+    step.completed = true;
 
     if (quest.onComplete.type == EventType::EntitySpawned){
         EntityID id = m_scene->Spawn(quest.onComplete.itemName, quest.onComplete.eventPosition);
+    } else if (quest.onComplete.type == EventType::FlagChanged){
+        setFlag(quest.name, true);
     }
+    int nextID = quest.id + 1;
+    if (nextID == m_storyQuests1.size())
+    {
+        m_scene->getGamePtr()->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_scene->getGamePtr()), true);
+        return;
+    } 
+    m_currentQuest1 = m_storyQuests1[nextID];
+    std::cout << "New quest: " << m_currentQuest1.name << std::endl;
+
 }
 
 void StoryManager::completeQuest(StoryQuest quest){

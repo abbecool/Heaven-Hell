@@ -115,7 +115,7 @@ class Scene_Play : public Scene
 
     StoryManager& getStoryManager() {
         return m_storyManager;
-    }
+    }  
 
     EntityID SpawnFromJSON(std::string name, Vec2 pos);
     EntityID Spawn(std::string name, Vec2 pos);

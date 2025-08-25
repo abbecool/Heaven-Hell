@@ -287,6 +287,9 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize)
             EntityID entityIDA = entityVector[a].getID();
             auto& interactionA = interactionPool.getComponent(entityIDA);
             auto& transformA = transformPool.getComponent(entityIDA);
+            if (!scriptPool.hasComponent(entityIDA)){
+                continue;
+            }
             auto& scriptA = scriptPool.getComponent(entityIDA);
 
             for (size_t b = a + 1; b < entityVector.size(); ++b) {
@@ -305,6 +308,9 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize)
                 if ( BLayer || ALayer)
                 {
                     continue; // No interaction layer match
+                }
+                if (!scriptPool.hasComponent(entityIDB)){
+                    continue;
                 }
                 auto& scriptB = scriptPool.getComponent(entityIDB);
                 scriptA.Instance->OnInteractFunction(entityIDB, interactionB.layer);

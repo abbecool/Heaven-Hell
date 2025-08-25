@@ -6,20 +6,20 @@
       "type": "shell",
       "command": "cmake",
       "args": [
-        "--build", "build", "--config", "Release"
+        "--build", "build/Release"
       ],
       "group": "build",
-      "problemMatcher": []
+      "problemMatcher": "$gcc"
     },
     {
       "label": "build-debug",
       "type": "shell",
       "command": "cmake",
       "args": [
-        "--build", "build", "--config", "Debug"
+        "--build", "build/Debug"
       ],
       "group": "build",
-      "problemMatcher": []
+      "problemMatcher": "$gcc"
     }
   ]
 }

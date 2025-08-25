@@ -1,6 +1,7 @@
 #pragma once
 #include "ecs/ECS.hpp"
 #include "story/StoryQuest.h"
+#include "scenes/Scene_GameOver.h"
 
 #include <unordered_map>
 #include <vector>
