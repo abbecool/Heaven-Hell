@@ -76,10 +76,6 @@ void Game::changeScene(
     }
 }
 
-void Game::changeSceneBack( const std::string& sceneName) {
-    m_currentScene = sceneName;
-}
-
 bool Game::isRunning() {
     return m_running;
 }

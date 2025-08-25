@@ -13,12 +13,13 @@ enum class EventType {
     EntitySpawned,
     DialogueFinished,
     FlagChanged,
+    NoEvent,
 };
 
 struct Event {
-    EventType type;
-    std::string itemName;       // optional
-    Vec2 eventPosition;         // optional
+    EventType type = EventType::NoEvent;
+    std::string itemName = "";       // optional
+    Vec2 eventPosition = {-1, -1};         // optional
 };
 
 // Simple bus

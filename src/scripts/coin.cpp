@@ -23,6 +23,4 @@ public:
         Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
         m_scene->onEvent({EventType::FlagChanged, "house_entered"});
     }
-
 };
-

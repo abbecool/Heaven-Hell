@@ -1,40 +1,38 @@
 {
-  "story_steps": 
-  [
+  "story_steps": [
     {
-      "id":0,
+      "id": 0,
       "description": "Talk to the wizard.",
       "trigger": {
-        "type": "flag",
-        "name": "talked_to_wizard"
+        "event_type": "DialogueFinished",
+        "subject": "wizard"
       },
       "reaction": {
-        "type": "spawn",
-        "entity": "copper_staff",
-        "position": {
-          "x": 353,
-          "y": 61
-        }
+        "event_type": "EntitySpawned",
+        "subject": "copper_staff",
+        "position": {"x": 353, "y": 61}
       }
     },
     {
       "id": 1,
       "description": "Find the staff.",
       "trigger": {
-        "type": "flag",
-        "name": "staff_found"
+        "event_type": "ItemPickedUp",
+        "subject": "copper_staff",
+        "position": {"x": 0, "y": 0}
       }
     },
     {
       "id": 2,
       "description": "Go to the house.",
       "trigger": {
-        "type": "flag",
-        "name": "house_entered"
+        "event_type": "FlagChanged",
+        "subject": "house_entered"
       },
       "reaction": {
-        "type": "flag",
-        "name": "home_found"
+        "event_type": "FlagChanged",
+        "subject": "home_found",
+        "position": {"x": 0, "y": 0}
       }
     }
   ]

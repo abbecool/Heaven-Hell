@@ -7,6 +7,7 @@
 #include "scenes/Scene.h"
 #include "scenes/Scene_Inventory.h"
 #include "scenes/Scene_Pause.h"
+#include "scenes/Scene_Finish.h"
 #include "physics/Level_Loader.h"
 #include "story/EventBus.h"
 
@@ -135,4 +136,6 @@ class Scene_Play : public Scene
     void onEvent(Event e) {
         m_eventBus.emit(e);
     }
+
+    void onFinish();
 };

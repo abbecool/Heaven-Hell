@@ -51,7 +51,6 @@ public:
         const std::string& sceneName,
         std::shared_ptr<Scene> scene,
         bool endCurrentScene=false);
-    void changeSceneBack(const std::string& sceneName);
     std::shared_ptr<Scene> currentScene();
     void quit();
     void run();

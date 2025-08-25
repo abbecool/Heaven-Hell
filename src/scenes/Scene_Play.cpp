@@ -49,7 +49,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_levelPath(levelPath), 
     m_collisionManager(&m_ECS, this), 
     m_interactionManager(&m_ECS, this), 
-    m_storyManager(&m_ECS, this, "config_files/story.json"),
+    m_storyManager(this, "config_files/story.json"),
     m_levelLoader(this, m_gridSize, levelPath),
     m_newGame(newGame)
 {
@@ -271,9 +271,11 @@ void Scene_Play::update()
     // m_storyManager.update();
     m_rendererManager.update();
     if (m_restart) {
-        // std::cerr << "Player entity is not initialized!" << std::endl;
         m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
         return;
+    }
+    if (m_storyManager.IsStoryFinished()){
+        onFinish();
     }
 }
 
@@ -1047,9 +1049,13 @@ void Scene_Play::InitiateProjectileScript(CScript& sc, EntityID entityID){
     sc.Instance->OnCreateFunction();
 }
 
-
 void Scene_Play::onEnd() {
     m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game));
+}
+
+void Scene_Play::onFinish() {
+    std::cout << "Warning, removing scene_ply instance" << std::endl;
+    m_game->changeScene("Finish", std::make_shared<Scene_Finish>(m_game), true);
 }
 
 void Scene_Play::setPaused(bool pause) {

@@ -40,17 +40,12 @@ The SDL2 folder should look like this.
 
 ![](SDL2_folder.png)
 
-When the sibling SDL2 folder is done, open the terminal in VSCode and then, inside the root directory of the repository run these commands:
-
-```sh
-mkdir build
-```
-
-this creates the build folder that CMake will use to build the project. Then initilize the build using the CMake commands:
+When the sibling SDL2 folder is done, open the terminal in VSCode and then, inside the root directory of the repository run these commands to create the build folders that CMake will use to build the project.
 ```sh
 cmake -S . -B build/Debug -DCMAKE_BUILD_TYPE=Debug -G "MinGW Makefiles"
+```
+```sh
 cmake -S . -B build/Release -DCMAKE_BUILD_TYPE=Release -G "MinGW Makefiles"
-
 ```
 
 Then select configuration inside of VSCode and press F5 to do an initial build/compile and then run the game.
@@ -58,6 +53,7 @@ Then select configuration inside of VSCode and press F5 to do an initial build/c
 To manually compile either the release or debug versions, run these commands:
 ```sh
 cmake --build build/Debug
+```
+```sh
 cmake --build build/Release
-
 ```

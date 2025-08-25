@@ -6,17 +6,14 @@
 #include "external/json.hpp"
 using json = nlohmann::json;
 
-StoryManager::StoryManager(ECS* ecs, Scene_Play* scene, std::string storyFilePath)
+StoryManager::StoryManager(Scene_Play* scene, std::string storyFilePath)
 {
-    m_ECS = ecs;
     m_scene = scene;
     loadStory(storyFilePath);
-    loadStory1("config_files/story1.json");
     m_currentQuest = m_storyQuests[m_questID];
-    m_currentQuest1 = m_storyQuests1[m_questID];
 }
 
-void StoryManager::loadStory1(const std::string& storyFilePath)
+void StoryManager::loadStory(const std::string& storyFilePath)
 {
     std::ifstream file_assets(storyFilePath);
     if (!file_assets) {
@@ -46,39 +43,7 @@ void StoryManager::loadStory1(const std::string& storyFilePath)
                 Vec2(step["reaction"]["position"])
             };            
         }
-        m_storyQuests1.push_back(quest);
-    }
-}
-
-void StoryManager::loadStory(const std::string& storyFilePath)
-{
-    std::ifstream file_assets(storyFilePath);
-    if (!file_assets) {
-        std::cerr << "Could not load story file!\n";
-        exit(-1);
-    }
-    json j;
-    file_assets >> j;
-    file_assets.close();
-
-    for (const auto& step : j["story_steps"]) {
-        StoryQuest storyQuest;
-        storyQuest.id = step["id"];
-        storyQuest.description = step["description"];
-        storyQuest.triggerType = step["trigger"]["type"];
-        storyQuest.triggerName = step["trigger"]["name"];
-
-        if (step.contains("reaction")) {
-            storyQuest.onCompleteType = step["reaction"]["type"];
-            if (storyQuest.onCompleteType == "flag") {
-                storyQuest.onCompleteName = step["reaction"]["name"];
-            }
-            else if (storyQuest.onCompleteType == "spawn") {
-                storyQuest.onCompleteEntity = step["reaction"]["entity"];
-                storyQuest.onCompleteposition = Vec2(step["reaction"]["position"]);
-            }
-        }
-        m_storyQuests.push_back(storyQuest);
+        m_storyQuests.push_back(quest);
     }
 }
 
@@ -89,67 +54,43 @@ int StoryManager::getCurrentQuestID()
 
 void StoryManager::setFlag(const std::string& flagName, bool value)
 {
-    if (m_currentQuest.triggerType == "flag" && m_currentQuest.triggerName == flagName) {
-        m_currentQuest.triggerValue = value;
-    }
     m_storyFlags[flagName] = true;
 }
 
-void StoryManager::update()
-{
-    if (m_questID >= m_storyQuests.size()) {
-        std::cout << "All quests completed!" << std::endl;
-    }
-    StoryQuest quest = m_currentQuest;
-    if (quest.triggerType == "flag" && quest.triggerValue) {
-        m_questID++;
-        if (quest.onCompleteType == "flag") {
-            setFlag(quest.onCompleteName, true);
-        }
-        else if (quest.onCompleteType == "spawn") {
-            EntityID id = m_scene->Spawn(quest.onCompleteEntity, quest.onCompleteposition);
-        }
-        m_currentQuest = m_storyQuests[m_questID];
-    }
-}
-
 void StoryManager::onEvent(const Event& e) {
-    Quest quest = m_currentQuest1;
+    Quest quest = m_currentQuest;
     QuestStep& step = quest.steps[quest.currentStep];
     if (!step.matches(e)){ return; }
     step.completed = true;
 
-    if (quest.onComplete.type == EventType::EntitySpawned){
-        EntityID id = m_scene->Spawn(quest.onComplete.itemName, quest.onComplete.eventPosition);
-    } else if (quest.onComplete.type == EventType::FlagChanged){
-        setFlag(quest.name, true);
-    }
+    Reaction(quest);
+    
     int nextID = quest.id + 1;
-    if (nextID == m_storyQuests1.size())
+    if (nextID == m_storyQuests.size())
     {
-        m_scene->getGamePtr()->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_scene->getGamePtr()), true);
+        m_questsFinished = true;
+        m_currentQuest = {};
         return;
     } 
-    m_currentQuest1 = m_storyQuests1[nextID];
-    std::cout << "New quest: " << m_currentQuest1.name << std::endl;
+    m_currentQuest = m_storyQuests[nextID];
+    std::cout << "New quest: " << m_currentQuest.name << std::endl;
 
 }
 
-void StoryManager::completeQuest(StoryQuest quest){
-    if (m_questID >= m_storyQuests.size()) {
-        std::cout << "All quests completed!" << std::endl;
+void StoryManager::Reaction(Quest quest){
+    if (quest.onComplete.type == EventType::NoEvent){
+        return;
     }
+    if (quest.onComplete.type == EventType::EntitySpawned){
+        EntityID id = m_scene->Spawn(quest.onComplete.itemName, quest.onComplete.eventPosition);
+    }
+    else if (quest.onComplete.type == EventType::FlagChanged){
+        setFlag(quest.name, true);
+    }
+}
 
-    if (quest.triggerType == "flag" && quest.triggerValue) {
-        m_questID++;
-        if (quest.onCompleteType == "flag") {
-            setFlag(quest.onCompleteName, true);
-        }
-        else if (quest.onCompleteType == "spawn") {
-            EntityID id = m_scene->Spawn(quest.onCompleteEntity, quest.onCompleteposition);
-        }
-        m_currentQuest = m_storyQuests[m_questID];
-    }
+bool StoryManager::IsStoryFinished(){
+    return m_questsFinished;
 }
 
 EventType StoryManager::getEventTypeFromString(const std::string& typeStr) {
