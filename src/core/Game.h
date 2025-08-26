@@ -67,6 +67,7 @@ public:
     void setWidth(int width);
     void setHeight(int height);
     void updateResolution(int scale);
+    void ToggleFullscreen();
     void setScale(int scale);
     int getScale();
 };

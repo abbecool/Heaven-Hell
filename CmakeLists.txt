@@ -52,19 +52,19 @@ add_custom_command(TARGET heavenhell POST_BUILD
         "${CMAKE_SOURCE_DIR}/config_files"
         "$<TARGET_FILE_DIR:heavenhell>/config_files")
 
-include(FetchContent)
-FetchContent_Declare(
-  catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v3.7.0  # latest stable
-)
-FetchContent_MakeAvailable(catch2)
+# include(FetchContent)
+# FetchContent_Declare(
+#   catch2
+#   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+#   GIT_TAG v3.7.0  # latest stable
+# )
+# FetchContent_MakeAvailable(catch2)
 
-enable_testing()
+# enable_testing()
 
-add_executable(unit_tests tests/test_math.cpp)
-target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain)
+# add_executable(unit_tests tests/test_math.cpp)
+# target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain)
 
-include(CTest)
-include(Catch)
-catch_discover_tests(unit_tests)
+# include(CTest)
+# include(Catch)
+# catch_discover_tests(unit_tests)

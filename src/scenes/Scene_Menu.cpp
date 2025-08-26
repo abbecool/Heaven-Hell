@@ -21,10 +21,8 @@ Scene_Menu::Scene_Menu(Game* game)
     registerAction(SDLK_ESCAPE, "QUIT");
     registerAction(SDLK_t, "TOGGLE_TEXTURE");
     registerAction(SDLK_c, "TOGGLE_COLLISION");
-    registerAction(SDLK_1, "LEVEL0");
-    registerAction(SDLK_2, "LEVEL5");
+    registerAction(SDLK_f, "FULLSCREEN");
     registerAction(SDL_BUTTON_LEFT , "MOUSE LEFT CLICK");
-    registerAction(SDLK_v , "SHOW COORDINATES");
     loadMenu();
 }
 
@@ -64,48 +62,40 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
 
 void Scene_Menu::sDoAction(const Action& action)
 {
-    if (action.type() == "START")
-    {
-        if (action.name() == "TOGGLE_TEXTURE")
-        {
+    if (action.type() == "START"){
+        if (action.name() == "TOGGLE_TEXTURE"){
             m_drawTextures = !m_drawTextures; 
         }
-        else if (action.name() == "TOGGLE_COLLISION")
-        { 
+        else if (action.name() == "TOGGLE_COLLISION"){ 
             m_drawCollision = !m_drawCollision; 
         }
-        else if (action.name() == "TOGGLE_GRID")
-        { 
+        else if (action.name() == "TOGGLE_GRID"){ 
             m_drawDrawGrid = !m_drawDrawGrid;
         }
-        else if (action.name() == "QUIT")
-        { 
+        else if (action.name() == "QUIT"){ 
             onEnd();
         }
-        else if (action.name() == "MOUSE LEFT CLICK")
-        {
+        else if (action.name() == "FULLSCREEN"){
+            m_game->ToggleFullscreen();
+        }
+        else if (action.name() == "MOUSE LEFT CLICK") {
             auto view = m_ECS.View<CCollisionBox, CTransform, CText, CAnimation>();
-            for (auto e : view)
-            {
+            for (auto e : view){
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
-                if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
-                {
+                if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
                     continue;
                 }
                 m_ECS.getComponent<CAnimation>(e).animation = getAnimation("button_pressed");
             }
         }   
     }
-    else if (action.type() == "END")
-    {
-        if (!(action.name() == "MOUSE LEFT CLICK"))
-        {
+    else if (action.type() == "END"){
+        if (!(action.name() == "MOUSE LEFT CLICK")){
             return;
         }   
         auto view = m_ECS.View<CCollisionBox, CTransform, CText, CAnimation, CName>();
-        for (auto e : view)
-        {
+        for (auto e : view){
             auto &transform = m_ECS.getComponent<CTransform>(e);
             auto &collision = m_ECS.getComponent<CCollisionBox>(e);
             if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
@@ -114,38 +104,31 @@ void Scene_Menu::sDoAction(const Action& action)
             auto &name = m_ECS.getComponent<CName>(e).name;
             m_ECS.getComponent<CAnimation>(e).animation = getAnimation("button_unpressed");
             std::string levelPath = "assets/images/levels/levelWorld.png";
-            if ( name == "new" )
-            {
+            if ( name == "new" ){
                 m_game->changeScene(
                     "PLAY", 
                     std::make_shared<Scene_Play>(m_game, levelPath, true), 
                     true);
             }
-            else if ( name == "continue" )
-            {
+            else if ( name == "continue" ){
                 m_game->changeScene(
                     "PLAY", 
                     std::make_shared<Scene_Play>(m_game, levelPath, false), 
                     true);
             }
-            else if ( name == "360p" )
-            {
+            else if ( name == "360p" ){
                 m_game->updateResolution(1);
             }
-            else if ( name == "720p" )
-            {
+            else if ( name == "720p" ){
                 m_game->updateResolution(2);
             }
-            else if ( name == "1080p" )
-            {
+            else if ( name == "1080p" ){
                 m_game->updateResolution(3);
             }
-            else if ( name == "1440p" )
-            {
+            else if ( name == "1440p" ){
                 m_game->updateResolution(4);
             }
-            else if ( name == "4K" )
-            {
+            else if ( name == "4K" ){
                 m_game->updateResolution(6);
             }
         }

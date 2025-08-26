@@ -57,3 +57,10 @@ cmake --build build/Debug
 ```sh
 cmake --build build/Release
 ```
+
+For testing:
+```sh
+cmake -S . -B build/Test
+cmake --build build/Test
+ctest --test-dir build/Test
+```

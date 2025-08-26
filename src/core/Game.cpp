@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <SDL_image.h>
 
 #include <iostream>
 #include <fstream>
@@ -28,21 +29,25 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
         m_width, m_height, 
         SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
-    SDL_SetWindowPosition(m_window, 0, 30);
+    SDL_SetWindowIcon(
+        m_window, 
+        IMG_Load("assets/images/wizard_profile_pic.png")
+    );
     if ( NULL == m_window )
     {
-        std::cout << "Could not create window: " << SDL_GetError( ) << std::endl;
+        std::cout << "Window nullprt: " << SDL_GetError( ) << std::endl;
     }
+    SDL_SetWindowPosition(m_window, 0, 30);
     
     current_frame = steady_clock::now();
     last_fps_update = current_frame;
     
-    m_renderer = SDL_CreateRenderer( m_window, -1 , SDL_RENDERER_ACCELERATED);
-    SDL_SetRenderDrawBlendMode( m_renderer, SDL_BLENDMODE_BLEND );
+    m_renderer = SDL_CreateRenderer(m_window, -1 , SDL_RENDERER_ACCELERATED);
+    SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
     TTF_Init();
-    Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 );
-    
+    Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
+    
 
     SDL_GetCurrentDisplayMode(0, &DM);
     updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
@@ -56,6 +61,17 @@ void Game::updateResolution(int scale)
     setWidth(scale*VIRTUAL_WIDTH);
     setHeight(scale*VIRTUAL_HEIGHT);
     SDL_SetWindowSize(m_window, scale*VIRTUAL_WIDTH, scale*VIRTUAL_HEIGHT);
+}
+
+void Game::ToggleFullscreen(){
+    Uint32 flags = SDL_GetWindowFlags(m_window);
+    if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+        updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
+        SDL_SetWindowFullscreen(m_window, 0); // Exit fullscreen
+    } else {
+        updateResolution(int(DM.h / VIRTUAL_HEIGHT));
+        SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP); // Enter fullscreen
+    }
 }
 
 std::shared_ptr<Scene> Game::currentScene() {
@@ -195,12 +211,10 @@ void Game::sUserInput()
     SDL_Event event;
     while ( SDL_PollEvent( &event ) )
     {
-        if (SDL_QUIT == event.type)
-            {
-                quit();
-            }
-        if(event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
-        { 
+        if (SDL_QUIT == event.type){
+            quit();
+        }
+        if(event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) { 
             if (currentScene()->getActionMap().find(event.key.keysym.sym) == currentScene()->getActionMap().end()) {
                 continue;
             }
@@ -222,13 +236,11 @@ void Game::sUserInput()
         }
 
         // Mouse scroll wheel handling
-        if (event.type == SDL_MOUSEWHEEL) 
-        {
+        if (event.type == SDL_MOUSEWHEEL) {
             const std::string actionType = (event.type == SDL_MOUSEBUTTONDOWN ) ? "START" : "END";
             currentScene()->updateMouseScroll(event.wheel.y);
             // Determine scroll direction: up or down
-            if (currentScene()->getActionMap().find(event.wheel.direction) != currentScene()->getActionMap().end())
-            {
+            if (currentScene()->getActionMap().find(event.wheel.direction) != currentScene()->getActionMap().end()) {
                 currentScene()->doAction(Action(currentScene()->getActionMap().at(event.wheel.direction), "START"));
             }
         }
