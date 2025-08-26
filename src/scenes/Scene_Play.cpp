@@ -66,8 +66,6 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
     registerAction(SDL_MOUSEWHEEL , "ATTACK");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
-    registerAction(SDLK_SPACE , "ATTACK");
-    registerAction(SDLK_y , "ATTACK");
     registerAction(SDLK_f, "INTERACT");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
@@ -82,12 +80,9 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_q, "WRITE QUADTREE");
     registerAction(SDLK_p, "PAUSE");
     registerAction(SDLK_k, "KILL_PLAYER");
-    registerAction(SDLK_t, "TOGGLE_TEXTURE");
-    registerAction(SDLK_c, "TOGGLE_COLLISION");
     registerAction(SDLK_F3, "TOGGLE_COLLISION");
-    registerAction(SDLK_i, "TOGGLE_INTERACTION");
-    registerAction(SDLK_g, "TOGGLE_GRID");
     registerAction(SDLK_F4, "TOGGLE_INTERACTION");
+    registerAction(SDLK_F5, "TOGGLE_TEXTURE");
     registerAction(SDLK_1, "TP1");
     registerAction(SDLK_2, "TP2");
     registerAction(SDLK_3, "TP3");
@@ -96,15 +91,11 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     spawnPlayer();
     // mobs have to spawn after player, so they can target the player
     loadMobsNItems("config_files/mobs.json");
-    
-    // spawnNPC(Vec2{353, 63});
-    // spawnDwarf(Vec2{343, 60});
     SpawnFromJSON("wizard", Vec2{348, 65}*m_gridSize);
-    // SpawnFromJSON("dwarf", Vec2{346, 65}*m_gridSize);
-    // SpawnFromJSON("rooter", Vec2{344, 65}*m_gridSize);
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
     m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
+
     // StoryManager listens to events
     m_eventBus.subscribe([this](const Event& e) {
         m_storyManager.onEvent(e);
@@ -183,8 +174,6 @@ void Scene_Play::sDoAction(const Action& action) {
             m_drawCollision = !m_drawCollision; 
         } else if ( action.name() == "TOGGLE_INTERACTION") { 
             m_drawInteraction = !m_drawInteraction; 
-        } else if ( action.name() == "TOGGLE_GRID") { 
-            m_drawDrawGrid = !m_drawDrawGrid; 
         } else if ( action.name() == "PAUSE") { 
             setPaused( !m_pause || m_inventoryOpen );
         } else if ( action.name() == "INVENTORY") { 

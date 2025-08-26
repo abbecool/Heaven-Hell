@@ -12,11 +12,6 @@
 #include "assets/Assets.h"
 #include "scenes/Scene_Menu.h"
 
-using seconds = std::chrono::seconds;
-using milliseconds = std::chrono::milliseconds;
-using nanoseconds = std::chrono::nanoseconds;
-using steady_clock = std::chrono::steady_clock;
-
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {
     SDL_Init(SDL_INIT_EVERYTHING);

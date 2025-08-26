@@ -9,6 +9,11 @@
 #include <memory>
 #include <map>
 
+using seconds = std::chrono::seconds;
+using milliseconds = std::chrono::milliseconds;
+using nanoseconds = std::chrono::nanoseconds;
+using steady_clock = std::chrono::steady_clock;
+
 class Scene;
 typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
 class Game
