@@ -7,8 +7,8 @@
 using json = nlohmann::json;
 
 struct QuestStep {
-    EventType requiredType;
-    std::string requiredSubject; // e.g. "wizard", "staff"
+    EventType requiredType = EventType::NoEvent;
+    std::string requiredSubject = ""; // e.g. "wizard", "staff"
     bool completed = false;
 
     bool matches(const Event& e) const {

@@ -12,6 +12,7 @@
 #include "ecs/ScriptableEntity.h"
 #include "scripts/player.cpp"
 #include "scripts/npc.cpp"
+#include "scripts/house.cpp"
 #include "scripts/rooter.cpp"
 #include "scripts/weapon.cpp"
 #include "scripts/projectile.cpp"
@@ -695,8 +696,10 @@ EntityID Scene_Play::SpawnDialog(
     m_ECS.addComponent<CChild>(parentID, id);
     Vec2 relativePosition = {0, -2*m_gridSize.y};
     m_ECS.addComponent<CParent>(id, parentID, relativePosition);
-    m_ECS.addComponent<CText>(id, dialog, size, font);
-    m_ECS.addComponent<CAnimation>(id, getAnimation("button_unpressed"), true, 5);
+    CAnimation& animation =  m_ECS.addComponent<CAnimation>(id, getAnimation("button_unpressed"));
+    Vec2 animationSize = animation.animation.getSize();
+    CText& text = m_ECS.addComponent<CText>(id, dialog, animationSize.y*0.9f, font);
+    animation.animation.setScale(Vec2{2*animationSize.x, animationSize.y});
     m_rendererManager.addEntityToLayer(id, 8);
     m_ECS.addComponent<CLifespan>(id, 60);
     return id;
@@ -859,17 +862,22 @@ EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
 }
 
 EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation){
-    auto entity = m_ECS.addEntity();
+    EntityID id = m_ECS.addEntity();
 
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid);
+    Vec2 midGrid = gridToMidPixel(pos, id);
+    m_ECS.addComponent<CTransform>(id, midGrid);
+    m_ECS.addComponent<CAnimation>(id, getAnimation(animation));
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
-    m_ECS.addComponent<CCollisionBox>(entity, collisionBox, OBSTACLE_LAYER, collisionMask);
-    m_ECS.addComponent<CAnimation>(entity, getAnimation(animation));
-    m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CImmovable>(entity);
-    spawnShadow(entity, Vec2{0,-4}, 3, layer-1);
-    return entity;
+    m_ECS.addComponent<CCollisionBox>(id, collisionBox, OBSTACLE_LAYER, collisionMask);
+    if (animation == "house"){
+        m_ECS.addComponent<CInteractionBox>(id, Vec2{64, 64}, OBSTACLE_LAYER, PLAYER_LAYER);
+        CScript& sc = m_ECS.addComponent<CScript>(id);
+        InitiateScript<HouseController>(sc, id);
+    }
+    m_rendererManager.addEntityToLayer(id, layer);
+    m_ECS.addComponent<CImmovable>(id);
+    spawnShadow(id, Vec2{0,-4}, 3, layer-1);
+    return id;
 }
 
 EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -1043,7 +1051,7 @@ void Scene_Play::onEnd() {
 }
 
 void Scene_Play::onFinish() {
-    std::cout << "Warning, removing scene_ply instance" << std::endl;
+    std::cout << "Warning, removing scene_play instance" << std::endl;
     m_game->changeScene("Finish", std::make_shared<Scene_Finish>(m_game), true);
 }
 

@@ -69,7 +69,6 @@ void StoryManager::onEvent(const Event& e) {
     if (nextID == m_storyQuests.size())
     {
         m_questsFinished = true;
-        m_currentQuest = {};
         return;
     } 
     m_currentQuest = m_storyQuests[nextID];

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "assets/Animation.h"
+#include "story/EventBus.h"
 
 #include <memory>
 #include <unordered_set>
@@ -338,6 +339,14 @@ struct CWeapon
 struct CActiveItem
 {
     CActiveItem() {}
+};
+
+struct CProgression
+{
+    Event event;
+    CProgression() {}
+    CProgression(Event e)
+            : event(e){}
 };
 
 struct CWeaponChild

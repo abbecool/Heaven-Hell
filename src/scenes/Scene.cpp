@@ -35,16 +35,12 @@ void Scene::sRenderBasic() {
     // Above code does not have to be calculated every frame
 
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    if (m_drawTextures)
-    {
+    if (m_drawTextures){
         auto& animationPool = m_ECS.getComponentPool<CAnimation>();
         auto layers = m_rendererManager.getLayers();
-        for (const auto& layer : layers)
-        {
-            for (const auto& e : layer)
-            {                
-                if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e))
-                {
+        for (const auto& layer : layers){
+            for (const auto& e : layer){                
+                if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e)){
                     continue;
                 }
                 auto& transform = transformPool.getComponent(e);
@@ -64,32 +60,29 @@ void Scene::sRenderBasic() {
 
     auto& dialogPool = m_ECS.getComponentPool<CText>();
     auto dialogView = m_ECS.View<CText, CTransform>();
-    for (const auto& e : dialogView)
-    {
-        auto& dialog = dialogPool.getComponent(e);
-        auto& transform = transformPool.getComponent(e);
-        auto pos = (transform.pos - m_camera.position)*totalZoom 
-                    + screenCenterZoomed 
-                    - dialog.size / 2;
-        SDL_Rect texRect;
-        texRect.x = int(pos.x);
-        texRect.y = int(pos.y);
-        texRect.w = int(dialog.size.x * totalZoom);
-        texRect.h = int(dialog.size.y * totalZoom);
-
+    for (const auto& e : dialogView){
+        CText& dialog = dialogPool.getComponent(e);
         SDL_Color color = {255, 255, 255, 255};
         SDL_Surface* surface = TTF_RenderText_Blended(getFont(dialog.font_name), dialog.text.c_str(), color);
         if (!surface) {
             SDL_Log("TTF_RenderText_Blended error: %s", TTF_GetError());
             continue;
         }
-
         SDL_Texture* texture = SDL_CreateTextureFromSurface(m_game->renderer(), surface);
         SDL_FreeSurface(surface);
         if (!texture) {
             SDL_Log("SDL_CreateTextureFromSurface error: %s", SDL_GetError());
             continue;
         }
+        CTransform& transform = transformPool.getComponent(e);
+        Vec2 pos = (transform.pos - m_camera.position- dialog.size/2)*totalZoom 
+                    + screenCenterZoomed;
+                    
+        SDL_Rect texRect;
+        texRect.x = int(pos.x);
+        texRect.y = int(pos.y);
+        texRect.w = int(dialog.size.x * totalZoom);
+        texRect.h = int(dialog.size.y * totalZoom);
 
         SDL_RenderCopyEx(
             m_game->renderer(),
@@ -215,9 +208,10 @@ void Scene::spawnButton(
 {   
     EntityID id = m_ECS.addEntity();
     m_rendererManager.addEntityToLayer(id, 3);
-    CAnimation animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed), 5);
+    CAnimation& animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed));
+    Vec2 animationSize = animation.animation.getSize();
     m_ECS.addComponent<CTransform>(id, pos);
-    m_ECS.addComponent<CCollisionBox>(id, animation.animation.getSize());
+    m_ECS.addComponent<CCollisionBox>(id, animationSize);
     m_ECS.addComponent<CName>(id, name);
-    m_ECS.addComponent<CText>(id, dialog, 16, "Minecraft");
+    m_ECS.addComponent<CText>(id, dialog, animationSize.y*0.9f, "Minecraft");
 }
