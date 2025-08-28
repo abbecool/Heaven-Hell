@@ -31,6 +31,7 @@ class StoryManager
     void update();
     void onEvent(const Event& e);
     EventType getEventTypeFromString(const std::string& typeStr);
-    bool IsStoryFinished();
+    bool isStoryFinished();
     void Reaction(Quest q);
+    std::vector<Quest>& getQuests();
 };

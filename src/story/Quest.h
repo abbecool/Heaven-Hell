@@ -14,6 +14,9 @@ struct QuestStep {
     bool matches(const Event& e) const {
         return e.type == requiredType && e.itemName == requiredSubject;
     }
+    Event asEvent(){
+        return Event{requiredType, requiredSubject};
+    }
 };
 
 struct Quest {

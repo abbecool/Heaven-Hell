@@ -56,7 +56,7 @@ class Scene_Play : public Scene
     
     void loadConfig(const std::string& path);
     void loadMobsNItems(const std::string& path);
-    
+    void SubscribeToStoryEvents();
     void saveGame(const std::string& filename);
     
     EntityID spawnPlayer();
@@ -133,7 +133,7 @@ class Scene_Play : public Scene
         m_eventBus.emit(e);
     }
 
-    void onEvent(Event e) {
+    void Emit(Event e) {
         m_eventBus.emit(e);
     }
 

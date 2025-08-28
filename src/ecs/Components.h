@@ -231,6 +231,16 @@ struct CAnimation
             : animation(animation), layer(l){}
 };  
 
+struct CAudio
+{
+    std::string audioName;
+    int loops = 0;
+    CAudio(std::string a, int l)
+        : audioName(a), loops(l){}
+    CAudio(std::string a)
+        : audioName(a){}
+};
+
 struct CState
 {
     PlayerState state = PlayerState::STAND;
@@ -341,11 +351,11 @@ struct CActiveItem
     CActiveItem() {}
 };
 
-struct CProgression
+struct CEvent
 {
     Event event;
-    CProgression() {}
-    CProgression(Event e)
+    CEvent() {}
+    CEvent(Event e)
             : event(e){}
 };
 

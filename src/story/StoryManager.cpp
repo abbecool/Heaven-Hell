@@ -73,7 +73,6 @@ void StoryManager::onEvent(const Event& e) {
     } 
     m_currentQuest = m_storyQuests[nextID];
     std::cout << "New quest: " << m_currentQuest.name << std::endl;
-
 }
 
 void StoryManager::Reaction(Quest quest){
@@ -88,7 +87,7 @@ void StoryManager::Reaction(Quest quest){
     }
 }
 
-bool StoryManager::IsStoryFinished(){
+bool StoryManager::isStoryFinished(){
     return m_questsFinished;
 }
 
@@ -99,4 +98,8 @@ EventType StoryManager::getEventTypeFromString(const std::string& typeStr) {
     if (typeStr == "DialogueFinished") return EventType::DialogueFinished;
     if (typeStr == "FlagChanged") return EventType::FlagChanged;
     throw std::runtime_error("Unknown event type: " + typeStr);
+}
+
+std::vector<Quest>& StoryManager::getQuests(){
+    return m_storyQuests;
 }

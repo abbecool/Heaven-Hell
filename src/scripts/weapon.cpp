@@ -50,9 +50,9 @@ public:
         addComponent<CParent>(colliderID, Vec2{8, -4});
         m_ECS->addComponent<CWeaponChild>(colliderID, m_entity.getID());
         m_ECS->queueRemoveComponent<CInteractionBox>(m_entity.getID());
-        Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
+        m_ECS->addComponent<CAudio>(m_entity.getID(), "loot_pickup");
 
         std::string name = m_ECS->getComponent<CName>(m_entity.getID()).name;
-        m_scene->onEvent({EventType::ItemPickedUp, name});
+        m_scene->Emit({EventType::ItemPickedUp, name});
     }
 };

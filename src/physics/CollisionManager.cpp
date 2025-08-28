@@ -279,42 +279,49 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize)
     newQuadtree<CInteractionBox>(treePos, treeSize);
     auto quadVector = m_quadRoot->createQuadtreeVector();
 
-    for (auto quadleaf : quadVector)
-    {
+    for (auto quadleaf : quadVector){
         std::vector<Entity> entityVector = quadleaf->getObjects();
 
-        for (size_t a = 0; a < entityVector.size(); ++a) {
-            EntityID entityIDA = entityVector[a].getID();
-            auto& interactionA = interactionPool.getComponent(entityIDA);
-            auto& transformA = transformPool.getComponent(entityIDA);
-            if (!scriptPool.hasComponent(entityIDA)){
+        for (size_t a = 0; a < entityVector.size(); ++a){
+            EntityID idA = entityVector[a].getID();
+            auto& interactionA = interactionPool.getComponent(idA);
+            auto& transformA = transformPool.getComponent(idA);
+            if (!scriptPool.hasComponent(idA)){
                 continue;
             }
-            auto& scriptA = scriptPool.getComponent(entityIDA);
+            auto& scriptA = scriptPool.getComponent(idA);
 
             for (size_t b = a + 1; b < entityVector.size(); ++b) {
-                EntityID entityIDB = entityVector[b].getID();
-                if ( entityIDA == entityIDB ) {
+                EntityID idB = entityVector[b].getID();
+                if ( idA == idB ) {
                     continue; // Skip self-collision
                 }
-                auto& interactionB = interactionPool.getComponent(entityIDB);
-                auto& transformB = transformPool.getComponent(entityIDB);
-                if ( !isCollided(transformA, transformB, interactionA, interactionB) )
-                {
+                auto& interactionB = interactionPool.getComponent(idB);
+                auto& transformB = transformPool.getComponent(idB);
+                if ( !isCollided(transformA, transformB, interactionA, interactionB) ){
                     continue; // No collision detected
                 }
                 bool BLayer = (interactionB.layer & interactionA.mask) != interactionB.layer;
                 bool ALayer = (interactionA.layer & interactionB.mask) != interactionA.layer;
-                if ( BLayer || ALayer)
-                {
+                if ( BLayer || ALayer){
                     continue; // No interaction layer match
                 }
-                if (!scriptPool.hasComponent(entityIDB)){
+                if (!scriptPool.hasComponent(idB)){
                     continue;
                 }
-                auto& scriptB = scriptPool.getComponent(entityIDB);
-                scriptA.Instance->OnInteractFunction(entityIDB, interactionB.layer);
-                scriptB.Instance->OnInteractFunction(entityIDA, interactionA.layer);                
+
+                if (m_ECS->hasComponent<CName>(idA)){
+                    std::string nameA = m_ECS->getComponent<CName>(idA).name;
+                    m_ECS->addComponent<CEvent>(idA, Event{EventType::EnteredArea, nameA});
+                }
+                if (m_ECS->hasComponent<CName>(idB)){
+                    std::string nameB = m_ECS->getComponent<CName>(idB).name;
+                    m_ECS->addComponent<CEvent>(idB, Event{EventType::EnteredArea, nameB});
+                }
+
+                auto& scriptB = scriptPool.getComponent(idB);
+                scriptA.Instance->OnInteractFunction(idB, interactionB.layer);
+                scriptB.Instance->OnInteractFunction(idA, interactionA.layer);                
             }
         }
     }

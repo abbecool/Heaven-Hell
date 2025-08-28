@@ -98,9 +98,21 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
 
     // StoryManager listens to events
-    m_eventBus.subscribe([this](const Event& e) {
-        m_storyManager.onEvent(e);
-    });
+    // m_eventBus.subscribe([this](const Event& e) {
+    //     m_storyManager.onEvent(e);
+    // });
+    SubscribeToStoryEvents();    
+}
+
+void Scene_Play::SubscribeToStoryEvents(){
+    auto& quests = m_storyManager.getQuests();
+    for (Quest quest : quests){
+        QuestStep step = quest.steps[quest.currentStep];
+        Event e = step.asEvent();
+        m_eventBus.subscribe(e, [this](const Event& e) {
+                m_storyManager.onEvent(e);
+        });
+    }
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
@@ -258,13 +270,11 @@ void Scene_Play::update()
     sRender();
     m_inventory_scene->update();
     m_ECS.update();
-    // m_storyManager.update();
     m_rendererManager.update();
-    if (m_restart) {
+    if (m_restart){
         m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
-        return;
     }
-    if (m_storyManager.IsStoryFinished()){
+    if (m_storyManager.isStoryFinished()){
         onFinish();
     }
 }
@@ -418,7 +428,7 @@ void Scene_Play::sStatus() {
             spawnCoin(transform.pos, 6);
             m_ECS.queueRemoveEntity(entityID);
         }
-        Mix_PlayChannel(-1, m_game->assets().getAudio("enemy_death"), 0);
+        m_ECS.addComponent<CAudio>(entityID, "enemy_death");
     }
 }
 
@@ -586,6 +596,19 @@ void Scene_Play::sAudio()
     {
         Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1ogg"), -1);
     }
+
+    auto& audioPool = m_ECS.getComponentPool<CAudio>();
+    auto audioView = m_ECS.View<CAudio>();
+    for (EntityID id : audioView){
+        CAudio& audio = audioPool.getComponent(id);
+        Mix_Chunk *asset = m_game->assets().getAudio(audio.audioName);
+        Mix_PlayChannel(-1, asset, audio.loops);
+        if (audio.loops == 0){
+            m_ECS.removeComponent<CAudio>(id);
+            continue;
+        }
+        audio.loops--;
+    }
 }
 
 EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
@@ -672,7 +695,7 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
     }
     else if (name == "house") {
         EntityID id = spawnDecoration(pos, Vec2 {56, 44}, 6, "house");
-        m_ECS.addComponent<CInteractionBox>(id, Vec2{64, 64}, LOOT_LAYER, PLAYER_LAYER);
+        m_ECS.addComponent<CInteractionBox>(id, Vec2{16, 64}, LOOT_LAYER, PLAYER_LAYER);
         return id;
     }
     else if (name == "campfire") {

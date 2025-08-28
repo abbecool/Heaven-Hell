@@ -9,6 +9,7 @@ using EntityID = uint32_t;
 
 enum class EventType {
     ItemPickedUp,
+    EnteredArea,
     EntityKilled,
     EntitySpawned,
     DialogueFinished,
@@ -25,18 +26,26 @@ struct Event {
 // Simple bus
 class EventBus {
 public:
+    EventBus(){};
     using Listener = std::function<void(const Event&)>;
 
-    void subscribe(const Listener& listener) {
-        m_listeners.push_back(listener);
+    void subscribe(Event e, const Listener& listener) {
+        std::vector<Listener>& v = m_listenerMap[e.itemName];
+        v.push_back(listener);
     }
 
     void emit(const Event& e) {
-        for (auto& l : m_listeners) {
+        if (m_listenerMap.find(e.itemName) == m_listenerMap.end()){
+            return;
+        }
+        
+        auto listeners = m_listenerMap.at(e.itemName);
+        for (auto& l : listeners) {
             l(e);
         }
     }
 
 private:
     std::vector<Listener> m_listeners;
+    std::unordered_map<std::string, std::vector<Listener>> m_listenerMap;
 };
