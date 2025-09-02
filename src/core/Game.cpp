@@ -117,8 +117,8 @@ void Game::FrametimeHandler()
     m_currentFrame++;
 
     nanoseconds frame_time = steady_clock::now() - current_frame;
-    int64_t frame_time_ms = std::chrono::duration_cast<milliseconds>(frame_time).count();
-
+    int64_t frame_time_ms = std::chrono::duration_cast<nanoseconds>(frame_time).count();
+    
     accumulated_frame_time += frame_time_ms;
     frame_count++;
     std::this_thread::sleep_until(next_frame);
@@ -126,8 +126,8 @@ void Game::FrametimeHandler()
     // Check if one second has passed
     if (steady_clock::now() - last_fps_update >= seconds(1))
     {
-        int average_frame_time = accumulated_frame_time / frame_count;
-        int average_fps = 1000.0 / average_frame_time;
+        float average_frame_time = accumulated_frame_time / (frame_count*pow(10,6));
+        float average_fps = 1000 / average_frame_time;
 
         // Print the average FPS followed by a carriage return
         std::cout << "\rFPS: " << average_fps << " / " << average_frame_time << "ms";
