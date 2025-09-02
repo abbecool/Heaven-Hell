@@ -117,6 +117,7 @@ struct CBox
 {
     Vec2 size;
     Vec2 halfSize;
+    Vec2 offset;
     CollisionMask layer = FINAL_MASK;
     CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
     SDL_Color color = {255, 255, 255, 255};
