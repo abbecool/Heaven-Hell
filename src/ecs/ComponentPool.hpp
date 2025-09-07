@@ -61,6 +61,7 @@ public:
         
         EntityID index = sparse[e];
         if (index == tombstone) {
+            std::cout << "component type: " << typeid(T).name() << " entity id: " << e << std::endl;
             throw std::out_of_range("Component not found.");
         }
         T& component = dense[index];

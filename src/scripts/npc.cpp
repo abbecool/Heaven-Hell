@@ -19,11 +19,11 @@ public:
     
     void OnInteractFunction(EntityID playerID, CollisionMask colliderLayer)
     {
-        if ( !m_ECS->hasComponent<CInputs>(playerID) )
+        if ( !m_ECS->hasComponent<CInputs>(playerID))
         {
             return;
         }
-        if ( !m_ECS->getComponent<CInputs>(playerID).interact )
+        if ( !m_ECS->getComponent<CInputs>(playerID).interact)
         {
             return;
         }
@@ -50,6 +50,30 @@ public:
         if (!hasComponent<CChild>()) {
             m_scene->SpawnDialog(dialog, 16, "Minecraft", m_entity.getID());
         }
+    }
+
+    void onPosses(EntityID playerID, EntityID otherID)
+    {
+        if (!m_ECS->hasComponent<CInputs>(playerID))
+        {
+            return;
+        }
+        if (!m_ECS->getComponent<CInputs>(playerID).posses)
+        {
+            return;
+        }
+        if (!m_ECS->hasComponent<CPossesLevel>(otherID))
+        {
+            return;
+        }
+
+        int possesLevel = m_ECS->getComponent<CPossesLevel>(otherID).level;
+        m_ECS->removeComponent<CPossesLevel>(otherID);
+        // m_ECS->addComponent<CPossesLevel>(playerID);
+
+        m_scene->changePlayerID(otherID);
+        m_ECS->addComponent<CInputs>(otherID);
+        m_ECS->removeEntity(playerID);
     }
 };
 

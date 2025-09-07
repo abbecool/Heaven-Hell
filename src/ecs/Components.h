@@ -77,6 +77,7 @@ struct CInputs
     bool interact   = false;
     bool shoot      = false;
     bool canShoot   = false;
+    bool posses     = false;
     CInputs() {};
 };
 
@@ -310,6 +311,15 @@ struct CText
     CText() {}
     CText(std::string txt, const float sz, std::string fnt)
         : text(txt), size(Vec2{sz*txt.length()/4, sz}), font_name(fnt){}
+};
+
+struct CPossesLevel
+{
+    int level = 10;
+
+    CPossesLevel() {}
+    CPossesLevel(int l)
+        : level(l) {}
 };
 
 struct CPathfind

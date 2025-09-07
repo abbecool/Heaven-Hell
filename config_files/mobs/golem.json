@@ -1,5 +1,5 @@
 {
-    "wizard": {
+    "golem": {
         "dialog": [
             {"quest":0, "text":"Go and look for the staff!"},
             {"quest":1, "text":"Have you found the staff yet?"},
@@ -8,29 +8,31 @@
         ],
         "components": {
             "CTransform": "default",
-            "CVelocity": {"speed": 100},
-            "CCollisionBox": {
-                "size": {"x": 8, "y":8}, 
-                "layer": "FRIENDLY_LAYER", 
-                "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
-            },
-            "CInteractionBox": {
-                "size": {"x": 48,"y": 32}, 
-                "layer": "FRIENDLY_LAYER", 
-                "mask": ["PLAYER_LAYER", "FRIENDLY_LAYER"]
-            },
+            "CVelocity": {"speed": 50},
             "CAnimation": {
-                "animation": "wiz-sheet",
+                "animation": "golem-sheet",
                 "layer": 10
             },
-            "CState": "default",
-            "CScript": "NPCController",
-            "CPossesLevel": "default",
+            "CCollisionBox": {
+                "size": {"x": 8, "y":8}, 
+                "layer": "ENEMY_LAYER", 
+                "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
+            },
+            "CScript": "RooterController",
+
+            "CPathfind": "default",
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,
                 "i_frames": 30,
-                "type": ["Organic"]
+                "type": ["Rock"]
+            },
+            "CAttack": {
+                "damage": 1, 
+                "speed": 120, 
+                "duration": 30, 
+                "range": 48, 
+                "area": {"x": 16, "y": 16}
             }
         }
     }

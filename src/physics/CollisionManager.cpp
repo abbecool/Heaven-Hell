@@ -320,8 +320,23 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize)
                 }
 
                 auto& scriptB = scriptPool.getComponent(idB);
+
+                if (m_ECS->hasComponent<CPossesLevel>(idA) && m_ECS->hasComponent<CInputs>(idB)){
+                    if (m_ECS->getComponent<CInputs>(idB).posses){
+                        std::cout << "possess!" << std::endl;
+                    }
+                }
+                if (m_ECS->hasComponent<CPossesLevel>(idB) && m_ECS->hasComponent<CInputs>(idA)){
+                    if (m_ECS->getComponent<CInputs>(idA).posses){
+                        std::cout << "possess!" << std::endl;
+                    }
+                }
+
                 scriptA.Instance->OnInteractFunction(idB, interactionB.layer);
-                scriptB.Instance->OnInteractFunction(idA, interactionA.layer);                
+                scriptB.Instance->OnInteractFunction(idA, interactionA.layer);
+
+                scriptA.Instance->onPosses(idB, idA);
+                scriptB.Instance->onPosses(idA, idB);                
             }
         }
     }

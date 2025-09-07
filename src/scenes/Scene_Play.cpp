@@ -73,6 +73,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_ESCAPE, "ESC");
     registerAction(SDLK_u, "SAVE");
     registerAction(SDLK_r, "RESET");
+    registerAction(SDLK_t, "TAKE OVER");
 
     registerAction(SDLK_x, "CAMERA FOLLOW");
     registerAction(SDLK_z, "CAMERA PAN");
@@ -92,7 +93,10 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     spawnPlayer();
     // mobs have to spawn after player, so they can target the player
     loadMobsNItems("config_files/mobs.json");
-    SpawnFromJSON("wizard", Vec2{348, 65}*m_gridSize);
+    auto w = SpawnFromJSON("wizard", Vec2{348, 65}*m_gridSize);
+    std::cout << w << "\n";
+    SpawnFromJSON("dwarf", Vec2{344, 65}*m_gridSize);
+    SpawnFromJSON("dwarf", Vec2{340, 65}*m_gridSize);
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
     m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
@@ -226,6 +230,7 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = true; }
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
         if ( action.name() == "INTERACT" ) { m_ECS.getComponent<CInputs>(m_player).interact = true; }
+        if ( action.name() == "TAKE OVER" ) { m_ECS.getComponent<CInputs>(m_player).posses = true; }
 
         if ( action.name() == "ATTACK"){
             m_ECS.getComponent<CScript>(m_player).Instance->OnAttackFunction();
@@ -240,6 +245,7 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = false; }
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
         if ( action.name() == "INTERACT") { m_ECS.getComponent<CInputs>(m_player).interact = false; }
+        if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInputs>(m_player).posses = false; }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
             saveGame("config_files/game_save.txt");
@@ -484,13 +490,6 @@ void Scene_Play::sAnimation() {
             animation.animation.update(m_currentFrame);
         }
     }
-
-    auto view3 = m_ECS.View<CSwimming, CAnimation>();
-    for ( auto e : view3 ){
-        auto& animation = animationPool.getComponent(e);
-        SDL_Rect* rect = animation.animation.getSrcRect();
-        animation.animation.setSrcRect(rect->x, rect->y-4, rect->w, rect->h);
-    }
 }
 
 void Scene_Play::sRender() {
@@ -672,37 +671,43 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     if (components.contains("CAttack")){
         m_ECS.addComponent<CAttack>(id, components["CAttack"]);
     }
+    if (components.contains("CPossesLevel")){
+        m_ECS.addComponent<CPossesLevel>(id, 10);
+    }
     return id;
 }
 
 EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
 {
     pos = pos*m_gridSize;
-    if (name == "copper_staff") {
+    if (name == "copper_staff"){
         return spawnWeapon(pos, name);
     }
-    else if (name == "rooter") {
+    else if (name == "rooter"){
         return SpawnFromJSON(name, pos);
     }
-    else if (name == "goblin") {
+    else if (name == "goblin"){
         return SpawnFromJSON(name, pos);
     }
-    else if (name == "coin") {
+    else if (name == "coin"){
         return spawnCoin(pos, 6);
     }
-    else if (name == "tree") {
+    else if (name == "tree"){
         return spawnDecoration(pos, Vec2 {6, 8}, 6, "tree");
     }
-    else if (name == "house") {
+    else if (name == "house"){
         EntityID id = spawnDecoration(pos, Vec2 {56, 44}, 6, "house");
         m_ECS.addComponent<CInteractionBox>(id, Vec2{16, 64}, LOOT_LAYER, PLAYER_LAYER);
         return id;
     }
-    else if (name == "campfire") {
+    else if (name == "campfire"){
         return spawnCampfire(pos, 6);
     }
-    else if (name == "sword") {
+    else if (name == "sword"){
         return spawnSword(pos);
+    }
+    else if (name == "golem"){
+        return SpawnFromJSON(name, pos);
     }
     return 0; // Return 0 if the entity type is not recognized
 }
@@ -979,31 +984,6 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     return entity;
 }
 
-EntityID Scene_Play::spawnSmallEnemy(Vec2 pos, const size_t layer, std::string type)
-{
-    auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CName>(entity, type);
-    m_ECS.addComponent<CAnimation>(entity, getAnimation(type));
-    m_rendererManager.addEntityToLayer(entity, layer);
-    m_ECS.addComponent<CState>(entity, PlayerState::STAND);
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid);
-    m_ECS.addComponent<CVelocity>(entity, m_goblinConfig.SPEED);
-    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
-    m_ECS.addComponent<CCollisionBox>(entity, Vec2{8, 12}, ENEMY_LAYER, collisionMask);
-    m_ECS.addComponent<CPathfind>(entity, m_ECS.getComponent<CTransform>(m_player).pos);
-
-    m_ECS.addComponent<CHealth>(entity, 4, 4, 30);
-    m_ECS.getComponent<CHealth>(entity).HPType = {"Grass", "Organic"};
-    m_ECS.addComponent<CAttack>(entity, 1, 120, 30, 3*16, Vec2{16,16});
-
-    spawnShadow(entity, Vec2{0, 4}, 1, layer-1);
-
-    auto& sc= m_ECS.addComponent<CScript>(entity);
-    InitiateScript<RooterController>(sc, entity);
-    return entity;
-}
-
 std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
 {   
     std::vector<EntityID> entityIDs;
@@ -1092,4 +1072,9 @@ Vec2 Scene_Play::gridSize(){
 
 Vec2 Scene_Play::getCameraPosition() {
     return m_camera.position;
+}
+
+EntityID Scene_Play::changePlayerID(EntityID otherID) {
+    m_player = otherID;
+    return m_player;
 }

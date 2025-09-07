@@ -36,6 +36,7 @@
             "dwarf-sheet.png",
             "goblin-sheet.png",
             "rooter-sheet.png",
+            "golem-sheet.png",
             "inventory.png",
             "inventory_open.png"
         ]
@@ -263,6 +264,15 @@
             "frametime": 20,
             "cols": 4,
             "rows": 5,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "name": "golem-sheet",
+            "frames": 1,
+            "frametime": 20,
+            "cols": 1,
+            "rows": 1,
             "width": 32,
             "height": 32
         },
