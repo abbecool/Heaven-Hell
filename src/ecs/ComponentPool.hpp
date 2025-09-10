@@ -48,9 +48,10 @@ public:
         // Sparse set implementation
         sparse[id] = dense.size();
         dense.push_back(component);
+        // dense.emplace_back(std::forward<Args>(args)...);
         entities.push_back(id);
 
-        return dense[sparse[id]];  // Return a reference to the added component
+        return dense.back();  // Return a reference to the added component
     }
     
     inline bool hasComponent(EntityID e) const noexcept {

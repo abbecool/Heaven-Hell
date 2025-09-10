@@ -27,4 +27,6 @@ class Physics
         void renderInteractionQuadtree(SDL_Renderer*renderer, int zoom, Vec2 screenCenter, Vec2 camPos);
         int countInteractionQuadtree(int count);
         std::vector<std::shared_ptr<Quadtree>> createInteractionQuadtreeVector();
+        
+        Vec2 aStar(Vec2 pos, Vec2 targetPos);
 };

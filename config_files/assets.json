@@ -33,7 +33,9 @@
             "sword.png",
             "demon-sheet.png",
             "wiz-sheet.png",
+            "elf-sheet.png",
             "dwarf-sheet.png",
+            "knight-sheet.png",
             "goblin-sheet.png",
             "rooter-sheet.png",
             "golem-sheet.png",
@@ -241,7 +243,25 @@
             "height": 32
         },
         {
+            "name": "elf-sheet",
+            "frames": 4,
+            "frametime": 10,
+            "cols": 4,
+            "rows": 5,
+            "width": 32,
+            "height": 32
+        },
+        {
             "name": "dwarf-sheet",
+            "frames": 6,
+            "frametime": 7,
+            "cols": 6,
+            "rows": 5,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "name": "knight-sheet",
             "frames": 6,
             "frametime": 7,
             "cols": 6,

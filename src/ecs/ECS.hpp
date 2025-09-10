@@ -37,7 +37,6 @@ private:
     std::vector<EntityID> m_entitiesToRemove;
 
     std::vector<EntityID> matchingEntities;
-    // ComponentFactory m_factory;
 public:
 
     ECS(){}
@@ -141,6 +140,12 @@ public:
     template <typename T>
     T& getComponent(EntityID entityId) {
         return getComponentPool<T>().getComponent(entityId);
+    }
+    
+    template<typename T>
+    T& copyComponent(EntityID dst, EntityID src) {
+        const T& component = getComponent<T>(src);           // hämta referens till käll-komponenten
+        return addComponent<T>(dst, component);              // kopiera den till dst
     }
     
     // Helper to get the component pool for a specific type (const version)

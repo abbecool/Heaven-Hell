@@ -93,18 +93,15 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     spawnPlayer();
     // mobs have to spawn after player, so they can target the player
     loadMobsNItems("config_files/mobs.json");
-    auto w = SpawnFromJSON("wizard", Vec2{348, 65}*m_gridSize);
-    std::cout << w << "\n";
-    SpawnFromJSON("dwarf", Vec2{344, 65}*m_gridSize);
-    SpawnFromJSON("dwarf", Vec2{340, 65}*m_gridSize);
+
+    SpawnFromJSON("elf", Vec2{348, 64}*m_gridSize);
+    SpawnFromJSON("wizard", Vec2{348, 60}*m_gridSize);
+    SpawnFromJSON("knight", Vec2{344, 64}*m_gridSize);
+    SpawnFromJSON("dwarf", Vec2{344, 60}*m_gridSize);
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
     m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
 
-    // StoryManager listens to events
-    // m_eventBus.subscribe([this](const Event& e) {
-    //     m_storyManager.onEvent(e);
-    // });
     SubscribeToStoryEvents();    
 }
 
@@ -316,6 +313,7 @@ void Scene_Play::sMovement() {
         auto& pathfind = pathfindPool.getComponent(e);
         if ((pathfind.target - transform.pos).length() < 16*2) {
             velocity.vel = pathfind.target - transform.pos;
+            // velocity.vel = m_physics.aStar(transform.pos, pathfind.target);
         } else {
             velocity.vel = Vec2 {0,0};
         }
@@ -614,6 +612,7 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
 {
     std::ifstream file("config_files/mobs/"+name+".json");
     assert(file && "Could not load file!");
+
     json j;
     file >> j;
     file.close();

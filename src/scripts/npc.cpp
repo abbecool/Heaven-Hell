@@ -69,10 +69,17 @@ public:
 
         int possesLevel = m_ECS->getComponent<CPossesLevel>(otherID).level;
         m_ECS->removeComponent<CPossesLevel>(otherID);
-        // m_ECS->addComponent<CPossesLevel>(playerID);
 
         m_scene->changePlayerID(otherID);
         m_ECS->addComponent<CInputs>(otherID);
+        // CCollisionBox& collisionBox = m_ECS->getComponent<CCollisionBox>(playerID);
+        // m_ECS->addComponent<CCollisionBox>(otherID, collisionBox);
+        // m_ECS->copyComponent<CCollisionBox>(otherID, playerID);
+
+        // CInteractionBox& interactionBox = m_ECS->getComponent<CInteractionBox>(playerID);
+        // m_ECS->addComponent<CInteractionBox>(otherID, interactionBox);
+        
+
         m_ECS->removeEntity(playerID);
     }
 };

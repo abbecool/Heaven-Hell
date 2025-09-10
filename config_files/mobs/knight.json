@@ -1,10 +1,10 @@
 {
-    "dwarf": {
+    "knight": {
         "dialog": [
             {"quest":0, "text":"Go and look for the staff!"},
             {"quest":1, "text":"Have you found the staff yet?"},
             {"quest":2, "text":"Have you found you're home?"},
-            {"quest":3, "text":"I am a dwarf, what are you?"}
+            {"quest":3, "text":"I am a knight, what are you?"}
         ],
         "components": {
             "CTransform": "default",
@@ -20,7 +20,7 @@
                 "mask": ["PLAYER_LAYER", "FRIENDLY_LAYER"]
             },
             "CAnimation": {
-                "animation": "dwarf-sheet",
+                "animation": "knight-sheet",
                 "layer": 10
             },
             "CState": "default",
