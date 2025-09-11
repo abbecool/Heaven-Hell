@@ -493,7 +493,6 @@ void Scene_Play::sAnimation() {
 void Scene_Play::sRender() {
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
-    SDL_RenderClear(m_game->renderer());
     sRenderBasic();
     
     int windowScale = m_game->getScale();
@@ -597,6 +596,7 @@ void Scene_Play::sAudio()
     auto& audioPool = m_ECS.getComponentPool<CAudio>();
     auto audioView = m_ECS.View<CAudio>();
     for (EntityID id : audioView){
+        // if (!audioPool.hasComponent(id)){continue;}
         CAudio& audio = audioPool.getComponent(id);
         Mix_Chunk *asset = m_game->assets().getAudio(audio.audioName);
         Mix_PlayChannel(-1, asset, audio.loops);

@@ -24,6 +24,7 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
         m_width, m_height, 
         SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
+
     SDL_SetWindowIcon(
         m_window, 
         IMG_Load("assets/images/wizard_profile_pic.png")
@@ -37,13 +38,12 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
     current_frame = steady_clock::now();
     last_fps_update = current_frame;
     
-    m_renderer = SDL_CreateRenderer(m_window, -1 , SDL_RENDERER_ACCELERATED);
+    m_renderer = SDL_CreateRenderer(m_window, -1 , SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
     TTF_Init();
     Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
     
-
     SDL_GetCurrentDisplayMode(0, &DM);
     updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
     // updateResolution(1);
@@ -97,51 +97,74 @@ int Game::framerate(){
 
 void Game::run()
 {
-
     while (isRunning())
     {
-        SDL_RenderClear( m_renderer );
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+        SDL_RenderClear(m_renderer);
         update();
         sUserInput();
-        SDL_RenderPresent( m_renderer );
-
         FrametimeHandler(); // caps the framerate and prints the theoretical unlimited FPS.
+        SDL_RenderPresent(m_renderer);
 
     }
-    SDL_DestroyWindow( m_window );
+    SDL_DestroyWindow(m_window);
     SDL_Quit();
 }   
+
+void RenderText(SDL_Renderer* renderer, TTF_Font* font, const std::string& text, int x, int y, SDL_Color color)
+{
+    SDL_Surface* surface = TTF_RenderText_Blended(font, text.c_str(), color);
+    if (!surface) return;
+    
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    if (!texture) return;
+
+    SDL_Rect dstRect = { x, y, surface->w, surface->h };
+    SDL_QueryTexture(texture, nullptr, nullptr, &dstRect.w, &dstRect.h);
+    SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
+
+    SDL_DestroyTexture(texture);
+}
+
 
 void Game::FrametimeHandler()
 {
     m_currentFrame++;
-
-    nanoseconds frame_time = steady_clock::now() - current_frame;
-    int64_t frame_time_ms = std::chrono::duration_cast<nanoseconds>(frame_time).count();
     
-    accumulated_frame_time += frame_time_ms;
-    frame_count++;
-    std::this_thread::sleep_until(next_frame);
+    // Mät tiden som gått sedan förra frame
+    auto now = std::chrono::steady_clock::now();
+    auto frameDuration = now - current_frame;
 
-    // Check if one second has passed
+    int64_t frame_time_ns = std::chrono::duration_cast<nanoseconds>(frameDuration).count();
+    accumulated_frame_time += frame_time_ns;
+    frame_count++;
+
     if (steady_clock::now() - last_fps_update >= seconds(1))
     {
-        float average_frame_time = accumulated_frame_time / (frame_count*pow(10,6));
-        float average_fps = 1000 / average_frame_time;
-
-        // Print the average FPS followed by a carriage return
-        std::cout << "\rFPS: " << average_fps << " / " << average_frame_time << "ms";
+        float average_frame_time = accumulated_frame_time / frame_count;
+        average_fps = pow(10,9) / average_frame_time;
 
         // Reset counters for the next second
         accumulated_frame_time = 0.0;
         frame_count = 0;
         last_fps_update = steady_clock::now();
     }
+    SDL_Color white = {255, 255, 255, 255};
+    auto font = m_assets.getFont("Minecraft");
+    RenderText(m_renderer, font, "FPS: " + std::to_string(average_fps), 10, 10, white);
 
-    // FPS cap
-    current_frame = steady_clock::now();
-    next_frame = current_frame + milliseconds(1000 / m_framerate); // 60Hz
-    // 
+    // Hur länge vi vill att en frame ska ta
+    auto targetFrameDuration = std::chrono::milliseconds(1000 / m_framerate);
+
+    // Om frame gick snabbare än målet, vänta resten
+    if (frameDuration < targetFrameDuration) {
+        std::this_thread::sleep_for(targetFrameDuration - frameDuration);
+    }
+
+    // Spara tidpunkten för nästa frame
+    current_frame = std::chrono::steady_clock::now();
+
 }
 
 void Game::quit() {
