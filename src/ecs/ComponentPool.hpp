@@ -24,6 +24,8 @@ class BaseComponentPool {
     std::vector<EntityID> entities;  // Dense vector of IDs
     virtual ~BaseComponentPool() = default;  // Virtual destructor to allow proper deletion
     virtual void removeComponent(EntityID entityId){};
+    virtual bool hasComponent(EntityID id) const = 0;
+    virtual std::string getTypeName() const = 0;
     const std::vector<EntityID>& getEntities() const {return entities;};
 };
 
@@ -43,13 +45,14 @@ public:
 
     template<typename... Args>
     T& addComponent(EntityID id, Args... args) {
+        if (hasComponent(id)){
+            removeComponent(id);
+        }
         // Sparse set implementation
         const size_t index = dense.size();
         sparse[id] = index;
-        // dense.push_back(component);
         dense.emplace_back(std::forward<Args>(args)...);
         entities.push_back(id);
-
         return dense.back();  // Return a reference to the added component
     }
     
@@ -66,6 +69,14 @@ public:
         }
         T& component = dense[index];
         return component;
+    }
+
+    T& moveComponent(EntityID dst, EntityID src) {
+        assert((sparse[dst] != tombstone) && "src already has a component!");
+        sparse[dst] = sparse[src];
+        sparse[src] = tombstone;
+
+        return dense[sparse[dst]];  // Return a reference to the moved component
     }
     
     void queueRemoveEntity(EntityID id) {
@@ -100,4 +111,9 @@ public:
     std::vector<T>& getDense() {
         return dense;
     }
+
+    std::string getTypeName() const override {
+        return typeid(T).name(); // or a custom string if you prefer
+    }
+
 };

@@ -148,6 +148,13 @@ public:
         const T& component = getComponent<T>(src);
         return addComponent<T>(dst, component);
     }
+
+    // move a component from one entity to another
+    template<typename T>
+    T& moveComponent(EntityID dst, EntityID src) {
+        auto& pool = getOrCreateComponentPool<T>();
+        return pool.moveComponent(dst, src);
+    }
     
     template <typename T>
     ComponentPool<T>& getComponentPool() {
@@ -201,5 +208,16 @@ public:
         }
 
         return matchingEntities;
+    }
+
+    void printEntityComponents(EntityID entity) {
+        if (hasComponent<CName>(entity)){
+            std::cout << getComponent<CName>(entity).name << "'s components:" << std::endl;
+        }
+        for (auto& [typeId, poolBase] : m_componentPools) {
+            if (poolBase->hasComponent(entity)) {
+                std::cout << "- " << poolBase->getTypeName() << "\n";
+            }
+        }
     }
 };
