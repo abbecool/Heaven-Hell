@@ -52,7 +52,7 @@ public:
         m_usedIDs.push_back(id);
         return id;
     }
-
+    // TODO: add a hasEntity function to be used to check if a parent exists, otherwise skip and remove child
     void removeEntity(EntityID entity){
         auto it = std::find(m_usedIDs.begin(), m_usedIDs.end(), entity);
         assert(it != m_usedIDs.end() && "Entity not found in used IDs!");
