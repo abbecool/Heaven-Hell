@@ -142,13 +142,13 @@ public:
         return getComponentPool<T>().getComponent(entityId);
     }
     
+    // make a copy of a entities component and add it to another entity
     template<typename T>
     T& copyComponent(EntityID dst, EntityID src) {
-        const T& component = getComponent<T>(src);           // hämta referens till käll-komponenten
-        return addComponent<T>(dst, component);              // kopiera den till dst
+        const T& component = getComponent<T>(src);
+        return addComponent<T>(dst, component);
     }
     
-    // Helper to get the component pool for a specific type (const version)
     template <typename T>
     ComponentPool<T>& getComponentPool() {
         std::type_index typeIdx(typeid(T));
