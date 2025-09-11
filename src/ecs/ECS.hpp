@@ -121,7 +121,7 @@ public:
     template<typename T, typename... Args>
     T& addComponent(EntityID entity, Args &&... args) {
         auto& pool = getOrCreateComponentPool<T>();
-        return pool.addComponent(entity, T(std::forward<Args>(args)...));
+        return pool.addComponent(entity, std::forward<Args>(args)...);
     };
     
     // Remove a component from an entityId

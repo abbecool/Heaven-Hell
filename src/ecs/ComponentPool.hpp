@@ -43,12 +43,11 @@ public:
 
     template<typename... Args>
     T& addComponent(EntityID id, Args... args) {
-        T component = T(std::forward<Args>(args)...);
-
         // Sparse set implementation
-        sparse[id] = dense.size();
-        dense.push_back(component);
-        // dense.emplace_back(std::forward<Args>(args)...);
+        const size_t index = dense.size();
+        sparse[id] = index;
+        // dense.push_back(component);
+        dense.emplace_back(std::forward<Args>(args)...);
         entities.push_back(id);
 
         return dense.back();  // Return a reference to the added component
