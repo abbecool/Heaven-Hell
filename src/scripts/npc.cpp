@@ -75,12 +75,13 @@ public:
         m_ECS->copyComponent<CCollisionBox>(otherID, playerID);
         m_ECS->copyComponent<CInteractionBox>(otherID, playerID);
 
-        m_ECS->removeComponent<CScript>(otherID);
-        auto& sc = m_ECS->copyComponent<CScript>(otherID, playerID);
-        m_scene->InitiateScript<PlayerController>(sc, otherID);
+        // m_ECS->removeComponent<CScript>(otherID);
+        // auto& sc = m_ECS->copyComponent<CScript>(otherID, playerID);
+        // m_scene->InitiateScript<PlayerController>(sc, otherID);
 
 
         m_ECS->printEntityComponents(playerID);
+        
         m_ECS->printEntityComponents(otherID);
 
         m_ECS->removeEntity(playerID);

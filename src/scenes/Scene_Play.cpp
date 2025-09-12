@@ -592,11 +592,12 @@ void Scene_Play::sAudio()
     {
         Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1ogg"), -1);
     }
-
     auto& audioPool = m_ECS.getComponentPool<CAudio>();
     auto audioView = m_ECS.View<CAudio>();
     for (EntityID id : audioView){
-        // if (!audioPool.hasComponent(id)){continue;}
+        if (!audioPool.hasComponent(id)){
+            m_ECS.printEntityComponents(id);
+        }
         CAudio& audio = audioPool.getComponent(id);
         Mix_Chunk *asset = m_game->assets().getAudio(audio.audioName);
         Mix_PlayChannel(-1, asset, audio.loops);
