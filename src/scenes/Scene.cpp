@@ -96,7 +96,7 @@ void Scene::sRenderBasic() {
 
         SDL_DestroyTexture(texture); // Free after rendering to avoid leaks
     }
-    // TODO: fix line count after this point
+
     if (m_drawCollision)
     {
         auto viewCollisions = m_ECS.View<CCollisionBox, CTransform>();
