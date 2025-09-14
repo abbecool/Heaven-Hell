@@ -64,7 +64,7 @@ class Scene_Play : public Scene
     EntityID spawnDwarf(Vec2 pos);
     EntityID spawnWeapon(Vec2 pos, std::string weaponName = "staff");
     EntityID spawnSword(Vec2 pos, std::string weaponName = "sword");
-    EntityID spawnProjectile(EntityID player, Vec2 vel, int layer);
+    EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
     EntityID spawnDecoration(
@@ -87,6 +87,7 @@ class Scene_Play : public Scene
     
     void sLoader();
     void sScripting();
+    void sAttack();
     void sMovement();
     void sInteraction();
     void sCollision();

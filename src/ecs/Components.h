@@ -75,6 +75,8 @@ struct CInputs
     bool shift      = false;
     bool ctrl       = false;
     bool interact   = false;
+    bool attack     = false;
+
     bool shoot      = false;
     bool canShoot   = false;
     bool posses     = false;
@@ -343,15 +345,20 @@ struct CKnockback
         : duration(dur), magnitude(mag), direction(dir) {}
 };
 
+enum struct WeaponType {
+    Melee,
+    Projectile,
+    AoE
+};
+
 struct CWeapon
 {
     Animation animation;
     int damage;
     int speed;
     int range;
-    bool ranged;
+    WeaponType weaponType = WeaponType::Projectile;
 
-    std::string type;
     CWeapon() {}
     CWeapon(const Animation& animation, int damage, int speed, int range)
                 : animation(animation), damage(damage), speed(speed), range(range){}
@@ -370,11 +377,11 @@ struct CEvent
             : event(e){}
 };
 
-struct CWeaponChild
+struct CEquippedWeapon
 {
     EntityID weaponID;
-    CWeaponChild() {}
-    CWeaponChild(EntityID wID)
+    CEquippedWeapon() {}
+    CEquippedWeapon(EntityID wID)
                 : weaponID(wID){}
 };
 

@@ -30,6 +30,10 @@ public:
     template<typename T>
     void insert(Entity entity)
     {
+        if (m_size.x < 32){
+            return;
+        } // Quad has reached minimum size, will not add more entities
+
         Vec2 entityPos = entity.getComponent<CTransform>().pos;
         Vec2 entitySize = entity.getComponent<T>().size;
 
@@ -41,9 +45,9 @@ public:
             m_southEast->insert<T>(entity);
             return;
         }
+
         m_objects.push_back(entity);
-        if ((int)m_objects.size() >= m_capacity)
-        {  
+        if ((int)m_objects.size() >= m_capacity){
             if (!m_divided)
             {
                 subdivide();
@@ -62,6 +66,9 @@ public:
     template<typename T>
     void insert1(Entity entity, Vec2 entityPos, Vec2 entitySize)
     {
+        if (m_size.x < 32){
+            return;
+        } // Quad has reached minimum size, will not add more entities
         if (!Collision1(entityPos, entitySize, m_position, m_size)) { return; } // If the entity does not collide with this quadtree, do not insert it
         if (m_divided) {
             m_northWest->insert1<T>(entity, entityPos, entitySize);

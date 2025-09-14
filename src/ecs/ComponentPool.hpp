@@ -27,6 +27,7 @@ class BaseComponentPool {
     virtual bool hasComponent(EntityID id) const = 0;
     virtual std::string getTypeName() const = 0;
     const std::vector<EntityID>& getEntities() const {return entities;};
+    virtual EntityID getLength() = 0;
 };
 
 static constexpr EntityID MAX_ENTITIES = 8192;  // Define a maximum number of entities 
@@ -41,6 +42,10 @@ public:
 
     ComponentPool() {
         sparse.fill(tombstone);  // Initialize sparse array with tombstone value
+    }
+
+    EntityID getLength(){
+        return dense.size();
     }
 
     template<typename... Args>

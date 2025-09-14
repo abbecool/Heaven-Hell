@@ -18,11 +18,11 @@ public:
 
     void OnAttackFunction()
     {
-        if (!hasComponent<CWeaponChild>()) 
+        if (!hasComponent<CEquippedWeapon>()) 
         {
             return; // Player has no weapon
         }
-        EntityID weaponID = getComponent<CWeaponChild>().weaponID;
+        EntityID weaponID = getComponent<CEquippedWeapon>().weaponID;
         m_ECS->getComponent<CScript>(weaponID).Instance->OnAttackFunction();
     }
 };

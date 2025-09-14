@@ -32,14 +32,28 @@ private:
     std::vector<EntityID> m_freeIDs;
     std::vector<EntityID> m_usedIDs;
     
+    std::vector<EntityID> m_dense;
+    std::vector<EntityID> m_sparse;
+    
     // Map to store component pools for each component type
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> m_componentPools;
     std::vector<EntityID> m_entitiesToRemove;
-
     std::vector<EntityID> matchingEntities;
 public:
 
-    ECS(){}
+    ECS() {
+        m_sparse.resize(MAX_ENTITIES); // reserve sparse array
+    }
+    
+    std::string numberOfEntities(){
+        std::string message = std::to_string(m_dense.size());
+        for (auto& [type, pool]: m_componentPools) {
+            if (pool != nullptr) {
+                message += ", " + std::to_string(pool->getLength());
+            }
+        }
+        return message;
+    }
 
     EntityID addEntity() {
         EntityID id;
@@ -47,27 +61,44 @@ public:
             id = m_freeIDs.back();
             m_freeIDs.pop_back();
         } else {
-            id = m_usedIDs.size();
+            id = m_dense.size(); // next sequential ID
         }
-        m_usedIDs.push_back(id);
+
+        if (id >= m_sparse.size()) { // expand sparse array if needed
+            m_sparse.resize(id + 1);
+        }
+
+        m_sparse[id] = m_dense.size(); // store index in dense array
+        m_dense.push_back(id);
         return id;
     }
-    // TODO: add a hasEntity function to be used to check if a parent exists, otherwise skip and remove child
-    void removeEntity(EntityID entity){
-        auto it = std::find(m_usedIDs.begin(), m_usedIDs.end(), entity);
-        assert(it != m_usedIDs.end() && "Entity not found in used IDs!");
-        
-        if (it == m_usedIDs.end()) {
-            std::cerr << "Tried to remove non-existent entity: " << entity << std::endl;
-        }        
-        m_usedIDs.erase(it);
-        m_freeIDs.push_back(entity);
-        
+
+    void removeEntity(EntityID entity) {
+        assert(entity < m_sparse.size() && "Invalid entity ID!");
+        if (!isAlive(entity)){return;}
+
+        size_t index = m_sparse[entity];         // where entity lives in dense
+        size_t lastIndex = m_dense.size() - 1;   // last element
+        EntityID lastID = m_dense[lastIndex];
+
+        // Swap with last element
+        m_dense[index] = lastID;
+        m_sparse[lastID] = index;                // update moved element
+
+        m_dense.pop_back();                       // remove last
+        m_freeIDs.push_back(entity);             // recycle ID
+
         for (auto& [type, pool]: m_componentPools) {
             if (pool != nullptr) {
                 pool->removeComponent(entity);
             }
         }
+    }
+
+    bool isAlive(EntityID entity) const {
+        if (entity >= m_sparse.size()) return false;
+        size_t index = m_sparse[entity];
+        return index < m_dense.size() && m_dense[index] == entity;
     }
 
     void queueRemoveEntity(EntityID entity) {
@@ -115,6 +146,7 @@ public:
             }
             entitiesToRemove.clear();
         }
+        // std::cout << numberOfEntities() << "\r";
     }
         
     // Add a component to an entity
@@ -179,7 +211,7 @@ public:
     }
     
     template<typename... Components>
-    std::vector<EntityID> View()
+    const std::vector<EntityID>& View()
     {
         BaseComponentPool* smallestPoolBase = nullptr;
         size_t minSize = std::numeric_limits<size_t>::max();
@@ -195,10 +227,10 @@ public:
                 }
             }()
         ), ...);
+        
+        matchingEntities.clear();
+        if (!smallestPoolBase) return matchingEntities;
 
-        if (!smallestPoolBase) return {};
-
-        std::vector<EntityID> matchingEntities;
         matchingEntities.reserve(minSize);
 
         for (EntityID e : smallestPoolBase->getEntities()) {
@@ -206,7 +238,6 @@ public:
                 matchingEntities.push_back(e);
             }
         }
-
         return matchingEntities;
     }
 

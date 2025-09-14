@@ -12,16 +12,17 @@ void handlePlayerEnemyCollision(Entity player, Entity enemy, Vec2 overlap)
 {
     player.getComponent<CTransform>().pos += overlap/2;
     enemy.getComponent<CTransform>().pos -= overlap/2;
-
 }
 
 void handleFriendlyObstacleCollision(Entity friendly, Entity obstacle, Vec2 overlap)
 {
+    
 }
 
 void handleProjectileObstacleCollision(Entity projectile, Entity obstacle, Vec2 overlap)
 {
-    projectile.getComponent<CScript>().Instance->OnDestroyFunction();
+    // projectile.getComponent<CScript>().Instance->OnDestroyFunction();
+    projectile.removeEntity();
 }
 
 void handleEnemyProjectileCollision(Entity enemy, Entity projectile, Vec2 overlap)
@@ -281,7 +282,6 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize)
 
     for (auto quadleaf : quadVector){
         std::vector<Entity> entityVector = quadleaf->getObjects();
-
         for (size_t a = 0; a < entityVector.size(); ++a){
             EntityID idA = entityVector[a].getID();
             auto& interactionA = interactionPool.getComponent(idA);

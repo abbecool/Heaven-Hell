@@ -65,7 +65,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     
     registerAction(SDLK_e, "INVENTORY");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
-    registerAction(SDL_MOUSEWHEEL , "ATTACK");
+    registerAction(SDL_BUTTON_LEFT , "ATTACK2");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
     registerAction(SDLK_f, "INTERACT");
     registerAction(SDLK_LSHIFT, "SHIFT");
@@ -228,6 +228,7 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
         if ( action.name() == "INTERACT" ) { m_ECS.getComponent<CInputs>(m_player).interact = true; }
         if ( action.name() == "TAKE OVER" ) { m_ECS.getComponent<CInputs>(m_player).posses = true; }
+        if ( action.name() == "ATTACK2" ) { m_ECS.getComponent<CInputs>(m_player).attack = true; }
 
         if ( action.name() == "ATTACK"){
             m_ECS.getComponent<CScript>(m_player).Instance->OnAttackFunction();
@@ -243,6 +244,7 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
         if ( action.name() == "INTERACT") { m_ECS.getComponent<CInputs>(m_player).interact = false; }
         if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInputs>(m_player).posses = false; }
+        if ( action.name() == "ATTACK2") { m_ECS.getComponent<CInputs>(m_player).attack = false; }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
             saveGame("config_files/game_save.txt");
@@ -262,6 +264,7 @@ void Scene_Play::update()
     {
         sLoader();
         sScripting();
+        sAttack();
         sMovement();
         sStatus();
         sCollision();
@@ -313,7 +316,6 @@ void Scene_Play::sMovement() {
         auto& pathfind = pathfindPool.getComponent(e);
         if ((pathfind.target - transform.pos).length() < 16*2) {
             velocity.vel = pathfind.target - transform.pos;
-            // velocity.vel = m_physics.aStar(transform.pos, pathfind.target);
         } else {
             velocity.vel = Vec2 {0,0};
         }
@@ -342,10 +344,6 @@ void Scene_Play::sMovement() {
             velocity.tempo = 2.0f;
         } else{
             velocity.tempo = 1.0f;
-        }
-
-        if (m_ECS.hasComponent<CSwimming>(e)){
-            velocity.tempo *= m_ECS.getComponent<CSwimming>(e).swimSpeedMultiplier;
         }
     }
 
@@ -379,6 +377,32 @@ void Scene_Play::sMovement() {
         auto& transform = transformPool.getComponent(e);
         auto& parent = parentPool.getComponent(e);
         transform.pos = transformPool.getComponent(parent.parent).pos + parent.relativePos;
+    }
+}
+
+void Scene_Play::sAttack(){
+    ComponentPool<CTransform>& transformPool = m_ECS.getComponentPool<CTransform>();
+    ComponentPool<CInputs>& inputPool = m_ECS.getComponentPool<CInputs>();
+    ComponentPool<CEquippedWeapon>& equippedWeaponPool = m_ECS.getComponentPool<CEquippedWeapon>();
+    ComponentPool<CWeapon>& weaponPool = m_ECS.getComponentPool<CWeapon>();
+
+    std::vector<EntityID> viewAttack = m_ECS.View<CInputs, CEquippedWeapon, CTransform>();
+    for (EntityID e : viewAttack){
+        CTransform& transform = transformPool.getComponent(e);
+        CInputs& inputs = inputPool.getComponent(e);
+        CEquippedWeapon& weaponID = equippedWeaponPool.getComponent(e);
+
+        if (!inputs.attack){
+            continue;
+        }
+        CWeapon weapon = weaponPool.getComponent(weaponID.weaponID);
+        Vec2 weaponPosition = transformPool.getComponent(weaponID.weaponID).pos;
+        Vec2 projectileVelocity = getMousePosition()-weaponPosition+getCameraPosition();
+
+        if (weapon.weaponType == WeaponType::Projectile){
+            spawnProjectile(weaponPosition, projectileVelocity);
+        }
+        // inputs.attack = false;
     }
 }
 
@@ -588,10 +612,11 @@ void Scene_Play::sRender() {
 
 void Scene_Play::sAudio()
 {
-    if( Mix_PlayingMusic() == 0 )
-    {
-        Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1ogg"), -1);
-    }
+    // if( Mix_PlayingMusic() == 0 )
+    // {
+    //     Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1ogg"), -1);
+    // }
+
     auto& audioPool = m_ECS.getComponentPool<CAudio>();
     auto audioView = m_ECS.View<CAudio>();
     for (EntityID id : audioView){
@@ -983,6 +1008,26 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     
     return entity;
 }
+
+EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
+    {
+        auto id = m_ECS.addEntity();
+        // std::cout << "projectile spawned with id: " << id << std::endl;
+        int layer = 8;
+
+        m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("fireball"), true, layer);
+        m_rendererManager.addEntityToLayer(id, layer);
+        m_ECS.addComponent<CTransform>(id, startPos, vel.angle());
+        m_ECS.addComponent<CVelocity>(id, vel, 200.0f);
+        m_ECS.addComponent<CDamage>(id, 1);
+        m_ECS.getComponent<CDamage>(id).damageType = {"Fire", "Explosive"};
+        CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
+        m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
+        m_ECS.addComponent<CLifespan>(id, 60);
+
+        // spawnShadow(id, Vec2{0,0}, 1, layer-1);
+        return id;
+    }
 
 std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
 {   

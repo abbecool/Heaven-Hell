@@ -48,7 +48,7 @@ public:
     void OnInteractFunction(EntityID colliderID, CollisionMask colliderLayer)
     {
         addComponent<CParent>(colliderID, Vec2{8, -4});
-        m_ECS->addComponent<CWeaponChild>(colliderID, m_entity.getID());
+        m_ECS->addComponent<CEquippedWeapon>(colliderID, m_entity.getID());
         m_ECS->queueRemoveComponent<CInteractionBox>(m_entity.getID());
         m_ECS->addComponent<CAudio>(m_entity.getID(), "loot_pickup");
 
