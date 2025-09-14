@@ -3,6 +3,7 @@ temp_*
 
 # Build directories
 build/*
+build-vs/*
 
 # Ignore everything in run/
 run/**
