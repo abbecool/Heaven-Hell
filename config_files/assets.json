@@ -264,7 +264,7 @@
             "name": "knight-sheet",
             "frames": 6,
             "frametime": 7,
-            "cols": 6,
+            "cols": 4,
             "rows": 5,
             "width": 32,
             "height": 32
