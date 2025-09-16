@@ -229,10 +229,6 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "INTERACT" ) { m_ECS.getComponent<CInputs>(m_player).interact = true; }
         if ( action.name() == "TAKE OVER" ) { m_ECS.getComponent<CInputs>(m_player).posses = true; }
         if ( action.name() == "ATTACK2" ) { m_ECS.getComponent<CInputs>(m_player).attack = true; }
-
-        if ( action.name() == "ATTACK"){
-            m_ECS.getComponent<CScript>(m_player).Instance->OnAttackFunction();
-        }
     }
     else if ( action.type() == "END")
     {
@@ -402,7 +398,7 @@ void Scene_Play::sAttack(){
         if (weapon.weaponType == WeaponType::Projectile){
             spawnProjectile(weaponPosition, projectileVelocity);
         }
-        // inputs.attack = false;
+        inputs.attack = false;
     }
 }
 
@@ -620,9 +616,6 @@ void Scene_Play::sAudio()
     auto& audioPool = m_ECS.getComponentPool<CAudio>();
     auto audioView = m_ECS.View<CAudio>();
     for (EntityID id : audioView){
-        if (!audioPool.hasComponent(id)){
-            m_ECS.printEntityComponents(id);
-        }
         CAudio& audio = audioPool.getComponent(id);
         Mix_Chunk *asset = m_game->assets().getAudio(audio.audioName);
         Mix_PlayChannel(-1, asset, audio.loops);
@@ -673,8 +666,6 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
             InitiateScript<NPCController>(sc, id);
         } else if (controllerType == "WeaponController"){
             InitiateScript<WeaponController>(sc, id);
-        } else if (controllerType == "CoinController"){
-            InitiateScript<CoinController>(sc, id);
         } else if (controllerType == "PlayerController"){
             InitiateScript<PlayerController>(sc, id);
         } else if (controllerType == "RooterController"){
@@ -796,7 +787,7 @@ EntityID Scene_Play::spawnPlayer()
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, PLAYER_LAYER, collisionMask);
     CollisionMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {16, 16}, PLAYER_LAYER, interactionMask);
+    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {4, 4}, PLAYER_LAYER, interactionMask);
     m_ECS.addComponent<CName>(entityID, "demon");
     m_ECS.addComponent<CAnimation>(entityID, getAnimation("demon-sheet"));
     m_rendererManager.addEntityToLayer(entityID, layer);
@@ -805,60 +796,8 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
     
-    auto& sc= m_ECS.addComponent<CScript>(entityID);
-    InitiateScript<PlayerController>(sc, entityID);
-    return entityID;
-}
-
-EntityID Scene_Play::spawnDwarf(Vec2 pos)
-{
-    uint8_t layer = 10;
-    auto entityID = m_ECS.addEntity();
-
-    Vec2 midGrid = gridToMidPixel(pos*16, entityID);
-    m_ECS.addComponent<CTransform>(entityID, midGrid);
-    m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
-    
-    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
-    m_ECS.addComponent<CCollisionBox>(entityID, Vec2{8, 8}, FRIENDLY_LAYER, collisionMask);
-
-    CollisionMask interactionMask = PLAYER_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entityID, Vec2{48, 32}, FRIENDLY_LAYER, interactionMask);
-
-    m_ECS.addComponent<CName>(entityID, "NPC2");
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("dwarf-sheet"));
-    m_rendererManager.addEntityToLayer(entityID, layer);
-    spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
-    m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
-    
-    auto& sc= m_ECS.addComponent<CScript>(entityID);
-    InitiateScript<NPCController>(sc, entityID);
-    return entityID;
-}
-
-EntityID Scene_Play::spawnNPC(Vec2 pos)
-{
-    uint8_t layer = 10;
-    auto entityID = m_ECS.addEntity();
-
-    Vec2 midGrid = gridToMidPixel(pos*16, entityID);
-    m_ECS.addComponent<CTransform>(entityID, midGrid);
-    m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
-    
-    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
-    m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, FRIENDLY_LAYER, collisionMask);
-
-    CollisionMask interactionMask = PLAYER_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {48, 32}, FRIENDLY_LAYER, interactionMask);
-
-    m_ECS.addComponent<CName>(entityID, "wizard");
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("wiz-sheet"));
-    m_rendererManager.addEntityToLayer(entityID, layer);
-    spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
-    m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
-    
-    auto& sc= m_ECS.addComponent<CScript>(entityID);
-    InitiateScript<NPCController>(sc, entityID);
+    // auto& sc= m_ECS.addComponent<CScript>(entityID);
+    // InitiateScript<PlayerController>(sc, entityID);
     return entityID;
 }
 
@@ -970,15 +909,6 @@ EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
     return entity;
 }
 
-EntityID Scene_Play::spawnLava(const Vec2 pos, const std::string tag, const int frame)
-{
-    auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid);
-    m_ECS.addComponent<CCollisionBox>(entity, Vec2{16, 16});
-    return entity;
-}
-
 EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
 {
     auto entity = m_ECS.addEntity();
@@ -999,12 +929,9 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CTransform>(entity, pos);
 
     CollisionMask interactionMask = PLAYER_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8 ,8}, LOOT_LAYER, interactionMask);
+    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8, 8}, LOOT_LAYER, interactionMask);
 
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
-
-    auto& sc= m_ECS.addComponent<CScript>(entity);
-    InitiateScript<CoinController>(sc, entity);
     
     return entity;
 }
