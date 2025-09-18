@@ -138,5 +138,6 @@ class Scene_Play : public Scene
     }
 
     void onFinish();
+    void OnPlayerDeath();
     EntityID changePlayerID(EntityID otherID);
 };

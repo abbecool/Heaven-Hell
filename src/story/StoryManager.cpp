@@ -120,22 +120,20 @@ void StoryManager::loadDialogs(const std::string& path) {
     file >> j;
 
     for (auto& [npcId, dialogArray] : j["dialogs"].items()) {
-        std::unordered_map<int, std::string> questDialogMap;
+        std::unordered_map<std::string, std::string> questDialogMap;
 
         for (auto& obj : dialogArray) {
             // Each element in array is an object like { "1": "first line wiz" }
-            for (auto& [questIdStr, line] : obj.items()) {
-                int questId = std::stoi(questIdStr);
-                questDialogMap[questId] = line.get<std::string>();
+            for (auto& [questDescription, line] : obj.items()) {
+                questDialogMap[questDescription] = line.get<std::string>();
             }
         }
-
         npcDialogs[npcId] = questDialogMap;
     }
 }
 
 const std::string& StoryManager::getDialog(const std::string& npcId) {
-    auto it = npcDialogs[npcId].find(m_currentQuest.id);
+    auto it = npcDialogs[npcId].find(m_currentQuest.name);
     if (it == npcDialogs[npcId].end()) {
         static const std::string empty = "I have nothing to say right now...";
         return empty;

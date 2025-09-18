@@ -258,14 +258,11 @@ bool InteractionManager::talkToNPC(Entity player, Entity friendly){
     
     int currentQuestID = m_scene->getStoryManager().getCurrentQuestID();
     std::string name = friendly.getComponent<CName>().name;
-    m_scene->Emit(Event{EventType::DialogueFinished, name});
-
     std::string currentDialog = m_scene->getStoryManager().getDialog(name);
     if (!friendly.hasComponent<CChild>()) {
         m_scene->SpawnDialog(currentDialog, 16, "Minecraft", friendly.getID());
     }
-    
-    std::cout << "Interact" << std::endl;
+    m_scene->Emit(Event{EventType::DialogueFinished, name});
     return true;
 }
 
@@ -313,7 +310,6 @@ bool InteractionManager::possesNPC(Entity player, Entity friendly){
     m_ECS->copyComponent<CInteractionBox>(friendly.getID(), player.getID());
 
     m_ECS->printEntityComponents(player.getID());
-    
     m_ECS->printEntityComponents(friendly.getID());
 
     player.removeEntity();

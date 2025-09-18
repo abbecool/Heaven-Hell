@@ -1,13 +1,19 @@
 {
   "dialogs": {
     "wizard": [
-      {"1": "first line wiz"},
-      {"2": "second line wiz"},
-      {"4": "third line wiz"}
+      {"Talk to the wizard.": "Go and look for the staff!"},
+      {"Find the staff.": "Have you found the staff yet?"},
+      {"Go to the house.": "Have you found your home?"}
     ],
     "elf": [
-      {"0": "first line"},
-      {"3": "second line"}
+      {"Talk to the wizard.": "You should find the wizard!"},
+      {"Find the staff.": "I think the wizard wanted you to find something"},
+      {"Go to the house.": "Time for you to go home"}
+    ],
+    "knight": [
+      {"Talk to the wizard.": "I must protect the city1"},
+      {"Find the staff.": "I must protect the city2"},
+      {"Go to the house.": "I must protect the city3"}
     ]
   }
 }

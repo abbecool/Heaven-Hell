@@ -262,9 +262,11 @@ void Scene_Play::update()
     m_rendererManager.update();
     if (m_restart){
         m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
+        return;
     }
     if (m_storyManager.isStoryFinished()){
         onFinish();
+        return;
     }
 }
 
@@ -435,10 +437,10 @@ void Scene_Play::sStatus() {
         if ( m_player == entityID ){
             std::cout << "Player has died!" << std::endl;
             m_restart = true;
-        } else {
-            spawnCoin(transform.pos, 6);
-            m_ECS.queueRemoveEntity(entityID);
+            continue;
         }
+        spawnCoin(transform.pos, 6);
+        m_ECS.queueRemoveEntity(entityID);
         m_ECS.addComponent<CAudio>(entityID, "enemy_death");
     }
 }
@@ -1003,7 +1005,12 @@ void Scene_Play::onEnd() {
 
 void Scene_Play::onFinish() {
     std::cout << "Warning, removing scene_play instance" << std::endl;
-    m_game->changeScene("Finish", std::make_shared<Scene_Finish>(m_game), true);
+    m_game->changeScene("FINISH", std::make_shared<Scene_Finish>(m_game), true);
+}
+
+void Scene_Play::OnPlayerDeath() {
+    std::cout << "Warning, removing scene_play instance" << std::endl;
+    m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
 }
 
 void Scene_Play::setPaused(bool pause) {

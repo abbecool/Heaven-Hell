@@ -11,7 +11,7 @@ class Scene_Play;
 
 class Event;
 
-using dialogMap = std::unordered_map<int, std::string>;
+using dialogMap = std::unordered_map<std::string, std::string>;
 using NPCDialogs = std::unordered_map<std::string, dialogMap>;
 
 class StoryManager
