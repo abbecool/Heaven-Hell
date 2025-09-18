@@ -183,7 +183,7 @@ void BaseCollisionManager::renderQuadtree(
     m_quadRoot->renderBoundary(renderer, zoom, center, cameraPosition, color);
 }
 
-CollisionManager::CollisionManager(ECS* ecs, Scene* scene){
+CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene){
     m_ECS = ecs;
     m_scene = scene;
     registerHandler(PLAYER_LAYER, OBSTACLE_LAYER, handlePlayerObstacleCollision);
@@ -240,12 +240,13 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
     }
 }
 
-void handlePlayerEnemyInteraction(Entity player, Entity enemy, Vec2 overlap){
-    std::cout << "handlePlayerEnemyInteraction" << std::endl;
+void InteractionManager::handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap){
+    std::cout << "handlePlayerEnemy" << std::endl;
     return;
 }
 
-bool talkToNPC(Entity player, Entity friendly){
+bool InteractionManager::talkToNPC(Entity player, Entity friendly){
+
     if ( !player.hasComponent<CInputs>())
     {
         return false;
@@ -255,11 +256,35 @@ bool talkToNPC(Entity player, Entity friendly){
         return false;
     }
     
+    int currentQuestID = m_scene->getStoryManager().getCurrentQuestID();
+
+    std::string dialog;
+    if (currentQuestID == 0) {
+        m_scene->getStoryManager().setFlag("talked_to_wizard", true);
+        std::string name = friendly.getComponent<CName>().name;
+        m_scene->Emit(Event{EventType::DialogueFinished, name});
+        dialog = "Go and look for the staff!";
+    }
+    else if (currentQuestID == 1) {
+        dialog = "Have you found the staff yet?";
+    }
+    else if (currentQuestID == 2) {
+        dialog = "Have you found you're home?";
+    }
+    else
+    {
+        dialog = "I am a wizard, what are you?";
+    }
+    if (!friendly.hasComponent<CChild>()) {
+        m_scene->SpawnDialog(dialog, 16, "Minecraft", friendly.getID());
+    }
+    
     std::cout << "Interact" << std::endl;
     return true;
 }
 
-bool possesNPC(Entity player, Entity friendly){
+bool InteractionManager::possesNPC(Entity player, Entity friendly){
+    
     if (!player.hasComponent<CInputs>())
     {
         return false;
@@ -272,26 +297,24 @@ bool possesNPC(Entity player, Entity friendly){
     {
         return false;
     }
-    
-    std::cout << "Possess" << std::endl;
-    
-    // int possesLevel = friendly.getComponent<CPossesLevel>().level;
-    // friendly.removeComponent<CPossesLevel>();
 
-    // m_scene->changePlayerID(friendly);
-    // friendly.addComponent<CInputs>();
-    // friendly.copyComponent<CCollisionBox>(friendly, player);
-    // friendly.copyComponent<CInteractionBox>(friendly, player);
+    int possesLevel = friendly.getComponent<CPossesLevel>().level;
+    friendly.removeComponent<CPossesLevel>();
 
-    // player.printEntityComponents(player);
+    m_scene->changePlayerID(friendly.getID());
+    friendly.addComponent<CInputs>();
+    m_ECS->copyComponent<CCollisionBox>(friendly.getID(), player.getID());
+    m_ECS->copyComponent<CInteractionBox>(friendly.getID(), player.getID());
+
+    m_ECS->printEntityComponents(player.getID());
     
-    // player.printEntityComponents(friendly);
+    m_ECS->printEntityComponents(friendly.getID());
 
-    // player.removeEntity(player);
+    player.removeEntity();
     return true;
 }
 
-void handlePlayerFriendlyInteraction(Entity player, Entity friendly, Vec2 overlap){
+void InteractionManager::handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap){
     if (talkToNPC(player, friendly)){
         return;
     }
@@ -299,18 +322,24 @@ void handlePlayerFriendlyInteraction(Entity player, Entity friendly, Vec2 overla
     return;
 }
 
-void handlePlayerLootInteraction(Entity player, Entity loot, Vec2 overlap){
+void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overlap){
     loot.removeEntity();
     loot.addComponent<CAudio>("loot_pickup");
     return;
 }
 
-InteractionManager::InteractionManager(ECS* ecs, Scene* scene){
+InteractionManager::InteractionManager(ECS* ecs, Scene_Play* scene){
     m_ECS = ecs;
     m_scene = scene;
-    registerHandler(PLAYER_LAYER, ENEMY_LAYER, handlePlayerEnemyInteraction);
-    registerHandler(PLAYER_LAYER, FRIENDLY_LAYER, handlePlayerFriendlyInteraction);
-    registerHandler(PLAYER_LAYER, LOOT_LAYER, handlePlayerLootInteraction);
+    registerHandler(PLAYER_LAYER, ENEMY_LAYER, 
+        [this](Entity a, Entity b, Vec2 overlap) {handlePlayerEnemy(a, b, overlap);}
+    );
+    registerHandler(PLAYER_LAYER, FRIENDLY_LAYER, 
+        [this](Entity a, Entity b, Vec2 overlap) {handlePlayerFriendly(a, b, overlap);}
+    );
+    registerHandler(PLAYER_LAYER, LOOT_LAYER, 
+        [this](Entity a, Entity b, Vec2 overlap) {handlePlayerLoot(a, b, overlap);}
+    );
 }
 
 void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize){

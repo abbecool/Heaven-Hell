@@ -16,7 +16,6 @@
 #include "scripts/rooter.cpp"
 #include "scripts/weapon.cpp"
 #include "scripts/projectile.cpp"
-#include "scripts/coin.cpp"
 #include "physics/RandomArray.h"
 #include "external/json.hpp"
 
@@ -246,10 +245,10 @@ void Scene_Play::sDoAction(const Action& action) {
             saveGame("config_files/game_save.txt");
             m_pause = true;
         }
-        if ( action.name() == "WRITE QUADTREE")
-        {
-            m_physics.m_quadRoot->printTree("", "");
-        }
+        // if ( action.name() == "WRITE QUADTREE")
+        // {
+        //     m_physics.m_quadRoot->printTree("", "");
+        // }
     }
 }
 
@@ -343,16 +342,16 @@ void Scene_Play::sMovement() {
         }
     }
 
-    auto viewKnockback = m_ECS.View<CKnockback, CTransform>();
-    auto& knockbackPool = m_ECS.getComponentPool<CKnockback>();
-    for (auto entityKnockback : viewKnockback){    
-        auto &transform = transformPool.getComponent(entityKnockback);
-        auto& knockback = knockbackPool.getComponent(entityKnockback);
-        transform.pos += m_physics.knockback(knockback);
-        if (knockback.duration <= 0){
-            m_ECS.queueRemoveComponent<CKnockback>(entityKnockback);
-        }
-    }       
+    // auto viewKnockback = m_ECS.View<CKnockback, CTransform>();
+    // auto& knockbackPool = m_ECS.getComponentPool<CKnockback>();
+    // for (auto entityKnockback : viewKnockback){    
+    //     auto &transform = transformPool.getComponent(entityKnockback);
+    //     auto& knockback = knockbackPool.getComponent(entityKnockback);
+    //     transform.pos += m_physics.knockback(knockback);
+    //     if (knockback.duration <= 0){
+    //         m_ECS.queueRemoveComponent<CKnockback>(entityKnockback);
+    //     }
+    // }       
 
     auto viewTransform = m_ECS.View<CTransform, CVelocity>();
     for (auto e : viewTransform){    

@@ -5,7 +5,8 @@
 #include "ecs/Components.h"
 #include "ecs/ECS.hpp"
 #include "physics/Quadtree.h"
-#include "scenes/Scene.h"
+// #include "scenes/Scene_Play.h"
+class Scene_Play;
 
 using Handler = std::function<void(Entity, Entity, Vec2)>;
 using CollisionMatrix = std::array<std::array<Handler, MAX_LAYERS>, MAX_LAYERS>;
@@ -17,13 +18,17 @@ class BaseCollisionManager
     public:
     CollisionMatrix m_handlerMatrix;
     ECS* m_ECS;
-    Scene* m_scene;
+    Scene_Play* m_scene;
     
     std::unique_ptr<Quadtree> m_quadRoot;
     
     BaseCollisionManager(){};
 
-    void registerHandler(CollisionMask layerA, CollisionMask layerB, Handler handler);
+    void registerHandler(
+        CollisionMask layerA,
+        CollisionMask layerB, 
+        Handler handler
+    );
     void handleCollision(
         EntityID entityA, 
         CollisionMask layerA, 
@@ -43,15 +48,21 @@ class BaseCollisionManager
 class CollisionManager : public BaseCollisionManager
 {    
     public:
-    CollisionManager(ECS* ecs, Scene* scene);
+    CollisionManager(ECS* ecs, Scene_Play* scene);
     void doCollisions(Vec2 pos, Vec2 size);
     
 };
 
 class InteractionManager : public BaseCollisionManager
 {
+    bool talkToNPC(Entity player, Entity friendly);
+    bool possesNPC(Entity player, Entity friendly);
+    void handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap);
+    void handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap);
+    void handlePlayerLoot(Entity player, Entity loot, Vec2 overlap);
+    
     public:
-    InteractionManager(ECS* ecs, Scene* scene);
+    InteractionManager(ECS* ecs, Scene_Play* scene);
     void doInteractions(Vec2 pos, Vec2 size);
-
 };
+
