@@ -60,6 +60,7 @@ class InteractionManager : public BaseCollisionManager
     void handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap);
     void handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap);
     void handlePlayerLoot(Entity player, Entity loot, Vec2 overlap);
+    void handlePlayerArea(Entity player, Entity area, Vec2 overlap);
     
     public:
     InteractionManager(ECS* ecs, Scene_Play* scene);

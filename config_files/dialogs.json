@@ -1,0 +1,13 @@
+{
+  "dialogs": {
+    "wizard": [
+      {"1": "first line wiz"},
+      {"2": "second line wiz"},
+      {"4": "third line wiz"}
+    ],
+    "elf": [
+      {"0": "first line"},
+      {"3": "second line"}
+    ]
+  }
+}

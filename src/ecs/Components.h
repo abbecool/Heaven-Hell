@@ -21,8 +21,8 @@ constexpr CollisionMask OBSTACLE_LAYER          = 1 << 3;   // 00001000, Bit 4
 constexpr CollisionMask FRIENDLY_LAYER          = 1 << 4;   // 00010000, Bit 5
 constexpr CollisionMask DAMAGE_LAYER            = 1 << 5;   // 00100000, Bit 6
 constexpr CollisionMask WATER_LAYER             = 1 << 6;   // 01000000, Bit 7
-constexpr CollisionMask FINAL_MASK              = 1 << 7;   // 10000000, Final bit set
-constexpr CollisionMask LOOT_LAYER              = 1 << 8;   // 10000000, Final bit set
+constexpr CollisionMask LOOT_LAYER              = 1 << 7;   // 10000000, Final bit set
+constexpr CollisionMask AREA_LAYER              = 1 << 8;   // 10000000, Final bit set
 
 inline std::unordered_map<std::string, CollisionMask> componentMaskMap = 
 {
@@ -34,7 +34,8 @@ inline std::unordered_map<std::string, CollisionMask> componentMaskMap =
     {"FRIENDLY_LAYER", FRIENDLY_LAYER},
     {"DAMAGE_LAYER", DAMAGE_LAYER},
     {"WATER_LAYER", WATER_LAYER},
-    {"FINAL_MASK", FINAL_MASK},
+    {"LOOT_LAYER", LOOT_LAYER},
+    {"AREA_LAYER", AREA_LAYER},
 };
 
 enum struct PlayerState {
@@ -121,7 +122,7 @@ struct CBox
     Vec2 size;
     Vec2 halfSize;
     Vec2 offset;
-    CollisionMask layer = FINAL_MASK;
+    CollisionMask layer = EMPTY_MASK;
     CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
     SDL_Color color = {255, 255, 255, 255};
 
@@ -298,6 +299,11 @@ struct CDamage
         : damage(dmg), damageType(dmgType) {}
 };
 
+struct CDialogs
+{
+
+};
+
 // enum struct TextBackground {
 //     dialog = 0,
 //     button = 1,
@@ -364,14 +370,11 @@ struct CWeapon
                 : animation(animation), damage(damage), speed(speed), range(range){}
 };
 
-struct CActiveItem
-{
-    CActiveItem() {}
-};
-
 struct CEvent
 {
+    int questID;
     Event event;
+
     CEvent() {}
     CEvent(Event e)
             : event(e){}

@@ -11,6 +11,9 @@ class Scene_Play;
 
 class Event;
 
+using dialogMap = std::unordered_map<int, std::string>;
+using NPCDialogs = std::unordered_map<std::string, dialogMap>;
+
 class StoryManager
 {
     private:
@@ -20,6 +23,8 @@ class StoryManager
     std::vector<Quest> m_storyQuests;
     Quest m_currentQuest;
     std::unordered_map<std::string, bool> m_storyFlags;
+
+    NPCDialogs npcDialogs;
     
     public:
     StoryManager() {};
@@ -34,4 +39,6 @@ class StoryManager
     bool isStoryFinished();
     void Reaction(Quest q);
     std::vector<Quest>& getQuests();
+    void loadDialogs(const std::string& path);
+    const std::string& getDialog(const std::string& npcId);
 };

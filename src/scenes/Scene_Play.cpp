@@ -12,7 +12,6 @@
 #include "ecs/ScriptableEntity.h"
 #include "scripts/player.cpp"
 #include "scripts/npc.cpp"
-#include "scripts/house.cpp"
 #include "scripts/rooter.cpp"
 #include "scripts/weapon.cpp"
 #include "scripts/projectile.cpp"
@@ -34,16 +33,6 @@
 
 using json = nlohmann::json;
 
-// inline std::unordered_map<std::string, ScriptInitFn> ScriptRegistry = {
-//     {"NPCController", [](Scene_Play* scene, CScript& sc, EntityID id){ 
-//         scene->InitiateScript<NPCController>(sc, id); 
-//     }},
-//     {"PlayerController", [](Scene_Play* scene, CScript& sc, EntityID id){ 
-//         scene->InitiateScript<PlayerController>(sc, id); 
-//     }},
-//     // etc.
-// };
-
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), 
     m_levelPath(levelPath), 
@@ -62,11 +51,10 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_d, "RIGHT");
     registerAction(SDLK_RIGHT, "RIGHT");
     
-    registerAction(SDLK_e, "INVENTORY");
+    registerAction(SDLK_i, "INVENTORY");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
-    registerAction(SDL_BUTTON_LEFT , "ATTACK2");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
-    registerAction(SDLK_f, "INTERACT");
+    registerAction(SDLK_e, "INTERACT");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "ESC");
@@ -227,7 +215,7 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
         if ( action.name() == "INTERACT" ) { m_ECS.getComponent<CInputs>(m_player).interact = true; }
         if ( action.name() == "TAKE OVER" ) { m_ECS.getComponent<CInputs>(m_player).posses = true; }
-        if ( action.name() == "ATTACK2" ) { m_ECS.getComponent<CInputs>(m_player).attack = true; }
+        if ( action.name() == "ATTACK" ) { m_ECS.getComponent<CInputs>(m_player).attack = true; }
     }
     else if ( action.type() == "END")
     {
@@ -239,7 +227,7 @@ void Scene_Play::sDoAction(const Action& action) {
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
         if ( action.name() == "INTERACT") { m_ECS.getComponent<CInputs>(m_player).interact = false; }
         if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInputs>(m_player).posses = false; }
-        if ( action.name() == "ATTACK2") { m_ECS.getComponent<CInputs>(m_player).attack = false; }
+        if ( action.name() == "ATTACK") { m_ECS.getComponent<CInputs>(m_player).attack = false; }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
             saveGame("config_files/game_save.txt");
@@ -629,7 +617,10 @@ void Scene_Play::sAudio()
 EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
 {
     std::ifstream file("config_files/mobs/"+name+".json");
-    assert(file && "Could not load file!");
+    if (!file){
+        std::cerr << "Could not load entity spawn json file for: " << name << std::endl;
+        return -1;
+    }
 
     json j;
     file >> j;
@@ -698,33 +689,27 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
     if (name == "copper_staff"){
         return spawnWeapon(pos, name);
     }
-    else if (name == "rooter"){
-        return SpawnFromJSON(name, pos);
-    }
-    else if (name == "goblin"){
-        return SpawnFromJSON(name, pos);
-    }
-    else if (name == "coin"){
+    if (name == "coin"){
         return spawnCoin(pos, 6);
     }
-    else if (name == "tree"){
+    if (name == "tree"){
         return spawnDecoration(pos, Vec2 {6, 8}, 6, "tree");
     }
-    else if (name == "house"){
-        EntityID id = spawnDecoration(pos, Vec2 {56, 44}, 6, "house");
-        m_ECS.addComponent<CInteractionBox>(id, Vec2{16, 64}, LOOT_LAYER, PLAYER_LAYER);
+    if (name == "house"){
+        EntityID id = spawnDecoration(pos, Vec2 {56, 44}, 6, name);
+        m_ECS.addComponent<CEvent>(id, Event{EventType::EnteredArea, name});
+        m_ECS.addComponent<CInteractionBox>(id, Vec2{16, 64}, AREA_LAYER, PLAYER_LAYER);
         return id;
     }
-    else if (name == "campfire"){
+    if (name == "campfire"){
         return spawnCampfire(pos, 6);
     }
-    else if (name == "sword"){
+    if (name == "sword"){
         return spawnSword(pos);
     }
-    else if (name == "golem"){
-        return SpawnFromJSON(name, pos);
-    }
-    return 0; // Return 0 if the entity type is not recognized
+
+    return SpawnFromJSON(name, pos);
+    return -1; // Return 0 if the entity type is not recognized
 }
 
 EntityID Scene_Play::SpawnDialog(
@@ -785,7 +770,7 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, PLAYER_LAYER, collisionMask);
-    CollisionMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER;
+    CollisionMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER | AREA_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {4, 4}, PLAYER_LAYER, interactionMask);
     m_ECS.addComponent<CName>(entityID, "demon");
     m_ECS.addComponent<CAnimation>(entityID, getAnimation("demon-sheet"));
@@ -852,19 +837,15 @@ EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
     return entity;
 }
 
-EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animation){
+EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animationName){
     EntityID id = m_ECS.addEntity();
-
+    
     Vec2 midGrid = gridToMidPixel(pos, id);
     m_ECS.addComponent<CTransform>(id, midGrid);
-    m_ECS.addComponent<CAnimation>(id, getAnimation(animation));
+    m_ECS.addComponent<CAnimation>(id, getAnimation(animationName));
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
     m_ECS.addComponent<CCollisionBox>(id, collisionBox, OBSTACLE_LAYER, collisionMask);
-    if (animation == "house"){
-        m_ECS.addComponent<CInteractionBox>(id, Vec2{64, 64}, OBSTACLE_LAYER, PLAYER_LAYER);
-        CScript& sc = m_ECS.addComponent<CScript>(id);
-        InitiateScript<HouseController>(sc, id);
-    }
+    m_ECS.addComponent<CName>(id, animationName);
     m_rendererManager.addEntityToLayer(id, layer);
     m_ECS.addComponent<CImmovable>(id);
     spawnShadow(id, Vec2{0,-4}, 3, layer-1);
@@ -924,14 +905,10 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CAnimation>(entity, getAnimation("coin"));
     m_rendererManager.addEntityToLayer(entity, layer);
-    // Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, pos);
-
     CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8, 8}, LOOT_LAYER, interactionMask);
-
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
-    
     return entity;
 }
 

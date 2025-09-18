@@ -26,8 +26,8 @@
       "id": 2,
       "description": "Go to the house.",
       "trigger": {
-        "event_type": "FlagChanged",
-        "subject": "house_entered"
+        "event_type": "EnteredArea",
+        "subject": "house"
       },
       "reaction": {
         "event_type": "FlagChanged",

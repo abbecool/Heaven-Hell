@@ -7,7 +7,7 @@
             {"quest":3, "text":"I am a wizard, what are you?"}
         ],
         "components": {
-            "CTransform": "default",
+            "CTransform": "Nan",
             "CVelocity": {"speed": 50},
             "CAnimation": {
                 "animation": "golem-sheet",
@@ -25,7 +25,7 @@
             },
             "CScript": "RooterController",
 
-            "CPathfind": "default",
+            "CPathfind": "Nan",
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

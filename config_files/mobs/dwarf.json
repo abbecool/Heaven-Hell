@@ -7,7 +7,7 @@
             {"quest":3, "text":"I am a dwarf, what are you?"}
         ],
         "components": {
-            "CTransform": "default",
+            "CTransform": "Nan",
             "CVelocity": {"speed": 100},
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
@@ -23,9 +23,9 @@
                 "animation": "dwarf-sheet",
                 "layer": 10
             },
-            "CState": "default",
+            "CState": "Nan",
             "CScript": "NPCController",
-            "CPossesLevel": "default",
+            "CPossesLevel": "Nan",
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

@@ -7,7 +7,7 @@
             {"quest":3, "text":"I am a wizard, what are you?"}
         ],
         "components": {
-            "CTransform": "default",
+            "CTransform": "Nan",
             "CVelocity": {"speed": 50},
             "CAnimation": {
                 "animation": "rooter-sheet",
@@ -23,10 +23,10 @@
                 "layer": "ENEMY_LAYER", 
                 "mask": ["PLAYER_LAYER"]
             },
-            "CState": "default",
+            "CState": "Nan",
             "CScript": "RooterController",
 
-            "CPathfind": "default",
+            "CPathfind": "Nan",
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

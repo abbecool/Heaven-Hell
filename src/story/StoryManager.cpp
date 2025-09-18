@@ -10,6 +10,7 @@ StoryManager::StoryManager(Scene_Play* scene, std::string storyFilePath)
 {
     m_scene = scene;
     loadStory(storyFilePath);
+    loadDialogs("config_files/dialogs.json");
     m_currentQuest = m_storyQuests[m_questID];
 }
 
@@ -76,14 +77,17 @@ void StoryManager::onEvent(const Event& e) {
 }
 
 void StoryManager::Reaction(Quest quest){
-    if (quest.onComplete.type == EventType::NoEvent){
-        return;
-    }
-    if (quest.onComplete.type == EventType::EntitySpawned){
-        EntityID id = m_scene->Spawn(quest.onComplete.itemName, quest.onComplete.eventPosition);
-    }
-    else if (quest.onComplete.type == EventType::FlagChanged){
+    Event event = quest.onComplete;
+    switch (event.type)
+    {
+    case EventType::EntitySpawned:
+        m_scene->Spawn(event.itemName, event.eventPosition);
+        break;
+    case EventType::FlagChanged:
         setFlag(quest.name, true);
+        break;
+    default:
+        break;
     }
 }
 
@@ -97,9 +101,44 @@ EventType StoryManager::getEventTypeFromString(const std::string& typeStr) {
     if (typeStr == "EntitySpawned") return EventType::EntitySpawned;
     if (typeStr == "DialogueFinished") return EventType::DialogueFinished;
     if (typeStr == "FlagChanged") return EventType::FlagChanged;
+    if (typeStr == "EnteredArea") return EventType::EnteredArea;
     throw std::runtime_error("Unknown event type: " + typeStr);
 }
 
 std::vector<Quest>& StoryManager::getQuests(){
     return m_storyQuests;
+}
+
+void StoryManager::loadDialogs(const std::string& path) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open dialogs file: " << path << "\n";
+        return;
+    }
+
+    json j;
+    file >> j;
+
+    for (auto& [npcId, dialogArray] : j["dialogs"].items()) {
+        std::unordered_map<int, std::string> questDialogMap;
+
+        for (auto& obj : dialogArray) {
+            // Each element in array is an object like { "1": "first line wiz" }
+            for (auto& [questIdStr, line] : obj.items()) {
+                int questId = std::stoi(questIdStr);
+                questDialogMap[questId] = line.get<std::string>();
+            }
+        }
+
+        npcDialogs[npcId] = questDialogMap;
+    }
+}
+
+const std::string& StoryManager::getDialog(const std::string& npcId) {
+    auto it = npcDialogs[npcId].find(m_currentQuest.id);
+    if (it == npcDialogs[npcId].end()) {
+        static const std::string empty = "I have nothing to say right now...";
+        return empty;
+    }
+    return it->second;
 }

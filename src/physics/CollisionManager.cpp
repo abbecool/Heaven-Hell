@@ -247,41 +247,47 @@ void InteractionManager::handlePlayerEnemy(Entity player, Entity enemy, Vec2 ove
 
 bool InteractionManager::talkToNPC(Entity player, Entity friendly){
 
-    if ( !player.hasComponent<CInputs>())
+    if (!player.hasComponent<CInputs>())
     {
         return false;
     }
-    if ( !player.getComponent<CInputs>().interact)
+    if (!player.getComponent<CInputs>().interact)
     {
         return false;
     }
     
     int currentQuestID = m_scene->getStoryManager().getCurrentQuestID();
+    std::string name = friendly.getComponent<CName>().name;
+    m_scene->Emit(Event{EventType::DialogueFinished, name});
 
-    std::string dialog;
-    if (currentQuestID == 0) {
-        m_scene->getStoryManager().setFlag("talked_to_wizard", true);
-        std::string name = friendly.getComponent<CName>().name;
-        m_scene->Emit(Event{EventType::DialogueFinished, name});
-        dialog = "Go and look for the staff!";
-    }
-    else if (currentQuestID == 1) {
-        dialog = "Have you found the staff yet?";
-    }
-    else if (currentQuestID == 2) {
-        dialog = "Have you found you're home?";
-    }
-    else
-    {
-        dialog = "I am a wizard, what are you?";
-    }
+    std::string currentDialog = m_scene->getStoryManager().getDialog(name);
     if (!friendly.hasComponent<CChild>()) {
-        m_scene->SpawnDialog(dialog, 16, "Minecraft", friendly.getID());
+        m_scene->SpawnDialog(currentDialog, 16, "Minecraft", friendly.getID());
     }
     
     std::cout << "Interact" << std::endl;
     return true;
 }
+
+    // std::string dialog;
+    // if (currentQuestID == 0) {
+    //     m_scene->getStoryManager().setFlag("talked_to_wizard", true);
+    //     std::string name = friendly.getComponent<CName>().name;
+    //     m_scene->Emit(Event{EventType::DialogueFinished, name});
+    //     dialog = "Go and look for the staff!";
+    // }
+    // else if (currentQuestID == 1) {
+    //     dialog = "Have you found the staff yet?";
+    // }
+    // else if (currentQuestID == 2) {
+    //     dialog = "Have you found you're home?";
+    // }
+    // else
+    // {
+    //     dialog = "I am a wizard, what are you?";
+    // }
+
+    
 
 bool InteractionManager::possesNPC(Entity player, Entity friendly){
     
@@ -325,6 +331,20 @@ void InteractionManager::handlePlayerFriendly(Entity player, Entity friendly, Ve
 void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overlap){
     loot.removeEntity();
     loot.addComponent<CAudio>("loot_pickup");
+    if (!loot.hasComponent<CName>()){
+        return;
+    }
+    std::string name = loot.getComponent<CName>().name;
+    m_scene->Emit(Event{EventType::ItemPickedUp, name});
+    return;
+}
+
+void InteractionManager::handlePlayerArea(Entity player, Entity area, Vec2 overlap){
+    if (!area.hasComponent<CEvent>()){
+        return;
+    }
+    Event event = area.getComponent<CEvent>().event;
+    m_scene->Emit(event);
     return;
 }
 
@@ -339,6 +359,9 @@ InteractionManager::InteractionManager(ECS* ecs, Scene_Play* scene){
     );
     registerHandler(PLAYER_LAYER, LOOT_LAYER, 
         [this](Entity a, Entity b, Vec2 overlap) {handlePlayerLoot(a, b, overlap);}
+    );
+    registerHandler(PLAYER_LAYER, AREA_LAYER, 
+        [this](Entity a, Entity b, Vec2 overlap) {handlePlayerArea(a, b, overlap);}
     );
 }
 
@@ -372,14 +395,14 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize){
                     continue; // No interaction layer match
                 }
                 
-                if (m_ECS->hasComponent<CName>(idA)){
-                    std::string nameA = m_ECS->getComponent<CName>(idA).name;
-                    m_ECS->addComponent<CEvent>(idA, Event{EventType::EnteredArea, nameA});
-                }
-                if (m_ECS->hasComponent<CName>(idB)){
-                    std::string nameB = m_ECS->getComponent<CName>(idB).name;
-                    m_ECS->addComponent<CEvent>(idB, Event{EventType::EnteredArea, nameB});
-                }
+                // if (m_ECS->hasComponent<CName>(idA)){
+                //     std::string nameA = m_ECS->getComponent<CName>(idA).name;
+                //     m_ECS->addComponent<CEvents>(idA, Event{EventType::EnteredArea, nameA});
+                // }
+                // if (m_ECS->hasComponent<CName>(idB)){
+                //     std::string nameB = m_ECS->getComponent<CName>(idB).name;
+                //     m_ECS->addComponent<CEvents>(idB, Event{EventType::EnteredArea, nameB});
+                // }
 
                 handleCollision(
                     idA, 
@@ -388,18 +411,6 @@ void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize){
                     interactionB.layer, 
                     {0,0}
                 );
-                
-                // if (scriptPool.hasComponent(idA)){
-                //     auto& scriptA = scriptPool.getComponent(idA);
-                //     scriptA.Instance->OnInteractFunction(idB, interactionB.layer);
-                //     scriptA.Instance->onPosses(idB, idA);
-                // }
-                
-                // if (scriptPool.hasComponent(idB)){
-                //     auto& scriptB = scriptPool.getComponent(idB);
-                //     scriptB.Instance->OnInteractFunction(idA, interactionA.layer);
-                //     scriptB.Instance->onPosses(idA, idB);                
-                // }
             }
         }
     }
