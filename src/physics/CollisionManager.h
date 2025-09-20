@@ -45,6 +45,7 @@ class BaseCollisionManager
     void newQuadtree(Vec2 pos, Vec2 size);
     void renderQuadtree(SDL_Renderer*renderer, int zoom, Vec2 screenCenter, Vec2 camPos);
 };
+
 class CollisionManager : public BaseCollisionManager
 {    
     public:

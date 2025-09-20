@@ -1,13 +1,7 @@
 {
     "dwarf": {
-        "dialog": [
-            {"quest":0, "text":"Go and look for the staff!"},
-            {"quest":1, "text":"Have you found the staff yet?"},
-            {"quest":2, "text":"Have you found you're home?"},
-            {"quest":3, "text":"I am a dwarf, what are you?"}
-        ],
         "components": {
-            "CTransform": "Nan",
+            "CTransform": {"pos": "Nan"},
             "CVelocity": {"speed": 100},
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
@@ -23,9 +17,9 @@
                 "animation": "dwarf-sheet",
                 "layer": 10
             },
-            "CState": "Nan",
+            "CState": {"state": "Nan"},
             "CScript": "NPCController",
-            "CPossesLevel": "Nan",
+            "CPossesLevel": {"level": "Nan"},
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

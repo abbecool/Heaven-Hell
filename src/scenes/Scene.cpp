@@ -161,7 +161,6 @@ void Scene::updateMousePosition(Vec2 pos){
 }
 
 void Scene::updateMouseScroll(int scroll){
-    m_mouseScroll = scroll;
     m_mouseState.scroll = scroll;
 }
 

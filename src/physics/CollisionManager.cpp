@@ -331,6 +331,9 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
         return;
     }
     std::string name = loot.getComponent<CName>().name;
+    Item item = m_scene->getInventoryManager().getItem(0);
+    player.getComponent<CInventory>().items.push_back(item);
+
     m_scene->Emit(Event{EventType::ItemPickedUp, name});
     return;
 }
@@ -359,6 +362,9 @@ InteractionManager::InteractionManager(ECS* ecs, Scene_Play* scene){
     registerHandler(PLAYER_LAYER, AREA_LAYER, 
         [this](Entity a, Entity b, Vec2 overlap) {handlePlayerArea(a, b, overlap);}
     );
+    // registerHandler(PLAYER_LAYER, AREA_LAYER, 
+    //     [this](Entity a, Entity b, Vec2 overlap) {handlePlayerArea(a, b, overlap);}
+    // );
 }
 
 void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize){

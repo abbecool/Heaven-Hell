@@ -1,21 +1,25 @@
 #include "scenes/Scene_Play.h"
 #include "scenes/Scene_Menu.h"
 #include "scenes/Scene_GameOver.h"
-#include "scenes/Scene_Inventory.h"
+
 #include "assets/Sprite.h"
 #include "assets/Assets.h"
+
 #include "core/Game.h"
-#include "ecs/Components.h"
 #include "core/Action.h"
+
 #include "physics/Level_Loader.h"
 #include "physics/Camera.h"
+#include "physics/RandomArray.h"
+
+#include "ecs/Components.h"
 #include "ecs/ScriptableEntity.h"
 #include "scripts/player.cpp"
 #include "scripts/npc.cpp"
 #include "scripts/rooter.cpp"
 #include "scripts/weapon.cpp"
 #include "scripts/projectile.cpp"
-#include "physics/RandomArray.h"
+
 #include "external/json.hpp"
 
 #include <SDL_image.h>
@@ -40,7 +44,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_interactionManager(&m_ECS, this), 
     m_storyManager(this, "config_files/story.json"),
     m_levelLoader(this, m_gridSize, levelPath),
-    m_newGame(newGame)
+    m_newGame(newGame),
+    m_inventoryManager("config_files/items")
 {
     registerAction(SDLK_w, "UP");
     registerAction(SDLK_UP, "UP");
@@ -87,9 +92,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     SpawnFromJSON("dwarf", Vec2{344, 60}*m_gridSize);
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
-    m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
 
-    SubscribeToStoryEvents();    
+    SubscribeToStoryEvents();
 }
 
 void Scene_Play::SubscribeToStoryEvents(){
@@ -166,7 +170,7 @@ void Scene_Play::saveGame(const std::string& filename)
     saveFile.close();
 }
 
-void Scene_Play::sDoAction(const Action& action) {
+void Scene_Play::sDoAction(const Action& action){
     if ( action.type() == "START")
     {
         if ( action.name() == "TOGGLE_TEXTURE") {
@@ -176,16 +180,9 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if ( action.name() == "TOGGLE_INTERACTION") { 
             m_drawInteraction = !m_drawInteraction; 
         } else if ( action.name() == "PAUSE") { 
-            setPaused( !m_pause || m_inventoryOpen );
+            togglePause();
         } else if ( action.name() == "INVENTORY") { 
-            m_inventoryOpen = !m_inventoryOpen;
-            m_inventory_scene->toggleInventory();
-            setPaused( !m_pause || m_inventoryOpen );
-        } else if ( action.name() == "SCROLL"){
-            if ( m_inventoryOpen )
-            {
-                m_inventory_scene->Scroll(m_mouseState.scroll);
-            }
+            std::cout << "toggle inventory" << std::endl;
         } else if ( action.name() == "ZOOM IN"){
             m_camera.stepCameraZoom(-1, m_game->getScale());
         } else if ( action.name() == "ZOOM OUT"){
@@ -207,15 +204,15 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if ( action.name() == "KILL_PLAYER") { 
             m_ECS.getComponent<CHealth>(m_player).HP = 0;
         }
-        if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = true; }
-        if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = true;}
-        if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = true; }
-        if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = true; }
-        if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = true; }
-        if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
-        if ( action.name() == "INTERACT" ) { m_ECS.getComponent<CInputs>(m_player).interact = true; }
-        if ( action.name() == "TAKE OVER" ) { m_ECS.getComponent<CInputs>(m_player).posses = true; }
-        if ( action.name() == "ATTACK" ) { m_ECS.getComponent<CInputs>(m_player).attack = true; }
+        if ( action.name() == "UP"){m_ECS.getComponent<CInputs>(m_player).up = true;}
+        if ( action.name() == "DOWN"){m_ECS.getComponent<CInputs>(m_player).down = true;}
+        if ( action.name() == "LEFT"){m_ECS.getComponent<CInputs>(m_player).left = true;}
+        if ( action.name() == "RIGHT"){m_ECS.getComponent<CInputs>(m_player).right = true;}
+        if ( action.name() == "SHIFT"){m_ECS.getComponent<CInputs>(m_player).shift = true;}
+        if ( action.name() == "CTRL"){m_ECS.getComponent<CInputs>(m_player).ctrl = true;}
+        if ( action.name() == "INTERACT" ){m_ECS.getComponent<CInputs>(m_player).interact = true;}
+        if ( action.name() == "TAKE OVER" ){m_ECS.getComponent<CInputs>(m_player).posses = true;}
+        if ( action.name() == "ATTACK" ){m_ECS.getComponent<CInputs>(m_player).attack = true;}
     }
     else if ( action.type() == "END")
     {
@@ -238,6 +235,9 @@ void Scene_Play::sDoAction(const Action& action) {
         //     m_physics.m_quadRoot->printTree("", "");
         // }
     }
+    else if ( action.name() == "SCROLL"){
+        std::cout << "scroll: " << getMouseState().scroll << std::endl;
+    }
 }
 
 void Scene_Play::update() 
@@ -257,7 +257,6 @@ void Scene_Play::update()
         m_currentFrame++;
     }
     sRender();
-    m_inventory_scene->update();
     m_ECS.update();
     m_rendererManager.update();
     if (m_restart){
@@ -442,6 +441,7 @@ void Scene_Play::sStatus() {
         spawnCoin(transform.pos, 6);
         m_ECS.queueRemoveEntity(entityID);
         m_ECS.addComponent<CAudio>(entityID, "enemy_death");
+        Emit(Event{EventType::EntityKilled, m_ECS.getComponent<CName>(entityID).name});
     }
 }
 
@@ -457,15 +457,15 @@ void Scene_Play::sAnimation() {
         auto& state = statePool.getComponent(e);
         auto& animation = animationPool.getComponent(e).animation;
         if( velocity.vel.isNull() ) {
-            changePlayerStateTo(e, PlayerState::STAND);
+            changePlayerState(e, PlayerState::STAND);
         } else if( velocity.vel.mainDir().x > 0 ) {
-            changePlayerStateTo(e, PlayerState::RUN_RIGHT);
+            changePlayerState(e, PlayerState::RUN_RIGHT);
         } else if(velocity.vel.mainDir().x < 0) {
-            changePlayerStateTo(e, PlayerState::RUN_LEFT);
+            changePlayerState(e, PlayerState::RUN_LEFT);
         } else if(velocity.vel.mainDir().y > 0) {
-            changePlayerStateTo(e, PlayerState::RUN_DOWN);
+            changePlayerState(e, PlayerState::RUN_DOWN);
         } else if(velocity.vel.mainDir().y < 0) {
-            changePlayerStateTo(e, PlayerState::RUN_UP);
+            changePlayerState(e, PlayerState::RUN_UP);
         }
         // // change player animation
         if (state.changeAnimate) {
@@ -575,6 +575,15 @@ void Scene_Play::sRender() {
         }
     }
 
+    // render player inventory
+    std::vector<Item> items = m_ECS.getComponent<CInventory>(m_player).items;
+    for (Item item: items){
+        Animation itemAnim = getAnimation(item.iconPath);
+        itemAnim.setScale(Vec2{1, 1} * windowScale);
+        itemAnim.setDestRect(Vec2{width(), height()}/2);
+        spriteRender(itemAnim);
+    }
+
     if (m_drawCollision)
     {
         m_collisionManager.renderQuadtree(
@@ -633,7 +642,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     
     m_ECS.addComponent<CName>(id, name);
     if (components.contains("CTransform")){
-        m_ECS.addComponent<CTransform>(id, pos);
+
+        components["CTransform"]["pos"] = {{"x", pos.x}, {"y", pos.y}};
+        m_ECS.addComponent<CTransform>(id, components["CTransform"]);
     }
     if (components.contains("CVelocity")){
         m_ECS.addComponent<CVelocity>(id, components["CVelocity"]);
@@ -782,6 +793,8 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
     
+    m_ECS.addComponent<CInventory>(entityID);
+
     // auto& sc= m_ECS.addComponent<CScript>(entityID);
     // InitiateScript<PlayerController>(sc, entityID);
     return entityID;
@@ -917,9 +930,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
     {
         auto id = m_ECS.addEntity();
-        // std::cout << "projectile spawned with id: " << id << std::endl;
         int layer = 8;
-
         m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("fireball"), true, layer);
         m_rendererManager.addEntityToLayer(id, layer);
         m_ECS.addComponent<CTransform>(id, startPos, vel.angle());
@@ -929,7 +940,6 @@ EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
         CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
         m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
         m_ECS.addComponent<CLifespan>(id, 60);
-
         // spawnShadow(id, Vec2{0,0}, 1, layer-1);
         return id;
     }
@@ -964,7 +974,7 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
     return entityIDs;
 }
 
-void Scene_Play::changePlayerStateTo(EntityID entity, PlayerState s) {
+void Scene_Play::changePlayerState(EntityID entity, PlayerState s) {
     auto& prev = m_ECS.getComponent<CState>(entity).preState; 
     if (prev != s) {
         prev = m_ECS.getComponent<CState>(entity).state;
@@ -1019,10 +1029,6 @@ void Scene_Play::setPaused(bool pause) {
 
 void Scene_Play::togglePause() {
     m_pause = !m_pause;
-}
-
-Vec2 Scene_Play::gridSize(){
-    return m_gridSize;
 }
 
 Vec2 Scene_Play::getCameraPosition() {

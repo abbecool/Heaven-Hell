@@ -1,6 +1,7 @@
 #pragma once
 
 #include "assets/Animation.h"
+#include "physics/InventoryManager.hpp"
 #include "story/EventBus.h"
 
 #include <memory>
@@ -66,7 +67,6 @@ struct CProjectile
     CProjectile(EntityID p) : projectileID(p){}
 };
 
-
 struct CInputs
 {
     bool up         = false;
@@ -99,8 +99,8 @@ struct CTransform
         : pos(p), prevPos(p), angle(a), scale(s){}
     CTransform(const Vec2 & p, Vec2 s)
         : pos(p), prevPos(p), scale(s){}
-
-    
+    CTransform(const json j)
+        : pos(j["pos"]), prevPos(j["pos"]) {}
 };
 
 struct CVelocity
@@ -187,11 +187,12 @@ struct CWater {
         : isDeep(d) {}
 };
 
-struct CSwimming
+struct CCurrency
 {
-    bool isSwimming = false;
-    float swimSpeedMultiplier = 0.5f;
-    CSwimming() {}    
+    int value = 1;
+    CCurrency() {}    
+    CCurrency(const json j) 
+        : value(j["value"]){}    
 };
 
 struct CHealth
@@ -337,6 +338,11 @@ struct CPathfind
     CPathfind() {}
     CPathfind( Vec2 trg)
         : target(trg){}
+};
+
+struct CInventory{
+    std::vector<Item> items;
+    CInventory() {}
 };
 
 struct CKnockback
