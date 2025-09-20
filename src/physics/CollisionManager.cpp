@@ -332,8 +332,15 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
     }
     std::string name = loot.getComponent<CName>().name;
     Item item = m_scene->getInventoryManager().getItem(0);
-    player.getComponent<CInventory>().items.push_back(item);
-
+    auto& inventory = player.getComponent<CInventory>().items;
+    for (auto& slot : inventory) {
+        if (slot.id == -1) { // Assuming -1 means empty slot
+            int index = slot.index;
+            slot = item;
+            slot.index = index;
+            break;
+        }
+    }
     m_scene->Emit(Event{EventType::ItemPickedUp, name});
     return;
 }

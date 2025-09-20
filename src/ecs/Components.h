@@ -325,7 +325,6 @@ struct CText
 struct CPossesLevel
 {
     int level = 10;
-
     CPossesLevel() {}
     CPossesLevel(int l)
         : level(l) {}
@@ -334,15 +333,21 @@ struct CPossesLevel
 struct CPathfind
 {
     Vec2 target;
-
     CPathfind() {}
     CPathfind( Vec2 trg)
         : target(trg){}
 };
 
 struct CInventory{
-    std::vector<Item> items;
-    CInventory() {}
+    int activeItem;
+    std::array<Item, 3> items;
+    CInventory() {
+        int index = 0;
+        for (Item& item: items){
+            item.index = index;
+            index++;
+        }
+    }
 };
 
 struct CKnockback

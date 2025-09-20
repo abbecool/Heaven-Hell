@@ -236,7 +236,11 @@ void Scene_Play::sDoAction(const Action& action){
         // }
     }
     else if ( action.name() == "SCROLL"){
-        std::cout << "scroll: " << getMouseState().scroll << std::endl;
+        CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
+        int inventorySize = inventory.items.size();
+        int& activeItem = inventory.activeItem; 
+        activeItem = (activeItem+getMouseState().scroll+inventorySize*10) % inventorySize;
+        std::cout << "activeItem: " << activeItem << std::endl;
     }
 }
 
@@ -575,15 +579,6 @@ void Scene_Play::sRender() {
         }
     }
 
-    // render player inventory
-    std::vector<Item> items = m_ECS.getComponent<CInventory>(m_player).items;
-    for (Item item: items){
-        Animation itemAnim = getAnimation(item.iconPath);
-        itemAnim.setScale(Vec2{1, 1} * windowScale);
-        itemAnim.setDestRect(Vec2{width(), height()}/2);
-        spriteRender(itemAnim);
-    }
-
     if (m_drawCollision)
     {
         m_collisionManager.renderQuadtree(
@@ -593,6 +588,7 @@ void Scene_Play::sRender() {
             m_camera.position
         );
     }
+
     if (m_drawInteraction)
     {
         m_interactionManager.renderQuadtree(
@@ -601,6 +597,29 @@ void Scene_Play::sRender() {
             screenCenter * m_camera.getCameraZoom(), 
             m_camera.position
         );
+    }
+    
+    // render player inventory
+    Animation invAni = getAnimation("inventory");
+        invAni.setScale(Vec2{1, 1} * windowScale);
+        invAni.setDestRect(Vec2{width()/2*windowScale-invAni.getDestSize().x/2, 0});
+        spriteRender(invAni);
+    auto items = m_ECS.getComponent<CInventory>(m_player).items;
+    auto activeItem = m_ECS.getComponent<CInventory>(m_player).activeItem;
+    int slotIndex = -1;
+    for (Item item: items){
+        slotIndex++;
+        if (item.index==activeItem){
+            Animation activeItemAni = getAnimation("activeItemInventory");
+            activeItemAni.setScale(Vec2{1, 1} * windowScale);
+            activeItemAni.setDestRect(Vec2{(width()/2+slotIndex*32)*windowScale-invAni.getDestSize().x/2, 0});
+            spriteRender(activeItemAni);
+        }
+        if (item.id==-1){continue;}
+        Animation itemAnim = getAnimation(item.iconPath);
+        itemAnim.setScale(Vec2{1, 1} * windowScale);
+        itemAnim.setDestRect(Vec2{(width()/2+slotIndex*32)*windowScale-invAni.getDestSize().x/2, 0});
+        spriteRender(itemAnim);
     }
 }
 
@@ -820,7 +839,6 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
     
     CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
-
     m_ECS.addComponent<CName>(entityID, weaponName);
     m_ECS.addComponent<CAnimation>(entityID, getAnimation("staff"));
     m_rendererManager.addEntityToLayer(entityID, layer);

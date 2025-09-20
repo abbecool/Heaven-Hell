@@ -5,7 +5,8 @@
 #include <iostream>
 
 struct Item {
-    int id;
+    int id = -1;
+    int index = -1;
     std::string name;
     std::string description;
     std::string iconPath;
