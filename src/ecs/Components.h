@@ -338,10 +338,17 @@ struct CPathfind
         : target(trg){}
 };
 
+struct CItem{
+    int itemID;
+    CItem(int id)
+        : itemID(id) {}
+};
+
 struct CInventory{
-    int activeItem;
+    Item activeItem;
     std::array<Item, 3> items;
     CInventory() {
+        activeItem.index = 0;
         int index = 0;
         for (Item& item: items){
             item.index = index;

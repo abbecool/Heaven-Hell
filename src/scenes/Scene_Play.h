@@ -98,6 +98,7 @@ class Scene_Play : public Scene
     void togglePause();
     void changePlayerState(EntityID entity, PlayerState s);
     
+    void updateActiveItem(int newActiveItem);
     
     public:
     template<typename T>

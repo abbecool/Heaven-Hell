@@ -4,6 +4,16 @@
 #include <fstream>
 #include <iostream>
 
+enum class ItemType {
+    None,
+    Weapon,
+    WeaponMelee,
+    WeaponRanged,
+    WeaponAoE,
+    Consumable,
+    Quest
+};
+
 struct Item {
     int id = -1;
     int index = -1;
@@ -12,19 +22,48 @@ struct Item {
     std::string iconPath;
     int stack;
     int maxStack = 1;
-    Item(){}
-    Item(const json j){
-        id = j["id"];
-        name = j["name"];
-        description = j["description"];
-        iconPath = j["iconPath"];
-        maxStack = j["maxStack"];
+
+    ItemType type = ItemType::None;
+    int damage;
+    int healing;
+    
+    Item() = default;
+    // Item(const json& j){
+    //     id = j["id"];
+    //     name = j["name"];
+    //     description = j["description"];
+    //     iconPath = j["iconPath"];
+    //     maxStack = j["maxStack"];
+    // }
+    ItemType getItemTypeFromString(const std::string& typeStr) {
+        if (typeStr == "Weapon") return ItemType::Weapon;
+        if (typeStr == "Consumable") return ItemType::Consumable;
+        if (typeStr == "Quest") return ItemType::Quest;
+        return ItemType::None;
+    }
+    Item(const json& j) {
+        id          = j.value("id", -1);
+        name        = j.value("name", "Unknown");
+        description = j.value("description", "");
+        iconPath    = j.value("icon", "");
+        maxStack    = j.value("maxStack", 1);
+
+        type = getItemTypeFromString(j.value("type", "None"));
+
+        // load stats only if they exist
+        if (j.contains("damage")) {
+            damage = j["damage"].get<int>();
+        }
+        if (j.contains("healing")) {
+            healing = j["healing"].get<int>();
+        }
     }
 };
 
+
 class InventoryManager
 {
-public:
+    public:
     InventoryManager(){}
     InventoryManager(const std::string& path) {
         std::vector<std::string> names = {"coin", "staff"};
@@ -41,14 +80,15 @@ public:
             addItem(item);
         }
     }
-
+    
     void addItem(const Item& item) {
         items[item.id] = item;
     }
-
+    
     const Item& getItem(int id) const {
         return items.at(id);
     }
+    
 
 private:
     std::unordered_map<int, Item> items;

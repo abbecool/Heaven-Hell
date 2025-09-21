@@ -331,7 +331,8 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
         return;
     }
     std::string name = loot.getComponent<CName>().name;
-    Item item = m_scene->getInventoryManager().getItem(0);
+    int itemID = loot.getComponent<CItem>().itemID;
+    Item item = m_scene->getInventoryManager().getItem(itemID);
     auto& inventory = player.getComponent<CInventory>().items;
     for (auto& slot : inventory) {
         if (slot.id == -1) { // Assuming -1 means empty slot
