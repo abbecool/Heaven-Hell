@@ -264,27 +264,7 @@ bool InteractionManager::talkToNPC(Entity player, Entity friendly){
     }
     m_scene->Emit(Event{EventType::DialogueFinished, name});
     return true;
-}
-
-    // std::string dialog;
-    // if (currentQuestID == 0) {
-    //     m_scene->getStoryManager().setFlag("talked_to_wizard", true);
-    //     std::string name = friendly.getComponent<CName>().name;
-    //     m_scene->Emit(Event{EventType::DialogueFinished, name});
-    //     dialog = "Go and look for the staff!";
-    // }
-    // else if (currentQuestID == 1) {
-    //     dialog = "Have you found the staff yet?";
-    // }
-    // else if (currentQuestID == 2) {
-    //     dialog = "Have you found you're home?";
-    // }
-    // else
-    // {
-    //     dialog = "I am a wizard, what are you?";
-    // }
-
-    
+} 
 
 bool InteractionManager::possesNPC(Entity player, Entity friendly){
     

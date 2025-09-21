@@ -259,7 +259,8 @@ void Scene_Play::updateActiveItem(int newIndex){
     const Item& activeItem = inventory.items[newIndex];
 
     if (activeItem.type == ItemType::Weapon) {
-        equipWeapon(activeItem);
+        int damage = activeItem.damage;
+        m_ECS.addComponent<CWeapon>(m_player, damage, 60, 180);
     }
     // else if (activeItem.type == ItemType::Consumable) {
     //     useConsumable(activeItem);
@@ -625,7 +626,7 @@ void Scene_Play::sRender() {
         invAni.setDestRect(Vec2{width()/2*windowScale-invAni.getDestSize().x/2, 0});
         spriteRender(invAni);
     auto& items = m_ECS.getComponent<CInventory>(m_player).items;
-    auto activeItemIndex = m_ECS.getComponent<CInventory>(m_player).activeItemIndex;
+    auto activeItemIndex = m_ECS.getComponent<CInventory>(m_player).activeItem.index;
     int slotIndex = -1;
     for (Item& item: items){
         slotIndex++;
@@ -865,8 +866,8 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
     m_rendererManager.addEntityToLayer(entityID, layer);
     m_ECS.addComponent<CWeapon>(entityID);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
-    auto& sc = m_ECS.addComponent<CScript>(entityID);
-    InitiateScript<WeaponController>(sc, entityID);
+    // auto& sc = m_ECS.addComponent<CScript>(entityID);
+    // InitiateScript<WeaponController>(sc, entityID);
     return entityID;
 }
 
@@ -887,8 +888,8 @@ EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
     // m_ECS.addComponent<CDamage>(id, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(id);
     spawnShadow(id, Vec2{0,0}, 1, layer-1);
-    auto& sc = m_ECS.addComponent<CScript>(id);
-    InitiateScript<WeaponController>(sc, id);
+    // auto& sc = m_ECS.addComponent<CScript>(id);
+    // InitiateScript<WeaponController>(sc, id);
     return id;
 }
 

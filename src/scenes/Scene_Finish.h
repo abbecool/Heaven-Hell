@@ -7,18 +7,9 @@
 
 class Scene_Finish : public Scene
 {
-    struct PlayerConfig
-    {
-        float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
-        std::string WEAPON; 
-    };
-
     protected:
-
     std::string m_levelPath;
     Vec2 levelSize;
-
-    void spawnLevel(const Vec2 pos, const std::string tile);
 
     void sAnimation();
     void sRender();

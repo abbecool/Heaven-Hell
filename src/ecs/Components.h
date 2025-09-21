@@ -152,7 +152,7 @@ struct CBox
     }
 };
 
-struct CCollisionBox : public CBox 
+struct CCollisionBox : public CBox
 {
     CCollisionBox() {}
     CCollisionBox(const Vec2& s) 
@@ -377,15 +377,15 @@ enum struct WeaponType {
 
 struct CWeapon
 {
-    Animation animation;
-    int damage;
-    int speed;
-    int range;
+    // Animation animation;
+    int damage = 1;
+    int speed = 60;
+    int range = 180;
     WeaponType weaponType = WeaponType::Projectile;
 
     CWeapon() {}
-    CWeapon(const Animation& animation, int damage, int speed, int range)
-                : animation(animation), damage(damage), speed(speed), range(range){}
+    CWeapon(int damage, int speed, int range)
+                : damage(damage), speed(speed), range(range){}
 };
 
 struct CEvent
