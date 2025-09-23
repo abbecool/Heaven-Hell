@@ -45,7 +45,7 @@ struct Item {
         id          = j.value("id", -1);
         name        = j.value("name", "Unknown");
         description = j.value("description", "");
-        iconPath    = j.value("icon", "");
+        iconPath    = j.value("iconPath", "");
         maxStack    = j.value("maxStack", 1);
 
         type = getItemTypeFromString(j.value("type", "None"));

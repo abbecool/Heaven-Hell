@@ -62,6 +62,7 @@ class Scene_Play : public Scene
     EntityID spawnWeapon(Vec2 pos, std::string weaponName = "staff");
     EntityID spawnSword(Vec2 pos, std::string weaponName = "sword");
     EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
+    EntityID spawnHitbox(Vec2 position, Vec2 size);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
     EntityID spawnDecoration(

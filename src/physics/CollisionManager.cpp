@@ -13,17 +13,17 @@ void handlePlayerEnemyCollision(Entity player, Entity enemy, Vec2 overlap){
 }
 
 void handleFriendlyObstacleCollision(Entity friendly, Entity obstacle, Vec2 overlap){
-    
+    friendly.getComponent<CTransform>().pos += overlap;
 }
 
 void handleProjectileObstacleCollision(Entity projectile, Entity obstacle, Vec2 overlap){
-    // projectile.getComponent<CScript>().Instance->OnDestroyFunction();
     projectile.removeEntity();
 }
 
 void handleEnemyProjectileCollision(Entity enemy, Entity projectile, Vec2 overlap){
-    projectile.getComponent<CScript>().Instance->OnDestroyFunction();
-    projectile.getComponent<CScript>().Instance->OnAttackFunction(enemy.getID());
+    int damage = projectile.getComponent<CDamage>().damage;
+    enemy.getComponent<CHealth>().HP -= damage;
+    projectile.removeEntity();
 }
 
 void handleEnemyEnemyCollision(Entity enemyA, Entity enemyB, Vec2 overlap){

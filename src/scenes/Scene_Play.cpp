@@ -250,17 +250,23 @@ void Scene_Play::sDoAction(const Action& action){
         const int index = inventory.activeItem.index; 
         int newIndex = (index+getMouseState().scroll+size*10) % size;
         updateActiveItem(newIndex);
-        std::cout << "newIndex: " << newIndex << std::endl;
     }
 }
 
 void Scene_Play::updateActiveItem(int newIndex){
     CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
-    const Item& activeItem = inventory.items[newIndex];
+    inventory.activeItem = inventory.items[newIndex];
+    Item& activeItem = inventory.activeItem;
 
     if (activeItem.type == ItemType::Weapon) {
         int damage = activeItem.damage;
         m_ECS.addComponent<CWeapon>(m_player, damage, 60, 180);
+        if (activeItem.name == "staff"){
+            m_ECS.getComponent<CWeapon>(m_player).weaponType = WeaponType::Melee;
+        }
+    }
+    else{
+        m_ECS.removeComponent<CWeapon>(m_player);
     }
     // else if (activeItem.type == ItemType::Consumable) {
     //     useConsumable(activeItem);
@@ -406,10 +412,18 @@ void Scene_Play::sAttack(){
             continue;
         }
         Vec2 position = transformPool.getComponent(m_player).pos;
-        Vec2 projectileVelocity = getMousePosition()-position+getCameraPosition();
-
-        if (weapon.weaponType == WeaponType::Projectile){
-            spawnProjectile(position, projectileVelocity);
+        Vec2 direction = (getMousePosition()-position+getCameraPosition()).norm();
+        switch (weapon.weaponType)
+        {
+        case WeaponType::Projectile:
+            spawnProjectile(position, direction);
+            break;
+        case WeaponType::Melee:
+            spawnHitbox(position, direction);
+            break;
+        
+        default:
+            break;
         }
         inputs.attack = false;
     }
@@ -970,21 +984,33 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 }
 
 EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
-    {
-        auto id = m_ECS.addEntity();
-        int layer = 8;
-        m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("fireball"), true, layer);
-        m_rendererManager.addEntityToLayer(id, layer);
-        m_ECS.addComponent<CTransform>(id, startPos, vel.angle());
-        m_ECS.addComponent<CVelocity>(id, vel, 200.0f);
-        m_ECS.addComponent<CDamage>(id, 1);
-        m_ECS.getComponent<CDamage>(id).damageType = {"Fire", "Explosive"};
-        CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
-        m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
-        m_ECS.addComponent<CLifespan>(id, 60);
-        // spawnShadow(id, Vec2{0,0}, 1, layer-1);
-        return id;
-    }
+{
+    auto id = m_ECS.addEntity();
+    int layer = 8;
+    m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("fireball"), true, layer);
+    m_rendererManager.addEntityToLayer(id, layer);
+    m_ECS.addComponent<CTransform>(id, startPos, vel.angle());
+    m_ECS.addComponent<CVelocity>(id, vel, 200.0f);
+    m_ECS.addComponent<CDamage>(id, 1);
+    m_ECS.getComponent<CDamage>(id).damageType = {"Fire", "Explosive"};
+    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
+    m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
+    m_ECS.addComponent<CLifespan>(id, 60);
+    // spawnShadow(id, Vec2{0,0}, 1, layer-1);
+    return id;
+}
+EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction)
+{
+    auto id = m_ECS.addEntity();
+    int layer = 10;
+    m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("sword"), true, layer);
+    m_rendererManager.addEntityToLayer(id, layer);
+    m_ECS.addComponent<CTransform>(id, position+direction*8, direction.angle());
+    m_ECS.addComponent<CDamage>(id, 1);
+    m_ECS.addComponent<CCollisionBox>(id, Vec2{24, 24}, PROJECTILE_LAYER, ENEMY_LAYER);
+    m_ECS.addComponent<CLifespan>(id, 15);
+    return id;
+}
 
 std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
 {   
