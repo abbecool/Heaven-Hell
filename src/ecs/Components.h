@@ -386,6 +386,9 @@ struct CWeapon
     CWeapon() {}
     CWeapon(int damage, int speed, int range)
                 : damage(damage), speed(speed), range(range){}
+    
+    CWeapon(int damage, int speed, int range, WeaponType type)
+                : damage(damage), speed(speed), range(range), weaponType(type){}
 };
 
 struct CEvent

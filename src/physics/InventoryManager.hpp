@@ -28,15 +28,10 @@ struct Item {
     int healing;
     
     Item() = default;
-    // Item(const json& j){
-    //     id = j["id"];
-    //     name = j["name"];
-    //     description = j["description"];
-    //     iconPath = j["iconPath"];
-    //     maxStack = j["maxStack"];
-    // }
     ItemType getItemTypeFromString(const std::string& typeStr) {
-        if (typeStr == "Weapon") return ItemType::Weapon;
+        if (typeStr == "WeaponMelee") return ItemType::WeaponMelee;
+        if (typeStr == "WeaponRanged") return ItemType::WeaponRanged;
+        if (typeStr == "WeaponAoE") return ItemType::WeaponAoE;
         if (typeStr == "Consumable") return ItemType::Consumable;
         if (typeStr == "Quest") return ItemType::Quest;
         return ItemType::None;
@@ -66,7 +61,7 @@ class InventoryManager
     public:
     InventoryManager(){}
     InventoryManager(const std::string& path) {
-        std::vector<std::string> names = {"coin", "staff"};
+        std::vector<std::string> names = {"coin", "staff", "sword"};
         for (std::string name: names){
             std::ifstream file("config_files/items/"+name+".json");
             if (!file) {

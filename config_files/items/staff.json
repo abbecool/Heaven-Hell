@@ -5,7 +5,7 @@
         "description": "A simple magic staff that can cast simple magic spells.",
         "iconPath": "staff",
         "maxStack": 1,
-        "type": "Weapon",
+        "type": "WeaponRanged",
         "damage": 1
     }
 }

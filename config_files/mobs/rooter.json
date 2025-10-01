@@ -20,6 +20,7 @@
             "CState": {"state": "Nan"},
             "CScript": "RooterController",
 
+            "CInput": "Nan",
             "CPathfind": "Nan",
             "CHealth": {
                 "HP": 6,

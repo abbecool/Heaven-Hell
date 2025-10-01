@@ -258,19 +258,21 @@ void Scene_Play::updateActiveItem(int newIndex){
     inventory.activeItem = inventory.items[newIndex];
     Item& activeItem = inventory.activeItem;
 
-    if (activeItem.type == ItemType::Weapon) {
-        int damage = activeItem.damage;
-        m_ECS.addComponent<CWeapon>(m_player, damage, 60, 180);
-        if (activeItem.name == "staff"){
-            m_ECS.getComponent<CWeapon>(m_player).weaponType = WeaponType::Melee;
-        }
+    m_ECS.removeComponent<CWeapon>(m_player);
+
+    switch (activeItem.type)
+    {
+    case ItemType::WeaponMelee:
+        m_ECS.addComponent<CWeapon>(m_player, activeItem.damage, 60, 180, WeaponType::Melee);
+        break;
+    case ItemType::WeaponRanged:
+        m_ECS.addComponent<CWeapon>(m_player, activeItem.damage, 60, 180, WeaponType::Projectile);
+        break;
+    case ItemType::Consumable:
+        std::cout << "Consumable" << std::endl;
+        // useConsumable(activeItem);
+        break;
     }
-    else{
-        m_ECS.removeComponent<CWeapon>(m_player);
-    }
-    // else if (activeItem.type == ItemType::Consumable) {
-    //     useConsumable(activeItem);
-    // }
 }
 
 void Scene_Play::update() 
@@ -399,30 +401,35 @@ void Scene_Play::sMovement() {
 
 void Scene_Play::sAttack(){
     ComponentPool<CTransform>& transformPool = m_ECS.getComponentPool<CTransform>();
+    ComponentPool<CVelocity>& velocityPool = m_ECS.getComponentPool<CVelocity>();
     ComponentPool<CInputs>& inputPool = m_ECS.getComponentPool<CInputs>();
     ComponentPool<CWeapon>& weaponPool = m_ECS.getComponentPool<CWeapon>();
 
-    std::vector<EntityID> viewAttack = m_ECS.View<CInputs, CWeapon, CTransform>();
-    for (EntityID e : viewAttack){
-        CTransform& transform = transformPool.getComponent(e);
-        CInputs& inputs = inputPool.getComponent(e);
-        CWeapon& weapon = weaponPool.getComponent(e);
+    std::vector<EntityID> viewAttack = m_ECS.View<CInputs, CWeapon, CVelocity, CTransform>();
+    for (EntityID id : viewAttack){
+        CTransform& transform = transformPool.getComponent(id);
+        CVelocity& velocity = velocityPool.getComponent(id);
+        CInputs& inputs = inputPool.getComponent(id);
+        CWeapon& weapon = weaponPool.getComponent(id);
 
         if (!inputs.attack){
             continue;
         }
         Vec2 position = transformPool.getComponent(m_player).pos;
-        Vec2 direction = (getMousePosition()-position+getCameraPosition()).norm();
+        Vec2 direction = velocityPool.getComponent(m_player).vel;
+        if (id == m_player){
+            direction = (getMousePosition()-position+getCameraPosition()).norm();
+        }
         switch (weapon.weaponType)
         {
-        case WeaponType::Projectile:
-            spawnProjectile(position, direction);
-            break;
         case WeaponType::Melee:
             spawnHitbox(position, direction);
             break;
-        
-        default:
+        case WeaponType::Projectile:
+            spawnProjectile(position, direction);
+            break;
+        case WeaponType::AoE:
+            spawnHitbox(position, direction);
             break;
         }
         inputs.attack = false;
@@ -746,6 +753,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     }
     if (components.contains("CPossesLevel")){
         m_ECS.addComponent<CPossesLevel>(id, 10);
+    }
+    if (name == "rooter"){
+        m_ECS.addComponent<CWeapon>(id, 1, 60, 180, WeaponType::Melee);
     }
     return id;
 }

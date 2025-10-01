@@ -241,7 +241,13 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
 }
 
 void InteractionManager::handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap){
-    std::cout << "handlePlayerEnemy" << std::endl;
+    if (!enemy.hasComponent<CWeapon>()){
+        return;
+    }
+    int damage = enemy.getComponent<CWeapon>().damage;
+    Vec2 position = enemy.getComponent<CTransform>().pos;
+    Vec2 playerPosition = player.getComponent<CTransform>().pos;
+    m_scene->spawnHitbox(position, position-playerPosition);
     return;
 }
 
@@ -313,14 +319,19 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
     std::string name = loot.getComponent<CName>().name;
     int itemID = loot.getComponent<CItem>().itemID;
     Item item = m_scene->getInventoryManager().getItem(itemID);
-    auto& inventory = player.getComponent<CInventory>().items;
-    for (auto& slot : inventory) {
-        if (slot.id == -1) { // Assuming -1 means empty slot
-            int index = slot.index;
-            slot = item;
-            slot.index = index;
-            break;
+    auto& inventory = player.getComponent<CInventory>();
+    auto& activeItem = inventory.activeItem;
+    for (auto& slot : inventory.items) {
+        if (slot.id != -1) { // Assuming -1 means empty slot
+            continue;
         }
+        int index = slot.index;
+        slot = item;
+        slot.index = index;
+        if (index == activeItem.index){
+            m_scene->updateActiveItem(index);
+        }
+        break;
     }
     m_scene->Emit(Event{EventType::ItemPickedUp, name});
     return;

@@ -5,7 +5,7 @@
         "description": "A weak sword.",
         "iconPath": "sword",
         "maxStack": 1,
-        "type": "Weapon",
+        "type": "WeaponMelee",
         "damage": 2
     }
 }

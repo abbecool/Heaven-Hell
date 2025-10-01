@@ -61,8 +61,6 @@ class Scene_Play : public Scene
     EntityID spawnPlayer();
     EntityID spawnWeapon(Vec2 pos, std::string weaponName = "staff");
     EntityID spawnSword(Vec2 pos, std::string weaponName = "sword");
-    EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
-    EntityID spawnHitbox(Vec2 position, Vec2 size);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
     EntityID spawnDecoration(
@@ -99,23 +97,25 @@ class Scene_Play : public Scene
     void togglePause();
     void changePlayerState(EntityID entity, PlayerState s);
     
-    void updateActiveItem(int newActiveItem);
     
     public:
     template<typename T>
     void InitiateScript(CScript& sc, EntityID entityID);
     void InitiateProjectileScript(CScript& sc, EntityID entityID);
-
+    
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 getCameraPosition() override;
     
+    EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
+    EntityID spawnHitbox(Vec2 position, Vec2 size);
+    void updateActiveItem(int newActiveItem);
     void update();
     void setPaused(bool);
-
+    
     StoryManager& getStoryManager() {
         return m_storyManager;
     }  
-
+    
     InventoryManager& getInventoryManager() {
         return m_inventoryManager;
     }  
