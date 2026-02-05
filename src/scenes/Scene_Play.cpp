@@ -106,7 +106,7 @@ void Scene_Play::SubscribeToStoryEvents(){
 void Scene_Play::loadMobsNItems(const std::string& path){
     std::ifstream file(path);
     if (!file) {
-        std::cerr << "Could not load assets file!\n";
+        std::cerr << "Could not load mobs assets file!\n";
         exit(-1);
     }
     json j;
