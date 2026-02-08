@@ -20,6 +20,22 @@
       ],
       "group": "build",
       "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build-release-linux",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build-release"],
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build-debug-linux",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build-debug"],
+      "group": "build",
+      "problemMatcher": "$gcc"
     }
   ]
 }

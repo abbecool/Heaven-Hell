@@ -18,6 +18,7 @@ Assets::Assets(){}
 void Assets::addTexture(const std::string & path, SDL_Renderer * ren)
 {
     const char *path_char = path.c_str(); 
+    std::cout << path << std::endl;
     std::string name = path.substr(0, path.find_last_of('.')).substr(path.find_last_of('/') + 1);
     SDL_Surface* tempSurface = IMG_Load(path_char);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, tempSurface);

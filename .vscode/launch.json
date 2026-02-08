@@ -1,26 +1,3 @@
-// {
-//     "version": "0.2.0",
-//     "configurations": [
-//         {
-//             "type": "cppvsdbg", // cmake --build build --config release
-//             "request": "launch",
-//             "name": "Run HeavenHell",
-//             "program": "${workspaceFolder}/run/Release/heavenhell.exe",
-//             "cwd": "${workspaceFolder}/run/Release",
-//             "preLaunchTask": "build-release",
-//             "console": "integratedTerminal"
-//         },
-//         {
-//             "type": "cppvsdbg", // cmake --build build --config debug
-//             "request": "launch",
-//             "name": "Debug HeavenHell",
-//             "program": "${workspaceFolder}/run/Debug/heavenhell.exe",
-//             "cwd": "${workspaceFolder}/run/Debug",
-//             "preLaunchTask": "build-debug",
-//             "console": "integratedTerminal"
-//         }
-//     ]
-// }
 {
     "version": "0.2.0",
     "configurations": [
@@ -56,6 +33,34 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
+                }
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Run HeavenHell (Arch Release)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/run/heavenhell",
+            "cwd": "${workspaceFolder}/run",
+            "preLaunchTask": "build-release-linux",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug HeavenHell (Arch Debug)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/run/heavenhell",
+            "cwd": "${workspaceFolder}/run",
+            "preLaunchTask": "build-debug-linux",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
                 }
             ],
             "console": "integratedTerminal"
