@@ -13,12 +13,6 @@
 #include "physics/RandomArray.h"
 
 #include "ecs/Components.h"
-#include "ecs/ScriptableEntity.h"
-#include "scripts/player.cpp"
-#include "scripts/npc.cpp"
-#include "scripts/rooter.cpp"
-#include "scripts/weapon.cpp"
-#include "scripts/projectile.cpp"
 
 #include "external/json.hpp"
 
@@ -281,7 +275,6 @@ void Scene_Play::update()
     if (!m_pause) 
     {
         sLoader();
-        sScripting();
         sAttack();
         sMovement();
         sStatus();
@@ -308,18 +301,6 @@ void Scene_Play::sLoader()
 {
     Vec2 playerPosition = m_ECS.getComponent<CTransform>(m_player).pos;
     m_levelLoader.update(playerPosition);
-}
-
-void Scene_Play::sScripting() 
-{
-    auto view = m_ECS.View<CScript>();
-    auto& scriptPool = m_ECS.getComponentPool<CScript>();
-    for ( auto e : view ) 
-    {
-        auto& sc = scriptPool.getComponent(e);
-        sc.Instance->OnUpdateFunction();
-        // memory leak, destroy
-    }
 }
 
 void Scene_Play::sMovement() {
@@ -723,21 +704,21 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         );
         m_rendererManager.addEntityToLayer(id, components["CAnimation"]["layer"]);
     }
-    if (components.contains("CScript")){
-        auto& sc = m_ECS.addComponent<CScript>(id);
-        std::string controllerType = components["CScript"].get<std::string>();
-        if        (controllerType == "NPCController"){
-            InitiateScript<NPCController>(sc, id);
-        } else if (controllerType == "WeaponController"){
-            InitiateScript<WeaponController>(sc, id);
-        } else if (controllerType == "PlayerController"){
-            InitiateScript<PlayerController>(sc, id);
-        } else if (controllerType == "RooterController"){
-            InitiateScript<RooterController>(sc, id);
-        } else if (controllerType == "ProjectileController"){
-            InitiateScript<ProjectileController>(sc, id);
-        }
-    }
+    // if (components.contains("CScript")){
+    //     auto& sc = m_ECS.addComponent<CScript>(id);
+    //     std::string controllerType = components["CScript"].get<std::string>();
+    //     if        (controllerType == "NPCController"){
+    //         InitiateScript<NPCController>(sc, id);
+    //     } else if (controllerType == "WeaponController"){
+    //         InitiateScript<WeaponController>(sc, id);
+    //     } else if (controllerType == "PlayerController"){
+    //         InitiateScript<PlayerController>(sc, id);
+    //     } else if (controllerType == "RooterController"){
+    //         InitiateScript<RooterController>(sc, id);
+    //     } else if (controllerType == "ProjectileController"){
+    //         InitiateScript<ProjectileController>(sc, id);
+    //     }
+    // }
     if (components.contains("CState")){
         m_ECS.addComponent<CState>(id);
     }
@@ -858,9 +839,6 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
     
     m_ECS.addComponent<CInventory>(entityID);
-
-    // auto& sc= m_ECS.addComponent<CScript>(entityID);
-    // InitiateScript<PlayerController>(sc, entityID);
     return entityID;
 }
 
@@ -890,8 +868,6 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
     m_rendererManager.addEntityToLayer(entityID, layer);
     m_ECS.addComponent<CWeapon>(entityID);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
-    // auto& sc = m_ECS.addComponent<CScript>(entityID);
-    // InitiateScript<WeaponController>(sc, entityID);
     return entityID;
 }
 
@@ -912,8 +888,6 @@ EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
     // m_ECS.addComponent<CDamage>(id, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(id);
     spawnShadow(id, Vec2{0,0}, 1, layer-1);
-    // auto& sc = m_ECS.addComponent<CScript>(id);
-    // InitiateScript<WeaponController>(sc, id);
     return id;
 }
 
@@ -1062,29 +1036,6 @@ void Scene_Play::changePlayerState(EntityID entity, PlayerState s) {
     else { 
         m_ECS.getComponent<CState>(entity).changeAnimate = false;
     }
-}
-
-template<typename T>
-void Scene_Play::InitiateScript(CScript& sc, EntityID entityID){
-    sc.Bind<T>();
-    sc.Instance = sc.InstantiateScript();
-    sc.Instance->m_entity = {entityID, &m_ECS};
-    sc.Instance->m_ECS = &m_ECS;
-    sc.Instance->m_physics = &m_physics;
-    sc.Instance->m_game = m_game;
-    sc.Instance->m_scene = this;
-    sc.Instance->OnCreateFunction();
-}
-
-void Scene_Play::InitiateProjectileScript(CScript& sc, EntityID entityID){
-    sc.Bind<ProjectileController>();
-    sc.Instance = sc.InstantiateScript();
-    sc.Instance->m_entity = {entityID, &m_ECS};
-    sc.Instance->m_ECS = &m_ECS;
-    sc.Instance->m_physics = &m_physics;
-    sc.Instance->m_game = m_game;
-    sc.Instance->m_scene = this;
-    sc.Instance->OnCreateFunction();
 }
 
 void Scene_Play::onEnd() {
