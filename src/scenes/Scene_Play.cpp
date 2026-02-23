@@ -1,21 +1,19 @@
 #include "scenes/Scene_Play.h"
 #include "scenes/Scene_Menu.h"
 #include "scenes/Scene_GameOver.h"
-#include "scenes/Scene_Inventory.h"
+
 #include "assets/Sprite.h"
 #include "assets/Assets.h"
+
 #include "core/Game.h"
-#include "ecs/Components.h"
 #include "core/Action.h"
+
 #include "physics/Level_Loader.h"
 #include "physics/Camera.h"
-#include "ecs/ScriptableEntity.h"
-#include "scripts/player.cpp"
-#include "scripts/npc.cpp"
-#include "scripts/rooter.cpp"
-#include "scripts/weapon.cpp"
-#include "scripts/projectile.cpp"
 #include "physics/RandomArray.h"
+
+#include "ecs/Components.h"
+
 #include "external/json.hpp"
 
 #include <SDL_image.h>
@@ -40,7 +38,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_interactionManager(&m_ECS, this), 
     m_storyManager(this, "config_files/story.json"),
     m_levelLoader(this, m_gridSize, levelPath),
-    m_newGame(newGame)
+    m_newGame(newGame),
+    m_inventoryManager("config_files/items")
 {
     registerAction(SDLK_w, "UP");
     registerAction(SDLK_UP, "UP");
@@ -72,9 +71,12 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_F3, "TOGGLE_COLLISION");
     registerAction(SDLK_F4, "TOGGLE_INTERACTION");
     registerAction(SDLK_F5, "TOGGLE_TEXTURE");
-    registerAction(SDLK_1, "TP1");
-    registerAction(SDLK_2, "TP2");
-    registerAction(SDLK_3, "TP3");
+    registerAction(SDLK_1, "Slot1");
+    registerAction(SDLK_2, "Slot2");
+    registerAction(SDLK_3, "Slot3");
+    registerAction(SDLK_7, "TP1");
+    registerAction(SDLK_8, "TP2");
+    registerAction(SDLK_9, "TP3");
 
     loadConfig("config_files/config.txt");
     spawnPlayer();
@@ -87,9 +89,8 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     SpawnFromJSON("dwarf", Vec2{344, 60}*m_gridSize);
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
-    m_inventory_scene = std::make_shared<Scene_Inventory>(m_game);
 
-    SubscribeToStoryEvents();    
+    SubscribeToStoryEvents();
 }
 
 void Scene_Play::SubscribeToStoryEvents(){
@@ -166,7 +167,7 @@ void Scene_Play::saveGame(const std::string& filename)
     saveFile.close();
 }
 
-void Scene_Play::sDoAction(const Action& action) {
+void Scene_Play::sDoAction(const Action& action){
     if ( action.type() == "START")
     {
         if ( action.name() == "TOGGLE_TEXTURE") {
@@ -176,16 +177,9 @@ void Scene_Play::sDoAction(const Action& action) {
         } else if ( action.name() == "TOGGLE_INTERACTION") { 
             m_drawInteraction = !m_drawInteraction; 
         } else if ( action.name() == "PAUSE") { 
-            setPaused( !m_pause || m_inventoryOpen );
+            togglePause();
         } else if ( action.name() == "INVENTORY") { 
-            m_inventoryOpen = !m_inventoryOpen;
-            m_inventory_scene->toggleInventory();
-            setPaused( !m_pause || m_inventoryOpen );
-        } else if ( action.name() == "SCROLL"){
-            if ( m_inventoryOpen )
-            {
-                m_inventory_scene->Scroll(m_mouseState.scroll);
-            }
+            std::cout << "toggle inventory" << std::endl;
         } else if ( action.name() == "ZOOM IN"){
             m_camera.stepCameraZoom(-1, m_game->getScale());
         } else if ( action.name() == "ZOOM OUT"){
@@ -206,16 +200,22 @@ void Scene_Play::sDoAction(const Action& action) {
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, m_levelPath, true), true);
         } else if ( action.name() == "KILL_PLAYER") { 
             m_ECS.getComponent<CHealth>(m_player).HP = 0;
+        } else if ( action.name() == "Slot1") { 
+            updateActiveItem(0);
+        } else if ( action.name() == "Slot2") { 
+            updateActiveItem(1);
+        } else if ( action.name() == "Slot3") { 
+            updateActiveItem(2);
         }
-        if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = true; }
-        if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = true;}
-        if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = true; }
-        if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = true; }
-        if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = true; }
-        if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = true; }
-        if ( action.name() == "INTERACT" ) { m_ECS.getComponent<CInputs>(m_player).interact = true; }
-        if ( action.name() == "TAKE OVER" ) { m_ECS.getComponent<CInputs>(m_player).posses = true; }
-        if ( action.name() == "ATTACK" ) { m_ECS.getComponent<CInputs>(m_player).attack = true; }
+        if ( action.name() == "UP"){m_ECS.getComponent<CInputs>(m_player).up = true;}
+        if ( action.name() == "DOWN"){m_ECS.getComponent<CInputs>(m_player).down = true;}
+        if ( action.name() == "LEFT"){m_ECS.getComponent<CInputs>(m_player).left = true;}
+        if ( action.name() == "RIGHT"){m_ECS.getComponent<CInputs>(m_player).right = true;}
+        if ( action.name() == "SHIFT"){m_ECS.getComponent<CInputs>(m_player).shift = true;}
+        if ( action.name() == "CTRL"){m_ECS.getComponent<CInputs>(m_player).ctrl = true;}
+        if ( action.name() == "INTERACT" ){m_ECS.getComponent<CInputs>(m_player).interact = true;}
+        if ( action.name() == "TAKE OVER" ){m_ECS.getComponent<CInputs>(m_player).posses = true;}
+        if ( action.name() == "ATTACK" ){m_ECS.getComponent<CInputs>(m_player).attack = true;}
     }
     else if ( action.type() == "END")
     {
@@ -238,6 +238,35 @@ void Scene_Play::sDoAction(const Action& action) {
         //     m_physics.m_quadRoot->printTree("", "");
         // }
     }
+    else if ( action.name() == "SCROLL"){
+        const CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
+        int size = inventory.items.size();
+        const int index = inventory.activeItem.index; 
+        int newIndex = (index+getMouseState().scroll+size*10) % size;
+        updateActiveItem(newIndex);
+    }
+}
+
+void Scene_Play::updateActiveItem(int newIndex){
+    CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
+    inventory.activeItem = inventory.items[newIndex];
+    Item& activeItem = inventory.activeItem;
+
+    m_ECS.removeComponent<CWeapon>(m_player);
+
+    switch (activeItem.type)
+    {
+    case ItemType::WeaponMelee:
+        m_ECS.addComponent<CWeapon>(m_player, activeItem.damage, 60, 180, WeaponType::Melee);
+        break;
+    case ItemType::WeaponRanged:
+        m_ECS.addComponent<CWeapon>(m_player, activeItem.damage, 60, 180, WeaponType::Projectile);
+        break;
+    case ItemType::Consumable:
+        std::cout << "Consumable" << std::endl;
+        // useConsumable(activeItem);
+        break;
+    }
 }
 
 void Scene_Play::update() 
@@ -246,7 +275,6 @@ void Scene_Play::update()
     if (!m_pause) 
     {
         sLoader();
-        sScripting();
         sAttack();
         sMovement();
         sStatus();
@@ -257,7 +285,6 @@ void Scene_Play::update()
         m_currentFrame++;
     }
     sRender();
-    m_inventory_scene->update();
     m_ECS.update();
     m_rendererManager.update();
     if (m_restart){
@@ -274,18 +301,6 @@ void Scene_Play::sLoader()
 {
     Vec2 playerPosition = m_ECS.getComponent<CTransform>(m_player).pos;
     m_levelLoader.update(playerPosition);
-}
-
-void Scene_Play::sScripting() 
-{
-    auto view = m_ECS.View<CScript>();
-    auto& scriptPool = m_ECS.getComponentPool<CScript>();
-    for ( auto e : view ) 
-    {
-        auto& sc = scriptPool.getComponent(e);
-        sc.Instance->OnUpdateFunction();
-        // memory leak, destroy
-    }
 }
 
 void Scene_Play::sMovement() {
@@ -367,25 +382,36 @@ void Scene_Play::sMovement() {
 
 void Scene_Play::sAttack(){
     ComponentPool<CTransform>& transformPool = m_ECS.getComponentPool<CTransform>();
+    ComponentPool<CVelocity>& velocityPool = m_ECS.getComponentPool<CVelocity>();
     ComponentPool<CInputs>& inputPool = m_ECS.getComponentPool<CInputs>();
-    ComponentPool<CEquippedWeapon>& equippedWeaponPool = m_ECS.getComponentPool<CEquippedWeapon>();
     ComponentPool<CWeapon>& weaponPool = m_ECS.getComponentPool<CWeapon>();
 
-    std::vector<EntityID> viewAttack = m_ECS.View<CInputs, CEquippedWeapon, CTransform>();
-    for (EntityID e : viewAttack){
-        CTransform& transform = transformPool.getComponent(e);
-        CInputs& inputs = inputPool.getComponent(e);
-        CEquippedWeapon& weaponID = equippedWeaponPool.getComponent(e);
+    std::vector<EntityID> viewAttack = m_ECS.View<CInputs, CWeapon, CVelocity, CTransform>();
+    for (EntityID id : viewAttack){
+        CTransform& transform = transformPool.getComponent(id);
+        CVelocity& velocity = velocityPool.getComponent(id);
+        CInputs& inputs = inputPool.getComponent(id);
+        CWeapon& weapon = weaponPool.getComponent(id);
 
         if (!inputs.attack){
             continue;
         }
-        CWeapon weapon = weaponPool.getComponent(weaponID.weaponID);
-        Vec2 weaponPosition = transformPool.getComponent(weaponID.weaponID).pos;
-        Vec2 projectileVelocity = getMousePosition()-weaponPosition+getCameraPosition();
-
-        if (weapon.weaponType == WeaponType::Projectile){
-            spawnProjectile(weaponPosition, projectileVelocity);
+        Vec2 position = transformPool.getComponent(m_player).pos;
+        Vec2 direction = velocityPool.getComponent(m_player).vel;
+        if (id == m_player){
+            direction = (getMousePosition()-position+getCameraPosition()).norm();
+        }
+        switch (weapon.weaponType)
+        {
+        case WeaponType::Melee:
+            spawnHitbox(position, direction);
+            break;
+        case WeaponType::Projectile:
+            spawnProjectile(position, direction);
+            break;
+        case WeaponType::AoE:
+            spawnHitbox(position, direction);
+            break;
         }
         inputs.attack = false;
     }
@@ -442,6 +468,7 @@ void Scene_Play::sStatus() {
         spawnCoin(transform.pos, 6);
         m_ECS.queueRemoveEntity(entityID);
         m_ECS.addComponent<CAudio>(entityID, "enemy_death");
+        Emit(Event{EventType::EntityKilled, m_ECS.getComponent<CName>(entityID).name});
     }
 }
 
@@ -457,15 +484,15 @@ void Scene_Play::sAnimation() {
         auto& state = statePool.getComponent(e);
         auto& animation = animationPool.getComponent(e).animation;
         if( velocity.vel.isNull() ) {
-            changePlayerStateTo(e, PlayerState::STAND);
+            changePlayerState(e, PlayerState::STAND);
         } else if( velocity.vel.mainDir().x > 0 ) {
-            changePlayerStateTo(e, PlayerState::RUN_RIGHT);
+            changePlayerState(e, PlayerState::RUN_RIGHT);
         } else if(velocity.vel.mainDir().x < 0) {
-            changePlayerStateTo(e, PlayerState::RUN_LEFT);
+            changePlayerState(e, PlayerState::RUN_LEFT);
         } else if(velocity.vel.mainDir().y > 0) {
-            changePlayerStateTo(e, PlayerState::RUN_DOWN);
+            changePlayerState(e, PlayerState::RUN_DOWN);
         } else if(velocity.vel.mainDir().y < 0) {
-            changePlayerStateTo(e, PlayerState::RUN_UP);
+            changePlayerState(e, PlayerState::RUN_UP);
         }
         // // change player animation
         if (state.changeAnimate) {
@@ -584,6 +611,7 @@ void Scene_Play::sRender() {
             m_camera.position
         );
     }
+
     if (m_drawInteraction)
     {
         m_interactionManager.renderQuadtree(
@@ -592,6 +620,29 @@ void Scene_Play::sRender() {
             screenCenter * m_camera.getCameraZoom(), 
             m_camera.position
         );
+    }
+    
+    // render player inventory
+    Animation invAni = getAnimation("inventory");
+        invAni.setScale(Vec2{1, 1} * windowScale);
+        invAni.setDestRect(Vec2{width()/2*windowScale-invAni.getDestSize().x/2, 0});
+        spriteRender(invAni);
+    auto& items = m_ECS.getComponent<CInventory>(m_player).items;
+    auto activeItemIndex = m_ECS.getComponent<CInventory>(m_player).activeItem.index;
+    int slotIndex = -1;
+    for (Item& item: items){
+        slotIndex++;
+        if (item.index==activeItemIndex){
+            Animation activeItemAni = getAnimation("activeItemInventory");
+            activeItemAni.setScale(Vec2{1, 1} * windowScale);
+            activeItemAni.setDestRect(Vec2{(width()/2+slotIndex*32)*windowScale-invAni.getDestSize().x/2, 0});
+            spriteRender(activeItemAni);
+        }
+        if (item.id==-1){continue;}
+        Animation itemAnim = getAnimation(item.iconPath);
+        itemAnim.setScale(Vec2{1, 1} * windowScale);
+        itemAnim.setDestRect(Vec2{(width()/2+slotIndex*32)*windowScale-invAni.getDestSize().x/2, 0});
+        spriteRender(itemAnim);
     }
 }
 
@@ -633,7 +684,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     
     m_ECS.addComponent<CName>(id, name);
     if (components.contains("CTransform")){
-        m_ECS.addComponent<CTransform>(id, pos);
+
+        components["CTransform"]["pos"] = {{"x", pos.x}, {"y", pos.y}};
+        m_ECS.addComponent<CTransform>(id, components["CTransform"]);
     }
     if (components.contains("CVelocity")){
         m_ECS.addComponent<CVelocity>(id, components["CVelocity"]);
@@ -651,21 +704,21 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         );
         m_rendererManager.addEntityToLayer(id, components["CAnimation"]["layer"]);
     }
-    if (components.contains("CScript")){
-        auto& sc = m_ECS.addComponent<CScript>(id);
-        std::string controllerType = components["CScript"].get<std::string>();
-        if        (controllerType == "NPCController"){
-            InitiateScript<NPCController>(sc, id);
-        } else if (controllerType == "WeaponController"){
-            InitiateScript<WeaponController>(sc, id);
-        } else if (controllerType == "PlayerController"){
-            InitiateScript<PlayerController>(sc, id);
-        } else if (controllerType == "RooterController"){
-            InitiateScript<RooterController>(sc, id);
-        } else if (controllerType == "ProjectileController"){
-            InitiateScript<ProjectileController>(sc, id);
-        }
-    }
+    // if (components.contains("CScript")){
+    //     auto& sc = m_ECS.addComponent<CScript>(id);
+    //     std::string controllerType = components["CScript"].get<std::string>();
+    //     if        (controllerType == "NPCController"){
+    //         InitiateScript<NPCController>(sc, id);
+    //     } else if (controllerType == "WeaponController"){
+    //         InitiateScript<WeaponController>(sc, id);
+    //     } else if (controllerType == "PlayerController"){
+    //         InitiateScript<PlayerController>(sc, id);
+    //     } else if (controllerType == "RooterController"){
+    //         InitiateScript<RooterController>(sc, id);
+    //     } else if (controllerType == "ProjectileController"){
+    //         InitiateScript<ProjectileController>(sc, id);
+    //     }
+    // }
     if (components.contains("CState")){
         m_ECS.addComponent<CState>(id);
     }
@@ -681,6 +734,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     }
     if (components.contains("CPossesLevel")){
         m_ECS.addComponent<CPossesLevel>(id, 10);
+    }
+    if (name == "rooter"){
+        m_ECS.addComponent<CWeapon>(id, 1, 60, 180, WeaponType::Melee);
     }
     return id;
 }
@@ -782,8 +838,7 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
     
-    // auto& sc= m_ECS.addComponent<CScript>(entityID);
-    // InitiateScript<PlayerController>(sc, entityID);
+    m_ECS.addComponent<CInventory>(entityID);
     return entityID;
 }
 
@@ -804,39 +859,36 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
     Vec2 midGrid = gridToMidPixel(pos, entityID);
     m_ECS.addComponent<CTransform>(entityID, midGrid);
     m_ECS.addComponent<CVelocity>(entityID);
+    m_ECS.addComponent<CItem>(entityID, 1);
     
     CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
-
     m_ECS.addComponent<CName>(entityID, weaponName);
     m_ECS.addComponent<CAnimation>(entityID, getAnimation("staff"));
     m_rendererManager.addEntityToLayer(entityID, layer);
     m_ECS.addComponent<CWeapon>(entityID);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
-    auto& sc = m_ECS.addComponent<CScript>(entityID);
-    InitiateScript<WeaponController>(sc, entityID);
     return entityID;
 }
 
 EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
-    auto entity = m_ECS.addEntity();
+    auto id = m_ECS.addEntity();
     int layer = 7;
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid);
-    m_ECS.addComponent<CVelocity>(entity, m_playerConfig.SPEED);
+    Vec2 midGrid = gridToMidPixel(pos, id);
+    m_ECS.addComponent<CTransform>(id, midGrid);
+    m_ECS.addComponent<CVelocity>(id, m_playerConfig.SPEED);
+    m_ECS.addComponent<CItem>(id, 2);
     
     CollisionMask interactionMask = PLAYER_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
+    m_ECS.addComponent<CInteractionBox>(id, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
     
-    m_ECS.addComponent<CName>(entity, "sword");
-    m_ECS.addComponent<CAnimation>(entity, getAnimation("sword"));
-    m_rendererManager.addEntityToLayer(entity, 5);
-    // m_ECS.addComponent<CDamage>(entity, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
-    m_ECS.addComponent<CWeapon>(entity);
-    spawnShadow(entity, Vec2{0,0}, 1, layer-1);
-    auto& sc = m_ECS.addComponent<CScript>(entity);
-    InitiateScript<WeaponController>(sc, entity);
-    return entity;
+    m_ECS.addComponent<CName>(id, "sword");
+    m_ECS.addComponent<CAnimation>(id, getAnimation("sword"));
+    m_rendererManager.addEntityToLayer(id, 5);
+    // m_ECS.addComponent<CDamage>(id, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
+    m_ECS.addComponent<CWeapon>(id);
+    spawnShadow(id, Vec2{0,0}, 1, layer-1);
+    return id;
 }
 
 EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animationName){
@@ -908,6 +960,7 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
     m_ECS.addComponent<CAnimation>(entity, getAnimation("coin"));
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CTransform>(entity, pos);
+    m_ECS.addComponent<CItem>(entity, 0);
     CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8, 8}, LOOT_LAYER, interactionMask);
     spawnShadow(entity, Vec2{0,0}, 1, layer-1);
@@ -915,24 +968,33 @@ EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 }
 
 EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
-    {
-        auto id = m_ECS.addEntity();
-        // std::cout << "projectile spawned with id: " << id << std::endl;
-        int layer = 8;
-
-        m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("fireball"), true, layer);
-        m_rendererManager.addEntityToLayer(id, layer);
-        m_ECS.addComponent<CTransform>(id, startPos, vel.angle());
-        m_ECS.addComponent<CVelocity>(id, vel, 200.0f);
-        m_ECS.addComponent<CDamage>(id, 1);
-        m_ECS.getComponent<CDamage>(id).damageType = {"Fire", "Explosive"};
-        CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
-        m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
-        m_ECS.addComponent<CLifespan>(id, 60);
-
-        // spawnShadow(id, Vec2{0,0}, 1, layer-1);
-        return id;
-    }
+{
+    auto id = m_ECS.addEntity();
+    int layer = 8;
+    m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("fireball"), true, layer);
+    m_rendererManager.addEntityToLayer(id, layer);
+    m_ECS.addComponent<CTransform>(id, startPos, vel.angle());
+    m_ECS.addComponent<CVelocity>(id, vel, 200.0f);
+    m_ECS.addComponent<CDamage>(id, 1);
+    m_ECS.getComponent<CDamage>(id).damageType = {"Fire", "Explosive"};
+    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
+    m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
+    m_ECS.addComponent<CLifespan>(id, 60);
+    // spawnShadow(id, Vec2{0,0}, 1, layer-1);
+    return id;
+}
+EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction)
+{
+    auto id = m_ECS.addEntity();
+    int layer = 10;
+    m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("sword"), true, layer);
+    m_rendererManager.addEntityToLayer(id, layer);
+    m_ECS.addComponent<CTransform>(id, position+direction*8, direction.angle());
+    m_ECS.addComponent<CDamage>(id, 1);
+    m_ECS.addComponent<CCollisionBox>(id, Vec2{24, 24}, PROJECTILE_LAYER, ENEMY_LAYER);
+    m_ECS.addComponent<CLifespan>(id, 15);
+    return id;
+}
 
 std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
 {   
@@ -964,7 +1026,7 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_
     return entityIDs;
 }
 
-void Scene_Play::changePlayerStateTo(EntityID entity, PlayerState s) {
+void Scene_Play::changePlayerState(EntityID entity, PlayerState s) {
     auto& prev = m_ECS.getComponent<CState>(entity).preState; 
     if (prev != s) {
         prev = m_ECS.getComponent<CState>(entity).state;
@@ -974,29 +1036,6 @@ void Scene_Play::changePlayerStateTo(EntityID entity, PlayerState s) {
     else { 
         m_ECS.getComponent<CState>(entity).changeAnimate = false;
     }
-}
-
-template<typename T>
-void Scene_Play::InitiateScript(CScript& sc, EntityID entityID){
-    sc.Bind<T>();
-    sc.Instance = sc.InstantiateScript();
-    sc.Instance->m_entity = {entityID, &m_ECS};
-    sc.Instance->m_ECS = &m_ECS;
-    sc.Instance->m_physics = &m_physics;
-    sc.Instance->m_game = m_game;
-    sc.Instance->m_scene = this;
-    sc.Instance->OnCreateFunction();
-}
-
-void Scene_Play::InitiateProjectileScript(CScript& sc, EntityID entityID){
-    sc.Bind<ProjectileController>();
-    sc.Instance = sc.InstantiateScript();
-    sc.Instance->m_entity = {entityID, &m_ECS};
-    sc.Instance->m_ECS = &m_ECS;
-    sc.Instance->m_physics = &m_physics;
-    sc.Instance->m_game = m_game;
-    sc.Instance->m_scene = this;
-    sc.Instance->OnCreateFunction();
 }
 
 void Scene_Play::onEnd() {
@@ -1019,10 +1058,6 @@ void Scene_Play::setPaused(bool pause) {
 
 void Scene_Play::togglePause() {
     m_pause = !m_pause;
-}
-
-Vec2 Scene_Play::gridSize(){
-    return m_gridSize;
 }
 
 Vec2 Scene_Play::getCameraPosition() {

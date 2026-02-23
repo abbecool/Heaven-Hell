@@ -40,7 +40,8 @@
             "rooter-sheet.png",
             "golem-sheet.png",
             "inventory.png",
-            "inventory_open.png"
+            "inventory_open.png",
+            "activeItemInventory.png"
         ]
     },
     "animations": [
@@ -172,6 +173,15 @@
         },
         {
             "name": "inventory_open",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 160,
+            "height": 160
+        },
+        {
+            "name": "activeItemInventory",
             "frames": 1,
             "frametime": 100,
             "cols": 1,

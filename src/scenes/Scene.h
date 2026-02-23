@@ -37,7 +37,6 @@ class Scene
 
     Camera m_camera;
     Vec2 m_mousePosition;
-    int m_mouseScroll;
     MouseState m_mouseState;
     bool m_drawTextures = true;
     bool m_drawCollision = false;

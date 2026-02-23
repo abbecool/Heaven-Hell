@@ -1,0 +1,11 @@
+{
+    "sword": {
+        "id": 2,
+        "name": "sword",
+        "description": "A weak sword.",
+        "iconPath": "sword",
+        "maxStack": 1,
+        "type": "WeaponMelee",
+        "damage": 2
+    }
+}

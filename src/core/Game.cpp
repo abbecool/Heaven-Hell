@@ -227,40 +227,42 @@ void Game::setHeight(int height)
 void Game::sUserInput()
 {
     SDL_Event event;
+    currentScene()->updateMouseScroll(0);
     while ( SDL_PollEvent( &event ) )
     {
         if (SDL_QUIT == event.type){
             quit();
         }
+        ActionMap actionMap = currentScene()->getActionMap();
         if(event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) { 
-            if (currentScene()->getActionMap().find(event.key.keysym.sym) == currentScene()->getActionMap().end()) {
+            SDL_Keycode key = event.key.keysym.sym;
+            if (actionMap.find(key) == actionMap.end()) {
                 continue;
             }
             const std::string actionType = (event.type == SDL_KEYDOWN) ? "START" : "END";
             // look up the action and send the action to the scene
-            currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.keysym.sym), actionType));
+            currentScene()->doAction(Action(actionMap.at(key), actionType));
         }
-        if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP){
+        else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP){
             // Map the mouse button to an action, if needed (assuming you have mappings)
-            if (currentScene()->getActionMap().find(event.button.button) == currentScene()->getActionMap().end()) {
+            if (actionMap.find(event.button.button) == actionMap.end()) {
                 continue;
             }
             const std::string actionType = (event.type == SDL_MOUSEBUTTONDOWN ) ? "START" : "END";
             // look up the action and send the action to the scene  
-            currentScene()->doAction(Action(currentScene()->getActionMap().at(event.button.button), actionType));
+            currentScene()->doAction(Action(actionMap.at(event.button.button), actionType));
         }
-        if (event.type == SDL_MOUSEMOTION){
+        else if (event.type == SDL_MOUSEMOTION){
             currentScene()->updateMousePosition(Vec2{float(event.motion.x),float(event.motion.y)}/getScale());
         }
-
         // Mouse scroll wheel handling
-        if (event.type == SDL_MOUSEWHEEL) {
-            const std::string actionType = (event.type == SDL_MOUSEBUTTONDOWN ) ? "START" : "END";
+        else if (event.type == SDL_MOUSEWHEEL) {
             currentScene()->updateMouseScroll(event.wheel.y);
             // Determine scroll direction: up or down
-            if (currentScene()->getActionMap().find(event.wheel.direction) != currentScene()->getActionMap().end()) {
-                currentScene()->doAction(Action(currentScene()->getActionMap().at(event.wheel.direction), "START"));
+            if (actionMap.find(event.wheel.direction) == actionMap.end()) {
+                continue;
             }
+            currentScene()->doAction(Action(actionMap.at(event.wheel.direction), ""));
         }
     }
 }

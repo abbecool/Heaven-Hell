@@ -13,17 +13,17 @@ void handlePlayerEnemyCollision(Entity player, Entity enemy, Vec2 overlap){
 }
 
 void handleFriendlyObstacleCollision(Entity friendly, Entity obstacle, Vec2 overlap){
-    
+    friendly.getComponent<CTransform>().pos += overlap;
 }
 
 void handleProjectileObstacleCollision(Entity projectile, Entity obstacle, Vec2 overlap){
-    // projectile.getComponent<CScript>().Instance->OnDestroyFunction();
     projectile.removeEntity();
 }
 
 void handleEnemyProjectileCollision(Entity enemy, Entity projectile, Vec2 overlap){
-    projectile.getComponent<CScript>().Instance->OnDestroyFunction();
-    projectile.getComponent<CScript>().Instance->OnAttackFunction(enemy.getID());
+    int damage = projectile.getComponent<CDamage>().damage;
+    enemy.getComponent<CHealth>().HP -= damage;
+    projectile.removeEntity();
 }
 
 void handleEnemyEnemyCollision(Entity enemyA, Entity enemyB, Vec2 overlap){
@@ -241,7 +241,13 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
 }
 
 void InteractionManager::handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap){
-    std::cout << "handlePlayerEnemy" << std::endl;
+    if (!enemy.hasComponent<CWeapon>()){
+        return;
+    }
+    int damage = enemy.getComponent<CWeapon>().damage;
+    Vec2 position = enemy.getComponent<CTransform>().pos;
+    Vec2 playerPosition = player.getComponent<CTransform>().pos;
+    m_scene->spawnHitbox(position, position-playerPosition);
     return;
 }
 
@@ -264,27 +270,7 @@ bool InteractionManager::talkToNPC(Entity player, Entity friendly){
     }
     m_scene->Emit(Event{EventType::DialogueFinished, name});
     return true;
-}
-
-    // std::string dialog;
-    // if (currentQuestID == 0) {
-    //     m_scene->getStoryManager().setFlag("talked_to_wizard", true);
-    //     std::string name = friendly.getComponent<CName>().name;
-    //     m_scene->Emit(Event{EventType::DialogueFinished, name});
-    //     dialog = "Go and look for the staff!";
-    // }
-    // else if (currentQuestID == 1) {
-    //     dialog = "Have you found the staff yet?";
-    // }
-    // else if (currentQuestID == 2) {
-    //     dialog = "Have you found you're home?";
-    // }
-    // else
-    // {
-    //     dialog = "I am a wizard, what are you?";
-    // }
-
-    
+} 
 
 bool InteractionManager::possesNPC(Entity player, Entity friendly){
     
@@ -331,6 +317,22 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
         return;
     }
     std::string name = loot.getComponent<CName>().name;
+    int itemID = loot.getComponent<CItem>().itemID;
+    Item item = m_scene->getInventoryManager().getItem(itemID);
+    auto& inventory = player.getComponent<CInventory>();
+    auto& activeItem = inventory.activeItem;
+    for (auto& slot : inventory.items) {
+        if (slot.id != -1) { // Assuming -1 means empty slot
+            continue;
+        }
+        int index = slot.index;
+        slot = item;
+        slot.index = index;
+        if (index == activeItem.index){
+            m_scene->updateActiveItem(index);
+        }
+        break;
+    }
     m_scene->Emit(Event{EventType::ItemPickedUp, name});
     return;
 }
@@ -359,6 +361,9 @@ InteractionManager::InteractionManager(ECS* ecs, Scene_Play* scene){
     registerHandler(PLAYER_LAYER, AREA_LAYER, 
         [this](Entity a, Entity b, Vec2 overlap) {handlePlayerArea(a, b, overlap);}
     );
+    // registerHandler(PLAYER_LAYER, AREA_LAYER, 
+    //     [this](Entity a, Entity b, Vec2 overlap) {handlePlayerArea(a, b, overlap);}
+    // );
 }
 
 void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize){

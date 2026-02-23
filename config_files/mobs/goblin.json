@@ -1,13 +1,7 @@
 {
     "goblin": {
-        "dialog": [
-            {"quest":0, "text":"Go and look for the staff!"},
-            {"quest":1, "text":"Have you found the staff yet?"},
-            {"quest":2, "text":"Have you found you're home?"},
-            {"quest":3, "text":"I am a wizard, what are you?"}
-        ],
         "components": {
-            "CTransform": "Nan",
+            "CTransform": {"pos": "Nan"},
             "CVelocity": {"speed": 50},
             "CAnimation": {
                 "animation": "goblin-sheet",
@@ -18,7 +12,7 @@
                 "layer": "ENEMY_LAYER", 
                 "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
             },
-            "CState": "Nan",
+            "CState": {"state": "Nan"},
             "CScript": "RooterController",
 
             "CPathfind": "Nan",

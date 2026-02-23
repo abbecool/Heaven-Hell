@@ -1,6 +1,7 @@
 #pragma once
 
 #include "assets/Animation.h"
+#include "physics/InventoryManager.hpp"
 #include "story/EventBus.h"
 
 #include <memory>
@@ -66,7 +67,6 @@ struct CProjectile
     CProjectile(EntityID p) : projectileID(p){}
 };
 
-
 struct CInputs
 {
     bool up         = false;
@@ -99,8 +99,8 @@ struct CTransform
         : pos(p), prevPos(p), angle(a), scale(s){}
     CTransform(const Vec2 & p, Vec2 s)
         : pos(p), prevPos(p), scale(s){}
-
-    
+    CTransform(const json j)
+        : pos(j["pos"]), prevPos(j["pos"]) {}
 };
 
 struct CVelocity
@@ -152,7 +152,7 @@ struct CBox
     }
 };
 
-struct CCollisionBox : public CBox 
+struct CCollisionBox : public CBox
 {
     CCollisionBox() {}
     CCollisionBox(const Vec2& s) 
@@ -187,11 +187,12 @@ struct CWater {
         : isDeep(d) {}
 };
 
-struct CSwimming
+struct CCurrency
 {
-    bool isSwimming = false;
-    float swimSpeedMultiplier = 0.5f;
-    CSwimming() {}    
+    int value = 1;
+    CCurrency() {}    
+    CCurrency(const json j) 
+        : value(j["value"]){}    
 };
 
 struct CHealth
@@ -324,7 +325,6 @@ struct CText
 struct CPossesLevel
 {
     int level = 10;
-
     CPossesLevel() {}
     CPossesLevel(int l)
         : level(l) {}
@@ -333,10 +333,28 @@ struct CPossesLevel
 struct CPathfind
 {
     Vec2 target;
-
     CPathfind() {}
     CPathfind( Vec2 trg)
         : target(trg){}
+};
+
+struct CItem{
+    int itemID;
+    CItem(int id)
+        : itemID(id) {}
+};
+
+struct CInventory{
+    Item activeItem;
+    std::array<Item, 3> items;
+    CInventory() {
+        activeItem.index = 0;
+        int index = 0;
+        for (Item& item: items){
+            item.index = index;
+            index++;
+        }
+    }
 };
 
 struct CKnockback
@@ -359,15 +377,18 @@ enum struct WeaponType {
 
 struct CWeapon
 {
-    Animation animation;
-    int damage;
-    int speed;
-    int range;
+    // Animation animation;
+    int damage = 1;
+    int speed = 60;
+    int range = 180;
     WeaponType weaponType = WeaponType::Projectile;
 
     CWeapon() {}
-    CWeapon(const Animation& animation, int damage, int speed, int range)
-                : animation(animation), damage(damage), speed(speed), range(range){}
+    CWeapon(int damage, int speed, int range)
+                : damage(damage), speed(speed), range(range){}
+    
+    CWeapon(int damage, int speed, int range, WeaponType type)
+                : damage(damage), speed(speed), range(range), weaponType(type){}
 };
 
 struct CEvent

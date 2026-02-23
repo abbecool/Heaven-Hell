@@ -2,10 +2,10 @@
 
 #include "ecs/Components.h"
 #include "physics/CollisionManager.h"
+#include "physics/InventoryManager.hpp"
 #include "story/StoryManager.h"
 #include "physics/Camera.h"
 #include "scenes/Scene.h"
-#include "scenes/Scene_Inventory.h"
 #include "scenes/Scene_Pause.h"
 #include "scenes/Scene_Finish.h"
 #include "physics/Level_Loader.h"
@@ -36,14 +36,13 @@ class Scene_Play : public Scene
     
     CollisionManager m_collisionManager;
     InteractionManager m_interactionManager;
+    InventoryManager m_inventoryManager;
     StoryManager m_storyManager;
     LevelLoader m_levelLoader;
     EventBus m_eventBus;
-
+    
     float m_zoomStep = 2;
-    std::shared_ptr<Scene_Inventory> m_inventory_scene;
     Vec2 m_levelSize;
-    bool m_inventoryOpen = false;
     bool m_newGame;
     
     std::unordered_map<std::string, std::unordered_set<std::string>> m_damageToEnemyMap = {
@@ -60,11 +59,8 @@ class Scene_Play : public Scene
     void saveGame(const std::string& filename);
     
     EntityID spawnPlayer();
-    EntityID spawnNPC(Vec2 pos);
-    EntityID spawnDwarf(Vec2 pos);
     EntityID spawnWeapon(Vec2 pos, std::string weaponName = "staff");
     EntityID spawnSword(Vec2 pos, std::string weaponName = "sword");
-    EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
     EntityID spawnDecoration(
@@ -99,23 +95,29 @@ class Scene_Play : public Scene
     void sDoAction(const Action&);
     void onEnd();
     void togglePause();
-    void changePlayerStateTo(EntityID entity, PlayerState s);
+    void changePlayerState(EntityID entity, PlayerState s);
     
     
     public:
     template<typename T>
     void InitiateScript(CScript& sc, EntityID entityID);
     void InitiateProjectileScript(CScript& sc, EntityID entityID);
-
+    
     Scene_Play(Game* game, std::string path, bool newGame);
-    Vec2 gridSize();
     Vec2 getCameraPosition() override;
     
+    EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
+    EntityID spawnHitbox(Vec2 position, Vec2 size);
+    void updateActiveItem(int newActiveItem);
     void update();
     void setPaused(bool);
-
+    
     StoryManager& getStoryManager() {
         return m_storyManager;
+    }  
+    
+    InventoryManager& getInventoryManager() {
+        return m_inventoryManager;
     }  
 
     EntityID SpawnFromJSON(std::string name, Vec2 pos);
