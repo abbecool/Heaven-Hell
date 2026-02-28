@@ -155,16 +155,26 @@ void Scene_Play::loadConfig(const std::string& confPath){
 // Function to save the game state to a file
 void Scene_Play::saveGame(const std::string& filename) 
 {
-    std::ofstream saveFile(filename);
-    if ( !saveFile.is_open() ) 
-    {
-        std::cerr << "Unable to open file for saving!" << std::endl;
-        return;
-    }
     Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos;
-    saveFile << "Player_pos " << (int)(playerPos.x/m_gridSize.x) << " " << (int)(playerPos.y/m_gridSize.y) << std::endl; // TODO: long line to be replaced when saving to json
-    saveFile << "Player_hp " << m_ECS.getComponent<CHealth>(m_player).HP << std::endl;
-    saveFile.close();
+    int hp = m_ECS.getComponent<CHealth>(m_player).HP;
+
+    std::ofstream file("config_files/game_save.json");
+    if (!file) {
+        std::cerr << "Could not load json game save file!\n";
+        exit(-1);
+    }    
+    json save = {
+        {"player", {
+            {"position", {
+                {"x", int(playerPos.x / m_gridSize.x)},
+                {"y", int(playerPos.y / m_gridSize.y)}
+            }},
+            {"hp", hp}
+        }},
+        {"inventory", {1, 2}}
+    };
+    file << save.dump(4);
+    file.close();
 }
 
 void Scene_Play::sDoAction(const Action& action){
@@ -242,7 +252,7 @@ void Scene_Play::sDoAction(const Action& action){
         const CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
         int size = inventory.items.size();
         const int index = inventory.activeItem.index; 
-        int newIndex = (index+getMouseState().scroll+size*10) % size;
+        int newIndex = (index-getMouseState().scroll+size*10) % size;
         updateActiveItem(newIndex);
     }
 }
@@ -801,29 +811,23 @@ EntityID Scene_Play::spawnPlayer()
     int pos_y = m_playerConfig.y;
     int hp = m_playerConfig.HP;
     
+    json j;
     if (!m_newGame){
-        std::ifstream file("config_files/game_save.txt");
-        if (!file) {
-            std::cerr << "Could not load game_save.txt file!\n";
+        std::ifstream file_json("config_files/game_save.json");
+        if (!file_json) {
+            std::cerr << "Could not load game_save.json file!\n";
             exit(-1);
         }
 
-        std::string head;
-        while (file >> head) {
-            if (head == "Player_pos") {
-                file >> pos_x >> pos_y;
-            } else if (head == "Player_hp") {
-                file >> hp;
-            } else {
-                std::cerr << "The game save file format is incorrect!\n";
-                exit(-1);
-            }
-        }
+        file_json >> j;
+        file_json.close();
+        Vec2 pos = j["player"]["position"];
+        hp = j["player"]["hp"];        
     }
     
     Vec2 pos = Vec2{16*(float)pos_x, 16*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos, entityID);
-
+    
     m_ECS.addComponent<CTransform>(entityID, midGrid);
     m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
@@ -837,8 +841,20 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CInputs>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
-    
     m_ECS.addComponent<CInventory>(entityID);
+    
+    if (j.contains("inventory")){
+        auto& inventory = m_ECS.getComponent<CInventory>(entityID);
+        int i = 0;
+        for (int itemID : j["inventory"])
+        {
+            inventory.items[i] = m_inventoryManager.getItem(itemID);
+            inventory.items[i].index = i;
+            i++;
+        }
+        inventory.activeItem = inventory.items[0];
+    }
+
     return entityID;
 }
 
