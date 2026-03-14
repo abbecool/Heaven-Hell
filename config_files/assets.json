@@ -27,6 +27,7 @@
             "buttons/button_pressed.png",
             "game_title.png",
             "coin.png",
+            "emblem.png",
             "tree.png",
             "house.png",
             "staff.png",
@@ -215,6 +216,15 @@
             "rows": 1,
             "width": 16,
             "height": 16
+        },
+        {
+            "name": "emblem",
+            "frames": 4,
+            "frametime": 15,
+            "cols": 4,
+            "rows": 1,
+            "width": 32,
+            "height": 32
         },
         {
             "name": "coin",

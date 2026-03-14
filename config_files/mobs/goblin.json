@@ -15,7 +15,7 @@
             "CState": {"state": "Nan"},
             "CScript": "RooterController",
 
-            "CPathfind": "Nan",
+            "CFollow": "Nan",
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

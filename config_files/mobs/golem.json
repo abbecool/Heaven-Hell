@@ -18,7 +18,15 @@
                 "mask": ["PLAYER_LAYER"]
             },
             "CScript": "RooterController",
-            "CPathfind": "Nan",
+            "CFollow": "Nan",
+            "CPath": [
+                {"x": 388, "y": 76}, 
+                {"x": 380, "y": 72}, 
+                {"x": 372, "y": 75}, 
+                {"x": 374, "y": 82}, 
+                {"x": 376, "y": 86}, 
+                {"x": 386, "y": 82}
+            ],
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

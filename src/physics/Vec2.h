@@ -58,3 +58,9 @@ public:
     bool isPositive();
     bool isNegative();
 };
+
+inline void from_json(const nlohmann::json& j, Vec2& v)
+{
+    v.x = j.at("x").get<float>();
+    v.y = j.at("y").get<float>();
+}

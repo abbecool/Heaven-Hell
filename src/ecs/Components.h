@@ -330,12 +330,24 @@ struct CPossesLevel
         : level(l) {}
 };
 
-struct CPathfind
+struct CFollow
 {
     Vec2 target;
-    CPathfind() {}
-    CPathfind( Vec2 trg)
+    CFollow() {}
+    CFollow( Vec2 trg)
         : target(trg){}
+};
+
+struct CPath
+{
+    std::vector<Vec2> path;
+    int index = 0;
+    CPath() {}
+    CPath( std::vector<Vec2> p)
+        : path(p){}
+    CPath(json j){
+        path = j.get<std::vector<Vec2>>();
+    }
 };
 
 struct CItem{
