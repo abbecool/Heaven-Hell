@@ -76,7 +76,6 @@ class Scene_Play : public Scene
     EntityID spawnDirt      (const Vec2 pos, const int frame);
     EntityID spawnCampfire  (const Vec2 pos, int layer);
     EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
-    EntityID spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     std::vector<EntityID> spawnDualTiles(
         const Vec2 pos, 
         std::unordered_map<std::string, int> tileIndex
@@ -99,11 +98,7 @@ class Scene_Play : public Scene
     void changePlayerState(EntityID entity, PlayerState s);
     
     
-    public:
-    template<typename T>
-    void InitiateScript(CScript& sc, EntityID entityID);
-    void InitiateProjectileScript(CScript& sc, EntityID entityID);
-    
+    public:    
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 getCameraPosition() override;
     

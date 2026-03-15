@@ -31,7 +31,7 @@
       }
     },
     {
-      "id": 3,
+      "id": 4,
       "description": "Go to the house.",
       "trigger": {
         "event_type": "EnteredArea",

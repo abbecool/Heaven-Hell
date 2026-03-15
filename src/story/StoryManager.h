@@ -28,9 +28,10 @@ class StoryManager
     
     public:
     StoryManager() {};
-    StoryManager(Scene_Play* scene, std::string storyFilePath);
+    StoryManager(Scene_Play* scene, std::string storyFilePath, std::string questFilePath);
 
     void loadStory(const std::string& storyFilePath);
+    void loadQuests(const std::string& questsFilePath);
     int getCurrentQuestID();
     void setFlag(const std::string& flagName, bool value);
     void update();

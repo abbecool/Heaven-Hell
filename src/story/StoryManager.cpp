@@ -6,12 +6,49 @@
 #include "external/json.hpp"
 using json = nlohmann::json;
 
-StoryManager::StoryManager(Scene_Play* scene, std::string storyFilePath)
+StoryManager::StoryManager(Scene_Play* scene, std::string storyFilePath, std::string questFilePath)
 {
     m_scene = scene;
     loadStory(storyFilePath);
+    loadQuests(storyFilePath);
     loadDialogs("config_files/dialogs.json");
     m_currentQuest = m_storyQuests[m_questID];
+}
+
+void StoryManager::loadQuests(const std::string& questFilePath)
+{
+    std::ifstream file_assets(questFilePath);
+    if (!file_assets) {
+        std::cerr << "Could not load quests file!\n";
+        exit(-1);
+    }
+    json j;
+    file_assets >> j;
+    file_assets.close();
+
+    for (const auto& quest_json : j) {
+        Quest quest;
+        for (const auto& step : quest_json){
+            QuestStep stepQuest;
+            quest.id = step["id"].get<int>();
+            quest.name = step["description"];
+            
+            stepQuest.requiredType = getEventTypeFromString(step["trigger"]["event_type"].get<std::string>());
+    
+            stepQuest.requiredSubject = step["trigger"]["subject"].get<std::string>();
+            
+            quest.steps.push_back(stepQuest);
+    
+            if (step.contains("reaction")) {
+                quest.onComplete = Event{
+                    getEventTypeFromString(step["reaction"]["event_type"].get<std::string>()),
+                    step["reaction"]["subject"].get<std::string>(),
+                    Vec2(step["reaction"]["position"])
+                };
+            }
+        }
+        m_storyQuests.push_back(quest);
+    }
 }
 
 void StoryManager::loadStory(const std::string& storyFilePath)

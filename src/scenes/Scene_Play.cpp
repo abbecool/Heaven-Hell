@@ -36,7 +36,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_levelPath(levelPath), 
     m_collisionManager(&m_ECS, this), 
     m_interactionManager(&m_ECS, this), 
-    m_storyManager(this, "config_files/story.json"),
+    m_storyManager(this, "config_files/story.json", "config_files/quests.json"),
     m_levelLoader(this, m_gridSize, levelPath),
     m_newGame(newGame),
     m_inventoryManager("config_files/items")
