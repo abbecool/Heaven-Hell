@@ -1039,26 +1039,30 @@ EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction)
     return id;
 }
 
-std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
+std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::array<int, 5> tileTextures)
 {   
     std::vector<EntityID> entityIDs;
-    for (const auto& [tileKey, textureIndex] : tileTextureMap) {
-        std::string tile = tileKey;
+    // for (const auto& [tileKey, textureIndex] : tileTextures) {
+    for (int i = 0; i < tileTextures.size(); ++i) {
+        TileType tileKey = static_cast<TileType>(i);
+        int textureIndex = tileTextures[i];
         uint8_t layer = 3;
+        std::string tile_name = "grass";
         
-        if (tile == "water") {
+        if (tileKey == TileType::WATER) {
             layer = layer + 1;
-        } else if (tile == "dirt") {
+            tile_name = "water";
+        } else if (tileKey == TileType::DIRT) {
             layer = layer + 1;
-        } else if (tile == "cloud") {
+            tile_name = "dirt";
+        } else if (tileKey == TileType::OBSTACLE) {
             layer = layer + 1;
-        } else if (tile == "obstacle") {
-            layer = layer + 1;
-            tile = "mountain";// Change the tile name for "obstacle"
+            tile_name = "mountain";
         }
+
         EntityID entity = m_ECS.addEntity();
         entityIDs.push_back(entity);
-        m_ECS.addComponent<CAnimation>(entity, getAnimation(tile + "_dual_sheet"));
+        m_ECS.addComponent<CAnimation>(entity, getAnimation(tile_name + "_dual_sheet"));
         Vec2 tilePosition = Vec2{   (float)(textureIndex % 4), 
                                     (float)(int)(textureIndex / 4)};
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(tilePosition); 

@@ -78,11 +78,10 @@ class Scene_Play : public Scene
     EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
     std::vector<EntityID> spawnDualTiles(
         const Vec2 pos, 
-        std::unordered_map<std::string, int> tileIndex
+        std::array<int, 5> tileIndex
     );
     
     void sLoader();
-    void sScripting();
     void sAttack();
     void sMovement();
     void sInteraction();
