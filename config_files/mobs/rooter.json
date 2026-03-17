@@ -5,7 +5,7 @@
             "CVelocity": {"speed": 50},
             "CAnimation": {
                 "animation": "rooter-sheet",
-                "layer": 10
+                "layer": 9
             },
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 

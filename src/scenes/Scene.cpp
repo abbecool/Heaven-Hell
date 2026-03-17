@@ -28,6 +28,9 @@ void Scene::spriteRender(Animation &animation){
 }
 
 void Scene::sRenderBasic() {
+    if (!m_drawTextures){
+        return;
+    }
     Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
     int windowScale = m_game->getScale();
     int totalZoom = windowScale - m_camera.getCameraZoom(); // Combined zoom level with screen resolution and camera zoom
@@ -35,26 +38,24 @@ void Scene::sRenderBasic() {
     // Above code does not have to be calculated every frame
 
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    if (m_drawTextures){
-        auto& animationPool = m_ECS.getComponentPool<CAnimation>();
-        auto layers = m_rendererManager.getLayers();
-        for (const auto& layer : layers){
-            for (const auto& e : layer){                
-                if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e)){
-                    continue;
-                }
-                auto& transform = transformPool.getComponent(e);
-                auto& animation = animationPool.getComponent(e).animation;
-
-                // Adjust the entity's position based on the camera position
-                Vec2 adjustedPosition = (transform.pos - m_camera.position)*totalZoom 
-                                            + screenCenterZoomed;
-
-                animation.setScale(transform.scale * totalZoom);
-                animation.setAngle(transform.angle);
-                animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
-                spriteRender(animation);
+    auto& animationPool = m_ECS.getComponentPool<CAnimation>();
+    auto layers = m_rendererManager.getLayers();
+    for (const auto& layer : layers){
+        for (const auto& e : layer){                
+            if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e)){
+                continue;
             }
+            auto& transform = transformPool.getComponent(e);
+            auto& animation = animationPool.getComponent(e).animation;
+
+            // Adjust the entity's position based on the camera position
+            Vec2 adjustedPosition = (transform.pos - m_camera.position)*totalZoom 
+                                        + screenCenterZoomed;
+
+            animation.setScale(transform.scale * totalZoom);
+            animation.setAngle(transform.angle);
+            animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
+            spriteRender(animation);
         }
     }
 

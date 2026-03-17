@@ -78,3 +78,24 @@
   - Implement light sources & shadows
   - Create particle effects for magic & attacks
 
+### 6. Code improvements
+- **1. FPS Counter Rendering (HIGH Impact - 5-10% FPS Gain)**
+  - Issue: FPS text is rendered every frame with string concatenation, font lookups, and texture creation/destruction.
+  - Location: Game.cpp:130-176
+  - Fix: Cache the FPS texture and only update it when the value changes (5-minute effort).
+- **2. Scene Rendering Cache Miss (MEDIUM Impact - 8-15% FPS Gain)**
+  - Issue: Screen center, zoom, and layer data are recalculated every frame for hundreds of entities.
+  - Location: Scene.cpp:30-60
+  - Fix: Cache these values and only update when camera/window state changes (30-minute effort).
+- **3. ECS Component Pool Lookups (MEDIUM Impact - 10-20% FPS Gain)**
+  - Issue: Frequent type_index hash lookups in unordered_map for component access in hot paths.
+  - Location: ECS.hpp:180-210
+  - Fix: Cache pool pointers or use compile-time component IDs with direct array indexing (1-2 hour effort).
+- **4. Level Loading & Quadtree Inefficiencies (MEDIUM-HIGH Impact - 15-30% FPS + Memory Gain)**
+  - Issue: Entire pixel matrix loaded at once, shared_ptr overhead in quadtree, expensive vector operations.
+  - Location: Level_Loader.cpp:18-50, Quadtree.h:1-80
+  - Fix: Implement streaming chunk loading, replace shared_ptr with unique_ptr, optimize vector operations (2-3 hour effort).
+- **5. Excessive String/Memory Operations (MEDIUM Impact - 5-8% FPS Gain)**
+  - Issue: String concatenations, asset lookups by string, config duplication in hot paths.
+  - Location: Assets.h, Scene_Play.h:32-48
+  - Fix: Cache hot assets, use compile-time IDs instead of strings, consolidate configs data-driven (2-hour effort).

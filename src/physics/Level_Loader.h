@@ -4,8 +4,9 @@
 
 #include <SDL_image.h>
 #include <memory>
-#include <unordered_map>
 #include <vector>
+#include <deque>
+#include <array>
 
 using EntityID = uint32_t;
 
@@ -17,7 +18,7 @@ enum struct TileType {
     UNKNOWN = 4
 };
 
-using PixelMatrix = std::vector<std::vector<TileType>>;
+using PixelMatrix = std::vector<TileType>;
 
 class Scene_Play;
 class LevelLoader
@@ -32,14 +33,14 @@ private:
     Vec2 m_chunkSize = Vec2{12, 12};
     Vec2 m_levelSize;
     std::vector<Vec2> m_loadedChunks;
-    std::vector<Vec2> m_chunkQueue;
+    std::deque<Vec2> m_chunkQueue;
     std::vector<Vec2> m_neighboringChunks;
     std::vector<EntityID> m_loadedChunkIDs;
     
 public:
     LevelLoader(){}
     LevelLoader(Scene_Play* scene, const Vec2 gridSize, const std::string levelPath);
-    std::vector<std::vector<TileType>> m_pixelMatrix;
+    std::vector<TileType> m_pixelMatrix;
     std::array<bool, 4> neighborCheck(int x, int y, int width, int height);
     std::array<TileType, 4> neighborTag(int x, int y, int width, int height);
     int getObstacleTextureIndex(const std::array<bool, 4>& neighbors);

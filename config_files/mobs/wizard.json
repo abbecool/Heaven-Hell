@@ -15,7 +15,7 @@
             },
             "CAnimation": {
                 "animation": "wiz-sheet",
-                "layer": 10
+                "layer": 9
             },
             "CState": {"state": "Nan"},
             "CScript": "NPCController",

@@ -15,7 +15,7 @@
             },
             "CAnimation": {
                 "animation": "knight-sheet",
-                "layer": 10
+                "layer": 9
             },
             "CState": {"state": "Nan"},
             "CScript": "NPCController",

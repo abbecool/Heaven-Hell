@@ -302,6 +302,10 @@ void Scene_Play::update()
     sRender();
     m_ECS.update();
     m_rendererManager.update();
+    
+    // Debug: Print ECS entity counts
+    // std::cout << "ECS State: " << m_ECS.numberOfEntities() << std::endl;
+    
     if (m_restart){
         m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
         return;
@@ -561,6 +565,15 @@ void Scene_Play::sAnimation() {
 void Scene_Play::sRender() {
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
+    
+    // Debug: Print renderer layer sizes
+    // const auto& layers = m_rendererManager.getLayers();
+    // std::string totalEntitiesInLayers;
+    // for (const auto& layer : layers) {
+    //     totalEntitiesInLayers += ", " + std::to_string(layer.size());
+    // }
+    // std::cout << "Renderer Total Entities: " << totalEntitiesInLayers << " | Layers: " << layers.size() << std::endl;
+    
     sRenderBasic();
     
     int windowScale = m_game->getScale();
@@ -732,7 +745,8 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     if (components.contains("CAnimation")){
         m_ECS.addComponent<CAnimation>(id, 
             getAnimation(components["CAnimation"]["animation"]), 
-            components["CAnimation"]["animation"].get<std::string>()
+            components["CAnimation"]["animation"].get<std::string>(),
+            components["CAnimation"]["layer"]
         );
         m_rendererManager.addEntityToLayer(id, components["CAnimation"]["layer"]);
     }
@@ -800,23 +814,24 @@ EntityID Scene_Play::SpawnDialog(
     EntityID parentID
 )
 {
+    int layer = 8;
     auto id = m_ECS.addEntity();
     m_ECS.addComponent<CTransform>(id);
     m_ECS.addComponent<CChild>(parentID, id);
     Vec2 relativePosition = {0, -2*m_gridSize.y};
     m_ECS.addComponent<CParent>(id, parentID, relativePosition);
-    CAnimation& animation =  m_ECS.addComponent<CAnimation>(id, getAnimation("button_unpressed"));
+    CAnimation& animation =  m_ECS.addComponent<CAnimation>(id, getAnimation("button_unpressed"), layer);
     Vec2 animationSize = animation.animation.getSize();
     CText& text = m_ECS.addComponent<CText>(id, dialog, animationSize.y*0.9f, font);
     animation.animation.setScale(Vec2{2*animationSize.x, animationSize.y});
-    m_rendererManager.addEntityToLayer(id, 8);
+    m_rendererManager.addEntityToLayer(id, layer);
     m_ECS.addComponent<CLifespan>(id, 60);
     return id;
 }
 
 EntityID Scene_Play::spawnPlayer()
 {
-    uint8_t layer = 10;
+    uint8_t layer = 9;
     auto entityID = m_ECS.addEntity();
     m_player = entityID;
 
@@ -848,7 +863,7 @@ EntityID Scene_Play::spawnPlayer()
     CollisionMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER | AREA_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {4, 4}, PLAYER_LAYER, interactionMask);
     m_ECS.addComponent<CName>(entityID, "demon");
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("demon-sheet"));
+    m_ECS.addComponent<CAnimation>(entityID, getAnimation("demon-sheet"), layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
     m_ECS.addComponent<CInputs>(entityID);
@@ -876,7 +891,7 @@ EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int l
     // m_ECS.addComponent<CTransform>(shadowID);
     // m_ECS.getComponent<CTransform>(shadowID).scale *= size;
     // m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
-    // m_ECS.addComponent<CAnimation>(shadowID, getAnimation("shadow"));
+    // m_ECS.addComponent<CAnimation>(shadowID, getAnimation("shadow"), layer);
     // m_rendererManager.addEntityToLayer(shadowID, layer);
     // m_ECS.addComponent<CChild>(parentID, shadowID);
     return shadowID;
@@ -893,7 +908,7 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
     CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
     m_ECS.addComponent<CName>(entityID, weaponName);
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("staff"));
+    m_ECS.addComponent<CAnimation>(entityID, getAnimation("staff"), layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
     m_ECS.addComponent<CWeapon>(entityID);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
@@ -912,8 +927,8 @@ EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
     m_ECS.addComponent<CInteractionBox>(id, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
     
     m_ECS.addComponent<CName>(id, "sword");
-    m_ECS.addComponent<CAnimation>(id, getAnimation("sword"));
-    m_rendererManager.addEntityToLayer(id, 5);
+    m_ECS.addComponent<CAnimation>(id, getAnimation("sword"), layer);
+    m_rendererManager.addEntityToLayer(id, layer);
     // m_ECS.addComponent<CDamage>(id, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(id);
     spawnShadow(id, Vec2{0,0}, 1, layer-1);
@@ -925,7 +940,7 @@ EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t l
     
     Vec2 midGrid = gridToMidPixel(pos, id);
     m_ECS.addComponent<CTransform>(id, midGrid);
-    m_ECS.addComponent<CAnimation>(id, getAnimation(animationName));
+    m_ECS.addComponent<CAnimation>(id, getAnimation(animationName), layer);
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
     m_ECS.addComponent<CCollisionBox>(id, collisionBox, OBSTACLE_LAYER, collisionMask);
     m_ECS.addComponent<CName>(id, animationName);
@@ -965,7 +980,7 @@ EntityID Scene_Play::spawnDirt(const Vec2 pos, const int frame)
 EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity,getAnimation("campfire"));
+    m_ECS.addComponent<CAnimation>(entity,getAnimation("campfire"), layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid);
@@ -987,7 +1002,7 @@ EntityID Scene_Play::spawnEmblem(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();
     m_ECS.addComponent<CName>(entity, "emblem");
-    m_ECS.addComponent<CAnimation>(entity, getAnimation("emblem"));
+    m_ECS.addComponent<CAnimation>(entity, getAnimation("emblem"), layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CTransform>(entity, pos);
     m_ECS.addComponent<CItem>(entity, 0); // TODO: fix correct item here
@@ -1000,7 +1015,7 @@ EntityID Scene_Play::spawnEmblem(Vec2 pos, const size_t layer)
 EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, getAnimation("coin"));
+    m_ECS.addComponent<CAnimation>(entity, getAnimation("coin"), layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CTransform>(entity, pos);
     m_ECS.addComponent<CItem>(entity, 0);
@@ -1029,7 +1044,7 @@ EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
 EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction)
 {
     auto id = m_ECS.addEntity();
-    int layer = 10;
+    int layer = 9;
     m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("sword"), true, layer);
     m_rendererManager.addEntityToLayer(id, layer);
     m_ECS.addComponent<CTransform>(id, position+direction*8, direction.angle());
@@ -1046,6 +1061,9 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::array<int,
     for (int i = 0; i < tileTextures.size(); ++i) {
         TileType tileKey = static_cast<TileType>(i);
         int textureIndex = tileTextures[i];
+        if (textureIndex == 0) {
+            continue;
+        }
         uint8_t layer = 3;
         std::string tile_name = "grass";
         
@@ -1062,7 +1080,7 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::array<int,
 
         EntityID entity = m_ECS.addEntity();
         entityIDs.push_back(entity);
-        m_ECS.addComponent<CAnimation>(entity, getAnimation(tile_name + "_dual_sheet"));
+        m_ECS.addComponent<CAnimation>(entity, getAnimation(tile_name + "_dual_sheet"), layer);
         Vec2 tilePosition = Vec2{   (float)(textureIndex % 4), 
                                     (float)(int)(textureIndex / 4)};
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(tilePosition); 

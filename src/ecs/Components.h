@@ -220,8 +220,8 @@ struct CAnimation
 {
     Animation animation;
     std::string animation_name;
+    int layer;
     bool repeat = true;
-    int layer = 5;
     CAnimation() {}
     CAnimation(const Animation& animation)
                 : animation(animation){}
@@ -229,12 +229,14 @@ struct CAnimation
                 : animation_name(name){}
     CAnimation(const Animation& animation, std::string name)
                 : animation(animation), animation_name(name){}
-    CAnimation(const Animation& animation, bool r)
-                : animation(animation), repeat(r){}
+    // CAnimation(const Animation& animation, bool r)
+    //             : animation(animation), repeat(r){}
     CAnimation(const Animation& animation, bool r, int l)
             : animation(animation), repeat(r), layer(l){}
     CAnimation(const Animation& animation, int l)
             : animation(animation), layer(l){}
+    CAnimation(const Animation& animation, std::string name, int l)
+            : animation(animation), animation_name(name), layer(l){}
 };  
 
 struct CAudio
