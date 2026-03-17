@@ -78,7 +78,7 @@
   - Implement light sources & shadows
   - Create particle effects for magic & attacks
 
-### 6. Code improvements
+### 6. AI suggested code improvements
 - **1. FPS Counter Rendering (HIGH Impact - 5-10% FPS Gain)**
   - Issue: FPS text is rendered every frame with string concatenation, font lookups, and texture creation/destruction.
   - Location: Game.cpp:130-176
