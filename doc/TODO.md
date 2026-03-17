@@ -69,7 +69,7 @@
 - **Quest System**
   - Implement quest tracking UI
   - Add main and side quests
-  - Create a dialog system for NPCs
+  - Improve dialog system for NPCs
 
 ### 5. Improved Rendering & Visual Effects
 - **Layered Rendering System**
@@ -80,7 +80,8 @@
 
 ### 6. AI suggested code improvements
 - **1. FPS Counter Rendering (HIGH Impact - 5-10% FPS Gain)**
-  - Issue: FPS text is rendered every frame with string concatenation, font lookups, and texture creation/destruction.
+  - Issue: FPS text is rendered every frame with string concatenation, font lookups, /
+    and texture creation destruction.
   - Location: Game.cpp:130-176
   - Fix: Cache the FPS texture and only update it when the value changes (5-minute effort).
 - **2. Scene Rendering Cache Miss (MEDIUM Impact - 8-15% FPS Gain)**
@@ -94,7 +95,7 @@
 - **4. Level Loading & Quadtree Inefficiencies (MEDIUM-HIGH Impact - 15-30% FPS + Memory Gain)**
   - Issue: Entire pixel matrix loaded at once, shared_ptr overhead in quadtree, expensive vector operations.
   - Location: Level_Loader.cpp:18-50, Quadtree.h:1-80
-  - Fix: Implement streaming chunk loading, replace shared_ptr with unique_ptr, optimize vector operations (2-3 hour effort).
+  - Fix: Implement streaming chunk loading, replace shared_ptr with unique_ptr, optimize vector operations (2-3h effort).
 - **5. Excessive String/Memory Operations (MEDIUM Impact - 5-8% FPS Gain)**
   - Issue: String concatenations, asset lookups by string, config duplication in hot paths.
   - Location: Assets.h, Scene_Play.h:32-48
