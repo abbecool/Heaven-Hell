@@ -132,7 +132,6 @@ void Game::FrametimeHandler()
 {
     m_currentFrame++;
     
-    // Mät tiden som gått sedan förra frame
     auto now = std::chrono::steady_clock::now();
     auto frameDuration = now - current_frame;
 
@@ -145,16 +144,19 @@ void Game::FrametimeHandler()
         float average_frame_time = accumulated_frame_time / frame_count;
         average_fps = pow(10,9) / average_frame_time;
 
-        // Reset counters for the next second
+        SDL_Color white = {255, 255, 255, 255};
+        auto font = m_assets.getFont("Minecraft");
+        std::string temp_str = "FPS: " + std::to_string(average_fps);
+        const char* text = temp_str.c_str();
+        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, text, white); 
+
+        m_fpsCacheTexture = SDL_CreateTextureFromSurface(m_renderer, surfaceMessage);
+
         accumulated_frame_time = 0.0;
         frame_count = 0;
         last_fps_update = steady_clock::now();
     }
-    SDL_Color white = {255, 255, 255, 255};
-    auto font = m_assets.getFont("Minecraft");
-    RenderText(m_renderer, font, "FPS: " + std::to_string(average_fps), 10, 10, white);
-
-    // Hur länge vi vill att en frame ska ta
+    SDL_RenderCopy(m_renderer, m_fpsCacheTexture, NULL, &m_fpsCacheRect);
     auto targetFrameDuration = std::chrono::milliseconds(1000 / m_framerate);
 
     // Om frame gick snabbare än målet, vänta resten
