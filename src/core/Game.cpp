@@ -38,7 +38,7 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
     current_frame = steady_clock::now();
     last_fps_update = current_frame;
     
-    m_renderer = SDL_CreateRenderer(m_window, -1 , SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    m_renderer = SDL_CreateRenderer(m_window, -1 , SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
     TTF_Init();
     Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
@@ -56,6 +56,7 @@ void Game::updateResolution(int scale)
     setWidth(scale*VIRTUAL_WIDTH);
     setHeight(scale*VIRTUAL_HEIGHT);
     SDL_SetWindowSize(m_window, scale*VIRTUAL_WIDTH, scale*VIRTUAL_HEIGHT);
+    m_fpsCacheRect = {scale*VIRTUAL_WIDTH-100, scale*VIRTUAL_HEIGHT-20, 100, 20};
 }
 
 void Game::ToggleFullscreen(){
@@ -131,7 +132,9 @@ void RenderText(SDL_Renderer* renderer, TTF_Font* font, const std::string& text,
 void Game::FrametimeHandler()
 {
     m_currentFrame++;
-    
+    if (!m_renderFPS){
+        return;
+    }
     auto now = std::chrono::steady_clock::now();
     auto frameDuration = now - current_frame;
 
@@ -142,7 +145,7 @@ void Game::FrametimeHandler()
     if (steady_clock::now() - last_fps_update >= seconds(1))
     {
         float average_frame_time = accumulated_frame_time / frame_count;
-        average_fps = pow(10,9) / average_frame_time;
+        average_fps = 1e9 / average_frame_time;
 
         SDL_Color white = {255, 255, 255, 255};
         auto font = m_assets.getFont("Minecraft");
@@ -159,14 +162,10 @@ void Game::FrametimeHandler()
     SDL_RenderCopy(m_renderer, m_fpsCacheTexture, NULL, &m_fpsCacheRect);
     auto targetFrameDuration = std::chrono::milliseconds(1000 / m_framerate);
 
-    // Om frame gick snabbare än målet, vänta resten
     if (frameDuration < targetFrameDuration) {
         std::this_thread::sleep_for(targetFrameDuration - frameDuration);
     }
-
-    // Spara tidpunkten för nästa frame
     current_frame = std::chrono::steady_clock::now();
-
 }
 
 void Game::quit() {
@@ -284,4 +283,9 @@ void Game::setScale(int scale){
 
 int Game::getScale(){
     return m_scale;
+}
+
+void Game::toggleRenderFPS(){
+    m_renderFPS = !m_renderFPS;
+    std::cout << m_renderFPS << std::endl;
 }

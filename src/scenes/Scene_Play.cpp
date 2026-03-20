@@ -68,6 +68,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_MINUS, "ZOOM OUT");
     registerAction(SDLK_q, "WRITE QUADTREE");
     registerAction(SDLK_p, "PAUSE");
+    registerAction(SDLK_o, "FPS COUNTER");
     registerAction(SDLK_k, "KILL_PLAYER");
     registerAction(SDLK_F3, "TOGGLE_COLLISION");
     registerAction(SDLK_F4, "TOGGLE_INTERACTION");
@@ -181,33 +182,7 @@ void Scene_Play::saveGame(const std::string& filename)
 void Scene_Play::sDoAction(const Action& action){
     if ( action.type() == "START")
     {
-        if ( action.name() == "TOGGLE_TEXTURE") {
-            m_drawTextures = !m_drawTextures; 
-        } else if ( action.name() == "TOGGLE_COLLISION") { 
-            m_drawCollision = !m_drawCollision; 
-        } else if ( action.name() == "TOGGLE_INTERACTION") { 
-            m_drawInteraction = !m_drawInteraction; 
-        } else if ( action.name() == "PAUSE") { 
-            togglePause();
-        } else if ( action.name() == "INVENTORY") { 
-            std::cout << "toggle inventory" << std::endl;
-        } else if ( action.name() == "ZOOM IN"){
-            m_camera.stepCameraZoom(-1, m_game->getScale());
-        } else if ( action.name() == "ZOOM OUT"){
-            m_camera.stepCameraZoom(1, m_game->getScale());
-        } else if ( action.name() == "CAMERA FOLLOW"){
-            m_camera.toggleCameraFollow();
-        } else if ( action.name() == "CAMERA PAN"){
-            m_pause = m_camera.startPan(2048, 1000, Vec2{0,0}, m_pause);
-        } else if ( action.name() == "SAVE"){
-            saveGame("config_files/game_save.txt");
-        } else if ( action.name() == "TP1") { 
-            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{460*16, 460*16};
-        } else if ( action.name() == "TP2") { 
-            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{292*16, 236*16};
-        }else if ( action.name() == "TP3") {
-            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*16, 181*16};
-        } else if ( action.name() == "RESET") { 
+        if ( action.name() == "RESET") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, m_levelPath, true), true);
         } else if ( action.name() == "KILL_PLAYER") { 
             m_ECS.getComponent<CHealth>(m_player).HP = 0;
@@ -230,6 +205,20 @@ void Scene_Play::sDoAction(const Action& action){
     }
     else if ( action.type() == "END")
     {
+        if ( action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
+        if ( action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
+        if ( action.name() == "TOGGLE_INTERACTION") { m_drawInteraction = !m_drawInteraction; }
+        if ( action.name() == "PAUSE") { togglePause(); }
+        if ( action.name() == "FPS COUNTER") { m_game->toggleRenderFPS(); }
+        if ( action.name() == "INVENTORY") { std::cout << "toggle inventory" << std::endl; }
+        if ( action.name() == "ZOOM IN"){ m_camera.stepCameraZoom(-1, m_game->getScale()); }
+        if ( action.name() == "ZOOM OUT"){ m_camera.stepCameraZoom(1, m_game->getScale()); }
+        if ( action.name() == "CAMERA FOLLOW"){ m_camera.toggleCameraFollow(); }
+        if ( action.name() == "CAMERA PAN"){ m_pause = m_camera.startPan(2048, 1000, Vec2{0,0}, m_pause); }
+        if ( action.name() == "SAVE"){ saveGame("config_files/game_save.txt"); }
+        if ( action.name() == "TP1") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{460*16, 460*16}; }
+        if ( action.name() == "TP2") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{292*16, 236*16}; }
+        if ( action.name() == "TP3") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*16, 181*16}; }
         if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = false; }
         if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = false; }
         if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = false; }
@@ -248,10 +237,6 @@ void Scene_Play::sDoAction(const Action& action){
             saveGame("config_files/game_save.txt");
             m_pause = true;
         }
-        // if ( action.name() == "WRITE QUADTREE")
-        // {
-        //     m_physics.m_quadRoot->printTree("", "");
-        // }
     }
     else if ( action.name() == "SCROLL"){
         const CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
