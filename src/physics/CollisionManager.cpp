@@ -87,6 +87,48 @@ void BaseCollisionManager::handleCollision(
     }
 }
 
+Vec2 BaseCollisionManager::calculateDelta(Vec2 aPos, Vec2 aSize, Vec2 bPos, Vec2 bSize) const {
+    return ( (aPos + aSize) - (bPos + bSize) ).abs_elem();
+}
+
+Vec2 BaseCollisionManager::calculateHorizontalMovement(
+    const Vec2& aPos, const Vec2& aSize, 
+    const Vec2& bPos, const Vec2& bSize, 
+    const Vec2& overlap, const Vec2& prevOverlap) const 
+{
+    Vec2 move = { 0, 0 };
+    if (prevOverlap.y <= 0) {
+        return move;
+    }
+    
+    if ((aPos.x + aSize.x) > (bPos.x + bSize.x)) {
+        move += Vec2 { overlap.x, 0.0f };
+    }
+    if ((aPos.x + aSize.x) < (bPos.x + bSize.x)) {
+        move -= Vec2 { overlap.x, 0.0f };
+    }
+    return move;
+}
+
+Vec2 BaseCollisionManager::calculateVerticalMovement(
+    const Vec2& aPos, const Vec2& aSize, 
+    const Vec2& bPos, const Vec2& bSize, 
+    const Vec2& overlap, const Vec2& prevOverlap) const 
+{
+    Vec2 move = { 0, 0 };
+    if (prevOverlap.x <= 0) {
+        return move;
+    }
+    
+    if ((aPos.y + aSize.y/2) > (bPos.y + bSize.y/2)) {
+        move += Vec2 { 0.0f, overlap.y };
+    }
+    if ((aPos.y + aSize.y/2) < (bPos.y + bSize.y/2)) {
+        move -= Vec2 { 0.0f, overlap.y };
+    }
+    return move;
+}
+
 Vec2 BaseCollisionManager::collisionOverlap(CTransform t1, CTransform t2, Vec2 b1, Vec2 b2){    
     Vec2 aSize = b1/2;
     Vec2 bSize = b2/2;
@@ -95,37 +137,15 @@ Vec2 BaseCollisionManager::collisionOverlap(CTransform t1, CTransform t2, Vec2 b
     Vec2 aPrevPos = t1.prevPos - b1/2;
     Vec2 bPrevPos = t2.prevPos - b2/2;
     
-    Vec2 delta = ( (aPos + aSize) - (bPos + bSize) ).abs_elem();
-    Vec2 prevDelta = ( (aPrevPos + aSize) - (bPrevPos + bSize) ).abs_elem();
+    Vec2 delta = calculateDelta(aPos, aSize, bPos, bSize);
+    Vec2 prevDelta = calculateDelta(aPrevPos, aSize, bPrevPos, bSize);
     Vec2 overlap = aSize + bSize - delta;
     Vec2 prevOverlap = aSize + bSize - prevDelta;
     
-    Vec2 move = { 0, 0 };
-    if (prevOverlap.y > 0)
-    {
-        if ((aPos.x + aSize.x) > (bPos.x + bSize.x))
-        {
-            move += Vec2 { overlap.x, 0.0f };
-        }
-        if ((aPos.x + aSize.x) < (bPos.x + bSize.x))
-        {
-            move -= Vec2 { overlap.x, 0.0f };
-        }
-    }
+    Vec2 horizontalMove = calculateHorizontalMovement(aPos, aSize, bPos, bSize, overlap, prevOverlap);
+    Vec2 verticalMove = calculateVerticalMovement(aPos, aSize, bPos, bSize, overlap, prevOverlap);
     
-    if (prevOverlap.x > 0)
-    {
-        if ((aPos.y + aSize.y/2) > (bPos.y + bSize.y/2))
-        {
-            move +=  Vec2 { 0.0f, overlap.y };
-        }
-        if ((aPos.y + aSize.y/2) < (bPos.y + bSize.y/2))
-        {
-            move -=  Vec2 { 0.0f, overlap.y };
-        }
-    }
-    
-    return move;
+    return horizontalMove + verticalMove;
 }
 
 bool BaseCollisionManager::isCollided(
@@ -196,47 +216,41 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene){
     registerHandler(PROJECTILE_LAYER, OBSTACLE_LAYER, handleProjectileObstacleCollision);
 }
 
-void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
-    newQuadtree<CCollisionBox>(treePos, treeSize);
+void CollisionManager::processQuadtreeLeaf(std::vector<Entity>& entityVector) {
     auto& collisionPool = m_ECS->getComponentPool<CCollisionBox>();
     auto& transformPool = m_ECS->getComponentPool<CTransform>();
     
+    // Double loop over all entities inside this quadtree leaf
+    for (size_t a = 0; a < entityVector.size(); ++a) {
+        EntityID entityIDA = entityVector[a].getID();
+        auto& collisionA = collisionPool.getComponent(entityIDA);
+        auto& transformA = transformPool.getComponent(entityIDA);
+        
+        for (size_t b = a + 1; b < entityVector.size(); ++b) {
+            EntityID entityIDB = entityVector[b].getID();
+            auto& collisionB = collisionPool.getComponent(entityIDB);
+            auto& transformB = transformPool.getComponent(entityIDB);
+            
+            // Check if entities actually collide
+            if (!isCollided(transformA, transformB, collisionA, collisionB)) {
+                continue;
+            }
+            
+            // Calculate overlap and handle collision
+            auto overlap = collisionOverlap(transformA, transformB, collisionA.size, collisionB.size);
+            handleCollision(entityIDA, collisionA.layer, entityIDB, collisionB.layer, overlap);
+        }
+    }
+}
+
+void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
+    newQuadtree<CCollisionBox>(treePos, treeSize);
     auto quadVector = m_quadRoot->createQuadtreeVector();
     
-    // loop all quadtrees that are not divided
-    for (auto quadleaf : quadVector){
+    // Process all quadtree leaves
+    for (auto quadleaf : quadVector) {
         std::vector<Entity> entityVector = quadleaf->getObjects();
-        
-        // double loop over all entities inside quadtree 
-        for (size_t a = 0; a < entityVector.size(); ++a) {
-            EntityID entityIDA = entityVector[a].getID();
-            auto& collisionA = collisionPool.getComponent(entityIDA);
-            
-            for (size_t b = a + 1; b < entityVector.size(); ++b) {
-                EntityID entityIDB = entityVector[b].getID();
-                
-                auto& collisionB = collisionPool.getComponent(entityIDB);
-                auto& transformA = transformPool.getComponent(entityIDA);
-                auto& transformB = transformPool.getComponent(entityIDB);
-                auto overlap = collisionOverlap(
-                    transformA, 
-                    transformB, 
-                    collisionA.size, 
-                    collisionB.size
-                );
-                if ( !isCollided(transformA, transformB, collisionA, collisionB) )
-                {
-                    continue; // No collision detected
-                }
-                handleCollision(
-                    entityIDA, 
-                    collisionA.layer, 
-                    entityIDB, 
-                    collisionB.layer, 
-                    overlap
-                );
-            }
-        }
+        processQuadtreeLeaf(entityVector);
     }
 }
 
@@ -366,53 +380,54 @@ InteractionManager::InteractionManager(ECS* ecs, Scene_Play* scene){
     // );
 }
 
-void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize){
+bool InteractionManager::checkInteractionLayerMask(const CInteractionBox& boxA, const CInteractionBox& boxB) const {
+    bool BLayer = (boxB.layer & boxA.mask) != boxB.layer;
+    bool ALayer = (boxA.layer & boxB.mask) != boxA.layer;
+    return BLayer || ALayer;
+}
+
+void InteractionManager::processInteractionLeaf(std::vector<Entity>& entityVector) {
     auto& interactionPool = m_ECS->getComponentPool<CInteractionBox>();
     auto& transformPool = m_ECS->getComponentPool<CTransform>();
+    
+    for (size_t a = 0; a < entityVector.size(); ++a) {
+        EntityID idA = entityVector[a].getID();
+        auto& interactionA = interactionPool.getComponent(idA);
+        auto& transformA = transformPool.getComponent(idA);
+        
+        for (size_t b = a + 1; b < entityVector.size(); ++b) {
+            EntityID idB = entityVector[b].getID();
+            
+            // Skip self-collision
+            if (idA == idB) {
+                continue;
+            }
+            
+            auto& interactionB = interactionPool.getComponent(idB);
+            auto& transformB = transformPool.getComponent(idB);
+            
+            // Check if interaction boxes collide
+            if (!isCollided(transformA, transformB, interactionA, interactionB)) {
+                continue;
+            }
+            
+            // Check layer mask compatibility
+            if (checkInteractionLayerMask(interactionA, interactionB)) {
+                continue;
+            }
+            
+            // Handle the interaction
+            handleCollision(idA, interactionA.layer, idB, interactionB.layer, {0, 0});
+        }
+    }
+}
 
+void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize){
     newQuadtree<CInteractionBox>(treePos, treeSize);
     auto quadVector = m_quadRoot->createQuadtreeVector();
 
-    for (auto quadleaf : quadVector){
+    for (auto quadleaf : quadVector) {
         std::vector<Entity> entityVector = quadleaf->getObjects();
-        for (size_t a = 0; a < entityVector.size(); ++a){
-            EntityID idA = entityVector[a].getID();
-            auto& interactionA = interactionPool.getComponent(idA);
-            auto& transformA = transformPool.getComponent(idA);
-            
-            for (size_t b = a + 1; b < entityVector.size(); ++b) {
-                EntityID idB = entityVector[b].getID();
-                if ( idA == idB ) {
-                    continue; // Skip self-collision
-                }
-                auto& interactionB = interactionPool.getComponent(idB);
-                auto& transformB = transformPool.getComponent(idB);
-                if ( !isCollided(transformA, transformB, interactionA, interactionB) ){
-                    continue; // No collision detected
-                }
-                bool BLayer = (interactionB.layer & interactionA.mask) != interactionB.layer;
-                bool ALayer = (interactionA.layer & interactionB.mask) != interactionA.layer;
-                if ( BLayer || ALayer){
-                    continue; // No interaction layer match
-                }
-                
-                // if (m_ECS->hasComponent<CName>(idA)){
-                //     std::string nameA = m_ECS->getComponent<CName>(idA).name;
-                //     m_ECS->addComponent<CEvents>(idA, Event{EventType::EnteredArea, nameA});
-                // }
-                // if (m_ECS->hasComponent<CName>(idB)){
-                //     std::string nameB = m_ECS->getComponent<CName>(idB).name;
-                //     m_ECS->addComponent<CEvents>(idB, Event{EventType::EnteredArea, nameB});
-                // }
-
-                handleCollision(
-                    idA, 
-                    interactionA.layer, 
-                    idB, 
-                    interactionB.layer, 
-                    {0,0}
-                );
-            }
-        }
+        processInteractionLeaf(entityVector);
     }
 }

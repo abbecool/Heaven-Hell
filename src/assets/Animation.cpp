@@ -83,16 +83,16 @@ const std::string& Animation::getName() const {
     return m_name;
 }
 
-SDL_Texture* Animation::getTexture() {
+SDL_Texture* Animation::getTexture() const {
     return m_texture;
 }
 
-SDL_Rect* Animation::getSrcRect()
+const SDL_Rect* Animation::getSrcRect() const
 {
     return &m_srcRect;
 }
 
-SDL_Rect* Animation::getDestRect()
+const SDL_Rect* Animation::getDestRect() const
 {
     return &m_destRect;
 }
@@ -139,7 +139,7 @@ void Animation::setDestRect(const int x, const int y, const int w, const int h)
     m_destRect.h = h;
 }
 
-Vec2 Animation::getDestSize()   
+Vec2 Animation::getDestSize() const
 {
     return Vec2 {(float)m_destRect.w , (float)m_destRect.h};
 }
@@ -153,7 +153,7 @@ void Animation::setTile(Vec2 grid) {
     m_currentRow = (int)grid.y;
 }
 
-SDL_Point Animation::getTextureSize()
+SDL_Point Animation::getTextureSize() const
 {
     SDL_Point size;
     SDL_QueryTexture(m_texture, NULL, NULL, &size.x, &size.y);
@@ -174,7 +174,7 @@ void Animation::setCurrentFrame(size_t frame){
     m_currentFrame = frame;
 }
 
-size_t Animation::frames(){
+size_t Animation::frames() const {
     return m_frameCount;
 }
 

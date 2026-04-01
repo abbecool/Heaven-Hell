@@ -51,9 +51,9 @@ class Animation
     const std::string& getName() const;
     const Vec2& getSize() const;
     const Vec2& getScale() const;
-    SDL_Texture* getTexture();
-    SDL_Rect* getSrcRect();
-    SDL_Rect* getDestRect();
+    SDL_Texture* getTexture() const;
+    const SDL_Rect* getSrcRect() const;
+    const SDL_Rect* getDestRect() const;
     void setSrcRect(const int x, const int y, const int w, const int h);
     void setSrcSize(Vec2 size);
     void setDestRect(const int x, const int y, const int w, const int h);
@@ -63,11 +63,11 @@ class Animation
     void setScale(Vec2 scale);
     void setTexture(SDL_Texture *tex);
     void setTile(Vec2 grid);
-    SDL_Point getTextureSize();
-    Vec2 getDestSize();
+    SDL_Point getTextureSize() const;
+    Vec2 getDestSize() const;
     float getAngle() const;
     void setCurrentFrame(size_t frame);
-    size_t frames();
+    size_t frames() const;
     Vec2 getRowColumn() const;
     Vec2 getShape() const;
     };
