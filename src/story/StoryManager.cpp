@@ -19,8 +19,7 @@ void StoryManager::loadQuests(const std::string& questFilePath)
 {
     std::ifstream file_assets(questFilePath);
     if (!file_assets) {
-        std::cerr << "Could not load quests file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not load quests file: " + questFilePath);
     }
     json j;
     file_assets >> j;
@@ -55,8 +54,7 @@ void StoryManager::loadStory(const std::string& storyFilePath)
 {
     std::ifstream file_assets(storyFilePath);
     if (!file_assets) {
-        std::cerr << "Could not load new story file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not load story file: " + storyFilePath);
     }
     json j;
     file_assets >> j;

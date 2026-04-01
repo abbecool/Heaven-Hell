@@ -109,8 +109,7 @@ void Scene_Play::SubscribeToStoryEvents(){
 void Scene_Play::loadMobsNItems(const std::string& path){
     std::ifstream file(path);
     if (!file) {
-        std::cerr << "Could not load assets file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not load mobs/items file: " + path);
     }
     json j;
     file >> j;
@@ -129,8 +128,7 @@ void Scene_Play::loadConfig(const std::string& confPath){
     // TODO: line count fix be using json
     std::ifstream file(confPath);
     if (!file) {
-        std::cerr << "Could not load config.txt file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not load config file: " + confPath);
     }
     std::string head;
     while (file >> head) {
@@ -147,9 +145,7 @@ void Scene_Play::loadConfig(const std::string& confPath){
             file >> m_camera.config.SHAKE_DURATION_SMALL >> m_camera.config.SHAKE_INTENSITY_SMALL;
         }
         else {
-            std::cerr << "head to " << head << "\n";
-            std::cerr << "The config file format is incorrect!\n";
-            exit(-1);
+            throw std::runtime_error("Invalid config entry: " + head + ". Config file format is incorrect.");
         }
     }
 }
@@ -162,8 +158,7 @@ void Scene_Play::saveGame(const std::string& filename)
 
     std::ofstream file("config_files/game_save.json");
     if (!file) {
-        std::cerr << "Could not load json game save file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not open game save file: config_files/game_save.json");
     }    
     json save = {
         {"player", {
@@ -828,8 +823,7 @@ EntityID Scene_Play::spawnPlayer()
     if (!m_newGame){
         std::ifstream file_json("config_files/game_save.json");
         if (!file_json) {
-            std::cerr << "Could not load game_save.json file!\n";
-            exit(-1);
+            throw std::runtime_error("Could not load game save file: config_files/game_save.json");
         }
 
         file_json >> j;

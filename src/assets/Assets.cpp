@@ -119,8 +119,7 @@ void Assets::loadFromFile(
 ){
     std::ifstream file_assets(pathAssets);
     if (!file_assets) {
-        std::cerr << "Could not load assets file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not load assets file: " + pathAssets);
     }
     json j;
     file_assets >> j;
@@ -158,8 +157,7 @@ void Assets::loadFromFile(
     
     std::ifstream file_text(pathText);
     if (!file_text) {
-        std::cerr << "Could not load text.txt file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not load text file: " + pathText);
     }
     std::string head;
     std::string font_name;
