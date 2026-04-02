@@ -18,10 +18,10 @@ Enhance maintainability and follow C++ best practices
 
 ### Phase 3: Testing Infrastructure 🚀 (Partial)
 Establish unit testing foundation
-- [x] Uncomment and expand tests in test_math.cpp for Vec2 operations
+- [ ] Uncomment and expand tests in test_math.cpp for Vec2 operations
 - [ ] Add unit tests for ComponentPool add/remove/get operations
 - [ ] Create integration tests for asset loading and ECS entity lifecycle
-- [x] Enable testing in CMakeLists.txt with Catch2
+- [ ] Enable testing in CMakeLists.txt with Catch2
 
 ### Phase 4: Documentation and Polish 📚 (Backlog)
 Improve code readability and maintainability
