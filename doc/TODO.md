@@ -1,5 +1,37 @@
 # TODO: Next Steps for Game Development
 
+## 🛠️ Code Quality & Testing Roadmap
+
+### Phase 1: Critical Fixes ✅ (Mostly Complete)
+Address correctness and safety issues that could cause crashes or undefined behavior
+- [x] Fix unreachable code in ECS.hpp (move debug output before return)
+- [x] Replace all NULL with nullptr for consistency
+- [x] Remove exit(-1) calls and implement exception-based error handling in Assets.cpp
+- [x] Add const to getter methods in Animation.h, Sprite.h, and other asset classes
+
+### Phase 2: Code Quality Improvements 🔄 (In Progress)
+Enhance maintainability and follow C++ best practices
+- [ ] Change string parameters to const references in Assets.cpp and related files to avoid copies
+- [ ] Remove hardcoded player entity ID (0) and track it properly in Scene_Play
+- [ ] Extract magic numbers to named constants in config loading
+- [x] Refactor large functions in CollisionManager.cpp into smaller helpers
+
+### Phase 3: Testing Infrastructure 🚀 (Partial)
+Establish unit testing foundation
+- [x] Uncomment and expand tests in test_math.cpp for Vec2 operations
+- [ ] Add unit tests for ComponentPool add/remove/get operations
+- [ ] Create integration tests for asset loading and ECS entity lifecycle
+- [x] Enable testing in CMakeLists.txt with Catch2
+
+### Phase 4: Documentation and Polish 📚 (Backlog)
+Improve code readability and maintainability
+- [ ] Add Doxygen-style comments to key classes (ECS, Game, CollisionManager)
+- [ ] Document ECS architecture design decisions
+- [ ] Add compile-time warnings to CMakeLists.txt
+- [ ] Create contributor guidelines for code style
+
+---
+
 ## :rocket: High Priority
 
 ### Player swimming animations
