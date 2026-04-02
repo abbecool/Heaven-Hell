@@ -169,3 +169,20 @@ bool Vec2::isNegative()
 {
     return ( (x<0) & (y<0) );
 }
+
+float Vec2::dist(const Vec2 & rhs) const
+{
+    float dx = x - rhs.x;
+    float dy = y - rhs.y;
+    return std::hypot(dx, dy);
+}
+
+Vec2 Vec2::operator% (const Vec2 & rhs) const
+{
+    return Vec2 { static_cast<float>(std::fmod(x, rhs.x)), static_cast<float>(std::fmod(y, rhs.y)) };
+}
+
+Vec2 Vec2::operator% (const int val) const
+{
+    return Vec2 { static_cast<float>(std::fmod(x, val)), static_cast<float>(std::fmod(y, val)) };
+}
