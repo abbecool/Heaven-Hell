@@ -257,11 +257,12 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
 void InteractionManager::handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap){
     if (!enemy.hasComponent<CWeapon>()){
         return;
-    }
+    }  
     int damage = enemy.getComponent<CWeapon>().damage;
     Vec2 position = enemy.getComponent<CTransform>().pos;
     Vec2 playerPosition = player.getComponent<CTransform>().pos;
-    m_scene->spawnHitbox(position, position-playerPosition);
+    // CCollisionBox hitbox = enemy.getComponent<CCollisionBox>();
+    m_scene->spawnHitbox(position, (playerPosition-position).norm(), ENEMY_LAYER, PLAYER_LAYER);
     return;
 }
 

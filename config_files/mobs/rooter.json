@@ -34,6 +34,12 @@
                 "duration": 30, 
                 "range": 48, 
                 "area": {"x": 16, "y": 16}
+            },
+            "CWeapon": {
+                "damage": 1,
+                "speed": 60,
+                "range": 180,
+                "type": "Melee"
             }
         }
     }

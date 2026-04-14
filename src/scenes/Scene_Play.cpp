@@ -408,7 +408,13 @@ void Scene_Play::sAttack(){
         CVelocity& velocity = velocityPool.getComponent(id);
         CInputs& inputs = inputPool.getComponent(id);
         CWeapon& weapon = weaponPool.getComponent(id);
-
+        // weapon.delay--;
+        // if (weapon.delay > 0){
+        //     continue;
+        // }
+        // else {
+        //     weapon.delay = weapon.speed;
+        // }
         if (!inputs.attack){
             continue;
         }
@@ -420,13 +426,13 @@ void Scene_Play::sAttack(){
         switch (weapon.weaponType)
         {
         case WeaponType::Melee:
-            spawnHitbox(position, direction);
+            spawnHitbox(position, direction, PROJECTILE_LAYER, ENEMY_LAYER);
             break;
         case WeaponType::Projectile:
             spawnProjectile(position, direction);
             break;
         case WeaponType::AoE:
-            spawnHitbox(position, direction);
+            spawnHitbox(position, direction, PROJECTILE_LAYER, ENEMY_LAYER);
             break;
         }
         inputs.attack = false;
@@ -703,55 +709,59 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     json j;
     file >> j;
     file.close();
-    json components = j[name]["components"];
+    json c = j[name]["components"];
     
     EntityID id = m_ECS.addEntity();
     
     m_ECS.addComponent<CName>(id, name);
-    if (components.contains("CTransform")){
+    if (c.contains("CTransform")){
 
-        components["CTransform"]["pos"] = {{"x", pos.x}, {"y", pos.y}};
-        m_ECS.addComponent<CTransform>(id, components["CTransform"]);
+        c["CTransform"]["pos"] = {{"x", pos.x}, {"y", pos.y}};
+        m_ECS.addComponent<CTransform>(id, c["CTransform"]);
     }
-    if (components.contains("CVelocity")){
-        m_ECS.addComponent<CVelocity>(id, components["CVelocity"]);
-    }
-    if (components.contains("CInteractionBox")){
-        m_ECS.addComponent<CInteractionBox>(id, components["CInteractionBox"]);
-    }
-    if (components.contains("CCollisionBox")){
-        m_ECS.addComponent<CCollisionBox>(id, components["CCollisionBox"]);
-    }
-    if (components.contains("CAnimation")){
+    if (c.contains("CAnimation")){
         m_ECS.addComponent<CAnimation>(id, 
-            getAnimation(components["CAnimation"]["animation"]), 
-            components["CAnimation"]["animation"].get<std::string>(),
-            components["CAnimation"]["layer"]
+            getAnimation(c["CAnimation"]["animation"]), 
+            c["CAnimation"]["animation"].get<std::string>(),
+            c["CAnimation"]["layer"]
         );
-        m_rendererManager.addEntityToLayer(id, components["CAnimation"]["layer"]);
+        m_rendererManager.addEntityToLayer(id, c["CAnimation"]["layer"]);
     }
-    if (components.contains("CState")){
-        m_ECS.addComponent<CState>(id);
-    }
-    if (components.contains("CFollow")){
+    if (c.contains("CFollow")){
+        // target is always player at spawn
         Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos; 
         m_ECS.addComponent<CFollow>(id, playerPos);
     }
-    if (components.contains("CPath")){
-        m_ECS.addComponent<CPath>(id, components["CPath"]);
+    if (c.contains("CVelocity")){
+        m_ECS.addComponent<CVelocity>(id, c["CVelocity"]);
     }
-    if (components.contains("CHealth")){
-        m_ECS.addComponent<CHealth>(id, components["CHealth"]);
+    if (c.contains("CInteractionBox")){
+        m_ECS.addComponent<CInteractionBox>(id, c["CInteractionBox"]);
     }
-    if (components.contains("CAttack")){
-        m_ECS.addComponent<CAttack>(id, components["CAttack"]);
+    if (c.contains("CCollisionBox")){
+        m_ECS.addComponent<CCollisionBox>(id, c["CCollisionBox"]);
     }
-    if (components.contains("CPossesLevel")){
-        m_ECS.addComponent<CPossesLevel>(id, 10);
+    if (c.contains("CState")){
+        m_ECS.addComponent<CState>(id);
     }
-    if (name == "rooter"){
-        m_ECS.addComponent<CWeapon>(id, 1, 60, 180, WeaponType::Melee);
+    if (c.contains("CPath")){
+        m_ECS.addComponent<CPath>(id, c["CPath"]);
     }
+    if (c.contains("CHealth")){
+        m_ECS.addComponent<CHealth>(id, c["CHealth"]);
+    }
+    if (c.contains("CAttack")){
+        m_ECS.addComponent<CAttack>(id, c["CAttack"]);
+    }
+    if (c.contains("CPossesLevel")){
+        m_ECS.addComponent<CPossesLevel>(id, c["CPossesLevel"]);
+    }
+    if (c.contains("CWeapon")){
+        m_ECS.addComponent<CWeapon>(id, c["CWeapon"]);
+    }
+    // if (name == "rooter"){
+    //     m_ECS.addComponent<CInputs>(id);
+    // }
     return id;
 }
 
@@ -784,7 +794,6 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
     }
 
     return SpawnFromJSON(name, pos);
-    return -1; // Return 0 if the entity type is not recognized
 }
 
 EntityID Scene_Play::SpawnDialog(
@@ -866,14 +875,15 @@ EntityID Scene_Play::spawnPlayer()
 }
 
 EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer){
-    auto shadowID = m_ECS.addEntity();
+    // auto shadowID = m_ECS.addEntity();
     // m_ECS.addComponent<CTransform>(shadowID);
     // m_ECS.getComponent<CTransform>(shadowID).scale *= size;
     // m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
     // m_ECS.addComponent<CAnimation>(shadowID, getAnimation("shadow"), layer);
     // m_rendererManager.addEntityToLayer(shadowID, layer);
     // m_ECS.addComponent<CChild>(parentID, shadowID);
-    return shadowID;
+    // return shadowID;
+    return 0;
 }
 
 EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
@@ -973,7 +983,6 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
     m_ECS.addComponent<CTransform>(entity, midGrid);
     m_ECS.addComponent<CWater>(entity, CWater{false});
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{16, 16});
-
     return entity;
 }
 
@@ -1020,15 +1029,15 @@ EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
     // spawnShadow(id, Vec2{0,0}, 1, layer-1);
     return id;
 }
-EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction)
+EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction, CollisionMask layer, CollisionMask mask)
 {
     auto id = m_ECS.addEntity();
-    int layer = 9;
-    m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("sword"), true, layer);
-    m_rendererManager.addEntityToLayer(id, layer);
+    int render_layer = 9;
+    m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("sword"), true, render_layer);
+    m_rendererManager.addEntityToLayer(id, render_layer);
     m_ECS.addComponent<CTransform>(id, position+direction*8, direction.angle());
     m_ECS.addComponent<CDamage>(id, 1);
-    m_ECS.addComponent<CCollisionBox>(id, Vec2{24, 24}, PROJECTILE_LAYER, ENEMY_LAYER);
+    m_ECS.addComponent<CInteractionBox>(id, Vec2{24, 24}, layer, mask);
     m_ECS.addComponent<CLifespan>(id, 15);
     return id;
 }

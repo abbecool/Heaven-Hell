@@ -19,7 +19,7 @@
             },
             "CState": {"state": "Nan"},
             "CScript": "NPCController",
-            "CPossesLevel": {"level": "Nan"},
+            "CPossesLevel": {"level": 10},
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

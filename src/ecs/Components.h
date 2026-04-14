@@ -22,7 +22,7 @@ constexpr CollisionMask OBSTACLE_LAYER          = 1 << 3;   // 00001000, Bit 4
 constexpr CollisionMask FRIENDLY_LAYER          = 1 << 4;   // 00010000, Bit 5
 constexpr CollisionMask DAMAGE_LAYER            = 1 << 5;   // 00100000, Bit 6
 constexpr CollisionMask WATER_LAYER             = 1 << 6;   // 01000000, Bit 7
-constexpr CollisionMask LOOT_LAYER              = 1 << 7;   // 10000000, Final bit set
+constexpr CollisionMask LOOT_LAYER              = 1 << 7;   // 10000000, Bit 8
 constexpr CollisionMask AREA_LAYER              = 1 << 8;   // 10000000, Final bit set
 
 inline std::unordered_map<std::string, CollisionMask> componentMaskMap = 
@@ -205,8 +205,14 @@ struct CHealth
     CHealth() {}
     CHealth(int hp, int hp_max, int hrt_frms)
         : HP(hp), HP_max(hp_max), i_frames(hrt_frms){}
-    CHealth(const json j)
-        : HP(j["HP"]), HP_max(j["HP_max"]), i_frames(j["i_frames"]){}
+    CHealth(const json& j) {
+        HP       = j["HP"];
+        HP_max   = j["HP_max"];
+        i_frames = j["i_frames"];
+        if (j.contains("type"))
+            for (auto& t : j["type"])
+            HPType.insert(t);
+    }
 };
 
 struct CLifespan
@@ -330,6 +336,14 @@ struct CPossesLevel
     CPossesLevel() {}
     CPossesLevel(int l)
         : level(l) {}
+    CPossesLevel(const json& j) {
+        if (j.is_number()) {
+            level = j;
+        }
+        else if (j.contains("level")) {
+            level = j["level"];
+        }
+    }
 };
 
 struct CFollow
@@ -393,7 +407,8 @@ struct CWeapon
 {
     // Animation animation;
     int damage = 1;
-    int speed = 60;
+    int speed = 600;
+    int delay = 600;
     int range = 180;
     WeaponType weaponType = WeaponType::Projectile;
 
@@ -403,6 +418,20 @@ struct CWeapon
     
     CWeapon(int damage, int speed, int range, WeaponType type)
                 : damage(damage), speed(speed), range(range), weaponType(type){}
+
+    CWeapon(const json& j) {
+        damage = j["damage"];
+        speed  = j["speed"];
+        delay  = j["speed"]; // intentional
+        range  = j["range"];
+        static const std::unordered_map<
+            std::string, WeaponType> wMap = {
+            {"Melee",      WeaponType::Melee},
+            {"Projectile", WeaponType::Projectile},
+            {"AoE",        WeaponType::AoE}
+        };
+        weaponType = wMap.at(j["type"]);
+    }
 };
 
 struct CEvent

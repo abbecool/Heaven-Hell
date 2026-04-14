@@ -102,7 +102,7 @@ class Scene_Play : public Scene
     Vec2 getCameraPosition() override;
     
     EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
-    EntityID spawnHitbox(Vec2 position, Vec2 size);
+    EntityID spawnHitbox(Vec2 position, Vec2 size, CollisionMask layer, CollisionMask mask);
     void updateActiveItem(int newActiveItem);
     void update();
     void setPaused(bool);
