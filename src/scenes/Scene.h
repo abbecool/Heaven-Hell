@@ -56,6 +56,7 @@ class Scene
     
     virtual void update() = 0;
     virtual void sDoAction(const Action& action) = 0;
+    EntityID SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID);
     
     void spriteRender(Animation &animation);
     void sRenderBasic();

@@ -18,7 +18,6 @@
                 "layer": 9
             },
             "CState": {"state": "Nan"},
-            "CScript": "NPCController",
             "CPossesLevel": {"level": 10},
             "CHealth": {
                 "HP": 6,

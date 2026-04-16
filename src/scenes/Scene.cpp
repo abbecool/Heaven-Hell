@@ -15,6 +15,28 @@ void Scene::registerAction(int inputKey, const std::string& actionName) {
     m_actionMap[inputKey] = actionName;
 }
 
+EntityID Scene::SpawnDialog(
+    std::string dialog, 
+    int size, 
+    std::string font, 
+    EntityID parentID
+)
+{
+    int layer = 8;
+    auto id = m_ECS.addEntity();
+    m_ECS.addComponent<CTransform>(id);
+    m_ECS.addComponent<CChild>(parentID, id);
+    Vec2 relativePosition = {0, -2*m_gridSize.y};
+    m_ECS.addComponent<CParent>(id, parentID, relativePosition);
+    CAnimation& animation =  m_ECS.addComponent<CAnimation>(id, getAnimation("button_unpressed"), layer);
+    Vec2 animationSize = animation.animation.getSize();
+    CText& text = m_ECS.addComponent<CText>(id, dialog, animationSize.y*0.9f, font);
+    animation.animation.setScale(Vec2{2*animationSize.x, animationSize.y});
+    m_rendererManager.addEntityToLayer(id, layer);
+    m_ECS.addComponent<CLifespan>(id, 60);
+    return id;
+}
+
 void Scene::spriteRender(Animation &animation){
     SDL_RenderCopyEx(
         m_game->renderer(), 

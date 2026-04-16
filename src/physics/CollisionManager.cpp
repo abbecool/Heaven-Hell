@@ -33,10 +33,10 @@ void handleEnemyEnemyCollision(Entity enemyA, Entity enemyB, Vec2 overlap){
 
 
 void handleEnemyObstacleCollision(Entity enemy, Entity obstacle, Vec2 overlap){
-    enemy.getComponent<CTransform>().pos -= overlap;
+    enemy.getComponent<CTransform>().pos += overlap;
 }
 
-void BaseCollisionManager::registerHandler(
+void BaseCollisionManager::registerHandler(     
     CollisionMask layerA, 
     CollisionMask layerB, 
     Handler handler
@@ -257,22 +257,22 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
 void InteractionManager::handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap){
     if (!enemy.hasComponent<CWeapon>()){
         return;
-    }  
-    int damage = enemy.getComponent<CWeapon>().damage;
-    Vec2 position = enemy.getComponent<CTransform>().pos;
-    Vec2 playerPosition = player.getComponent<CTransform>().pos;
-    // CCollisionBox hitbox = enemy.getComponent<CCollisionBox>();
-    m_scene->spawnHitbox(position, (playerPosition-position).norm(), ENEMY_LAYER, PLAYER_LAYER);
+    }
+    CInput& input = enemy.getComponent<CInput>();
+    CWeapon& weapon = enemy.getComponent<CWeapon>();
+    if (weapon.delay <= 0){
+        input.attack = true;
+    }
     return;
 }
 
 bool InteractionManager::talkToNPC(Entity player, Entity friendly){
 
-    if (!player.hasComponent<CInputs>())
+    if (!player.hasComponent<CInput>())
     {
         return false;
     }
-    if (!player.getComponent<CInputs>().interact)
+    if (!player.getComponent<CInput>().interact)
     {
         return false;
     }
@@ -288,32 +288,38 @@ bool InteractionManager::talkToNPC(Entity player, Entity friendly){
 } 
 
 bool InteractionManager::possesNPC(Entity player, Entity friendly){
-    
-    if (!player.hasComponent<CInputs>())
-    {
-        return false;
-    }
-    if (!player.getComponent<CInputs>().posses)
-    {
-        return false;
-    }
-    if (!friendly.hasComponent<CPossesLevel>())
-    {
-        return false;
-    }
+    if (!player.hasComponent<CInput>())          { return false; }
+    if (!player.getComponent<CInput>().posses)   { return false; }
+    if (!friendly.hasComponent<CPossesLevel>())  { return false; }
 
-    int possesLevel = friendly.getComponent<CPossesLevel>().level;
     friendly.removeComponent<CPossesLevel>();
+    EntityID oldID = player.getID();
+    EntityID newID = friendly.getID();
 
-    m_scene->changePlayerID(friendly.getID());
-    friendly.addComponent<CInputs>();
-    m_ECS->copyComponent<CCollisionBox>(friendly.getID(), player.getID());
-    m_ECS->copyComponent<CInteractionBox>(friendly.getID(), player.getID());
+    // 1. Transfer all components the systems depend on BEFORE changing m_player
+    m_ECS->copyComponent<CCollisionBox>(newID, oldID);
+    m_ECS->copyComponent<CInteractionBox>(newID, oldID);
+    m_ECS->copyComponent<CInventory>(newID, oldID);
+    m_ECS->copyComponent<CHealth>(newID, oldID);
+    m_ECS->copyComponent<CState>(newID, oldID);
 
-    m_ECS->printEntityComponents(player.getID());
-    m_ECS->printEntityComponents(friendly.getID());
+    // Copy weapon only if old player had one
+    if (player.hasComponent<CWeapon>()) {
+        m_ECS->copyComponent<CWeapon>(newID, oldID);
+    }
 
-    player.removeEntity();
+    // 2. Give the new player an input component
+    if (!friendly.hasComponent<CInput>()) {
+        friendly.addComponent<CInput>();
+    }
+
+    // 3. Queue the old player for removal BEFORE updating m_player
+    //    so no system tries to read m_player = newID while oldID still exists
+    m_ECS->queueRemoveEntity(oldID);
+
+    // 4. Update m_player last, after everything is set up
+    m_scene->changePlayerID(newID);
+
     return true;
 }
 

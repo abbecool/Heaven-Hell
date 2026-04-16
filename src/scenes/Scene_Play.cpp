@@ -188,15 +188,15 @@ void Scene_Play::sDoAction(const Action& action){
         } else if ( action.name() == "Slot3") { 
             updateActiveItem(2);
         }
-        if ( action.name() == "UP"){m_ECS.getComponent<CInputs>(m_player).up = true;}
-        if ( action.name() == "DOWN"){m_ECS.getComponent<CInputs>(m_player).down = true;}
-        if ( action.name() == "LEFT"){m_ECS.getComponent<CInputs>(m_player).left = true;}
-        if ( action.name() == "RIGHT"){m_ECS.getComponent<CInputs>(m_player).right = true;}
-        if ( action.name() == "SHIFT"){m_ECS.getComponent<CInputs>(m_player).shift = true;}
-        if ( action.name() == "CTRL"){m_ECS.getComponent<CInputs>(m_player).ctrl = true;}
-        if ( action.name() == "INTERACT" ){m_ECS.getComponent<CInputs>(m_player).interact = true;}
-        if ( action.name() == "TAKE OVER" ){m_ECS.getComponent<CInputs>(m_player).posses = true;}
-        if ( action.name() == "ATTACK" ){m_ECS.getComponent<CInputs>(m_player).attack = true;}
+        if ( action.name() == "UP"){m_ECS.getComponent<CInput>(m_player).up = true;}
+        if ( action.name() == "DOWN"){m_ECS.getComponent<CInput>(m_player).down = true;}
+        if ( action.name() == "LEFT"){m_ECS.getComponent<CInput>(m_player).left = true;}
+        if ( action.name() == "RIGHT"){m_ECS.getComponent<CInput>(m_player).right = true;}
+        if ( action.name() == "SHIFT"){m_ECS.getComponent<CInput>(m_player).shift = true;}
+        if ( action.name() == "CTRL"){m_ECS.getComponent<CInput>(m_player).ctrl = true;}
+        if ( action.name() == "INTERACT"){m_ECS.getComponent<CInput>(m_player).interact = true;}
+        if ( action.name() == "TAKE OVER"){m_ECS.getComponent<CInput>(m_player).posses = true;}
+        if ( action.name() == "ATTACK"){m_ECS.getComponent<CInput>(m_player).attack = true;}
     }
     else if ( action.type() == "END")
     {
@@ -214,15 +214,15 @@ void Scene_Play::sDoAction(const Action& action){
         if ( action.name() == "TP1") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{460*16, 460*16}; }
         if ( action.name() == "TP2") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{292*16, 236*16}; }
         if ( action.name() == "TP3") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*16, 181*16}; }
-        if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = false; }
-        if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = false; }
-        if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = false; }
-        if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = false; }
-        if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = false; }
-        if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
-        if ( action.name() == "INTERACT") { m_ECS.getComponent<CInputs>(m_player).interact = false; }
-        if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInputs>(m_player).posses = false; }
-        if ( action.name() == "ATTACK") { m_ECS.getComponent<CInputs>(m_player).attack = false; }
+        if ( action.name() == "DOWN") { m_ECS.getComponent<CInput>(m_player).down = false; }
+        if ( action.name() == "UP") { m_ECS.getComponent<CInput>(m_player).up = false; }
+        if ( action.name() == "LEFT") { m_ECS.getComponent<CInput>(m_player).left = false; }
+        if ( action.name() == "RIGHT") { m_ECS.getComponent<CInput>(m_player).right = false; }
+        if ( action.name() == "SHIFT") { m_ECS.getComponent<CInput>(m_player).shift = false; }
+        if ( action.name() == "CTRL") { m_ECS.getComponent<CInput>(m_player).ctrl = false; }
+        if ( action.name() == "INTERACT") { m_ECS.getComponent<CInput>(m_player).interact = false; }
+        if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInput>(m_player).posses = false; }
+        if ( action.name() == "ATTACK") { m_ECS.getComponent<CInput>(m_player).attack = false; }
         if ( action.name() == "WRITE POSITION") { 
             Vec2 cursorPosition = (m_mousePosition+m_camera.position)/m_gridSize;
             cursorPosition.print("Cursor position");
@@ -240,6 +240,17 @@ void Scene_Play::sDoAction(const Action& action){
         int newIndex = (index-getMouseState().scroll+size*10) % size;
         updateActiveItem(newIndex);
     }
+    auto& inputs = m_ECS.getComponent<CInput>(m_player);
+    inputs.direction = {0, 0};
+    if (inputs.up){
+        inputs.direction.y--;
+    } if (inputs.down){
+        inputs.direction.y++;
+    } if (inputs.left){
+        inputs.direction.x--;
+    } if (inputs.right){
+        inputs.direction.x++;
+    } 
 }
 
 void Scene_Play::updateActiveItem(int newIndex){
@@ -271,6 +282,7 @@ void Scene_Play::update()
     {
         sLoader();
         sAttack();
+        sAI();
         sMovement();
         sStatus();
         sCollision();
@@ -302,64 +314,100 @@ void Scene_Play::sLoader()
     m_levelLoader.update(playerPosition);
 }
 
+void Scene_Play::sAI()
+{
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& inputPool = m_ECS.getComponentPool<CInput>();
+    auto& agentPool = m_ECS.getComponentPool<CAIAgent>();
+    auto  namePool = m_ECS.getComponentPool<CName>();
+
+    Vec2 playerPos = transformPool.getComponent(m_player).pos;
+
+    auto viewAgents = m_ECS.View<CAIAgent, CInput, CTransform>();
+    for (EntityID e : viewAgents)
+    {
+        auto& agent = agentPool.getComponent(e);
+        auto& input = inputPool.getComponent(e);
+        Vec2  pos = transformPool.getComponent(e).pos;
+
+        // ── Sight check ────────────────────────────────────────────────
+        float distToPlayer = (playerPos - pos).length();
+        bool  inRange      = distToPlayer <= agent.sightRange;
+        agent.canSeePlayer = inRange && hasLineOfSight(pos, playerPos);
+
+        if (agent.canSeePlayer) {
+            agent.lastKnownPlayerPos = playerPos;
+            agent.memoryTimer        = agent.memoryDuration;
+        }
+
+        // ── State transitions ──────────────────────────────────────────
+        switch (agent.state)
+        {
+        case AIStateType::Patrol:
+            if (agent.canSeePlayer) {
+                agent.state = AIStateType::Chase;
+            }
+            break;
+
+        case AIStateType::Chase:
+            if (!agent.canSeePlayer) {
+                agent.state           = AIStateType::Investigate;
+                agent.hasPatrolTarget = false;   // clear stale patrol target
+            }
+            break;
+
+        case AIStateType::Investigate:
+            if (agent.canSeePlayer) {
+                agent.state = AIStateType::Chase;
+            } else {
+                agent.memoryTimer--;
+                // Reached last known position or memory expired
+                bool arrived = (pos - agent.lastKnownPlayerPos).length() < 12.0f;
+                if (arrived || agent.memoryTimer <= 0) {
+                    agent.state           = AIStateType::Patrol;
+                    agent.hasPatrolTarget = false;
+                    agent.memoryTimer     = 0;
+                }
+            }
+            break;
+        }
+
+        // ── Movement input per state ─────────────────────────────────────
+        input.direction = {0, 0};
+
+        switch (agent.state)
+        {
+        case AIStateType::Chase:
+            input.direction = (playerPos - pos).norm();
+            input.attack        = distToPlayer < 32.0f;   // melee range
+            break;
+
+        case AIStateType::Investigate:
+            input.direction = (agent.lastKnownPlayerPos - pos).norm();
+            break;
+
+        case AIStateType::Patrol:
+            tickPatrol(agent, pos, input);
+            break;
+        }
+    }
+}
+
 void Scene_Play::sMovement() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& velocityPool = m_ECS.getComponentPool<CVelocity>();
 
-    auto& followPool = m_ECS.getComponentPool<CFollow>();
-    auto viewFollow = m_ECS.View<CFollow, CTransform, CVelocity>();
-    for (auto e : viewFollow)
-    {
-        auto& transform = transformPool.getComponent(e);
-        auto& velocity = velocityPool.getComponent(e);
-        auto& follow = followPool.getComponent(e);
-        if ((follow.target - transform.pos).length() < 16*2) {
-            velocity.vel = follow.target - transform.pos;
-        } else {
-            velocity.vel = Vec2 {0,0};
-        }
-        follow.target = transformPool.getComponent(m_player).pos;
-    }
-
-    auto& pathPool = m_ECS.getComponentPool<CPath>();
-    auto viewPath = m_ECS.View<CPath, CTransform, CVelocity>();
-    for (auto e : viewPath)
-    {
-        auto& transform = transformPool.getComponent(e);
-        auto& velocity = velocityPool.getComponent(e);
-        auto& path = pathPool.getComponent(e);
-
-        Vec2 currentPoint = path.path[path.index]*m_gridSize;
-        if ((currentPoint - transform.pos).length() > 5) {
-            velocity.vel = currentPoint - transform.pos;
-        } else {
-            path.index++;
-            path.index = (path.index % path.path.size());
-        }
-    }
-
-    auto& inputPool = m_ECS.getComponentPool<CInputs>();
-    auto viewInputs = m_ECS.View<CInputs, CTransform, CVelocity>();
+    auto& inputPool = m_ECS.getComponentPool<CInput>();
+    auto viewInputs = m_ECS.View<CInput, CTransform, CVelocity>();
     for (auto e : viewInputs){
         auto &transform = transformPool.getComponent(e);
         auto &velocity = velocityPool.getComponent(e);
         auto &inputs = inputPool.getComponent(e);
 
-        velocity.vel = { 0,0 };
-        if (inputs.up){
-            velocity.vel.y--;
-        } if (inputs.down){
-            velocity.vel.y++;
-        } if (inputs.left){
-            velocity.vel.x--;
-        } if (inputs.right){
-            velocity.vel.x++;
-        } if (inputs.shift){
-            velocity.tempo = 0.5f;
-        } else if (inputs.ctrl){
-            velocity.tempo = 2.0f;
-        } else{
-            velocity.tempo = 1.0f;
+        velocity.vel = inputs.direction;
+        velocity.tempo = inputs.ctrl ? 2.0f : 1.0f;
+        if (e != m_player) {
+            inputs = CInput(); // reset inputs for NPCs after processing
         }
     }
 
@@ -375,7 +423,7 @@ void Scene_Play::sMovement() {
     // }       
 
     auto viewTransform = m_ECS.View<CTransform, CVelocity>();
-    for (auto e : viewTransform){    
+    for (auto e : viewTransform){
         auto &transform = transformPool.getComponent(e);
         auto &velocity = velocityPool.getComponent(e);
         
@@ -399,24 +447,25 @@ void Scene_Play::sMovement() {
 void Scene_Play::sAttack(){
     ComponentPool<CTransform>& transformPool = m_ECS.getComponentPool<CTransform>();
     ComponentPool<CVelocity>& velocityPool = m_ECS.getComponentPool<CVelocity>();
-    ComponentPool<CInputs>& inputPool = m_ECS.getComponentPool<CInputs>();
+    ComponentPool<CInput>& inputPool = m_ECS.getComponentPool<CInput>();
     ComponentPool<CWeapon>& weaponPool = m_ECS.getComponentPool<CWeapon>();
 
-    std::vector<EntityID> viewAttack = m_ECS.View<CInputs, CWeapon, CVelocity, CTransform>();
+    std::vector<EntityID> viewAttack = m_ECS.View<CInput, CWeapon, CVelocity, CTransform>();
     for (EntityID id : viewAttack){
         CTransform& transform = transformPool.getComponent(id);
         CVelocity& velocity = velocityPool.getComponent(id);
-        CInputs& inputs = inputPool.getComponent(id);
+        CInput& inputs = inputPool.getComponent(id);
         CWeapon& weapon = weaponPool.getComponent(id);
-        // weapon.delay--;
-        // if (weapon.delay > 0){
-        //     continue;
-        // }
-        // else {
-        //     weapon.delay = weapon.speed;
-        // }
+
+        weapon.delay--;
         if (!inputs.attack){
             continue;
+        }
+        if (weapon.delay >= 0){
+            continue;
+        }
+        else {
+            weapon.delay = weapon.speed;
         }
         Vec2 position = transformPool.getComponent(m_player).pos;
         Vec2 direction = velocityPool.getComponent(m_player).vel;
@@ -727,11 +776,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         );
         m_rendererManager.addEntityToLayer(id, c["CAnimation"]["layer"]);
     }
-    if (c.contains("CFollow")){
-        // target is always player at spawn
-        Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos; 
-        m_ECS.addComponent<CFollow>(id, playerPos);
-    }
+    // if (c.contains("CFollow")){
+    //     m_ECS.addComponent<CFollow>(id, c["CFollow"]);
+    // }
     if (c.contains("CVelocity")){
         m_ECS.addComponent<CVelocity>(id, c["CVelocity"]);
     }
@@ -744,9 +791,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     if (c.contains("CState")){
         m_ECS.addComponent<CState>(id);
     }
-    if (c.contains("CPath")){
-        m_ECS.addComponent<CPath>(id, c["CPath"]);
-    }
+    // if (c.contains("CPath")){
+    //     m_ECS.addComponent<CPath>(id, c["CPath"]);
+    // }
     if (c.contains("CHealth")){
         m_ECS.addComponent<CHealth>(id, c["CHealth"]);
     }
@@ -759,9 +806,14 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     if (c.contains("CWeapon")){
         m_ECS.addComponent<CWeapon>(id, c["CWeapon"]);
     }
-    // if (name == "rooter"){
-    //     m_ECS.addComponent<CInputs>(id);
-    // }
+    if (c.contains("CInput")){
+        m_ECS.addComponent<CInput>(id);
+    }
+    if (c.contains("CAIAgent")) {
+        m_ECS.addComponent<CAIAgent>(id, c["CAIAgent"]);
+        // Record spawn position for patrol anchor
+        m_ECS.getComponent<CAIAgent>(id).spawnPos = pos;
+    }
     return id;
 }
 
@@ -792,30 +844,9 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
     if (name == "sword"){
         return spawnSword(pos);
     }
-
-    return SpawnFromJSON(name, pos);
-}
-
-EntityID Scene_Play::SpawnDialog(
-    std::string dialog, 
-    int size, 
-    std::string font, 
-    EntityID parentID
-)
-{
-    int layer = 8;
-    auto id = m_ECS.addEntity();
-    m_ECS.addComponent<CTransform>(id);
-    m_ECS.addComponent<CChild>(parentID, id);
-    Vec2 relativePosition = {0, -2*m_gridSize.y};
-    m_ECS.addComponent<CParent>(id, parentID, relativePosition);
-    CAnimation& animation =  m_ECS.addComponent<CAnimation>(id, getAnimation("button_unpressed"), layer);
-    Vec2 animationSize = animation.animation.getSize();
-    CText& text = m_ECS.addComponent<CText>(id, dialog, animationSize.y*0.9f, font);
-    animation.animation.setScale(Vec2{2*animationSize.x, animationSize.y});
-    m_rendererManager.addEntityToLayer(id, layer);
-    m_ECS.addComponent<CLifespan>(id, 60);
-    return id;
+    auto i = SpawnFromJSON(name, pos);
+    std::cout << "Spawned entity: " << name << " with ID: " << i << std::endl;
+    return i;
 }
 
 EntityID Scene_Play::spawnPlayer()
@@ -854,7 +885,7 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CAnimation>(entityID, getAnimation("demon-sheet"), layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
-    m_ECS.addComponent<CInputs>(entityID);
+    m_ECS.addComponent<CInput>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
     m_ECS.addComponent<CInventory>(entityID);
@@ -875,15 +906,15 @@ EntityID Scene_Play::spawnPlayer()
 }
 
 EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer){
-    // auto shadowID = m_ECS.addEntity();
-    // m_ECS.addComponent<CTransform>(shadowID);
-    // m_ECS.getComponent<CTransform>(shadowID).scale *= size;
-    // m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
-    // m_ECS.addComponent<CAnimation>(shadowID, getAnimation("shadow"), layer);
-    // m_rendererManager.addEntityToLayer(shadowID, layer);
-    // m_ECS.addComponent<CChild>(parentID, shadowID);
-    // return shadowID;
-    return 0;
+    auto shadowID = m_ECS.addEntity();
+    m_ECS.addComponent<CTransform>(shadowID);
+    m_ECS.getComponent<CTransform>(shadowID).scale *= size;
+    m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
+    m_ECS.addComponent<CAnimation>(shadowID, getAnimation("shadow"), layer);
+    m_rendererManager.addEntityToLayer(shadowID, layer);
+    m_ECS.addComponent<CChild>(parentID, shadowID);
+    return shadowID;
+    // return 0;
 }
 
 EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
@@ -947,22 +978,6 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
     m_ECS.addComponent<CCollisionBox>(entity, Vec2 {16, 16}, OBSTACLE_LAYER, collisionMask);
 
     m_ECS.addComponent<CImmovable>(entity); // remove when new collision system is implemented
-    return entity;
-}
-
-EntityID Scene_Play::spawnGrass(const Vec2 pos, const int frame)
-{
-    auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid);
-    return entity;
-}
-
-EntityID Scene_Play::spawnDirt(const Vec2 pos, const int frame)
-{
-    auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid);
     return entity;
 }
 
@@ -1120,4 +1135,99 @@ Vec2 Scene_Play::getCameraPosition() {
 EntityID Scene_Play::changePlayerID(EntityID otherID) {
     m_player = otherID;
     return m_player;
+}
+
+bool Scene_Play::rayIntersectsAABB(
+    Vec2 origin, Vec2 dir, float maxDist,
+    Vec2 boxMin, Vec2 boxMax)
+{
+    float tMin = 0.0f;
+    float tMax = maxDist;
+
+    // Test X slab
+    if (std::abs(dir.x) < 1e-6f) {
+        if (origin.x < boxMin.x || origin.x > boxMax.x) return false;
+    } else {
+        float t1 = (boxMin.x - origin.x) / dir.x;
+        float t2 = (boxMax.x - origin.x) / dir.x;
+        if (t1 > t2) std::swap(t1, t2);
+        tMin = std::max(tMin, t1);
+        tMax = std::min(tMax, t2);
+        if (tMin > tMax) return false;
+    }
+
+    // Test Y slab
+    if (std::abs(dir.y) < 1e-6f) {
+        if (origin.y < boxMin.y || origin.y > boxMax.y) return false;
+    } else {
+        float t1 = (boxMin.y - origin.y) / dir.y;
+        float t2 = (boxMax.y - origin.y) / dir.y;
+        if (t1 > t2) std::swap(t1, t2);
+        tMin = std::max(tMin, t1);
+        tMax = std::min(tMax, t2);
+        if (tMin > tMax) return false;
+    }
+
+    return tMin <= tMax;
+}
+
+bool Scene_Play::hasLineOfSight(Vec2 origin, Vec2 target)
+{
+    Vec2  delta   = target - origin;
+    float dist    = delta.length();
+    Vec2  dir     = delta / dist;          // normalized
+
+    auto& transformPool  = m_ECS.getComponentPool<CTransform>();
+    auto& collisionPool  = m_ECS.getComponentPool<CCollisionBox>();
+
+    for (EntityID obstacle : m_ECS.View<CCollisionBox, CTransform, CImmovable>()) {
+        auto& box = collisionPool.getComponent(obstacle);
+        if ((box.layer & OBSTACLE_LAYER) == 0) continue;   // only solid obstacles
+
+        Vec2 pos    = transformPool.getComponent(obstacle).pos;
+        Vec2 boxMin = pos - box.halfSize;
+        Vec2 boxMax = pos + box.halfSize;
+
+        if (rayIntersectsAABB(origin, dir, dist, boxMin, boxMax)) {
+            return false;   // something is in the way
+        }
+    }
+    return true;
+}
+
+void Scene_Play::tickPatrol(CAIAgent& agent, Vec2 pos, CInput& input)
+{
+    // Waiting at current patrol point
+    if (agent.patrolWaitTimer > 0) {
+        agent.patrolWaitTimer--;
+        input.direction = {0, 0};
+        return;
+    }
+
+    // Pick a new random patrol target if we don't have one
+    if (!agent.hasPatrolTarget) {
+        // Random point in a circle around spawn using rejection sampling
+        Vec2 offset;
+        do {
+            float rx = ((rand() % 200) - 100) / 100.0f; // -1 to 1
+            float ry = ((rand() % 200) - 100) / 100.0f;
+            offset = Vec2{rx, ry} * agent.patrolRadius;
+        } while (offset.length() > agent.patrolRadius);
+
+        agent.patrolTarget    = agent.spawnPos + offset;
+        agent.hasPatrolTarget = true;
+    }
+
+    // Move toward patrol target
+    Vec2  toTarget = agent.patrolTarget - pos;
+    float dist     = toTarget.length();
+
+    if (dist < 8.0f) {
+        // Arrived — wait before picking next point
+        agent.hasPatrolTarget = false;
+        agent.patrolWaitTimer = agent.patrolWaitDuration;
+        input.direction  = {0, 0};
+    } else {
+        input.direction = toTarget.norm();
+    }
 }

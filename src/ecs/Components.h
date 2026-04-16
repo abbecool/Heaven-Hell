@@ -49,8 +49,6 @@ enum struct PlayerState {
 
 using EntityID = uint32_t;
 
-class ScriptableEntity;
-
 struct CParent
 {
     EntityID parent;
@@ -67,8 +65,9 @@ struct CProjectile
     CProjectile(EntityID p) : projectileID(p){}
 };
 
-struct CInputs
+struct CInput
 {
+    Vec2 direction = {0, 0};
     bool up         = false;
     bool down       = false;
     bool left       = false;
@@ -81,7 +80,7 @@ struct CInputs
     bool shoot      = false;
     bool canShoot   = false;
     bool posses     = false;
-    CInputs() {};
+    CInput() {};
 };
 
 struct CTransform
@@ -308,17 +307,6 @@ struct CDamage
         : damage(dmg), damageType(dmgType) {}
 };
 
-struct CDialogs
-{
-
-};
-
-// enum struct TextBackground {
-//     dialog = 0,
-//     button = 1,
-//     title = 2
-// };
-
 struct CText
 {    
     Vec2 size;
@@ -348,10 +336,11 @@ struct CPossesLevel
 
 struct CFollow
 {
-    Vec2 target;
+    std::string target;
     CFollow() {}
-    CFollow( Vec2 trg)
-        : target(trg){}
+    CFollow(json j){
+        target = j.get<std::string>();
+    }
 };
 
 struct CPath
@@ -363,6 +352,42 @@ struct CPath
         : path(p){}
     CPath(json j){
         path = j.get<std::vector<Vec2>>();
+    }
+};
+
+enum class AIStateType {
+    Patrol,
+    Chase,
+    Investigate
+};
+
+struct CAIAgent {
+    // --- Sight ---
+    float sightRange   = 200.0f;
+    bool  canSeePlayer = false;
+
+    // --- Memory ---
+    Vec2  lastKnownPlayerPos = {0, 0};
+    int   memoryTimer        = 0;
+    int   memoryDuration     = 240;   // frames before giving up investigation
+
+    // --- Patrol ---
+    Vec2  spawnPos           = {0, 0};
+    float patrolRadius       = 96.0f;
+    Vec2  patrolTarget       = {0, 0};
+    bool  hasPatrolTarget    = false;
+    int   patrolWaitTimer    = 0;
+    int   patrolWaitDuration = 90;    // frames to stand still between patrol points
+
+    // --- State ---
+    AIStateType state = AIStateType::Patrol;
+
+    CAIAgent() {}
+    CAIAgent(const json& j) {
+        sightRange       = j.value("sightRange",       200.0f);
+        patrolRadius     = j.value("patrolRadius",     96.0f);
+        memoryDuration   = j.value("memoryDuration",   240);
+        patrolWaitDuration = j.value("patrolWaitDuration", 90);
     }
 };
 
@@ -408,7 +433,7 @@ struct CWeapon
     // Animation animation;
     int damage = 1;
     int speed = 600;
-    int delay = 600;
+    int delay = 0;
     int range = 180;
     WeaponType weaponType = WeaponType::Projectile;
 
@@ -444,14 +469,6 @@ struct CEvent
             : event(e){}
 };
 
-struct CEquippedWeapon
-{
-    EntityID weaponID;
-    CEquippedWeapon() {}
-    CEquippedWeapon(EntityID wID)
-                : weaponID(wID){}
-};
-
 struct CChild
 {
 
@@ -464,22 +481,6 @@ struct CChild
                 : childID(cID), removeOnDeath(true){}
     CChild(EntityID cID, bool remove)
                 : childID(cID), removeOnDeath(remove){}
-};
-
-struct CScript
-{
-    ScriptableEntity* Instance = nullptr;
-
-    ScriptableEntity* (*InstantiateScript)();
-    void (*DestroyInstanceScript)(CScript*);
-
-    template<typename T>
-    void Bind(){
-        InstantiateScript    = []() {return static_cast<ScriptableEntity*>(new T()); }; 
-        DestroyInstanceScript = [](CScript* sc) { delete sc->Instance; sc->Instance = nullptr;};
-    }
-    CScript() {}
-
 };
 
 struct CChunk

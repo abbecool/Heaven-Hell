@@ -18,10 +18,14 @@
                 "mask": ["PLAYER_LAYER"]
             },
             "CState": {"state": "Nan"},
-            "CScript": "RooterController",
-
-            "CInput": "Nan",
-            "CFollow": "Nan",
+            "CInput": 0,
+            "CAIAgent": {
+                "sightRange":        128,
+                "patrolRadius":      32,
+                "memoryDuration":    240,
+                "patrolWaitDuration": 90
+            },
+            "CPossesLevel": {"level": 10},
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,
