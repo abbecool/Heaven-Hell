@@ -2,12 +2,31 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "configure-release",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--preset", "windows-mingw-release"
+      ],
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "configure-debug",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--preset", "windows-mingw-debug"
+      ],
+      "problemMatcher": "$gcc"
+    },
+    {
       "label": "build-release",
       "type": "shell",
       "command": "cmake",
       "args": [
-        "--build", "build/Release"
+        "--build", "--preset", "windows-mingw-release"
       ],
+      "dependsOn": "configure-release",
       "group": "build",
       "problemMatcher": "$gcc"
     },
@@ -16,16 +35,32 @@
       "type": "shell",
       "command": "cmake",
       "args": [
-        "--build", "build/Debug"
+        "--build", "--preset", "windows-mingw-debug"
       ],
+      "dependsOn": "configure-debug",
       "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "configure-release-linux",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--preset", "linux-release"],
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "configure-debug-linux",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--preset", "linux-debug"],
       "problemMatcher": "$gcc"
     },
     {
       "label": "build-release-linux",
       "type": "shell",
       "command": "cmake",
-      "args": ["--build", "build-release"],
+      "args": ["--build", "--preset", "linux-release"],
+      "dependsOn": "configure-release-linux",
       "group": "build",
       "problemMatcher": "$gcc"
     },
@@ -33,7 +68,8 @@
       "label": "build-debug-linux",
       "type": "shell",
       "command": "cmake",
-      "args": ["--build", "build-debug"],
+      "args": ["--build", "--preset", "linux-debug"],
+      "dependsOn": "configure-debug-linux",
       "group": "build",
       "problemMatcher": "$gcc"
     }

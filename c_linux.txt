@@ -1,0 +1,286 @@
+cmake_minimum_required(VERSION 3.15)
+project(heavenhell VERSION 0.1 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL2_image CONFIG REQUIRED)
+find_package(SDL2_mixer CONFIG REQUIRED)
+find_package(SDL2_ttf CONFIG REQUIRED)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/run")
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*.cpp")
+add_executable(heavenhell ${SOURCES})
+
+target_include_directories(heavenhell PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+target_link_libraries(heavenhell PRIVATE
+    SDL2::SDL2
+    SDL2_image::SDL2_image
+    SDL2_mixer::SDL2_mixer
+    SDL2_ttf::SDL2_ttf
+)
+
+if (WIN32)
+    target_link_libraries(heavenhell PRIVATE SDL2::SDL2main)
+endif()
+
+add_custom_command(TARGET heavenhell POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:heavenhell>/assets")
+
+add_custom_command(TARGET heavenhell POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/config_files"
+        "$<TARGET_FILE_DIR:heavenhell>/config_files")
+
+
+
+{
+  "configurations": [
+    {
+      "name": "Win32",
+      "includePath": [
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/../SDL2/SDL2-2.32.8/include",
+        "${workspaceFolder}/../SDL2/SDL2_image-2.8.8/include",
+        "${workspaceFolder}/../SDL2/SDL2_mixer-2.8.1/include",
+        "${workspaceFolder}/../SDL2/SDL2_ttf-2.24.0/include"
+      ],
+      "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
+      "intelliSenseMode": "windows-gcc-x64"
+    }
+  ],
+  "version": 4
+}
+
+
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run HeavenHell (GCC Release)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/run/Release/heavenhell.exe",
+            "cwd": "${workspaceFolder}/run/Release",
+            "preLaunchTask": "build-release",
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe", // adjust if needed
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug HeavenHell (GCC Debug)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/run/Debug/heavenhell.exe",
+            "cwd": "${workspaceFolder}/run/Debug",
+            "preLaunchTask": "build-debug",
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe", // adjust if needed
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Run HeavenHell (Arch Release)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/run/heavenhell",
+            "cwd": "${workspaceFolder}/run",
+            "preLaunchTask": "build-release-linux",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug HeavenHell (Arch Debug)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/run/heavenhell",
+            "cwd": "${workspaceFolder}/run",
+            "preLaunchTask": "build-debug-linux",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+                }
+            ],
+            "console": "integratedTerminal"
+        }
+    ]
+}
+
+
+{
+    "files.associations": {
+      "ostream": "cpp",
+      "algorithm": "cpp",
+      "any": "cpp",
+      "array": "cpp",
+      "atomic": "cpp",
+      "bit": "cpp",
+      "bitset": "cpp",
+      "cctype": "cpp",
+      "charconv": "cpp",
+      "chrono": "cpp",
+      "clocale": "cpp",
+      "cmath": "cpp",
+      "compare": "cpp",
+      "concepts": "cpp",
+      "cstddef": "cpp",
+      "cstdint": "cpp",
+      "cstdio": "cpp",
+      "cstdlib": "cpp",
+      "cstring": "cpp",
+      "ctime": "cpp",
+      "cwchar": "cpp",
+      "exception": "cpp",
+      "filesystem": "cpp",
+      "format": "cpp",
+      "forward_list": "cpp",
+      "fstream": "cpp",
+      "functional": "cpp",
+      "initializer_list": "cpp",
+      "iomanip": "cpp",
+      "ios": "cpp",
+      "iosfwd": "cpp",
+      "iostream": "cpp",
+      "istream": "cpp",
+      "iterator": "cpp",
+      "limits": "cpp",
+      "list": "cpp",
+      "locale": "cpp",
+      "map": "cpp",
+      "memory": "cpp",
+      "new": "cpp",
+      "numeric": "cpp",
+      "optional": "cpp",
+      "random": "cpp",
+      "ranges": "cpp",
+      "ratio": "cpp",
+      "span": "cpp",
+      "sstream": "cpp",
+      "stdexcept": "cpp",
+      "stop_token": "cpp",
+      "streambuf": "cpp",
+      "string": "cpp",
+      "system_error": "cpp",
+      "thread": "cpp",
+      "tuple": "cpp",
+      "type_traits": "cpp",
+      "typeindex": "cpp",
+      "typeinfo": "cpp",
+      "unordered_map": "cpp",
+      "unordered_set": "cpp",
+      "utility": "cpp",
+      "valarray": "cpp",
+      "vector": "cpp",
+      "xfacet": "cpp",
+      "xhash": "cpp",
+      "xiosbase": "cpp",
+      "xlocale": "cpp",
+      "xlocbuf": "cpp",
+      "xlocinfo": "cpp",
+      "xlocmes": "cpp",
+      "xlocmon": "cpp",
+      "xlocnum": "cpp",
+      "xloctime": "cpp",
+      "xmemory": "cpp",
+      "xstring": "cpp",
+      "xtr1common": "cpp",
+      "xtree": "cpp",
+      "xutility": "cpp",
+      "codecvt": "cpp",
+      "cstdarg": "cpp",
+      "cwctype": "cpp",
+      "deque": "cpp",
+      "memory_resource": "cpp",
+      "string_view": "cpp",
+      "numbers": "cpp",
+      "semaphore": "cpp",
+      "cinttypes": "cpp",
+      "variant": "cpp",
+      "condition_variable": "cpp",
+      "csignal": "cpp",
+      "set": "cpp",
+      "regex": "cpp",
+      "future": "cpp",
+      "mutex": "cpp"
+    },
+    "editor.rulers": [
+   {
+     "column": 80,    // spacing of 1st column from left
+     "color": "#ffffff"   // orange, Go Vols!
+   },
+//    {
+//      "column": 100,    // spacing of 1st column from left
+//      "color": "#ff9900"   // orange, Go Vols!
+//    },
+//    {
+//     "column": 120,      // third ruler
+//     "color": "#ff0000"  // purple, go Pirates! 
+//    },
+],
+}
+
+
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-release",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build", "build/Release"
+      ],
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build-debug",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build", "build/Debug"
+      ],
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build-release-linux",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build-release"],
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build-debug-linux",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build-debug"],
+      "group": "build",
+      "problemMatcher": "$gcc"
+    }
+  ]
+}

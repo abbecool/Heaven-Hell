@@ -5,5 +5,8 @@ temp_*
 build/*
 build-vs/*
 
+# Visual Studio user/cache files
+.vs/
+
 # Ignore everything in run/
 run/**
