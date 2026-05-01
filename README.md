@@ -10,7 +10,7 @@ Get both to their goals without them getting stuck or dying. -->
 This version of the game is a top-down RPG 
 -----------------------------------------------------
 Here you play as a XXX who is in charge of deciding who gets to go to heaven and who goes to hell (Skärselden)
-You dont know you origins and it is a mystery. There has been a greate battle and the starting area is in ruins.
+You dont know you origins and it is a mystery. There has been a great battle and the starting area is in ruins.
 Your quest is to find out about you origin/backstory.
 
 Add trees, chop down a tree leaving a tree stump, cast a spell/potion on the tree stump to turn it into a rooter!
@@ -19,6 +19,9 @@ Spells primaraly deal damage and Potions primaraly inflict status effects.
 Add the ability climb trees to see further
 
 # Developer Setup
+
+## Windows Setup
+
 Install MSYS2 installer (C++ compiler) by clicking the link: https://github.com/msys2/msys2-installer/releases/download/2024-12-08/msys2-x86_64-20241208.exe. Make sure the compiler is installed at this location: "C:/msys64/ucrt64/bin/gcc.exe", otherwise c_cpp_properties.json needs to be adjusted. 
 
 General Visual Studio Code setup guide can be found here: https://code.visualstudio.com/docs/cpp/config-mingw
@@ -40,27 +43,41 @@ The SDL2 folder should look like this.
 
 ![](SDL2_folder.png)
 
-When the sibling SDL2 folder is done, open the terminal in VSCode and then, inside the root directory of the repository run these commands to create the build folders that CMake will use to build the project.
+When the sibling SDL2 folder is ready, open the repository in VS Code, select the desired launch configuration, and press F5. VS Code will configure CMake, build the project, and run the game.
+
+## Linux Setup (only tested on Arch)
+
+Install a C++ compiler, CMake, GDB, and the SDL2 development packages. 
+
+On Arch Linux:
+
 ```sh
-cmake -S . -B build/Debug -DCMAKE_BUILD_TYPE=Debug -G "MinGW Makefiles"
-```
-```sh
-cmake -S . -B build/Release -DCMAKE_BUILD_TYPE=Release -G "MinGW Makefiles"
+sudo pacman -S gcc cmake gdb sdl2 sdl2_image sdl2_mixer sdl2_ttf
 ```
 
-Then select configuration inside of VSCode and press F5 to do an initial build/compile and then run the game.
+On Debian/Ubuntu:
 
-To manually compile either the release or debug versions, run these commands:
 ```sh
+sudo apt install build-essential cmake gdb libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+```
+
+Open the repository in VS Code, select either `Run HeavenHell (Arch Release)` or `Debug HeavenHell (Arch Debug)`, and press F5. VS Code will configure CMake, build the project, and run the game.
+
+To configure and build manually from the terminal:
+
+```sh
+cmake -S . -B build/Debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/Debug
 ```
+
 ```sh
+cmake -S . -B build/Release -DCMAKE_BUILD_TYPE=Release
 cmake --build build/Release
 ```
 
-For testing:
-```sh
-cmake -S . -B build/Test
-cmake --build build/Test
-ctest --test-dir build/Test
+The Linux executable is created at:
+
+```text
+run/Debug/heavenhell
+run/Release/heavenhell
 ```

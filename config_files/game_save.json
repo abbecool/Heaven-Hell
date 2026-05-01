@@ -1,10 +1,13 @@
 {
-    "inventory": [1, 2],
+    "inventory": [
+        1,
+        2
+    ],
     "player": {
         "hp": 2,
         "position": {
-            "x": 349,
-            "y": 63
+            "x": 344,
+            "y": 88
         }
     }
 }

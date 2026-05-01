@@ -2,39 +2,63 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "configure-release",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-S", ".",
+        "-B", "build/Release",
+        "-DCMAKE_BUILD_TYPE=Release"
+      ],
+      "problemMatcher": "$gcc"
+    },
+    {
       "label": "build-release",
+      "dependsOn": [
+        "configure-release",
+        "build-release-only"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build-release-only",
       "type": "shell",
       "command": "cmake",
       "args": [
         "--build", "build/Release"
       ],
-      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "configure-debug",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-S", ".",
+        "-B", "build/Debug",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
       "problemMatcher": "$gcc"
     },
     {
       "label": "build-debug",
+      "dependsOn": [
+        "configure-debug",
+        "build-debug-only"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build-debug-only",
       "type": "shell",
       "command": "cmake",
       "args": [
         "--build", "build/Debug"
       ],
-      "group": "build",
-      "problemMatcher": "$gcc"
-    },
-    {
-      "label": "build-release-linux",
-      "type": "shell",
-      "command": "cmake",
-      "args": ["--build", "build-release"],
-      "group": "build",
-      "problemMatcher": "$gcc"
-    },
-    {
-      "label": "build-debug-linux",
-      "type": "shell",
-      "command": "cmake",
-      "args": ["--build", "build-debug"],
-      "group": "build",
       "problemMatcher": "$gcc"
     }
   ]

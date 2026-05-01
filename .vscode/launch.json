@@ -2,14 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run HeavenHell (GCC Release)",
+            "name": "Run HeavenHell Release",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/run/Release/heavenhell.exe",
-            "cwd": "${workspaceFolder}/run/Release",
             "preLaunchTask": "build-release",
             "MIMode": "gdb",
-            "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe", // adjust if needed
+            "console": "integratedTerminal",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -17,17 +15,24 @@
                     "ignoreFailures": true
                 }
             ],
-            "console": "integratedTerminal"
+            "windows": {
+                "program": "${workspaceFolder}/run/Release/heavenhell.exe",
+                "cwd": "${workspaceFolder}/run/Release",
+                "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe"
+            },
+            "linux": {
+                "program": "${workspaceFolder}/run/Release/heavenhell",
+                "cwd": "${workspaceFolder}/run/Release",
+                "miDebuggerPath": "/usr/bin/gdb"
+            }
         },
         {
-            "name": "Debug HeavenHell (GCC Debug)",
+            "name": "Debug HeavenHell",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/run/Debug/heavenhell.exe",
-            "cwd": "${workspaceFolder}/run/Debug",
             "preLaunchTask": "build-debug",
             "MIMode": "gdb",
-            "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe", // adjust if needed
+            "console": "integratedTerminal",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -35,35 +40,16 @@
                     "ignoreFailures": true
                 }
             ],
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Run HeavenHell (Arch Release)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/run/heavenhell",
-            "cwd": "${workspaceFolder}/run",
-            "preLaunchTask": "build-release-linux",
-            "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Debug HeavenHell (Arch Debug)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/run/heavenhell",
-            "cwd": "${workspaceFolder}/run",
-            "preLaunchTask": "build-debug-linux",
-            "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
-            "setupCommands": [
-                {
-                "text": "-enable-pretty-printing",
-                "ignoreFailures": true
-                }
-            ],
-            "console": "integratedTerminal"
+            "windows": {
+                "program": "${workspaceFolder}/run/Debug/heavenhell.exe",
+                "cwd": "${workspaceFolder}/run/Debug",
+                "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe"
+            },
+            "linux": {
+                "program": "${workspaceFolder}/run/Debug/heavenhell",
+                "cwd": "${workspaceFolder}/run/Debug",
+                "miDebuggerPath": "/usr/bin/gdb"
+            }
         }
     ]
 }

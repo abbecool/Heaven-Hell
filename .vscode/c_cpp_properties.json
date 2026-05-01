@@ -1,6 +1,21 @@
 {
   "configurations": [
     {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/src",
+        "/usr/include/SDL2",
+        "/usr/include/freetype2",
+        "/usr/include/harfbuzz",
+        "/usr/include/glib-2.0",
+        "/usr/lib/glib-2.0/include",
+        "/usr/include/libpng16",
+        "/usr/include/webp"
+      ],
+      "compilerPath": "/usr/bin/g++",
+      "intelliSenseMode": "linux-gcc-x64"
+    },
+    {
       "name": "Win32",
       "includePath": [
         "${workspaceFolder}/src",
