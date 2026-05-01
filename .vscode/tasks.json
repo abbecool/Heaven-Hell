@@ -10,6 +10,14 @@
         "-B", "build/Release",
         "-DCMAKE_BUILD_TYPE=Release"
       ],
+      "windows": {
+        "args": [
+          "-S", ".",
+          "-B", "build/Windows/Release",
+          "-DCMAKE_BUILD_TYPE=Release",
+          "-G", "MinGW Makefiles"
+        ]
+      },
       "problemMatcher": "$gcc"
     },
     {
@@ -29,6 +37,11 @@
       "args": [
         "--build", "build/Release"
       ],
+      "windows": {
+        "args": [
+          "--build", "build/Windows/Release"
+        ]
+      },
       "problemMatcher": "$gcc"
     },
     {
@@ -40,6 +53,14 @@
         "-B", "build/Debug",
         "-DCMAKE_BUILD_TYPE=Debug"
       ],
+      "windows": {
+        "args": [
+          "-S", ".",
+          "-B", "build/Windows/Debug",
+          "-DCMAKE_BUILD_TYPE=Debug",
+          "-G", "MinGW Makefiles"
+        ]
+      },
       "problemMatcher": "$gcc"
     },
     {
@@ -59,6 +80,11 @@
       "args": [
         "--build", "build/Debug"
       ],
+      "windows": {
+        "args": [
+          "--build", "build/Windows/Debug"
+        ]
+      },
       "problemMatcher": "$gcc"
     }
   ]

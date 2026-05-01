@@ -2,31 +2,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run HeavenHell Release",
-            "type": "cppdbg",
-            "request": "launch",
-            "preLaunchTask": "build-release",
-            "MIMode": "gdb",
-            "console": "integratedTerminal",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "windows": {
-                "program": "${workspaceFolder}/run/Release/heavenhell.exe",
-                "cwd": "${workspaceFolder}/run/Release",
-                "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe"
-            },
-            "linux": {
-                "program": "${workspaceFolder}/run/Release/heavenhell",
-                "cwd": "${workspaceFolder}/run/Release",
-                "miDebuggerPath": "/usr/bin/gdb"
-            }
-        },
-        {
             "name": "Debug HeavenHell",
             "type": "cppdbg",
             "request": "launch",
@@ -48,6 +23,31 @@
             "linux": {
                 "program": "${workspaceFolder}/run/Debug/heavenhell",
                 "cwd": "${workspaceFolder}/run/Debug",
+                "miDebuggerPath": "/usr/bin/gdb"
+            }
+        },
+        {
+            "name": "Run HeavenHell Release",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "build-release",
+            "MIMode": "gdb",
+            "console": "integratedTerminal",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "windows": {
+                "program": "${workspaceFolder}/run/Release/heavenhell.exe",
+                "cwd": "${workspaceFolder}/run/Release",
+                "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe"
+            },
+            "linux": {
+                "program": "${workspaceFolder}/run/Release/heavenhell",
+                "cwd": "${workspaceFolder}/run/Release",
                 "miDebuggerPath": "/usr/bin/gdb"
             }
         }

@@ -24,7 +24,7 @@
         "${workspaceFolder}/../SDL2/SDL2_mixer-2.8.1/include",
         "${workspaceFolder}/../SDL2/SDL2_ttf-2.24.0/include"
       ],
-      "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
+      "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
       "intelliSenseMode": "windows-gcc-x64"
     }
   ],

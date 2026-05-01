@@ -4,6 +4,14 @@ project(heavenhell VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if (WIN32 AND NOT MINGW)
+    message(FATAL_ERROR "Windows builds are expected to use MSYS2/MinGW. Configure with -G \"MinGW Makefiles\".")
+endif()
+
+if (WIN32)
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../SDL2")
+endif()
+
 find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
 find_package(SDL2_mixer CONFIG REQUIRED)
@@ -17,6 +25,10 @@ add_executable(heavenhell ${SOURCES})
 
 target_include_directories(heavenhell PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
+if (WIN32)
+    target_link_libraries(heavenhell PRIVATE SDL2::SDL2main)
+endif()
+
 target_link_libraries(heavenhell PRIVATE
     SDL2::SDL2
     SDL2_image::SDL2_image
@@ -25,7 +37,23 @@ target_link_libraries(heavenhell PRIVATE
 )
 
 if (WIN32)
-    target_link_libraries(heavenhell PRIVATE SDL2::SDL2main)
+    get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    set(SDL2_BASE "${CMAKE_SOURCE_DIR}/../SDL2")
+
+    add_custom_command(TARGET heavenhell POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${SDL2_BASE}/SDL2-2.32.8/lib/x64/SDL2.dll"
+            "${SDL2_BASE}/SDL2_image-2.8.8/lib/x64/SDL2_image.dll"
+            "${SDL2_BASE}/SDL2_mixer-2.8.1/lib/x64/SDL2_mixer.dll"
+            "${SDL2_BASE}/SDL2_ttf-2.24.0/lib/x64/SDL2_ttf.dll"
+            $<TARGET_FILE_DIR:heavenhell>)
+
+    add_custom_command(TARGET heavenhell POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
+            "${MINGW_BIN_DIR}/libstdc++-6.dll"
+            "${MINGW_BIN_DIR}/libwinpthread-1.dll"
+            $<TARGET_FILE_DIR:heavenhell>)
 endif()
 
 add_custom_command(TARGET heavenhell POST_BUILD
