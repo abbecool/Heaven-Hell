@@ -5,7 +5,7 @@
             "CVelocity": {"speed": 50},
             "CAnimation": {
                 "animation": "golem-sheet",
-                "layer": 10
+                "layer": 9
             },
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
@@ -17,8 +17,13 @@
                 "layer": "ENEMY_LAYER", 
                 "mask": ["PLAYER_LAYER"]
             },
-            "CScript": "RooterController",
-            "CPathfind": "Nan",
+            "CInput": 0,
+            "CAIAgent": {
+                "sightRange":        128,
+                "patrolRadius":      32,
+                "memoryDuration":    240,
+                "patrolWaitDuration": 90
+            },
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

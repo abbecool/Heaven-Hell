@@ -5,7 +5,7 @@
             "CVelocity": {"speed": 50},
             "CAnimation": {
                 "animation": "goblin-sheet",
-                "layer": 10
+                "layer": 9
             },
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
@@ -13,9 +13,7 @@
                 "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
             },
             "CState": {"state": "Nan"},
-            "CScript": "RooterController",
-
-            "CPathfind": "Nan",
+            "CFollow": "Nan",
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,
@@ -28,7 +26,8 @@
                 "duration": 30, 
                 "range": 48, 
                 "area": {"x": 16, "y": 16}
-            }
+            },
+            "CInput": "Nan"
         }
     }
 }

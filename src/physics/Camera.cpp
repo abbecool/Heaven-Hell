@@ -150,6 +150,10 @@ bool Camera::update(Vec2 playerPos, bool pause) {
     return m_cameraPause;
 }
 
+Vec2 Camera::getScreenSize() {
+    return m_screenSize;
+}
+
 #include "ecs/ScriptableEntity.h"
 #include <iostream>
 

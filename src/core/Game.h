@@ -28,10 +28,10 @@ protected:
     SDL_Window *m_window;
     SDL_Renderer *m_renderer;
     SceneMap m_sceneMap;
-    size_t m_simulationSpeed = 1;
     Assets m_assets;
     std::string m_currentScene;
     bool m_running = true;
+    bool m_renderFPS = true;
 
     int m_currentFrame;
     bool m_paused;
@@ -45,6 +45,10 @@ protected:
     int frame_count = 0;
     int accumulated_frame_time = 0;
     int average_fps = 0;
+
+    // FPS display caching
+    SDL_Texture* m_fpsCacheTexture = nullptr;
+    SDL_Rect m_fpsCacheRect = {m_width-100, m_height-20, 100, 20};
     
     void update();
     void setPaused(bool paused);
@@ -76,4 +80,5 @@ public:
     void ToggleFullscreen();
     void setScale(int scale);
     int getScale();
+    void toggleRenderFPS();
 };

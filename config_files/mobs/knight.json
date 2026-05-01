@@ -15,11 +15,10 @@
             },
             "CAnimation": {
                 "animation": "knight-sheet",
-                "layer": 10
+                "layer": 9
             },
             "CState": {"state": "Nan"},
-            "CScript": "NPCController",
-            "CPossesLevel": {"level": "Nan"},
+            "CPossesLevel": {"level": 10},
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

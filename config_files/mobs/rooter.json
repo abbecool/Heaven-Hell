@@ -5,7 +5,7 @@
             "CVelocity": {"speed": 50},
             "CAnimation": {
                 "animation": "rooter-sheet",
-                "layer": 10
+                "layer": 9
             },
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
@@ -18,10 +18,14 @@
                 "mask": ["PLAYER_LAYER"]
             },
             "CState": {"state": "Nan"},
-            "CScript": "RooterController",
-
-            "CInput": "Nan",
-            "CPathfind": "Nan",
+            "CInput": 0,
+            "CAIAgent": {
+                "sightRange":        128,
+                "patrolRadius":      32,
+                "memoryDuration":    240,
+                "patrolWaitDuration": 90
+            },
+            "CPossesLevel": {"level": 10},
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,
@@ -34,6 +38,12 @@
                 "duration": 30, 
                 "range": 48, 
                 "area": {"x": 16, "y": 16}
+            },
+            "CWeapon": {
+                "damage": 1,
+                "speed": 60,
+                "range": 180,
+                "type": "Melee"
             }
         }
     }

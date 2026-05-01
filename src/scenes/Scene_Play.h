@@ -61,6 +61,7 @@ class Scene_Play : public Scene
     EntityID spawnPlayer();
     EntityID spawnWeapon(Vec2 pos, std::string weaponName = "staff");
     EntityID spawnSword(Vec2 pos, std::string weaponName = "sword");
+    EntityID spawnEmblem(Vec2 pos, const size_t layer);
     EntityID spawnCoin(Vec2 pos, const size_t layer);
     EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
     EntityID spawnDecoration(
@@ -71,19 +72,16 @@ class Scene_Play : public Scene
     );
     
     EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
-    EntityID spawnGrass     (const Vec2 pos, const int frame);
-    EntityID spawnDirt      (const Vec2 pos, const int frame);
     EntityID spawnCampfire  (const Vec2 pos, int layer);
     EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
-    EntityID spawnLava      (const Vec2 pos, const std::string tag, const int frame );
     std::vector<EntityID> spawnDualTiles(
         const Vec2 pos, 
-        std::unordered_map<std::string, int> tileIndex
+        std::array<int, 5> tileIndex
     );
     
     void sLoader();
-    void sScripting();
     void sAttack();
+    void sAI();
     void sMovement();
     void sInteraction();
     void sCollision();
@@ -96,18 +94,17 @@ class Scene_Play : public Scene
     void onEnd();
     void togglePause();
     void changePlayerState(EntityID entity, PlayerState s);
+    bool hasLineOfSight(Vec2 origin, Vec2 target);
+    bool rayIntersectsAABB(Vec2 origin, Vec2 dir, float maxDist, 
+        Vec2 boxMin, Vec2 boxMax);
+    void tickPatrol(CAIAgent& agent, Vec2 pos, CInput& intent);
     
-    
-    public:
-    template<typename T>
-    void InitiateScript(CScript& sc, EntityID entityID);
-    void InitiateProjectileScript(CScript& sc, EntityID entityID);
-    
+    public:    
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 getCameraPosition() override;
     
     EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
-    EntityID spawnHitbox(Vec2 position, Vec2 size);
+    EntityID spawnHitbox(Vec2 position, Vec2 size, CollisionMask layer, CollisionMask mask);
     void updateActiveItem(int newActiveItem);
     void update();
     void setPaused(bool);
@@ -122,7 +119,6 @@ class Scene_Play : public Scene
 
     EntityID SpawnFromJSON(std::string name, Vec2 pos);
     EntityID Spawn(std::string name, Vec2 pos);
-    EntityID SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID);
 
 // event - subscriber: These emit a signal when called
     void onItemPickedUp(const std::string& itemName) {

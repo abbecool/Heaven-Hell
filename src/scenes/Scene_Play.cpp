@@ -36,7 +36,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_levelPath(levelPath), 
     m_collisionManager(&m_ECS, this), 
     m_interactionManager(&m_ECS, this), 
-    m_storyManager(this, "config_files/story.json"),
+    m_storyManager(this, "config_files/story.json", "config_files/quests.json"),
     m_levelLoader(this, m_gridSize, levelPath),
     m_newGame(newGame),
     m_inventoryManager("config_files/items")
@@ -52,6 +52,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     
     registerAction(SDLK_i, "INVENTORY");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
+    registerAction(SDL_BUTTON_RIGHT , "WRITE POSITION");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
     registerAction(SDLK_e, "INTERACT");
     registerAction(SDLK_LSHIFT, "SHIFT");
@@ -67,6 +68,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(SDLK_MINUS, "ZOOM OUT");
     registerAction(SDLK_q, "WRITE QUADTREE");
     registerAction(SDLK_p, "PAUSE");
+    registerAction(SDLK_o, "FPS COUNTER");
     registerAction(SDLK_k, "KILL_PLAYER");
     registerAction(SDLK_F3, "TOGGLE_COLLISION");
     registerAction(SDLK_F4, "TOGGLE_INTERACTION");
@@ -107,8 +109,7 @@ void Scene_Play::SubscribeToStoryEvents(){
 void Scene_Play::loadMobsNItems(const std::string& path){
     std::ifstream file(path);
     if (!file) {
-        std::cerr << "Could not load mobs assets file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not load mobs/items file: " + path);
     }
     json j;
     file >> j;
@@ -127,8 +128,7 @@ void Scene_Play::loadConfig(const std::string& confPath){
     // TODO: line count fix be using json
     std::ifstream file(confPath);
     if (!file) {
-        std::cerr << "Could not load config.txt file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not load config file: " + confPath);
     }
     std::string head;
     while (file >> head) {
@@ -145,9 +145,7 @@ void Scene_Play::loadConfig(const std::string& confPath){
             file >> m_camera.config.SHAKE_DURATION_SMALL >> m_camera.config.SHAKE_INTENSITY_SMALL;
         }
         else {
-            std::cerr << "head to " << head << "\n";
-            std::cerr << "The config file format is incorrect!\n";
-            exit(-1);
+            throw std::runtime_error("Invalid config entry: " + head + ". Config file format is incorrect.");
         }
     }
 }
@@ -155,48 +153,31 @@ void Scene_Play::loadConfig(const std::string& confPath){
 // Function to save the game state to a file
 void Scene_Play::saveGame(const std::string& filename) 
 {
-    std::ofstream saveFile(filename);
-    if ( !saveFile.is_open() ) 
-    {
-        std::cerr << "Unable to open file for saving!" << std::endl;
-        return;
-    }
     Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos;
-    saveFile << "Player_pos " << (int)(playerPos.x/m_gridSize.x) << " " << (int)(playerPos.y/m_gridSize.y) << std::endl; // TODO: long line to be replaced when saving to json
-    saveFile << "Player_hp " << m_ECS.getComponent<CHealth>(m_player).HP << std::endl;
-    saveFile.close();
+    int hp = m_ECS.getComponent<CHealth>(m_player).HP;
+
+    std::ofstream file("config_files/game_save.json");
+    if (!file) {
+        throw std::runtime_error("Could not open game save file: config_files/game_save.json");
+    }    
+    json save = {
+        {"player", {
+            {"position", {
+                {"x", int(playerPos.x / m_gridSize.x)},
+                {"y", int(playerPos.y / m_gridSize.y)}
+            }},
+            {"hp", hp}
+        }},
+        {"inventory", {1, 2}}
+    };
+    file << save.dump(4);
+    file.close();
 }
 
 void Scene_Play::sDoAction(const Action& action){
     if ( action.type() == "START")
     {
-        if ( action.name() == "TOGGLE_TEXTURE") {
-            m_drawTextures = !m_drawTextures; 
-        } else if ( action.name() == "TOGGLE_COLLISION") { 
-            m_drawCollision = !m_drawCollision; 
-        } else if ( action.name() == "TOGGLE_INTERACTION") { 
-            m_drawInteraction = !m_drawInteraction; 
-        } else if ( action.name() == "PAUSE") { 
-            togglePause();
-        } else if ( action.name() == "INVENTORY") { 
-            std::cout << "toggle inventory" << std::endl;
-        } else if ( action.name() == "ZOOM IN"){
-            m_camera.stepCameraZoom(-1, m_game->getScale());
-        } else if ( action.name() == "ZOOM OUT"){
-            m_camera.stepCameraZoom(1, m_game->getScale());
-        } else if ( action.name() == "CAMERA FOLLOW"){
-            m_camera.toggleCameraFollow();
-        } else if ( action.name() == "CAMERA PAN"){
-            m_pause = m_camera.startPan(2048, 1000, Vec2{0,0}, m_pause);
-        } else if ( action.name() == "SAVE"){
-            saveGame("config_files/game_save.txt");
-        } else if ( action.name() == "TP1") { 
-            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{460*16, 460*16};
-        } else if ( action.name() == "TP2") { 
-            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{292*16, 236*16};
-        }else if ( action.name() == "TP3") {
-            m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*16, 181*16};
-        } else if ( action.name() == "RESET") { 
+        if ( action.name() == "RESET") { 
             m_game->changeScene("PLAY", std::make_shared<Scene_Play>(m_game, m_levelPath, true), true);
         } else if ( action.name() == "KILL_PLAYER") { 
             m_ECS.getComponent<CHealth>(m_player).HP = 0;
@@ -207,44 +188,69 @@ void Scene_Play::sDoAction(const Action& action){
         } else if ( action.name() == "Slot3") { 
             updateActiveItem(2);
         }
-        if ( action.name() == "UP"){m_ECS.getComponent<CInputs>(m_player).up = true;}
-        if ( action.name() == "DOWN"){m_ECS.getComponent<CInputs>(m_player).down = true;}
-        if ( action.name() == "LEFT"){m_ECS.getComponent<CInputs>(m_player).left = true;}
-        if ( action.name() == "RIGHT"){m_ECS.getComponent<CInputs>(m_player).right = true;}
-        if ( action.name() == "SHIFT"){m_ECS.getComponent<CInputs>(m_player).shift = true;}
-        if ( action.name() == "CTRL"){m_ECS.getComponent<CInputs>(m_player).ctrl = true;}
-        if ( action.name() == "INTERACT" ){m_ECS.getComponent<CInputs>(m_player).interact = true;}
-        if ( action.name() == "TAKE OVER" ){m_ECS.getComponent<CInputs>(m_player).posses = true;}
-        if ( action.name() == "ATTACK" ){m_ECS.getComponent<CInputs>(m_player).attack = true;}
+        if ( action.name() == "UP"){m_ECS.getComponent<CInput>(m_player).up = true;}
+        if ( action.name() == "DOWN"){m_ECS.getComponent<CInput>(m_player).down = true;}
+        if ( action.name() == "LEFT"){m_ECS.getComponent<CInput>(m_player).left = true;}
+        if ( action.name() == "RIGHT"){m_ECS.getComponent<CInput>(m_player).right = true;}
+        if ( action.name() == "SHIFT"){m_ECS.getComponent<CInput>(m_player).shift = true;}
+        if ( action.name() == "CTRL"){m_ECS.getComponent<CInput>(m_player).ctrl = true;}
+        if ( action.name() == "INTERACT"){m_ECS.getComponent<CInput>(m_player).interact = true;}
+        if ( action.name() == "TAKE OVER"){m_ECS.getComponent<CInput>(m_player).posses = true;}
+        if ( action.name() == "ATTACK"){m_ECS.getComponent<CInput>(m_player).attack = true;}
     }
     else if ( action.type() == "END")
     {
-        if ( action.name() == "DOWN") { m_ECS.getComponent<CInputs>(m_player).down = false; }
-        if ( action.name() == "UP") { m_ECS.getComponent<CInputs>(m_player).up = false; }
-        if ( action.name() == "LEFT") { m_ECS.getComponent<CInputs>(m_player).left = false; }
-        if ( action.name() == "RIGHT") { m_ECS.getComponent<CInputs>(m_player).right = false; }
-        if ( action.name() == "SHIFT") { m_ECS.getComponent<CInputs>(m_player).shift = false; }
-        if ( action.name() == "CTRL") { m_ECS.getComponent<CInputs>(m_player).ctrl = false; }
-        if ( action.name() == "INTERACT") { m_ECS.getComponent<CInputs>(m_player).interact = false; }
-        if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInputs>(m_player).posses = false; }
-        if ( action.name() == "ATTACK") { m_ECS.getComponent<CInputs>(m_player).attack = false; }
+        if ( action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
+        if ( action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
+        if ( action.name() == "TOGGLE_INTERACTION") { m_drawInteraction = !m_drawInteraction; }
+        if ( action.name() == "PAUSE") { togglePause(); }
+        if ( action.name() == "FPS COUNTER") { m_game->toggleRenderFPS(); }
+        if ( action.name() == "INVENTORY") { std::cout << "toggle inventory" << std::endl; }
+        if ( action.name() == "ZOOM IN"){ m_camera.stepCameraZoom(-1, m_game->getScale()); }
+        if ( action.name() == "ZOOM OUT"){ m_camera.stepCameraZoom(1, m_game->getScale()); }
+        if ( action.name() == "CAMERA FOLLOW"){ m_camera.toggleCameraFollow(); }
+        if ( action.name() == "CAMERA PAN"){ m_pause = m_camera.startPan(2048, 1000, Vec2{0,0}, m_pause); }
+        if ( action.name() == "SAVE"){ saveGame("config_files/game_save.txt"); }
+        if ( action.name() == "TP1") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{460*16, 460*16}; }
+        if ( action.name() == "TP2") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{292*16, 236*16}; }
+        if ( action.name() == "TP3") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*16, 181*16}; }
+        if ( action.name() == "DOWN") { m_ECS.getComponent<CInput>(m_player).down = false; }
+        if ( action.name() == "UP") { m_ECS.getComponent<CInput>(m_player).up = false; }
+        if ( action.name() == "LEFT") { m_ECS.getComponent<CInput>(m_player).left = false; }
+        if ( action.name() == "RIGHT") { m_ECS.getComponent<CInput>(m_player).right = false; }
+        if ( action.name() == "SHIFT") { m_ECS.getComponent<CInput>(m_player).shift = false; }
+        if ( action.name() == "CTRL") { m_ECS.getComponent<CInput>(m_player).ctrl = false; }
+        if ( action.name() == "INTERACT") { m_ECS.getComponent<CInput>(m_player).interact = false; }
+        if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInput>(m_player).posses = false; }
+        if ( action.name() == "ATTACK") { m_ECS.getComponent<CInput>(m_player).attack = false; }
+        if ( action.name() == "WRITE POSITION") { 
+            Vec2 cursorPosition = (m_mousePosition+m_camera.position)/m_gridSize;
+            cursorPosition.print("Cursor position");
+        }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
             saveGame("config_files/game_save.txt");
             m_pause = true;
         }
-        // if ( action.name() == "WRITE QUADTREE")
-        // {
-        //     m_physics.m_quadRoot->printTree("", "");
-        // }
     }
     else if ( action.name() == "SCROLL"){
         const CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
         int size = inventory.items.size();
         const int index = inventory.activeItem.index; 
-        int newIndex = (index+getMouseState().scroll+size*10) % size;
+        int newIndex = (index-getMouseState().scroll+size*10) % size;
         updateActiveItem(newIndex);
     }
+    auto& inputs = m_ECS.getComponent<CInput>(m_player);
+    inputs.direction = {0, 0};
+    if (inputs.up){
+        inputs.direction.y--;
+    } if (inputs.down){
+        inputs.direction.y++;
+    } if (inputs.left){
+        inputs.direction.x--;
+    } if (inputs.right){
+        inputs.direction.x++;
+    } 
 }
 
 void Scene_Play::updateActiveItem(int newIndex){
@@ -276,6 +282,7 @@ void Scene_Play::update()
     {
         sLoader();
         sAttack();
+        sAI();
         sMovement();
         sStatus();
         sCollision();
@@ -287,6 +294,10 @@ void Scene_Play::update()
     sRender();
     m_ECS.update();
     m_rendererManager.update();
+    
+    // Debug: Print ECS entity counts
+    // std::cout << "ECS State: " << m_ECS.numberOfEntities() << std::endl;
+    
     if (m_restart){
         m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
         return;
@@ -303,47 +314,100 @@ void Scene_Play::sLoader()
     m_levelLoader.update(playerPosition);
 }
 
+void Scene_Play::sAI()
+{
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& inputPool = m_ECS.getComponentPool<CInput>();
+    auto& agentPool = m_ECS.getComponentPool<CAIAgent>();
+    auto  namePool = m_ECS.getComponentPool<CName>();
+
+    Vec2 playerPos = transformPool.getComponent(m_player).pos;
+
+    auto viewAgents = m_ECS.View<CAIAgent, CInput, CTransform>();
+    for (EntityID e : viewAgents)
+    {
+        auto& agent = agentPool.getComponent(e);
+        auto& input = inputPool.getComponent(e);
+        Vec2  pos = transformPool.getComponent(e).pos;
+
+        // ── Sight check ────────────────────────────────────────────────
+        float distToPlayer = (playerPos - pos).length();
+        bool  inRange      = distToPlayer <= agent.sightRange;
+        agent.canSeePlayer = inRange && hasLineOfSight(pos, playerPos);
+
+        if (agent.canSeePlayer) {
+            agent.lastKnownPlayerPos = playerPos;
+            agent.memoryTimer        = agent.memoryDuration;
+        }
+
+        // ── State transitions ──────────────────────────────────────────
+        switch (agent.state)
+        {
+        case AIStateType::Patrol:
+            if (agent.canSeePlayer) {
+                agent.state = AIStateType::Chase;
+            }
+            break;
+
+        case AIStateType::Chase:
+            if (!agent.canSeePlayer) {
+                agent.state           = AIStateType::Investigate;
+                agent.hasPatrolTarget = false;   // clear stale patrol target
+            }
+            break;
+
+        case AIStateType::Investigate:
+            if (agent.canSeePlayer) {
+                agent.state = AIStateType::Chase;
+            } else {
+                agent.memoryTimer--;
+                // Reached last known position or memory expired
+                bool arrived = (pos - agent.lastKnownPlayerPos).length() < 12.0f;
+                if (arrived || agent.memoryTimer <= 0) {
+                    agent.state           = AIStateType::Patrol;
+                    agent.hasPatrolTarget = false;
+                    agent.memoryTimer     = 0;
+                }
+            }
+            break;
+        }
+
+        // ── Movement input per state ─────────────────────────────────────
+        input.direction = {0, 0};
+
+        switch (agent.state)
+        {
+        case AIStateType::Chase:
+            input.direction = (playerPos - pos).norm();
+            input.attack        = distToPlayer < 32.0f;   // melee range
+            break;
+
+        case AIStateType::Investigate:
+            input.direction = (agent.lastKnownPlayerPos - pos).norm();
+            break;
+
+        case AIStateType::Patrol:
+            tickPatrol(agent, pos, input);
+            break;
+        }
+    }
+}
+
 void Scene_Play::sMovement() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& velocityPool = m_ECS.getComponentPool<CVelocity>();
 
-    auto& pathfindPool = m_ECS.getComponentPool<CPathfind>();
-    auto viewPathfind = m_ECS.View<CPathfind, CTransform, CVelocity>();
-    for (auto e : viewPathfind)
-    {
-        auto& transform = transformPool.getComponent(e);
-        auto& velocity = velocityPool.getComponent(e);
-        auto& pathfind = pathfindPool.getComponent(e);
-        if ((pathfind.target - transform.pos).length() < 16*2) {
-            velocity.vel = pathfind.target - transform.pos;
-        } else {
-            velocity.vel = Vec2 {0,0};
-        }
-        pathfind.target = transformPool.getComponent(m_player).pos;
-    }
-
-    auto& inputPool = m_ECS.getComponentPool<CInputs>();
-    auto viewInputs = m_ECS.View<CInputs, CTransform, CVelocity>();
+    auto& inputPool = m_ECS.getComponentPool<CInput>();
+    auto viewInputs = m_ECS.View<CInput, CTransform, CVelocity>();
     for (auto e : viewInputs){
         auto &transform = transformPool.getComponent(e);
         auto &velocity = velocityPool.getComponent(e);
         auto &inputs = inputPool.getComponent(e);
 
-        velocity.vel = { 0,0 };
-        if (inputs.up){
-            velocity.vel.y--;
-        } if (inputs.down){
-            velocity.vel.y++;
-        } if (inputs.left){
-            velocity.vel.x--;
-        } if (inputs.right){
-            velocity.vel.x++;
-        } if (inputs.shift){
-            velocity.tempo = 0.5f;
-        } else if (inputs.ctrl){
-            velocity.tempo = 2.0f;
-        } else{
-            velocity.tempo = 1.0f;
+        velocity.vel = inputs.direction;
+        velocity.tempo = inputs.ctrl ? 2.0f : 1.0f;
+        if (e != m_player) {
+            inputs = CInput(); // reset inputs for NPCs after processing
         }
     }
 
@@ -359,7 +423,7 @@ void Scene_Play::sMovement() {
     // }       
 
     auto viewTransform = m_ECS.View<CTransform, CVelocity>();
-    for (auto e : viewTransform){    
+    for (auto e : viewTransform){
         auto &transform = transformPool.getComponent(e);
         auto &velocity = velocityPool.getComponent(e);
         
@@ -383,18 +447,25 @@ void Scene_Play::sMovement() {
 void Scene_Play::sAttack(){
     ComponentPool<CTransform>& transformPool = m_ECS.getComponentPool<CTransform>();
     ComponentPool<CVelocity>& velocityPool = m_ECS.getComponentPool<CVelocity>();
-    ComponentPool<CInputs>& inputPool = m_ECS.getComponentPool<CInputs>();
+    ComponentPool<CInput>& inputPool = m_ECS.getComponentPool<CInput>();
     ComponentPool<CWeapon>& weaponPool = m_ECS.getComponentPool<CWeapon>();
 
-    std::vector<EntityID> viewAttack = m_ECS.View<CInputs, CWeapon, CVelocity, CTransform>();
+    std::vector<EntityID> viewAttack = m_ECS.View<CInput, CWeapon, CVelocity, CTransform>();
     for (EntityID id : viewAttack){
         CTransform& transform = transformPool.getComponent(id);
         CVelocity& velocity = velocityPool.getComponent(id);
-        CInputs& inputs = inputPool.getComponent(id);
+        CInput& inputs = inputPool.getComponent(id);
         CWeapon& weapon = weaponPool.getComponent(id);
 
+        weapon.delay--;
         if (!inputs.attack){
             continue;
+        }
+        if (weapon.delay >= 0){
+            continue;
+        }
+        else {
+            weapon.delay = weapon.speed;
         }
         Vec2 position = transformPool.getComponent(m_player).pos;
         Vec2 direction = velocityPool.getComponent(m_player).vel;
@@ -404,13 +475,13 @@ void Scene_Play::sAttack(){
         switch (weapon.weaponType)
         {
         case WeaponType::Melee:
-            spawnHitbox(position, direction);
+            spawnHitbox(position, direction, PROJECTILE_LAYER, ENEMY_LAYER);
             break;
         case WeaponType::Projectile:
             spawnProjectile(position, direction);
             break;
         case WeaponType::AoE:
-            spawnHitbox(position, direction);
+            spawnHitbox(position, direction, PROJECTILE_LAYER, ENEMY_LAYER);
             break;
         }
         inputs.attack = false;
@@ -529,6 +600,15 @@ void Scene_Play::sAnimation() {
 void Scene_Play::sRender() {
     // Clear the screen with black
     SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
+    
+    // Debug: Print renderer layer sizes
+    // const auto& layers = m_rendererManager.getLayers();
+    // std::string totalEntitiesInLayers;
+    // for (const auto& layer : layers) {
+    //     totalEntitiesInLayers += ", " + std::to_string(layer.size());
+    // }
+    // std::cout << "Renderer Total Entities: " << totalEntitiesInLayers << " | Layers: " << layers.size() << std::endl;
+    
     sRenderBasic();
     
     int windowScale = m_game->getScale();
@@ -678,65 +758,61 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     json j;
     file >> j;
     file.close();
-    json components = j[name]["components"];
+    json c = j[name]["components"];
     
     EntityID id = m_ECS.addEntity();
     
     m_ECS.addComponent<CName>(id, name);
-    if (components.contains("CTransform")){
+    if (c.contains("CTransform")){
 
-        components["CTransform"]["pos"] = {{"x", pos.x}, {"y", pos.y}};
-        m_ECS.addComponent<CTransform>(id, components["CTransform"]);
+        c["CTransform"]["pos"] = {{"x", pos.x}, {"y", pos.y}};
+        m_ECS.addComponent<CTransform>(id, c["CTransform"]);
     }
-    if (components.contains("CVelocity")){
-        m_ECS.addComponent<CVelocity>(id, components["CVelocity"]);
-    }
-    if (components.contains("CInteractionBox")){
-        m_ECS.addComponent<CInteractionBox>(id, components["CInteractionBox"]);
-    }
-    if (components.contains("CCollisionBox")){
-        m_ECS.addComponent<CCollisionBox>(id, components["CCollisionBox"]);
-    }
-    if (components.contains("CAnimation")){
+    if (c.contains("CAnimation")){
         m_ECS.addComponent<CAnimation>(id, 
-            getAnimation(components["CAnimation"]["animation"]), 
-            components["CAnimation"]["animation"].get<std::string>()
+            getAnimation(c["CAnimation"]["animation"]), 
+            c["CAnimation"]["animation"].get<std::string>(),
+            c["CAnimation"]["layer"]
         );
-        m_rendererManager.addEntityToLayer(id, components["CAnimation"]["layer"]);
+        m_rendererManager.addEntityToLayer(id, c["CAnimation"]["layer"]);
     }
-    // if (components.contains("CScript")){
-    //     auto& sc = m_ECS.addComponent<CScript>(id);
-    //     std::string controllerType = components["CScript"].get<std::string>();
-    //     if        (controllerType == "NPCController"){
-    //         InitiateScript<NPCController>(sc, id);
-    //     } else if (controllerType == "WeaponController"){
-    //         InitiateScript<WeaponController>(sc, id);
-    //     } else if (controllerType == "PlayerController"){
-    //         InitiateScript<PlayerController>(sc, id);
-    //     } else if (controllerType == "RooterController"){
-    //         InitiateScript<RooterController>(sc, id);
-    //     } else if (controllerType == "ProjectileController"){
-    //         InitiateScript<ProjectileController>(sc, id);
-    //     }
+    // if (c.contains("CFollow")){
+    //     m_ECS.addComponent<CFollow>(id, c["CFollow"]);
     // }
-    if (components.contains("CState")){
+    if (c.contains("CVelocity")){
+        m_ECS.addComponent<CVelocity>(id, c["CVelocity"]);
+    }
+    if (c.contains("CInteractionBox")){
+        m_ECS.addComponent<CInteractionBox>(id, c["CInteractionBox"]);
+    }
+    if (c.contains("CCollisionBox")){
+        m_ECS.addComponent<CCollisionBox>(id, c["CCollisionBox"]);
+    }
+    if (c.contains("CState")){
         m_ECS.addComponent<CState>(id);
     }
-    if (components.contains("CPathfind")){
-        Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos; 
-        m_ECS.addComponent<CPathfind>(id, playerPos);
+    // if (c.contains("CPath")){
+    //     m_ECS.addComponent<CPath>(id, c["CPath"]);
+    // }
+    if (c.contains("CHealth")){
+        m_ECS.addComponent<CHealth>(id, c["CHealth"]);
     }
-    if (components.contains("CHealth")){
-        m_ECS.addComponent<CHealth>(id, components["CHealth"]);
+    if (c.contains("CAttack")){
+        m_ECS.addComponent<CAttack>(id, c["CAttack"]);
     }
-    if (components.contains("CAttack")){
-        m_ECS.addComponent<CAttack>(id, components["CAttack"]);
+    if (c.contains("CPossesLevel")){
+        m_ECS.addComponent<CPossesLevel>(id, c["CPossesLevel"]);
     }
-    if (components.contains("CPossesLevel")){
-        m_ECS.addComponent<CPossesLevel>(id, 10);
+    if (c.contains("CWeapon")){
+        m_ECS.addComponent<CWeapon>(id, c["CWeapon"]);
     }
-    if (name == "rooter"){
-        m_ECS.addComponent<CWeapon>(id, 1, 60, 180, WeaponType::Melee);
+    if (c.contains("CInput")){
+        m_ECS.addComponent<CInput>(id);
+    }
+    if (c.contains("CAIAgent")) {
+        m_ECS.addComponent<CAIAgent>(id, c["CAIAgent"]);
+        // Record spawn position for patrol anchor
+        m_ECS.getComponent<CAIAgent>(id).spawnPos = pos;
     }
     return id;
 }
@@ -746,6 +822,9 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
     pos = pos*m_gridSize;
     if (name == "copper_staff"){
         return spawnWeapon(pos, name);
+    }
+    if (name == "emblem"){
+        return spawnEmblem(pos, 6);
     }
     if (name == "coin"){
         return spawnCoin(pos, 6);
@@ -765,35 +844,14 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
     if (name == "sword"){
         return spawnSword(pos);
     }
-
-    return SpawnFromJSON(name, pos);
-    return -1; // Return 0 if the entity type is not recognized
-}
-
-EntityID Scene_Play::SpawnDialog(
-    std::string dialog, 
-    int size, 
-    std::string font, 
-    EntityID parentID
-)
-{
-    auto id = m_ECS.addEntity();
-    m_ECS.addComponent<CTransform>(id);
-    m_ECS.addComponent<CChild>(parentID, id);
-    Vec2 relativePosition = {0, -2*m_gridSize.y};
-    m_ECS.addComponent<CParent>(id, parentID, relativePosition);
-    CAnimation& animation =  m_ECS.addComponent<CAnimation>(id, getAnimation("button_unpressed"));
-    Vec2 animationSize = animation.animation.getSize();
-    CText& text = m_ECS.addComponent<CText>(id, dialog, animationSize.y*0.9f, font);
-    animation.animation.setScale(Vec2{2*animationSize.x, animationSize.y});
-    m_rendererManager.addEntityToLayer(id, 8);
-    m_ECS.addComponent<CLifespan>(id, 60);
-    return id;
+    auto i = SpawnFromJSON(name, pos);
+    std::cout << "Spawned entity: " << name << " with ID: " << i << std::endl;
+    return i;
 }
 
 EntityID Scene_Play::spawnPlayer()
 {
-    uint8_t layer = 10;
+    uint8_t layer = 9;
     auto entityID = m_ECS.addEntity();
     m_player = entityID;
 
@@ -801,29 +859,22 @@ EntityID Scene_Play::spawnPlayer()
     int pos_y = m_playerConfig.y;
     int hp = m_playerConfig.HP;
     
+    json j;
     if (!m_newGame){
-        std::ifstream file("config_files/game_save.txt");
-        if (!file) {
-            std::cerr << "Could not load game_save.txt file!\n";
-            exit(-1);
+        std::ifstream file_json("config_files/game_save.json");
+        if (!file_json) {
+            throw std::runtime_error("Could not load game save file: config_files/game_save.json");
         }
 
-        std::string head;
-        while (file >> head) {
-            if (head == "Player_pos") {
-                file >> pos_x >> pos_y;
-            } else if (head == "Player_hp") {
-                file >> hp;
-            } else {
-                std::cerr << "The game save file format is incorrect!\n";
-                exit(-1);
-            }
-        }
+        file_json >> j;
+        file_json.close();
+        Vec2 pos = j["player"]["position"];
+        hp = j["player"]["hp"];        
     }
     
     Vec2 pos = Vec2{16*(float)pos_x, 16*(float)pos_y};
     Vec2 midGrid = gridToMidPixel(pos, entityID);
-
+    
     m_ECS.addComponent<CTransform>(entityID, midGrid);
     m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
@@ -831,26 +882,39 @@ EntityID Scene_Play::spawnPlayer()
     CollisionMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER | AREA_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {4, 4}, PLAYER_LAYER, interactionMask);
     m_ECS.addComponent<CName>(entityID, "demon");
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("demon-sheet"));
+    m_ECS.addComponent<CAnimation>(entityID, getAnimation("demon-sheet"), layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
-    m_ECS.addComponent<CInputs>(entityID);
+    m_ECS.addComponent<CInput>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
-    
     m_ECS.addComponent<CInventory>(entityID);
+    
+    if (j.contains("inventory")){
+        auto& inventory = m_ECS.getComponent<CInventory>(entityID);
+        int i = 0;
+        for (int itemID : j["inventory"])
+        {
+            inventory.items[i] = m_inventoryManager.getItem(itemID);
+            inventory.items[i].index = i;
+            i++;
+        }
+        inventory.activeItem = inventory.items[0];
+    }
+
     return entityID;
 }
 
 EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer){
     auto shadowID = m_ECS.addEntity();
-    // m_ECS.addComponent<CTransform>(shadowID);
-    // m_ECS.getComponent<CTransform>(shadowID).scale *= size;
-    // m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
-    // m_ECS.addComponent<CAnimation>(shadowID, getAnimation("shadow"));
-    // m_rendererManager.addEntityToLayer(shadowID, layer);
-    // m_ECS.addComponent<CChild>(parentID, shadowID);
+    m_ECS.addComponent<CTransform>(shadowID);
+    m_ECS.getComponent<CTransform>(shadowID).scale *= size;
+    m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
+    m_ECS.addComponent<CAnimation>(shadowID, getAnimation("shadow"), layer);
+    m_rendererManager.addEntityToLayer(shadowID, layer);
+    m_ECS.addComponent<CChild>(parentID, shadowID);
     return shadowID;
+    // return 0;
 }
 
 EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
@@ -864,7 +928,7 @@ EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
     CollisionMask interactionMask = PLAYER_LAYER;
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
     m_ECS.addComponent<CName>(entityID, weaponName);
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation("staff"));
+    m_ECS.addComponent<CAnimation>(entityID, getAnimation("staff"), layer);
     m_rendererManager.addEntityToLayer(entityID, layer);
     m_ECS.addComponent<CWeapon>(entityID);
     spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
@@ -883,8 +947,8 @@ EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
     m_ECS.addComponent<CInteractionBox>(id, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
     
     m_ECS.addComponent<CName>(id, "sword");
-    m_ECS.addComponent<CAnimation>(id, getAnimation("sword"));
-    m_rendererManager.addEntityToLayer(id, 5);
+    m_ECS.addComponent<CAnimation>(id, getAnimation("sword"), layer);
+    m_rendererManager.addEntityToLayer(id, layer);
     // m_ECS.addComponent<CDamage>(id, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
     m_ECS.addComponent<CWeapon>(id);
     spawnShadow(id, Vec2{0,0}, 1, layer-1);
@@ -896,7 +960,7 @@ EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t l
     
     Vec2 midGrid = gridToMidPixel(pos, id);
     m_ECS.addComponent<CTransform>(id, midGrid);
-    m_ECS.addComponent<CAnimation>(id, getAnimation(animationName));
+    m_ECS.addComponent<CAnimation>(id, getAnimation(animationName), layer);
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
     m_ECS.addComponent<CCollisionBox>(id, collisionBox, OBSTACLE_LAYER, collisionMask);
     m_ECS.addComponent<CName>(id, animationName);
@@ -917,26 +981,10 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
     return entity;
 }
 
-EntityID Scene_Play::spawnGrass(const Vec2 pos, const int frame)
-{
-    auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid);
-    return entity;
-}
-
-EntityID Scene_Play::spawnDirt(const Vec2 pos, const int frame)
-{
-    auto entity = m_ECS.addEntity();
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid);
-    return entity;
-}
-
 EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity,getAnimation("campfire"));
+    m_ECS.addComponent<CAnimation>(entity,getAnimation("campfire"), layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid);
@@ -950,14 +998,27 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
     m_ECS.addComponent<CTransform>(entity, midGrid);
     m_ECS.addComponent<CWater>(entity, CWater{false});
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{16, 16});
+    return entity;
+}
 
+EntityID Scene_Play::spawnEmblem(Vec2 pos, const size_t layer)
+{
+    auto entity = m_ECS.addEntity();
+    m_ECS.addComponent<CName>(entity, "emblem");
+    m_ECS.addComponent<CAnimation>(entity, getAnimation("emblem"), layer);
+    m_rendererManager.addEntityToLayer(entity, layer);
+    m_ECS.addComponent<CTransform>(entity, pos);
+    m_ECS.addComponent<CItem>(entity, 0); // TODO: fix correct item here
+    CollisionMask interactionMask = PLAYER_LAYER;
+    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8, 8}, LOOT_LAYER, interactionMask);
+    spawnShadow(entity, Vec2{0,0}, 1, layer-1);
     return entity;
 }
 
 EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
 {
     auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(entity, getAnimation("coin"));
+    m_ECS.addComponent<CAnimation>(entity, getAnimation("coin"), layer);
     m_rendererManager.addEntityToLayer(entity, layer);
     m_ECS.addComponent<CTransform>(entity, pos);
     m_ECS.addComponent<CItem>(entity, 0);
@@ -983,39 +1044,46 @@ EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
     // spawnShadow(id, Vec2{0,0}, 1, layer-1);
     return id;
 }
-EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction)
+EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction, CollisionMask layer, CollisionMask mask)
 {
     auto id = m_ECS.addEntity();
-    int layer = 10;
-    m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("sword"), true, layer);
-    m_rendererManager.addEntityToLayer(id, layer);
+    int render_layer = 9;
+    m_ECS.addComponent<CAnimation>(id, m_game->assets().getAnimation("sword"), true, render_layer);
+    m_rendererManager.addEntityToLayer(id, render_layer);
     m_ECS.addComponent<CTransform>(id, position+direction*8, direction.angle());
     m_ECS.addComponent<CDamage>(id, 1);
-    m_ECS.addComponent<CCollisionBox>(id, Vec2{24, 24}, PROJECTILE_LAYER, ENEMY_LAYER);
+    m_ECS.addComponent<CInteractionBox>(id, Vec2{24, 24}, layer, mask);
     m_ECS.addComponent<CLifespan>(id, 15);
     return id;
 }
 
-std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::unordered_map<std::string, int> tileTextureMap)
+std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::array<int, 5> tileTextures)
 {   
     std::vector<EntityID> entityIDs;
-    for (const auto& [tileKey, textureIndex] : tileTextureMap) {
-        std::string tile = tileKey;
-        uint8_t layer = 3;
-        
-        if (tile == "water") {
-            layer = layer + 1;
-        } else if (tile == "dirt") {
-            layer = layer + 1;
-        } else if (tile == "cloud") {
-            layer = layer + 1;
-        } else if (tile == "obstacle") {
-            layer = layer + 1;
-            tile = "mountain";// Change the tile name for "obstacle"
+    // for (const auto& [tileKey, textureIndex] : tileTextures) {
+    for (int i = 0; i < tileTextures.size(); ++i) {
+        TileType tileKey = static_cast<TileType>(i);
+        int textureIndex = tileTextures[i];
+        if (textureIndex == 0) {
+            continue;
         }
+        uint8_t layer = 3;
+        std::string tile_name = "grass";
+        
+        if (tileKey == TileType::WATER) {
+            layer = layer + 1;
+            tile_name = "water";
+        } else if (tileKey == TileType::DIRT) {
+            layer = layer + 1;
+            tile_name = "dirt";
+        } else if (tileKey == TileType::OBSTACLE) {
+            layer = layer + 1;
+            tile_name = "mountain";
+        }
+
         EntityID entity = m_ECS.addEntity();
         entityIDs.push_back(entity);
-        m_ECS.addComponent<CAnimation>(entity, getAnimation(tile + "_dual_sheet"));
+        m_ECS.addComponent<CAnimation>(entity, getAnimation(tile_name + "_dual_sheet"), layer);
         Vec2 tilePosition = Vec2{   (float)(textureIndex % 4), 
                                     (float)(int)(textureIndex / 4)};
         m_ECS.getComponent<CAnimation>(entity).animation.setTile(tilePosition); 
@@ -1067,4 +1135,99 @@ Vec2 Scene_Play::getCameraPosition() {
 EntityID Scene_Play::changePlayerID(EntityID otherID) {
     m_player = otherID;
     return m_player;
+}
+
+bool Scene_Play::rayIntersectsAABB(
+    Vec2 origin, Vec2 dir, float maxDist,
+    Vec2 boxMin, Vec2 boxMax)
+{
+    float tMin = 0.0f;
+    float tMax = maxDist;
+
+    // Test X slab
+    if (std::abs(dir.x) < 1e-6f) {
+        if (origin.x < boxMin.x || origin.x > boxMax.x) return false;
+    } else {
+        float t1 = (boxMin.x - origin.x) / dir.x;
+        float t2 = (boxMax.x - origin.x) / dir.x;
+        if (t1 > t2) std::swap(t1, t2);
+        tMin = std::max(tMin, t1);
+        tMax = std::min(tMax, t2);
+        if (tMin > tMax) return false;
+    }
+
+    // Test Y slab
+    if (std::abs(dir.y) < 1e-6f) {
+        if (origin.y < boxMin.y || origin.y > boxMax.y) return false;
+    } else {
+        float t1 = (boxMin.y - origin.y) / dir.y;
+        float t2 = (boxMax.y - origin.y) / dir.y;
+        if (t1 > t2) std::swap(t1, t2);
+        tMin = std::max(tMin, t1);
+        tMax = std::min(tMax, t2);
+        if (tMin > tMax) return false;
+    }
+
+    return tMin <= tMax;
+}
+
+bool Scene_Play::hasLineOfSight(Vec2 origin, Vec2 target)
+{
+    Vec2  delta   = target - origin;
+    float dist    = delta.length();
+    Vec2  dir     = delta / dist;          // normalized
+
+    auto& transformPool  = m_ECS.getComponentPool<CTransform>();
+    auto& collisionPool  = m_ECS.getComponentPool<CCollisionBox>();
+
+    for (EntityID obstacle : m_ECS.View<CCollisionBox, CTransform, CImmovable>()) {
+        auto& box = collisionPool.getComponent(obstacle);
+        if ((box.layer & OBSTACLE_LAYER) == 0) continue;   // only solid obstacles
+
+        Vec2 pos    = transformPool.getComponent(obstacle).pos;
+        Vec2 boxMin = pos - box.halfSize;
+        Vec2 boxMax = pos + box.halfSize;
+
+        if (rayIntersectsAABB(origin, dir, dist, boxMin, boxMax)) {
+            return false;   // something is in the way
+        }
+    }
+    return true;
+}
+
+void Scene_Play::tickPatrol(CAIAgent& agent, Vec2 pos, CInput& input)
+{
+    // Waiting at current patrol point
+    if (agent.patrolWaitTimer > 0) {
+        agent.patrolWaitTimer--;
+        input.direction = {0, 0};
+        return;
+    }
+
+    // Pick a new random patrol target if we don't have one
+    if (!agent.hasPatrolTarget) {
+        // Random point in a circle around spawn using rejection sampling
+        Vec2 offset;
+        do {
+            float rx = ((rand() % 200) - 100) / 100.0f; // -1 to 1
+            float ry = ((rand() % 200) - 100) / 100.0f;
+            offset = Vec2{rx, ry} * agent.patrolRadius;
+        } while (offset.length() > agent.patrolRadius);
+
+        agent.patrolTarget    = agent.spawnPos + offset;
+        agent.hasPatrolTarget = true;
+    }
+
+    // Move toward patrol target
+    Vec2  toTarget = agent.patrolTarget - pos;
+    float dist     = toTarget.length();
+
+    if (dist < 8.0f) {
+        // Arrived — wait before picking next point
+        agent.hasPatrolTarget = false;
+        agent.patrolWaitTimer = agent.patrolWaitDuration;
+        input.direction  = {0, 0};
+    } else {
+        input.direction = toTarget.norm();
+    }
 }

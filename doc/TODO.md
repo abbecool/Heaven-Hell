@@ -1,5 +1,37 @@
 # TODO: Next Steps for Game Development
 
+## 🛠️ Code Quality & Testing Roadmap
+
+### Phase 1: Critical Fixes ✅ (Mostly Complete)
+Address correctness and safety issues that could cause crashes or undefined behavior
+- [x] Fix unreachable code in ECS.hpp (move debug output before return)
+- [x] Replace all NULL with nullptr for consistency
+- [x] Remove exit(-1) calls and implement exception-based error handling in Assets.cpp
+- [x] Add const to getter methods in Animation.h, Sprite.h, and other asset classes
+
+### Phase 2: Code Quality Improvements 🔄 (In Progress)
+Enhance maintainability and follow C++ best practices
+- [ ] Change string parameters to const references in Assets.cpp and related files to avoid copies
+- [ ] Remove hardcoded player entity ID (0) and track it properly in Scene_Play
+- [ ] Extract magic numbers to named constants in config loading
+- [x] Refactor large functions in CollisionManager.cpp into smaller helpers
+
+### Phase 3: Testing Infrastructure 🚀 (Partial)
+Establish unit testing foundation
+- [ ] Uncomment and expand tests in test_math.cpp for Vec2 operations
+- [ ] Add unit tests for ComponentPool add/remove/get operations
+- [ ] Create integration tests for asset loading and ECS entity lifecycle
+- [ ] Enable testing in CMakeLists.txt with Catch2
+
+### Phase 4: Documentation and Polish 📚 (Backlog)
+Improve code readability and maintainability
+- [ ] Add Doxygen-style comments to key classes (ECS, Game, CollisionManager)
+- [ ] Document ECS architecture design decisions
+- [ ] Add compile-time warnings to CMakeLists.txt
+- [ ] Create contributor guidelines for code style
+
+---
+
 ## :rocket: High Priority
 
 ### Player swimming animations
@@ -69,7 +101,7 @@
 - **Quest System**
   - Implement quest tracking UI
   - Add main and side quests
-  - Create a dialog system for NPCs
+  - Improve dialog system for NPCs
 
 ### 5. Improved Rendering & Visual Effects
 - **Layered Rendering System**
@@ -78,3 +110,25 @@
   - Implement light sources & shadows
   - Create particle effects for magic & attacks
 
+### 6. AI suggested code improvements
+- **1. FPS Counter Rendering (HIGH Impact - 5-10% FPS Gain)**
+  - Issue: FPS text is rendered every frame with string concatenation, font lookups, /
+    and texture creation destruction.
+  - Location: Game.cpp:130-176
+  - Fix: Cache the FPS texture and only update it when the value changes (5-minute effort).
+- **2. Scene Rendering Cache Miss (MEDIUM Impact - 8-15% FPS Gain)**
+  - Issue: Screen center, zoom, and layer data are recalculated every frame for hundreds of entities.
+  - Location: Scene.cpp:30-60
+  - Fix: Cache these values and only update when camera/window state changes (30-minute effort).
+- **3. ECS Component Pool Lookups (MEDIUM Impact - 10-20% FPS Gain)**
+  - Issue: Frequent type_index hash lookups in unordered_map for component access in hot paths.
+  - Location: ECS.hpp:180-210
+  - Fix: Cache pool pointers or use compile-time component IDs with direct array indexing (1-2 hour effort).
+- **4. Level Loading & Quadtree Inefficiencies (MEDIUM-HIGH Impact - 15-30% FPS + Memory Gain)**
+  - Issue: Entire pixel matrix loaded at once, shared_ptr overhead in quadtree, expensive vector operations.
+  - Location: Level_Loader.cpp:18-50, Quadtree.h:1-80
+  - Fix: Implement streaming chunk loading, replace shared_ptr with unique_ptr, optimize vector operations (2-3h effort).
+- **5. Excessive String/Memory Operations (MEDIUM Impact - 5-8% FPS Gain)**
+  - Issue: String concatenations, asset lookups by string, config duplication in hot paths.
+  - Location: Assets.h, Scene_Play.h:32-48
+  - Fix: Cache hot assets, use compile-time IDs instead of strings, consolidate configs data-driven (2-hour effort).

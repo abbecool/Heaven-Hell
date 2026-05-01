@@ -13,10 +13,10 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <unordered_map>
-#include <unordered_set>
-
-using PixelMatrix = std::vector<std::vector<std::string>>;
+#include <vector>
+#include <array>
+#include <deque>
+#include <algorithm>
 
 // TODO: rework Level_Loader
 
@@ -50,40 +50,38 @@ LevelLoader::LevelLoader(
     loadChunk(m_currentChunk);
 }
 
-std::vector<bool> LevelLoader::neighborCheck(
-    const std::string &pixel, 
-    int x, 
-    int y, 
-    int width, 
+std::array<bool, 4> LevelLoader::neighborCheck(
+    int x,
+    int y,
+    int width,
     int height
 ) {
-    std::vector<bool> neighbors(4, false); // {top, bottom, left, right}
-    std::string pix = m_pixelMatrix[y][x];
-    if(!neighbors[0]){neighbors[0] = (y > 0 && m_pixelMatrix[y - 1][x] == pix);}           // top
-    if(!neighbors[1]){neighbors[1] = (x < width - 1 && m_pixelMatrix[y][x + 1] == pix);}   // right
-    if(!neighbors[2]){neighbors[2] = (y < height - 1 && m_pixelMatrix[y + 1][x] == pix);}  // bottom
-    if(!neighbors[3]){neighbors[3] = (x > 0 && m_pixelMatrix[y][x - 1] == pix);}           // left
+    std::array<bool, 4> neighbors = {}; // {top, bottom, left, right}
+    TileType pix = m_pixelMatrix[y * width + x];
+    if(!neighbors[0]){neighbors[0] = (y > 0 && m_pixelMatrix[(y - 1) * width + x] == pix);}           // top
+    if(!neighbors[1]){neighbors[1] = (x < width - 1 && m_pixelMatrix[y * width + (x + 1)] == pix);}   // right
+    if(!neighbors[2]){neighbors[2] = (y < height - 1 && m_pixelMatrix[(y + 1) * width + x] == pix);}  // bottom
+    if(!neighbors[3]){neighbors[3] = (x > 0 && m_pixelMatrix[y * width + (x - 1)] == pix);}           // left
     return neighbors;
 }
 
-std::vector<std::string> LevelLoader::neighborTag(
-    const std::string &pixel, 
+std::array<TileType, 4> LevelLoader::neighborTag(
     int x, 
     int y, 
     int width, 
     int height
 ) {
     
-    std::vector<std::string> neighborsTags(4, "nan"); // {top, bottom, left, right}
-    if(y > 0){neighborsTags[0] = m_pixelMatrix[y - 1][x];}            // top
-    if(x < width - 1){neighborsTags[1] = m_pixelMatrix[y][x + 1];}    // right
-    if(y < height - 1){neighborsTags[2] = m_pixelMatrix[y + 1][x];}   // bottom
-    if(x > 0 ){neighborsTags[3] = m_pixelMatrix[y][x - 1];}           // left
+    std::array<TileType, 4> neighborsTags = {}; // {top, bottom, left, right}
+    if(y > 0){neighborsTags[0] = m_pixelMatrix[(y - 1) * width + x];}            // top
+    if(x < width - 1){neighborsTags[1] = m_pixelMatrix[y * width + (x + 1)];}    // right
+    if(y < height - 1){neighborsTags[2] = m_pixelMatrix[(y + 1) * width + x];}   // bottom
+    if(x > 0 ){neighborsTags[3] = m_pixelMatrix[y * width + (x - 1)];}           // left
 
     return neighborsTags;
 }
 
-int LevelLoader::getObstacleTextureIndex(const std::vector<bool>& neighbors) {
+int LevelLoader::getObstacleTextureIndex(const std::array<bool, 4>& neighbors) {
     int numObstacles = (int)std::count(neighbors.begin(), neighbors.end(), true);
     if (numObstacles == 1) {
         if (neighbors[0]) return 12;    // Top
@@ -114,7 +112,7 @@ void LevelLoader::createPixelMatrix(
     int width, 
     int height
 ) {
-    m_pixelMatrix = PixelMatrix(height, std::vector<std::string>(width, ""));
+    m_pixelMatrix.resize(height * width);
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
@@ -123,90 +121,96 @@ void LevelLoader::createPixelMatrix(
             Uint8 r, g, b, a;
             SDL_GetRGBA(pixel, format, &r, &g, &b, &a);
             
+            TileType tile = TileType::UNKNOWN;
             if ((int)r == 192 && (int)g == 192 && (int)b == 192) {
-                m_pixelMatrix[y][x] = "obstacle";
+                tile = TileType::OBSTACLE;
             } else if ((int)r == 203 && (int)g == 129 && (int)b == 56) {
-                m_pixelMatrix[y][x] = "dirt";
+                tile = TileType::DIRT;
             } else if ((int)r == 0 && (int)g == 255 && (int)b == 0) {
-                m_pixelMatrix[y][x] = "grass";
+                tile = TileType::GRASS;
             } else if ((int)r == 0 && (int)g == 0 && (int)b == 255) {
-                m_pixelMatrix[y][x] = "water";
+                tile = TileType::WATER;
             } else if ((int)r == 179 && (int)g == 0 && (int)b == 255) {
-                m_pixelMatrix[y][x] = "water"; // replaced bridge with water
-            } else {
-                m_pixelMatrix[y][x] = "unknown";
+                tile = TileType::WATER; // replaced bridge with water
             }
+            m_pixelMatrix[y * width + x] = tile;
         }
     }
 }
 
 
-std::unordered_map<std::string, int> LevelLoader::createDualGrid(int x, int y) 
+std::array<int, 5> LevelLoader::createDualGrid(int x, int y) 
 {
-    std::vector<std::string> tileQ(4, "");
-    std::unordered_map<std::string, int> tileTextureMap;
+    std::array<TileType, 4> tileQ = {};
+    std::array<int, 5> tileTextures = {};
+    int textureIndex;
 
-    tileQ[1] = m_pixelMatrix[y][x];   // Q4
-    tileQ[0] = (x > 0) ? m_pixelMatrix[y][x - 1] : m_pixelMatrix[y][x];  // Q3
-    tileQ[2] = (y > 0) ? m_pixelMatrix[y - 1][x] : m_pixelMatrix[y][x];  // Q1
-    tileQ[3] = (x > 0 && y > 0) ? m_pixelMatrix[y - 1][x - 1] : m_pixelMatrix[y][x];  // Q2
+    tileQ[0] = (x > 0) ? m_pixelMatrix[y * m_width + (x - 1)] : m_pixelMatrix[y * m_width + x];  // Q3
+    tileQ[1] = m_pixelMatrix[y * m_width + x];   // Q4
+    tileQ[2] = (y > 0) ? m_pixelMatrix[(y - 1) * m_width + x] : m_pixelMatrix[y * m_width + x];  // Q1
+    tileQ[3] = (x > 0 && y > 0) ? m_pixelMatrix[(y - 1) * m_width + (x - 1)] : m_pixelMatrix[y * m_width + x];  // Q2
 
-    for ( std::string tile : tileQ ) {
+    for ( TileType tile : tileQ ) {
 
         int numTiles = (int)std::count(tileQ.begin(), tileQ.end(), tile);
-        std::unordered_set<std::string> uniqueStrings(tileQ.begin(), tileQ.end());
-
-        if (numTiles > 0) {
-            int textureIndex = -1;  // Initialize textureIndex
-
-            if (numTiles == 4) {
-                textureIndex = 10; // All quadrants are tiles
-            } else if (numTiles == 3) {
-                if (tileQ[0] != tile) textureIndex = 14;
-                if (tileQ[1] != tile) textureIndex = 11;
-                if (tileQ[2] != tile) textureIndex = 6;
-                if (tileQ[3] != tile) textureIndex = 9;
-            } else if (numTiles == 2) {
-                if (tileQ[0] != tile && tileQ[1] != tile) textureIndex = 13;
-                if (tileQ[1] != tile && tileQ[2] != tile) textureIndex = 15;
-                if (tileQ[2] != tile && tileQ[3] != tile) textureIndex = 7;
-                if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 5;
-                if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 8;
-                if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 2; 
-                if (uniqueStrings.size() == 3 && (tile == "grass")) {
-                    if (tileQ[0] == tile && tileQ[1] == tile) textureIndex = 16;
-                    if (tileQ[1] == tile && tileQ[2] == tile) textureIndex = 18;
-                    if (tileQ[2] == tile && tileQ[3] == tile) textureIndex = 17;
-                    if (tileQ[3] == tile && tileQ[0] == tile) textureIndex = 19;
-                }
-            } else if (numTiles == 1) {
-                if (tileQ[0] == tile) textureIndex = 4;
-                if (tileQ[1] == tile) textureIndex = 1;
-                if (tileQ[2] == tile) textureIndex = 12;
-                if (tileQ[3] == tile) textureIndex = 3;
-                if (uniqueStrings.size() == 3 && (tile == "grass")) {
-                    if (tileQ[0] == tile && tileQ[2] == tileQ[3]) textureIndex = 21;
-                    if (tileQ[0] == tile && tileQ[1] == tileQ[2]) textureIndex = 23;
-
-                    if (tileQ[1] == tile && tileQ[0] == tileQ[3]) textureIndex = 20;
-                    if (tileQ[1] == tile && tileQ[2] == tileQ[3]) textureIndex = 22;
-
-                    if (tileQ[2] == tile && tileQ[0] == tileQ[1]) textureIndex = 24;
-                    if (tileQ[2] == tile && tileQ[0] == tileQ[3]) textureIndex = 26;
-
-                    if (tileQ[3] == tile && tileQ[1] == tileQ[2]) textureIndex = 25;
-                    if (tileQ[3] == tile && tileQ[0] == tileQ[1]) textureIndex = 27;
-                }
-            }
-
-            // Add to the map if a valid textureIndex was assigned
-            if (textureIndex != -1) {
-                tileTextureMap[tile] = textureIndex;
+        int uniqueCount = 0;
+        bool seen[5] = {false};  // Since TileType has 5 values
+        for (TileType t : tileQ) {
+            int idx = static_cast<int>(t);
+            if (!seen[idx]) {
+                seen[idx] = true;
+                uniqueCount++;
             }
         }
+        textureIndex = 0;
+
+        if (numTiles == 0) {
+            continue;
+        }
+
+        if (numTiles == 4) {
+            textureIndex = 10; // All quadrants are tiles
+        } else if (numTiles == 3) {
+            if (tileQ[0] != tile) textureIndex = 14;
+            if (tileQ[1] != tile) textureIndex = 11;
+            if (tileQ[2] != tile) textureIndex = 6;
+            if (tileQ[3] != tile) textureIndex = 9;
+        } else if (numTiles == 2) {
+            if (tileQ[0] != tile && tileQ[1] != tile) textureIndex = 13;
+            if (tileQ[1] != tile && tileQ[2] != tile) textureIndex = 15;
+            if (tileQ[2] != tile && tileQ[3] != tile) textureIndex = 7;
+            if (tileQ[3] != tile && tileQ[0] != tile) textureIndex = 5;
+            if (tileQ[0] != tile && tileQ[2] != tile) textureIndex = 8;
+            if (tileQ[1] != tile && tileQ[3] != tile) textureIndex = 2; 
+            if (uniqueCount == 3 && (tile == TileType::GRASS)) {
+                if (tileQ[0] == tile && tileQ[1] == tile) textureIndex = 16;
+                if (tileQ[1] == tile && tileQ[2] == tile) textureIndex = 18;
+                if (tileQ[2] == tile && tileQ[3] == tile) textureIndex = 17;
+                if (tileQ[3] == tile && tileQ[0] == tile) textureIndex = 19;
+            }
+        } else if (numTiles == 1) {
+            if (tileQ[0] == tile) textureIndex = 4;
+            if (tileQ[1] == tile) textureIndex = 1;
+            if (tileQ[2] == tile) textureIndex = 12;
+            if (tileQ[3] == tile) textureIndex = 3;
+            if (uniqueCount == 3 && (tile == TileType::GRASS)) {
+                if (tileQ[0] == tile && tileQ[2] == tileQ[3]) textureIndex = 21;
+                if (tileQ[0] == tile && tileQ[1] == tileQ[2]) textureIndex = 23;
+
+                if (tileQ[1] == tile && tileQ[0] == tileQ[3]) textureIndex = 20;
+                if (tileQ[1] == tile && tileQ[2] == tileQ[3]) textureIndex = 22;
+
+                if (tileQ[2] == tile && tileQ[0] == tileQ[1]) textureIndex = 24;
+                if (tileQ[2] == tile && tileQ[0] == tileQ[3]) textureIndex = 26;
+
+                if (tileQ[3] == tile && tileQ[1] == tileQ[2]) textureIndex = 25;
+                if (tileQ[3] == tile && tileQ[0] == tileQ[1]) textureIndex = 27;
+            }
+        }
+        tileTextures[static_cast<int>(tile)] = textureIndex;
     }
 
-    return tileTextureMap;
+    return tileTextures;
 }
 
 EntityID LevelLoader::loadChunk(Vec2 chunk)
@@ -224,25 +228,26 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             if (x >= m_width) {
                 continue; // Skip if out of bounds
             }
-            const std::string& pixel = m_pixelMatrix[y][x];
-            std::vector<bool> neighbors = neighborCheck(pixel, x, y, m_width, m_height);
-            std::vector<std::string> neighborsTags = neighborTag(
-                pixel, 
+            const TileType& pixel = m_pixelMatrix[y * m_width + x];
+            std::array<bool, 4> neighbors = neighborCheck(x, y, m_width, m_height);
+            std::array<TileType, 4> neighborsTags = neighborTag(
                 x, 
                 y, 
                 m_width, 
                 m_height
             );
             int textureIndex = getObstacleTextureIndex(neighbors);
-            std::unordered_map<std::string, int> tileIndex = createDualGrid(x, y);
+            std::array<int, 5> tileIndex = createDualGrid(x, y);
             std::vector<EntityID> ids = m_scene->spawnDualTiles(
                 Vec2 {16*(float)x - 16/2, 16*(float)y - 16/2},  
                 tileIndex
             );
-            chunkChildren.insert(chunkChildren.end(), ids.begin(), ids.end());
-
+            chunkChildren.reserve(chunkChildren.size() + ids.size());
+            for (EntityID id : ids) {
+                chunkChildren.push_back(id);
+            }
             // Spawn obsticle if it is an edge or corner tile
-            if (pixel == "obstacle" && textureIndex != 10) 
+            if (pixel == TileType::OBSTACLE && textureIndex != 10) 
             {
                 EntityID id = m_scene->spawnObstacle(
                     Vec2 {16*(float)x, 16*(float)y}, 
@@ -250,7 +255,7 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
                 );
                 chunkChildren.push_back(id);
             }
-            else if (pixel == "water" && textureIndex != 10) 
+            else if (pixel == TileType::WATER && textureIndex != 10) 
             {
                 EntityID id = m_scene->spawnWater(
                     Vec2 {16*(float)x,16*(float)y}, 
@@ -292,15 +297,21 @@ void LevelLoader::update(Vec2 playerPosition)
         return;
     }
     Vec2 chunk = m_chunkQueue.front();
-    m_chunkQueue.erase(m_chunkQueue.begin());
+    m_chunkQueue.pop_front();
     EntityID chunkID = loadChunk(chunk);
     m_loadedChunkIDs.push_back(chunkID);
     m_loadedChunks.push_back(chunk);
 
+    // std::cout << "Chunk Queue Size: " << m_chunkQueue.size() << " | Loaded Chunks: " << m_loadedChunks.size() << std::endl;
+
+    std::vector<Vec2> chunksToRemove;
     for (Vec2 chunk : m_loadedChunks){
         if (std::find(m_neighboringChunks.begin(), m_neighboringChunks.end(), chunk) == m_neighboringChunks.end()){
-            removeChunk(chunk);
+            chunksToRemove.push_back(chunk);
         }
+    }
+    for (Vec2 chunk : chunksToRemove){
+        removeChunk(chunk);
     }
  }
 
@@ -308,7 +319,7 @@ void LevelLoader::removeChunk(Vec2 chunk){
     auto it = std::find(m_loadedChunks.begin(), m_loadedChunks.end(), chunk);
     int index = std::distance(m_loadedChunks.begin(), it);
     EntityID chunkID = m_loadedChunkIDs[index];
-    std::vector<EntityID> chunkChildren =  m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern;
+    const std::vector<EntityID>& chunkChildren =  m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern;
     for ( EntityID id : chunkChildren )
     {
         m_scene->m_ECS.queueRemoveEntity(id);

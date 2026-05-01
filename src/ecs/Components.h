@@ -22,7 +22,7 @@ constexpr CollisionMask OBSTACLE_LAYER          = 1 << 3;   // 00001000, Bit 4
 constexpr CollisionMask FRIENDLY_LAYER          = 1 << 4;   // 00010000, Bit 5
 constexpr CollisionMask DAMAGE_LAYER            = 1 << 5;   // 00100000, Bit 6
 constexpr CollisionMask WATER_LAYER             = 1 << 6;   // 01000000, Bit 7
-constexpr CollisionMask LOOT_LAYER              = 1 << 7;   // 10000000, Final bit set
+constexpr CollisionMask LOOT_LAYER              = 1 << 7;   // 10000000, Bit 8
 constexpr CollisionMask AREA_LAYER              = 1 << 8;   // 10000000, Final bit set
 
 inline std::unordered_map<std::string, CollisionMask> componentMaskMap = 
@@ -49,8 +49,6 @@ enum struct PlayerState {
 
 using EntityID = uint32_t;
 
-class ScriptableEntity;
-
 struct CParent
 {
     EntityID parent;
@@ -67,8 +65,9 @@ struct CProjectile
     CProjectile(EntityID p) : projectileID(p){}
 };
 
-struct CInputs
+struct CInput
 {
+    Vec2 direction = {0, 0};
     bool up         = false;
     bool down       = false;
     bool left       = false;
@@ -81,7 +80,7 @@ struct CInputs
     bool shoot      = false;
     bool canShoot   = false;
     bool posses     = false;
-    CInputs() {};
+    CInput() {};
 };
 
 struct CTransform
@@ -205,8 +204,14 @@ struct CHealth
     CHealth() {}
     CHealth(int hp, int hp_max, int hrt_frms)
         : HP(hp), HP_max(hp_max), i_frames(hrt_frms){}
-    CHealth(const json j)
-        : HP(j["HP"]), HP_max(j["HP_max"]), i_frames(j["i_frames"]){}
+    CHealth(const json& j) {
+        HP       = j["HP"];
+        HP_max   = j["HP_max"];
+        i_frames = j["i_frames"];
+        if (j.contains("type"))
+            for (auto& t : j["type"])
+            HPType.insert(t);
+    }
 };
 
 struct CLifespan
@@ -220,8 +225,8 @@ struct CAnimation
 {
     Animation animation;
     std::string animation_name;
+    int layer;
     bool repeat = true;
-    int layer = 5;
     CAnimation() {}
     CAnimation(const Animation& animation)
                 : animation(animation){}
@@ -229,12 +234,14 @@ struct CAnimation
                 : animation_name(name){}
     CAnimation(const Animation& animation, std::string name)
                 : animation(animation), animation_name(name){}
-    CAnimation(const Animation& animation, bool r)
-                : animation(animation), repeat(r){}
+    // CAnimation(const Animation& animation, bool r)
+    //             : animation(animation), repeat(r){}
     CAnimation(const Animation& animation, bool r, int l)
             : animation(animation), repeat(r), layer(l){}
     CAnimation(const Animation& animation, int l)
             : animation(animation), layer(l){}
+    CAnimation(const Animation& animation, std::string name, int l)
+            : animation(animation), animation_name(name), layer(l){}
 };  
 
 struct CAudio
@@ -300,17 +307,6 @@ struct CDamage
         : damage(dmg), damageType(dmgType) {}
 };
 
-struct CDialogs
-{
-
-};
-
-// enum struct TextBackground {
-//     dialog = 0,
-//     button = 1,
-//     title = 2
-// };
-
 struct CText
 {    
     Vec2 size;
@@ -328,14 +324,71 @@ struct CPossesLevel
     CPossesLevel() {}
     CPossesLevel(int l)
         : level(l) {}
+    CPossesLevel(const json& j) {
+        if (j.is_number()) {
+            level = j;
+        }
+        else if (j.contains("level")) {
+            level = j["level"];
+        }
+    }
 };
 
-struct CPathfind
+struct CFollow
 {
-    Vec2 target;
-    CPathfind() {}
-    CPathfind( Vec2 trg)
-        : target(trg){}
+    std::string target;
+    CFollow() {}
+    CFollow(json j){
+        target = j.get<std::string>();
+    }
+};
+
+struct CPath
+{
+    std::vector<Vec2> path;
+    int index = 0;
+    CPath() {}
+    CPath( std::vector<Vec2> p)
+        : path(p){}
+    CPath(json j){
+        path = j.get<std::vector<Vec2>>();
+    }
+};
+
+enum class AIStateType {
+    Patrol,
+    Chase,
+    Investigate
+};
+
+struct CAIAgent {
+    // --- Sight ---
+    float sightRange   = 200.0f;
+    bool  canSeePlayer = false;
+
+    // --- Memory ---
+    Vec2  lastKnownPlayerPos = {0, 0};
+    int   memoryTimer        = 0;
+    int   memoryDuration     = 240;   // frames before giving up investigation
+
+    // --- Patrol ---
+    Vec2  spawnPos           = {0, 0};
+    float patrolRadius       = 96.0f;
+    Vec2  patrolTarget       = {0, 0};
+    bool  hasPatrolTarget    = false;
+    int   patrolWaitTimer    = 0;
+    int   patrolWaitDuration = 90;    // frames to stand still between patrol points
+
+    // --- State ---
+    AIStateType state = AIStateType::Patrol;
+
+    CAIAgent() {}
+    CAIAgent(const json& j) {
+        sightRange       = j.value("sightRange",       200.0f);
+        patrolRadius     = j.value("patrolRadius",     96.0f);
+        memoryDuration   = j.value("memoryDuration",   240);
+        patrolWaitDuration = j.value("patrolWaitDuration", 90);
+    }
 };
 
 struct CItem{
@@ -379,7 +432,8 @@ struct CWeapon
 {
     // Animation animation;
     int damage = 1;
-    int speed = 60;
+    int speed = 600;
+    int delay = 0;
     int range = 180;
     WeaponType weaponType = WeaponType::Projectile;
 
@@ -389,6 +443,20 @@ struct CWeapon
     
     CWeapon(int damage, int speed, int range, WeaponType type)
                 : damage(damage), speed(speed), range(range), weaponType(type){}
+
+    CWeapon(const json& j) {
+        damage = j["damage"];
+        speed  = j["speed"];
+        delay  = j["speed"]; // intentional
+        range  = j["range"];
+        static const std::unordered_map<
+            std::string, WeaponType> wMap = {
+            {"Melee",      WeaponType::Melee},
+            {"Projectile", WeaponType::Projectile},
+            {"AoE",        WeaponType::AoE}
+        };
+        weaponType = wMap.at(j["type"]);
+    }
 };
 
 struct CEvent
@@ -399,14 +467,6 @@ struct CEvent
     CEvent() {}
     CEvent(Event e)
             : event(e){}
-};
-
-struct CEquippedWeapon
-{
-    EntityID weaponID;
-    CEquippedWeapon() {}
-    CEquippedWeapon(EntityID wID)
-                : weaponID(wID){}
 };
 
 struct CChild
@@ -421,22 +481,6 @@ struct CChild
                 : childID(cID), removeOnDeath(true){}
     CChild(EntityID cID, bool remove)
                 : childID(cID), removeOnDeath(remove){}
-};
-
-struct CScript
-{
-    ScriptableEntity* Instance = nullptr;
-
-    ScriptableEntity* (*InstantiateScript)();
-    void (*DestroyInstanceScript)(CScript*);
-
-    template<typename T>
-    void Bind(){
-        InstantiateScript    = []() {return static_cast<ScriptableEntity*>(new T()); }; 
-        DestroyInstanceScript = [](CScript* sc) { delete sc->Instance; sc->Instance = nullptr;};
-    }
-    CScript() {}
-
 };
 
 struct CChunk

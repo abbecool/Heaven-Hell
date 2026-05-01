@@ -52,5 +52,5 @@ public:
     void panCamera();
 
     bool update(Vec2 playerPos, bool pause);
-
+    Vec2 getScreenSize();
 };

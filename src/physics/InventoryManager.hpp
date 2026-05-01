@@ -65,8 +65,7 @@ class InventoryManager
         for (std::string name: names){
             std::ifstream file("config_files/items/"+name+".json");
             if (!file) {
-                std::cerr << "Could not load item file!\n";
-                exit(-1);
+                throw std::runtime_error("Could not load item file: config_files/items/" + name + ".json");
             }
             json j;
             file >> j;

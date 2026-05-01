@@ -48,8 +48,7 @@ void Scene_Pause::saveLayout(const std::string& filename) {
         }
     std::ofstream file(filename);
     if (!file) {
-        std::cerr << "Could not load button_placement.json file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not open button placement file: " + filename);
     }
     file << j.dump(4);
     file.close();
@@ -58,8 +57,7 @@ void Scene_Pause::saveLayout(const std::string& filename) {
 void Scene_Pause::loadLayout(const std::string& filename) {
     std::ifstream file(filename);
     if (!file) {
-        std::cerr << "Could not load button_placement.json file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not open button placement file: " + filename);
     }
     json j;
     file >> j;

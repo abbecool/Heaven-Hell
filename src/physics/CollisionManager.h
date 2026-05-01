@@ -14,6 +14,10 @@ using CollisionMatrix = std::array<std::array<Handler, MAX_LAYERS>, MAX_LAYERS>;
 class BaseCollisionManager
 {
     private:
+    // Helper functions for collision calculation
+    Vec2 calculateDelta(Vec2 aPos, Vec2 aSize, Vec2 bPos, Vec2 bSize) const;
+    Vec2 calculateHorizontalMovement(const Vec2& aPos, const Vec2& aSize, const Vec2& bPos, const Vec2& bSize, const Vec2& overlap, const Vec2& prevOverlap) const;
+    Vec2 calculateVerticalMovement(const Vec2& aPos, const Vec2& aSize, const Vec2& bPos, const Vec2& bSize, const Vec2& overlap, const Vec2& prevOverlap) const;
     
     public:
     CollisionMatrix m_handlerMatrix;
@@ -48,6 +52,10 @@ class BaseCollisionManager
 
 class CollisionManager : public BaseCollisionManager
 {    
+    private:
+    // Helper functions for collision processing
+    void processQuadtreeLeaf(std::vector<Entity>& entities);
+    
     public:
     CollisionManager(ECS* ecs, Scene_Play* scene);
     void doCollisions(Vec2 pos, Vec2 size);
@@ -56,6 +64,11 @@ class CollisionManager : public BaseCollisionManager
 
 class InteractionManager : public BaseCollisionManager
 {
+    private:
+    // Helper functions for interaction processing
+    bool checkInteractionLayerMask(const CInteractionBox& boxA, const CInteractionBox& boxB) const;
+    void processInteractionLeaf(std::vector<Entity>& entities);
+    
     bool talkToNPC(Entity player, Entity friendly);
     bool possesNPC(Entity player, Entity friendly);
     void handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap);

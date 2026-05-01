@@ -1,0 +1,9 @@
+{
+    "emblem": {
+        "id": 3,
+        "name": "emblem",
+        "description": "A lost emblem that the farmer lost.",
+        "iconPath": "emblem",
+        "maxStack": 1
+    }
+}

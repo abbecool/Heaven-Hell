@@ -15,6 +15,28 @@ void Scene::registerAction(int inputKey, const std::string& actionName) {
     m_actionMap[inputKey] = actionName;
 }
 
+EntityID Scene::SpawnDialog(
+    std::string dialog, 
+    int size, 
+    std::string font, 
+    EntityID parentID
+)
+{
+    int layer = 8;
+    auto id = m_ECS.addEntity();
+    m_ECS.addComponent<CTransform>(id);
+    m_ECS.addComponent<CChild>(parentID, id);
+    Vec2 relativePosition = {0, -2*m_gridSize.y};
+    m_ECS.addComponent<CParent>(id, parentID, relativePosition);
+    CAnimation& animation =  m_ECS.addComponent<CAnimation>(id, getAnimation("button_unpressed"), layer);
+    Vec2 animationSize = animation.animation.getSize();
+    CText& text = m_ECS.addComponent<CText>(id, dialog, animationSize.y*0.9f, font);
+    animation.animation.setScale(Vec2{2*animationSize.x, animationSize.y});
+    m_rendererManager.addEntityToLayer(id, layer);
+    m_ECS.addComponent<CLifespan>(id, 60);
+    return id;
+}
+
 void Scene::spriteRender(Animation &animation){
     SDL_RenderCopyEx(
         m_game->renderer(), 
@@ -28,6 +50,9 @@ void Scene::spriteRender(Animation &animation){
 }
 
 void Scene::sRenderBasic() {
+    if (!m_drawTextures){
+        return;
+    }
     Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
     int windowScale = m_game->getScale();
     int totalZoom = windowScale - m_camera.getCameraZoom(); // Combined zoom level with screen resolution and camera zoom
@@ -35,26 +60,24 @@ void Scene::sRenderBasic() {
     // Above code does not have to be calculated every frame
 
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    if (m_drawTextures){
-        auto& animationPool = m_ECS.getComponentPool<CAnimation>();
-        auto layers = m_rendererManager.getLayers();
-        for (const auto& layer : layers){
-            for (const auto& e : layer){                
-                if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e)){
-                    continue;
-                }
-                auto& transform = transformPool.getComponent(e);
-                auto& animation = animationPool.getComponent(e).animation;
-
-                // Adjust the entity's position based on the camera position
-                Vec2 adjustedPosition = (transform.pos - m_camera.position)*totalZoom 
-                                            + screenCenterZoomed;
-
-                animation.setScale(transform.scale * totalZoom);
-                animation.setAngle(transform.angle);
-                animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
-                spriteRender(animation);
+    auto& animationPool = m_ECS.getComponentPool<CAnimation>();
+    auto layers = m_rendererManager.getLayers();
+    for (const auto& layer : layers){
+        for (const auto& e : layer){                
+            if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e)){
+                continue;
             }
+            auto& transform = transformPool.getComponent(e);
+            auto& animation = animationPool.getComponent(e).animation;
+
+            // Adjust the entity's position based on the camera position
+            Vec2 adjustedPosition = (transform.pos - m_camera.position)*totalZoom 
+                                        + screenCenterZoomed;
+
+            animation.setScale(transform.scale * totalZoom);
+            animation.setAngle(transform.angle);
+            animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
+            spriteRender(animation);
         }
     }
 
