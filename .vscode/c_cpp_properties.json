@@ -13,18 +13,18 @@
         "/usr/include/webp"
       ],
       "compilerPath": "/usr/bin/g++",
+      "cppStandard": "c++17",
       "intelliSenseMode": "linux-gcc-x64"
     },
     {
       "name": "Win32",
       "includePath": [
         "${workspaceFolder}/src",
-        "${workspaceFolder}/../SDL2/SDL2-2.32.8/include",
-        "${workspaceFolder}/../SDL2/SDL2_image-2.8.8/include",
-        "${workspaceFolder}/../SDL2/SDL2_mixer-2.8.1/include",
-        "${workspaceFolder}/../SDL2/SDL2_ttf-2.24.0/include"
+        "C:/msys64/ucrt64/include",
+        "C:/msys64/ucrt64/include/SDL2"
       ],
       "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
+      "cppStandard": "c++17",
       "intelliSenseMode": "windows-gcc-x64"
     }
   ],

@@ -11,12 +11,20 @@
         "-DCMAKE_BUILD_TYPE=Release"
       ],
       "windows": {
+        "command": "C:/msys64/ucrt64/bin/cmake.exe",
         "args": [
           "-S", ".",
-          "-B", "build/Windows/Release",
+          "-B", "build/Windows/Ninja/Release",
           "-DCMAKE_BUILD_TYPE=Release",
-          "-G", "MinGW Makefiles"
-        ]
+          "-DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe",
+          "-DCMAKE_MAKE_PROGRAM=C:/msys64/ucrt64/bin/ninja.exe",
+          "-G", "Ninja"
+        ],
+        "options": {
+          "env": {
+            "PATH": "C:/msys64/ucrt64/bin;${env:PATH}"
+          }
+        }
       },
       "problemMatcher": "$gcc"
     },
@@ -38,9 +46,15 @@
         "--build", "build/Release"
       ],
       "windows": {
+        "command": "C:/msys64/ucrt64/bin/cmake.exe",
         "args": [
-          "--build", "build/Windows/Release"
-        ]
+          "--build", "build/Windows/Ninja/Release"
+        ],
+        "options": {
+          "env": {
+            "PATH": "C:/msys64/ucrt64/bin;${env:PATH}"
+          }
+        }
       },
       "problemMatcher": "$gcc"
     },
@@ -54,12 +68,20 @@
         "-DCMAKE_BUILD_TYPE=Debug"
       ],
       "windows": {
+        "command": "C:/msys64/ucrt64/bin/cmake.exe",
         "args": [
           "-S", ".",
-          "-B", "build/Windows/Debug",
+          "-B", "build/Windows/Ninja/Debug",
           "-DCMAKE_BUILD_TYPE=Debug",
-          "-G", "MinGW Makefiles"
-        ]
+          "-DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe",
+          "-DCMAKE_MAKE_PROGRAM=C:/msys64/ucrt64/bin/ninja.exe",
+          "-G", "Ninja"
+        ],
+        "options": {
+          "env": {
+            "PATH": "C:/msys64/ucrt64/bin;${env:PATH}"
+          }
+        }
       },
       "problemMatcher": "$gcc"
     },
@@ -81,9 +103,15 @@
         "--build", "build/Debug"
       ],
       "windows": {
+        "command": "C:/msys64/ucrt64/bin/cmake.exe",
         "args": [
-          "--build", "build/Windows/Debug"
-        ]
+          "--build", "build/Windows/Ninja/Debug"
+        ],
+        "options": {
+          "env": {
+            "PATH": "C:/msys64/ucrt64/bin;${env:PATH}"
+          }
+        }
       },
       "problemMatcher": "$gcc"
     }
