@@ -1,5 +1,5 @@
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 #include <iostream>
 #include <fstream>
@@ -15,7 +15,7 @@
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {
     SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");    
+    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");   
 
     m_window = SDL_CreateWindow(
         "Heaven & Hell", 

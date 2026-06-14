@@ -10,8 +10,8 @@
 #include "external/json.hpp"
 using json = nlohmann::json;
 
-#include <SDL_image.h>
-#include <SDL_ttf.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include <iostream>
 #include <string>

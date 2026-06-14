@@ -2,7 +2,7 @@
 
 #include "physics/Vec2.h"
 
-#include <SDL_image.h>
+#include <SDL3_image/SDL_image.h>
 #include <memory>
 #include <vector>
 #include <deque>

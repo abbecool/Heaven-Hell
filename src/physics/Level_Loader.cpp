@@ -9,7 +9,7 @@
 #include "physics/RandomArray.h"
 #include "ecs/ECS.hpp"
 
-#include <SDL_image.h>
+#include <SDL3_image/SDL_image.h>
 #include <iostream>
 #include <string>
 #include <fstream>

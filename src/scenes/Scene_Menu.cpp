@@ -7,8 +7,8 @@
 #include "core/Action.h"
 #include "physics/RandomArray.h"
 
-#include <SDL_image.h>
-#include <SDL_ttf.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <iostream>
 #include <string>
 #include <fstream>

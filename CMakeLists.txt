@@ -8,10 +8,10 @@ if (WIN32 AND NOT MINGW)
     message(FATAL_ERROR "Windows builds are expected to use MSYS2/MinGW. Configure with -G \"MinGW Makefiles\".")
 endif()
 
-find_package(SDL2 CONFIG REQUIRED)
-find_package(SDL2_image CONFIG REQUIRED)
-find_package(SDL2_mixer CONFIG REQUIRED)
-find_package(SDL2_ttf CONFIG REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
+find_package(SDL3_image CONFIG REQUIRED)
+find_package(SDL3_mixer CONFIG REQUIRED)
+find_package(SDL3_ttf CONFIG REQUIRED)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/run/Release")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/run/Debug")
@@ -21,15 +21,11 @@ add_executable(heavenhell ${SOURCES})
 
 target_include_directories(heavenhell PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-if (WIN32)
-    target_link_libraries(heavenhell PRIVATE SDL2::SDL2main)
-endif()
-
 target_link_libraries(heavenhell PRIVATE
-    SDL2::SDL2
-    SDL2_image::SDL2_image
-    SDL2_mixer::SDL2_mixer
-    SDL2_ttf::SDL2_ttf
+    SDL3::SDL3
+    SDL3_image::SDL3_image
+    SDL3_mixer::SDL3_mixer
+    SDL3_ttf::SDL3_ttf
 )
 
 if (WIN32)
@@ -40,10 +36,10 @@ if (WIN32)
             "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
             "${MINGW_BIN_DIR}/libstdc++-6.dll"
             "${MINGW_BIN_DIR}/libwinpthread-1.dll"
-            "${MINGW_BIN_DIR}/SDL2.dll"
-            "${MINGW_BIN_DIR}/SDL2_image.dll"
-            "${MINGW_BIN_DIR}/SDL2_mixer.dll"
-            "${MINGW_BIN_DIR}/SDL2_ttf.dll"
+            "${MINGW_BIN_DIR}/SDL3.dll"
+            "${MINGW_BIN_DIR}/SDL3_image.dll"
+            "${MINGW_BIN_DIR}/SDL3_mixer.dll"
+            "${MINGW_BIN_DIR}/SDL3_ttf.dll"
             $<TARGET_FILE_DIR:heavenhell>)
 endif()
 

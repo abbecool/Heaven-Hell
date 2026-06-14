@@ -8,7 +8,7 @@
 #include "physics/Physics.h"
 #include "ecs/ComponentFactory.hpp"
 
-#include <SDL_ttf.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <cstddef>
 #include <map>
 
