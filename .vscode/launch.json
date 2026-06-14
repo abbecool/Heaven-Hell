@@ -18,6 +18,12 @@
             "windows": {
                 "program": "${workspaceFolder}/run/Debug/heavenhell.exe",
                 "cwd": "${workspaceFolder}/run/Debug",
+                "environment": [
+                    {
+                        "name": "PATH",
+                        "value": "C:/msys64/ucrt64/bin;${env:PATH}"
+                    }
+                ],
                 "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe"
             },
             "linux": {
@@ -43,6 +49,12 @@
             "windows": {
                 "program": "${workspaceFolder}/run/Release/heavenhell.exe",
                 "cwd": "${workspaceFolder}/run/Release",
+                "environment": [
+                    {
+                        "name": "PATH",
+                        "value": "C:/msys64/ucrt64/bin;${env:PATH}"
+                    }
+                ],
                 "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe"
             },
             "linux": {
