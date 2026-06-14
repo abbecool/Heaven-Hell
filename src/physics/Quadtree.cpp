@@ -44,11 +44,11 @@ void Quadtree::printTree(const std::string& prefix, const std::string& branch)
 }
 
 void Quadtree::renderBoundary(
-    SDL_Renderer* renderer, 
+    RenderBackend& renderer, 
     int zoom, 
     Vec2 screenCenter, 
     Vec2 camPos, 
-    SDL_Color color
+    Color color
 ) {
     if (m_divided)
     {
@@ -64,14 +64,14 @@ void Quadtree::renderBoundary(
         float width = m_size.x;
         float height = m_size.y;
         // Adjust the collision box position based on the camera position
-        SDL_FRect collisionRect;
-        collisionRect.x = (x - width/2 - camPos.x) * zoom + screenCenter.x;
-        collisionRect.y = (y - height/2 - camPos.y) * zoom + screenCenter.y;
-        collisionRect.w = width * zoom;
-        collisionRect.h = height * zoom;
+        RectF collisionRect{
+            (x - width/2 - camPos.x) * zoom + screenCenter.x,
+            (y - height/2 - camPos.y) * zoom + screenCenter.y,
+            width * zoom,
+            height * zoom
+        };
 
-        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(renderer, &collisionRect);
+        renderer.drawRect(collisionRect, color);
         // render the number of objects in the quadtree
     }
 }

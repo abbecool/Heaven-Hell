@@ -135,8 +135,6 @@ void Scene_GameOver::sAnimation()
 
 void Scene_GameOver::sRender()
 {
-    // Clear the screen with black
-    SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     sRenderBasic();
 }
 

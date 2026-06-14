@@ -117,8 +117,6 @@ void Scene_Finish::sAnimation()
 
 void Scene_Finish::sRender()
 {
-    // Clear the screen with black
-    SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     sRenderBasic();
 }
 

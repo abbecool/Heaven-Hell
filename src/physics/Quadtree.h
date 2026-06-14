@@ -4,6 +4,7 @@
 
 #include "ecs/Entity.h"
 #include "physics/Vec2.h"
+#include "render/RenderBackend.h"
 
 class Quadtree
 {
@@ -138,7 +139,7 @@ public:
         return (x_overlap && y_overlap);
     }
 
-    void renderBoundary(SDL_Renderer* renderer, int zoom, Vec2 screenCenter, Vec2 camPos, SDL_Color color);
+    void renderBoundary(RenderBackend& renderer, int zoom, Vec2 screenCenter, Vec2 camPos, Color color);
     int countLeafs(int count );
     std::vector<Entity> getObjects() const;
     std::vector<std::shared_ptr<Quadtree>> createQuadtreeVector();

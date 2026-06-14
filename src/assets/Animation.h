@@ -1,6 +1,7 @@
 #pragma once
 
 #include "physics/Vec2.h"
+#include "render/RenderTypes.h"
 
 #include <SDL3/SDL.h>
 #include <string>
@@ -54,6 +55,9 @@ class Animation
     SDL_Texture* getTexture() const;
     const SDL_Rect* getSrcRect() const;
     const SDL_Rect* getDestRect() const;
+    TextureHandle getTextureHandle() const;
+    RectF getSrcRectF() const;
+    RectF getDestRectF() const;
     void setSrcRect(const int x, const int y, const int w, const int h);
     void setSrcSize(Vec2 size);
     void setDestRect(const int x, const int y, const int w, const int h);

@@ -3,6 +3,7 @@
 #include "ecs/ECS.hpp"
 #include "scenes/Scene.h"
 #include "assets/Assets.h"
+#include "render/RenderBackend.h"
 
 #include <chrono>
 #include <ctime>
@@ -27,6 +28,7 @@ protected:
 
     SDL_Window *m_window = nullptr;
     SDL_Renderer *m_renderer = nullptr;
+    std::unique_ptr<RenderBackend> m_renderBackend;
     SceneMap m_sceneMap;
     Assets m_assets;
     std::string m_currentScene;
@@ -46,9 +48,12 @@ protected:
     int accumulated_frame_time = 0;
     int average_fps = 0;
 
-    // FPS display caching
-    SDL_Texture* m_fpsCacheTexture = nullptr;
-    SDL_Rect m_fpsCacheRect = {m_width-100, m_height-20, 100, 20};
+    RectF m_fpsRect = {
+        static_cast<float>(m_width - 100),
+        static_cast<float>(m_height - 20),
+        100.0f,
+        20.0f
+    };
     
     void update();
     void setPaused(bool paused);
@@ -66,7 +71,7 @@ public:
     void run();
     bool isRunning();
     int framerate();
-    SDL_Renderer* renderer(); 
+    RenderBackend& render();
     SDL_Window* window(); 
     Assets& assets(); 
     SceneMap& sceneMap();

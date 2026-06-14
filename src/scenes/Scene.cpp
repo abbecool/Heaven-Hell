@@ -1,17 +1,5 @@
 #include "scenes/Scene.h"
 
-namespace {
-SDL_FRect toFRect(const SDL_Rect& rect)
-{
-    return SDL_FRect{
-        static_cast<float>(rect.x),
-        static_cast<float>(rect.y),
-        static_cast<float>(rect.w),
-        static_cast<float>(rect.h)
-    };
-}
-}
-
 Scene::Scene() {}
 
 Scene::Scene(Game* game)
@@ -50,17 +38,12 @@ EntityID Scene::SpawnDialog(
 }
 
 void Scene::spriteRender(Animation &animation){
-    SDL_FRect srcRect = toFRect(*animation.getSrcRect());
-    SDL_FRect destRect = toFRect(*animation.getDestRect());
-    SDL_RenderTextureRotated(
-        m_game->renderer(), 
-        animation.getTexture(), 
-        &srcRect, 
-        &destRect,
-        animation.getAngle(),
-        NULL,
-        SDL_FLIP_NONE
-    );
+    m_game->render().drawSprite(SpriteDrawCommand{
+        animation.getTextureHandle(),
+        animation.getSrcRectF(),
+        animation.getDestRectF(),
+        animation.getAngle()
+    });
 }
 
 void Scene::sRenderBasic() {
@@ -99,40 +82,21 @@ void Scene::sRenderBasic() {
     auto dialogView = m_ECS.View<CText, CTransform>();
     for (const auto& e : dialogView){
         CText& dialog = dialogPool.getComponent(e);
-        SDL_Color color = {255, 255, 255, 255};
-        SDL_Surface* surface = TTF_RenderText_Blended(getFont(dialog.font_name), dialog.text.c_str(), 0, color);
-        if (!surface) {
-            SDL_Log("TTF_RenderText_Blended error: %s", SDL_GetError());
-            continue;
-        }
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(m_game->renderer(), surface);
-        SDL_DestroySurface(surface);
-        if (!texture) {
-            SDL_Log("SDL_CreateTextureFromSurface error: %s", SDL_GetError());
-            continue;
-        }
         CTransform& transform = transformPool.getComponent(e);
         Vec2 pos = (transform.pos - m_camera.position- dialog.size/2)*totalZoom 
                     + screenCenterZoomed;
                     
-        SDL_Rect texRect;
-        texRect.x = int(pos.x);
-        texRect.y = int(pos.y);
-        texRect.w = int(dialog.size.x * totalZoom);
-        texRect.h = int(dialog.size.y * totalZoom);
-
-        SDL_FRect renderRect = toFRect(texRect);
-        SDL_RenderTextureRotated(
-            m_game->renderer(),
-            texture,
-            nullptr,
-            &renderRect,
-            0,
-            nullptr,
-            SDL_FLIP_NONE
-        );
-
-        SDL_DestroyTexture(texture); // Free after rendering to avoid leaks
+        m_game->render().drawText(TextDrawCommand{
+            dialog.text,
+            dialog.font_name,
+            RectF{
+                pos.x,
+                pos.y,
+                dialog.size.x * totalZoom,
+                dialog.size.y * totalZoom
+            },
+            {255, 255, 255, 255}
+        });
     }
 
     if (m_drawCollision)
@@ -162,15 +126,13 @@ void Scene::renderBox(
         auto& transform = transformPool.getComponent(e);
         auto& box = boxPool.getComponent(e);
         // Adjust the box box position based on the camera position
-        SDL_Rect boxRect;
-        boxRect.x = (transform.pos.x - box.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x;
-        boxRect.y = (transform.pos.y - box.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y;
-        boxRect.w = box.size.x * totalZoom;
-        boxRect.h = box.size.y * totalZoom;
-        SDL_Color color = box.color;
-        SDL_SetRenderDrawColor(m_game->renderer(), color.r, color.g, color.b, color.a);
-        SDL_FRect renderRect = toFRect(boxRect);
-        SDL_RenderRect(m_game->renderer(), &renderRect);
+        RectF boxRect{
+            (transform.pos.x - box.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x,
+            (transform.pos.y - box.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y,
+            box.size.x * totalZoom,
+            box.size.y * totalZoom
+        };
+        m_game->render().drawRect(boxRect, {box.color.r, box.color.g, box.color.b, box.color.a});
     }
 }
 

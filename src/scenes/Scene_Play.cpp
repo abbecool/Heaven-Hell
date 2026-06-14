@@ -595,9 +595,6 @@ void Scene_Play::sAnimation() {
 }
 
 void Scene_Play::sRender() {
-    // Clear the screen with black
-    SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
-    
     // Debug: Print renderer layer sizes
     // const auto& layers = m_rendererManager.getLayers();
     // std::string totalEntitiesInLayers;
@@ -682,7 +679,7 @@ void Scene_Play::sRender() {
     if (m_drawCollision)
     {
         m_collisionManager.renderQuadtree(
-            m_game->renderer(), 
+            m_game->render(), 
             windowScale - m_camera.getCameraZoom(), 
             screenCenter * m_camera.getCameraZoom(), 
             m_camera.position
@@ -692,7 +689,7 @@ void Scene_Play::sRender() {
     if (m_drawInteraction)
     {
         m_interactionManager.renderQuadtree(
-            m_game->renderer(), 
+            m_game->render(), 
             windowScale - m_camera.getCameraZoom(), 
             screenCenter * m_camera.getCameraZoom(), 
             m_camera.position

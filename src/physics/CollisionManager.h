@@ -5,6 +5,7 @@
 #include "ecs/Components.h"
 #include "ecs/ECS.hpp"
 #include "physics/Quadtree.h"
+#include "render/RenderBackend.h"
 // #include "scenes/Scene_Play.h"
 class Scene_Play;
 
@@ -47,7 +48,7 @@ class BaseCollisionManager
     
     template <typename T>
     void newQuadtree(Vec2 pos, Vec2 size);
-    void renderQuadtree(SDL_Renderer*renderer, int zoom, Vec2 screenCenter, Vec2 camPos);
+    void renderQuadtree(RenderBackend& renderer, int zoom, Vec2 screenCenter, Vec2 camPos);
 };
 
 class CollisionManager : public BaseCollisionManager

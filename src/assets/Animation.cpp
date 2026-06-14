@@ -97,6 +97,31 @@ const SDL_Rect* Animation::getDestRect() const
     return &m_destRect;
 }
 
+TextureHandle Animation::getTextureHandle() const
+{
+    return TextureHandle{m_name};
+}
+
+RectF Animation::getSrcRectF() const
+{
+    return RectF{
+        static_cast<float>(m_srcRect.x),
+        static_cast<float>(m_srcRect.y),
+        static_cast<float>(m_srcRect.w),
+        static_cast<float>(m_srcRect.h)
+    };
+}
+
+RectF Animation::getDestRectF() const
+{
+    return RectF{
+        static_cast<float>(m_destRect.x),
+        static_cast<float>(m_destRect.y),
+        static_cast<float>(m_destRect.w),
+        static_cast<float>(m_destRect.h)
+    };
+}
+
 float Animation::getAngle() const
 {
     return m_angle;

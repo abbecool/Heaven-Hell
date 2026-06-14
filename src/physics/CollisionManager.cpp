@@ -194,12 +194,12 @@ bool BaseCollisionManager::isCollided(CTransform t1, CTransform t2, CBox b1, CBo
 }
 
 void BaseCollisionManager::renderQuadtree(
-    SDL_Renderer* renderer, 
+    RenderBackend& renderer, 
     int zoom, 
     Vec2 center, 
     Vec2 cameraPosition
 ){
-    SDL_Color color = {255, 0, 0, 255};
+    Color color = {255, 0, 0, 255};
     m_quadRoot->renderBoundary(renderer, zoom, center, cameraPosition, color);
 }
 

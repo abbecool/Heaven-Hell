@@ -163,8 +163,7 @@ void Scene_Pause::sAnimation() {
 }
 
 void Scene_Pause::sRender() {
-    SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 175); // 50% transparent black
-    SDL_RenderFillRect(m_game->renderer(), nullptr);
+    m_game->render().fillRect({0.0f, 0.0f, 0.0f, 0.0f}, {0, 0, 0, 175});
     sRenderBasic();
 }
 

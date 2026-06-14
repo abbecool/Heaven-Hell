@@ -11,6 +11,7 @@
 
 #include "Game.h"
 #include "assets/Assets.h"
+#include "render/SDLRenderBackend.h"
 #include "scenes/Scene_Menu.h"
 
 Game::Game(const std::string & pathImages, const std::string & pathText)
@@ -50,8 +51,7 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
         m_running = false;
         return;
     }
-    SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetDefaultTextureScaleMode(m_renderer, SDL_SCALEMODE_NEAREST);
+    m_renderBackend = std::make_unique<SDLRenderBackend>(m_renderer, m_assets);
     if (!TTF_Init()) {
         std::cerr << "TTF_Init failed: " << SDL_GetError() << std::endl;
         m_running = false;
@@ -77,7 +77,12 @@ void Game::updateResolution(int scale)
     setWidth(scale*VIRTUAL_WIDTH);
     setHeight(scale*VIRTUAL_HEIGHT);
     SDL_SetWindowSize(m_window, scale*VIRTUAL_WIDTH, scale*VIRTUAL_HEIGHT);
-    m_fpsCacheRect = {scale*VIRTUAL_WIDTH-100, scale*VIRTUAL_HEIGHT-20, 100, 20};
+    m_fpsRect = {
+        static_cast<float>(scale * VIRTUAL_WIDTH - 100),
+        static_cast<float>(scale * VIRTUAL_HEIGHT - 20),
+        100.0f,
+        20.0f
+    };
 }
 
 void Game::ToggleFullscreen(){
@@ -121,40 +126,20 @@ void Game::run()
 {
     while (isRunning())
     {
-        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
-        SDL_RenderClear(m_renderer);
+        m_renderBackend->beginFrame({0, 0, 0, 255});
         update();
         sUserInput();
         FrametimeHandler(); // caps the framerate and prints the theoretical unlimited FPS.
-        SDL_RenderPresent(m_renderer);
+        m_renderBackend->endFrame();
 
     }
     m_assets.shutdown();
-    if (m_fpsCacheTexture) {
-        SDL_DestroyTexture(m_fpsCacheTexture);
-        m_fpsCacheTexture = nullptr;
-    }
     TTF_Quit();
+    m_renderBackend.reset();
     SDL_DestroyRenderer(m_renderer);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
 }   
-
-void RenderText(SDL_Renderer* renderer, TTF_Font* font, const std::string& text, int x, int y, SDL_Color color)
-{
-    SDL_Surface* surface = TTF_RenderText_Blended(font, text.c_str(), 0, color);
-    if (!surface) return;
-    
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FRect dstRect = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(surface->w), static_cast<float>(surface->h) };
-    SDL_DestroySurface(surface);
-    if (!texture) return;
-
-    SDL_RenderTexture(renderer, texture, nullptr, &dstRect);
-
-    SDL_DestroyTexture(texture);
-}
-
 
 void Game::FrametimeHandler()
 {
@@ -174,31 +159,16 @@ void Game::FrametimeHandler()
         float average_frame_time = accumulated_frame_time / frame_count;
         average_fps = 1e9 / average_frame_time;
 
-        SDL_Color white = {255, 255, 255, 255};
-        auto font = m_assets.getFont("Minecraft");
-        std::string temp_str = "FPS: " + std::to_string(average_fps);
-        const char* text = temp_str.c_str();
-        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, text, 0, white); 
-
-        if (m_fpsCacheTexture) {
-            SDL_DestroyTexture(m_fpsCacheTexture);
-        }
-        m_fpsCacheTexture = SDL_CreateTextureFromSurface(m_renderer, surfaceMessage);
-        SDL_DestroySurface(surfaceMessage);
-
         accumulated_frame_time = 0.0;
         frame_count = 0;
         last_fps_update = steady_clock::now();
     }
-    if (m_fpsCacheTexture) {
-        SDL_FRect fpsRect = {
-            static_cast<float>(m_fpsCacheRect.x),
-            static_cast<float>(m_fpsCacheRect.y),
-            static_cast<float>(m_fpsCacheRect.w),
-            static_cast<float>(m_fpsCacheRect.h)
-        };
-        SDL_RenderTexture(m_renderer, m_fpsCacheTexture, NULL, &fpsRect);
-    }
+    m_renderBackend->drawText(TextDrawCommand{
+        "FPS: " + std::to_string(average_fps),
+        "Minecraft",
+        m_fpsRect,
+        {255, 255, 255, 255}
+    });
     auto targetFrameDuration = std::chrono::milliseconds(1000 / m_framerate);
 
     if (frameDuration < targetFrameDuration) {
@@ -226,8 +196,8 @@ SceneMap& Game::sceneMap(){
     return m_sceneMap;
 }
 
-SDL_Renderer* Game::renderer(){
-    return m_renderer;
+RenderBackend& Game::render(){
+    return *m_renderBackend;
 }
 
 SDL_Window* Game::window(){
