@@ -1,53 +1,88 @@
-<!-- # Heaven-Hell
-My first attempt at creating a C++ game from scratch
------------------------------------------------------
-In this game you control two players, an angel and the devil. 
-The objective of the game is to get both players to their respective goals/gates.
-The catch is that the angel and devil are controlled by the same keys on the keyboard.
-Get both to their goals without them getting stuck or dying. -->
-
 # Heaven-Hell
-This version of the game is a top-down RPG 
------------------------------------------------------
-Here you play as a XXX who is in charge of deciding who gets to go to heaven and who goes to hell (Skärselden)
-You dont know you origins and it is a mystery. There has been a great battle and the starting area is in ruins.
-Your quest is to find out about you origin/backstory.
-
-Add trees, chop down a tree leaving a tree stump, cast a spell/potion on the tree stump to turn it into a rooter!
-Spells primaraly deal damage and Potions primaraly inflict status effects.
-
-Add the ability climb trees to see further
+This version of the game is a top-down RPG
 
 # Developer Setup
 
-## Windows Setup
+## Windows Setup with MSYS2
 
-Install MSYS2 installer (C++ compiler) by clicking the link: https://github.com/msys2/msys2-installer/releases/download/2024-12-08/msys2-x86_64-20241208.exe. Make sure the compiler is installed at this location: "C:/msys64/ucrt64/bin/gcc.exe", otherwise c_cpp_properties.json needs to be adjusted. 
+Install MSYS2 installer (C++ compiler) by clicking the link: https://github.com/msys2/msys2-installer/releases
 
-General Visual Studio Code setup guide can be found here: https://code.visualstudio.com/docs/cpp/config-mingw
+Make sure to use the **MSYS2 UCRT64** terminal. This project is set up to use the UCRT64 MinGW compiler.
 
-Install CMake (Windows x64 Installer): https://cmake.org/download/
+First update MSYS2:
 
-Download and extract relevant SDL2 dependancies to sibling folder named "SDL2" and extract VC download inside.
+```sh
+pacman -Syu
+```
 
-## SDL2 Downloads
+If MSYS2 asks you to close the terminal after updating, close it, open **MSYS2 UCRT64** again, and run:
 
-| SDL version            | File to download | Link |
-|------------------------|:----------------:|:------------------:|
-| SDL2              | SDL2-devel-2.32.8-VC.zip  | https://github.com/libsdl-org/SDL/releases       |
-| SDL2_image    | SDL2_image-devel-2.8.8-VC.zip     | https://github.com/libsdl-org/SDL_image/releases  |
-| SDL2_ttf         | SDL2_ttf-devel-2.24.0-VC.zip      | https://github.com/libsdl-org/SDL_ttf/releases       |
-| SDL2_mixer              | SDL2_mixer-devel-2.8.1-VC.zip      | https://github.com/libsdl-org/SDL_mixer/releases  |
+```sh
+pacman -Syu
+```
 
-The SDL2 folder should look like this.
+Install the compiler, CMake, Ninja, and debugger:
 
-![](SDL2_folder.png)
+```sh
+pacman -S mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-gdb
+```
 
-When the sibling SDL2 folder is ready, open the repository in VS Code, select the desired launch configuration, and press F5. VS Code will configure CMake, build the project, and run the game.
+Install SDL2 and the SDL2 extension libraries:
+
+```sh
+pacman -S mingw-w64-ucrt-x86_64-SDL2 mingw-w64-ucrt-x86_64-SDL2_image mingw-w64-ucrt-x86_64-SDL2_mixer mingw-w64-ucrt-x86_64-SDL2_ttf
+```
+
+These packages install Windows libraries into:
+
+```text
+C:/msys64/ucrt64
+```
+
+The compiler should be located at:
+
+```text
+C:/msys64/ucrt64/bin/g++.exe
+```
+
+The debugger should be located at:
+
+```text
+C:/msys64/ucrt64/bin/gdb.exe
+```
+
+Ninja should be located at:
+
+```text
+C:/msys64/ucrt64/bin/ninja.exe
+```
+
+When MSYS2 is ready, open the repository in VS Code, select the desired launch configuration, and press F5. VS Code will configure CMake, build the project, and run the game.
+
+## Windows Manual Build
+
+To configure and build manually from the terminal:
+
+```sh
+cmake -S . -B build/Windows/Ninja/Debug -DCMAKE_BUILD_TYPE=Debug -G "Ninja"
+cmake --build build/Windows/Ninja/Debug
+```
+
+```sh
+cmake -S . -B build/Windows/Ninja/Release -DCMAKE_BUILD_TYPE=Release -G "Ninja"
+cmake --build build/Windows/Ninja/Release
+```
+
+The Windows executable is created at:
+
+```text
+run/Debug/heavenhell.exe
+run/Release/heavenhell.exe
+```
 
 ## Linux Setup (only tested on Arch)
 
-Install a C++ compiler, CMake, GDB, and the SDL2 development packages. 
+Install a C++ compiler, CMake, GDB, and the SDL2 development packages.
 
 On Arch Linux:
 
