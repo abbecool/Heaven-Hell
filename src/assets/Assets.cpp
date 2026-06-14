@@ -14,24 +14,85 @@ using json = nlohmann::json;
 
 Assets::Assets(){}
 
+Assets::~Assets(){
+    shutdown();
+}
+
+bool Assets::ensureMixer()
+{
+    if (m_mixer) {
+        return true;
+    }
+    if (!MIX_Init()) {
+        std::cerr << "Failed to initialize SDL_mixer! SDL_Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+    m_mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
+    if (!m_mixer) {
+        std::cerr << "Failed to create audio mixer! SDL_Error: " << SDL_GetError() << std::endl;
+        MIX_Quit();
+        return false;
+    }
+    return true;
+}
+
+void Assets::shutdown()
+{
+    for (auto& [name, audio] : m_audios) {
+        MIX_DestroyAudio(audio);
+    }
+    m_audios.clear();
+
+    for (auto& [name, music] : m_music) {
+        MIX_DestroyAudio(music);
+    }
+    m_music.clear();
+
+    if (m_mixer) {
+        MIX_DestroyMixer(m_mixer);
+        m_mixer = nullptr;
+        MIX_Quit();
+    }
+
+    for (auto& [name, font] : m_fonts) {
+        TTF_CloseFont(font);
+    }
+    m_fonts.clear();
+
+    for (auto& [name, texture] : m_textures) {
+        SDL_DestroyTexture(texture);
+    }
+    m_textures.clear();
+}
 
 void Assets::addTexture(const std::string & path, SDL_Renderer * ren)
 {
     const char *path_char = path.c_str(); 
     std::string name = path.substr(0, path.find_last_of('.')).substr(path.find_last_of('/') + 1);
     SDL_Surface* tempSurface = IMG_Load(path_char);
+    if (tempSurface == nullptr) {
+        std::cerr   << "Failed to load image: "
+                    << name
+                    << ", from path: "
+                    << path_char
+                    << ", SDL_Error: "
+                    << SDL_GetError()
+                    << std::endl;
+        return;
+    }
     SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, tempSurface);
-    SDL_FreeSurface(tempSurface);
+    SDL_DestroySurface(tempSurface);
     if (texture == nullptr) {
         std::cerr   << "Failed to load texture: " 
                     << name 
                     << ", from path: " 
                     << path_char 
-                    << ", IMG_Error: " 
-                    << IMG_GetError() 
+                    << ", SDL_Error: " 
+                    << SDL_GetError() 
                     << std::endl;
         return;
     }
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
     m_textures[name] = texture;
 }
 
@@ -49,7 +110,7 @@ void Assets::addFont(const std::string& name, const std::string& path, const int
     std::string fontPath = "assets/fonts/" + name + ".ttf";
     TTF_Font* font = TTF_OpenFont(fontPath.c_str(), font_size);
     if (font == nullptr) {
-        std::cerr << "Failed to load font! TTF_Error: " << TTF_GetError() << std::endl;
+        std::cerr << "Failed to load font! SDL_Error: " << SDL_GetError() << std::endl;
     }
     m_fonts[name] = font;
 }
@@ -77,15 +138,19 @@ const Animation& Assets::getAnimation(const std::string& name) const {
 }
 
 void Assets::addAudio(const std::string& name, const std::string& path) {
-    std::string audioPath = ("assets/audio/" + name+".wav"); 
-    Mix_Chunk* audio = Mix_LoadWAV(audioPath.c_str());
+    if (!ensureMixer()) {
+        return;
+    }
+    std::string audioPath = "assets/audio/" + path; 
+    MIX_Audio* audio = MIX_LoadAudio(m_mixer, audioPath.c_str(), true);
     if (audio == nullptr) {
-        std::cerr << "Failed to load audio! Mix_Error: " << Mix_GetError() << std::endl;
+        std::cerr << "Failed to load audio! SDL_Error: " << SDL_GetError() << std::endl;
+        return;
     }
     m_audios[name] = audio;
 }
 
-Mix_Chunk* Assets::getAudio(const std::string& name) const {
+MIX_Audio* Assets::getAudio(const std::string& name) const {
     try {
         return m_audios.at(name);
     } catch (const std::out_of_range& e) {
@@ -95,20 +160,35 @@ Mix_Chunk* Assets::getAudio(const std::string& name) const {
 }
 
 void Assets::addMusic(const std::string& name, const std::string& path) {
-    std::string pathString = ("assets/music/" + name+".ogg"); 
-    Mix_Music* music = Mix_LoadMUS(pathString.c_str());
+    if (!ensureMixer()) {
+        return;
+    }
+    std::string pathString = "assets/music/" + path; 
+    MIX_Audio* music = MIX_LoadAudio(m_mixer, pathString.c_str(), true);
     if (music == nullptr) {
-        std::cerr << "Failed to load music! Mix_Error: " << Mix_GetError() << std::endl;
+        std::cerr << "Failed to load music! SDL_Error: " << SDL_GetError() << std::endl;
+        return;
     }
     m_music[name] = music;
 }
 
-Mix_Music* Assets::getMusic(const std::string& name) const {
+MIX_Audio* Assets::getMusic(const std::string& name) const {
     try {
         return m_music.at(name);
     } catch (const std::out_of_range& e) {
         std::cerr << "Music not found: " << name << std::endl;
         throw;
+    }
+}
+
+void Assets::playAudio(const std::string& name)
+{
+    if (!ensureMixer()) {
+        return;
+    }
+    MIX_Audio* audio = getAudio(name);
+    if (!MIX_PlayAudio(m_mixer, audio)) {
+        std::cerr << "Failed to play audio: " << name << ", SDL_Error: " << SDL_GetError() << std::endl;
     }
 }
 

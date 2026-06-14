@@ -2,7 +2,7 @@
 
 #include "physics/Vec2.h"
 
-#include <SDL3_image/SDL_image.h>
+#include <SDL3/SDL.h>
 #include <memory>
 #include <vector>
 #include <deque>
@@ -44,7 +44,7 @@ public:
     std::array<bool, 4> neighborCheck(int x, int y, int width, int height);
     std::array<TileType, 4> neighborTag(int x, int y, int width, int height);
     int getObstacleTextureIndex(const std::array<bool, 4>& neighbors);
-    void createPixelMatrix(Uint32* pixels, SDL_PixelFormat* format, int width, int height);
+    void createPixelMatrix(Uint32* pixels, const SDL_PixelFormatDetails* format, int width, int height, int pitchPixels);
     std::array<int, 5> createDualGrid(int x, int y);
     EntityID loadChunk(Vec2 chunk);
     void removeChunk(Vec2 chunk);

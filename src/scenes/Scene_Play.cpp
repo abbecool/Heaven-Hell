@@ -16,9 +16,6 @@
 
 #include "external/json.hpp"
 
-#include <SDL3_image/SDL_image.h>
-#include <SDL3_mixer/SDL_mixer.h>
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -41,35 +38,35 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_newGame(newGame),
     m_inventoryManager("config_files/items")
 {
-    registerAction(SDLK_w, "UP");
+    registerAction(SDLK_W, "UP");
     registerAction(SDLK_UP, "UP");
-    registerAction(SDLK_s, "DOWN");
+    registerAction(SDLK_S, "DOWN");
     registerAction(SDLK_DOWN, "DOWN");
-    registerAction(SDLK_a, "LEFT");
+    registerAction(SDLK_A, "LEFT");
     registerAction(SDLK_LEFT, "LEFT");
-    registerAction(SDLK_d, "RIGHT");
+    registerAction(SDLK_D, "RIGHT");
     registerAction(SDLK_RIGHT, "RIGHT");
     
-    registerAction(SDLK_i, "INVENTORY");
+    registerAction(SDLK_I, "INVENTORY");
     registerAction(SDL_BUTTON_LEFT , "ATTACK");
     registerAction(SDL_BUTTON_RIGHT , "WRITE POSITION");
     registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
-    registerAction(SDLK_e, "INTERACT");
+    registerAction(SDLK_E, "INTERACT");
     registerAction(SDLK_LSHIFT, "SHIFT");
     registerAction(SDLK_LCTRL, "CTRL");
     registerAction(SDLK_ESCAPE, "ESC");
-    registerAction(SDLK_u, "SAVE");
-    registerAction(SDLK_r, "RESET");
-    registerAction(SDLK_t, "TAKE OVER");
+    registerAction(SDLK_U, "SAVE");
+    registerAction(SDLK_R, "RESET");
+    registerAction(SDLK_T, "TAKE OVER");
 
-    registerAction(SDLK_x, "CAMERA FOLLOW");
-    registerAction(SDLK_z, "CAMERA PAN");
+    registerAction(SDLK_X, "CAMERA FOLLOW");
+    registerAction(SDLK_Z, "CAMERA PAN");
     registerAction(SDLK_PLUS, "ZOOM IN");
     registerAction(SDLK_MINUS, "ZOOM OUT");
-    registerAction(SDLK_q, "WRITE QUADTREE");
-    registerAction(SDLK_p, "PAUSE");
-    registerAction(SDLK_o, "FPS COUNTER");
-    registerAction(SDLK_k, "KILL_PLAYER");
+    registerAction(SDLK_Q, "WRITE QUADTREE");
+    registerAction(SDLK_P, "PAUSE");
+    registerAction(SDLK_O, "FPS COUNTER");
+    registerAction(SDLK_K, "KILL_PLAYER");
     registerAction(SDLK_F3, "TOGGLE_COLLISION");
     registerAction(SDLK_F4, "TOGGLE_INTERACTION");
     registerAction(SDLK_F5, "TOGGLE_TEXTURE");
@@ -728,22 +725,12 @@ void Scene_Play::sRender() {
 
 void Scene_Play::sAudio()
 {
-    // if( Mix_PlayingMusic() == 0 )
-    // {
-    //     Mix_PlayMusic(m_game->assets().getMusic("AbbeGameTrack1ogg"), -1);
-    // }
-
     auto& audioPool = m_ECS.getComponentPool<CAudio>();
     auto audioView = m_ECS.View<CAudio>();
     for (EntityID id : audioView){
         CAudio& audio = audioPool.getComponent(id);
-        Mix_Chunk *asset = m_game->assets().getAudio(audio.audioName);
-        Mix_PlayChannel(-1, asset, audio.loops);
-        if (audio.loops == 0){
-            m_ECS.removeComponent<CAudio>(id);
-            continue;
-        }
-        audio.loops--;
+        m_game->assets().playAudio(audio.audioName);
+        m_ECS.removeComponent<CAudio>(id);
     }
 }
 

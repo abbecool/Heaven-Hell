@@ -12,12 +12,16 @@ class Assets
 	std::map<std::string, SDL_Texture*> m_textures;
 	std::map<std::string, Animation> m_animations;
 	std::map<std::string, TTF_Font*> m_fonts;
-	std::map<std::string, Mix_Chunk*> m_audios;
-	std::map<std::string, Mix_Music*> m_music;
+	std::map<std::string, MIX_Audio*> m_audios;
+	std::map<std::string, MIX_Audio*> m_music;
+	MIX_Mixer* m_mixer = nullptr;
+
+	bool ensureMixer();
 
 public:
 
 	Assets();
+	~Assets();
 
 	void addTexture(const std::string & path, SDL_Renderer * ren);
 	void addAnimation(const std::string& name, Animation animation);
@@ -28,8 +32,10 @@ public:
 	SDL_Texture* getTexture(std::string name) const;
 	TTF_Font* getFont(const std::string& name) const;
 	const Animation& getAnimation(const std::string& name) const;
-	Mix_Chunk* getAudio(const std::string& name) const;
-	Mix_Music* getMusic(const std::string& name) const;
+	MIX_Audio* getAudio(const std::string& name) const;
+	MIX_Audio* getMusic(const std::string& name) const;
+	void playAudio(const std::string& name);
+	void shutdown();
 
 	void loadFromFile(
 		const std::string & pathImages, 

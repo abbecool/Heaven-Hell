@@ -7,8 +7,6 @@
 #include "core/Action.h"
 #include "physics/RandomArray.h"
 
-#include <SDL3_image/SDL_image.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -19,9 +17,9 @@ Scene_Menu::Scene_Menu(Game* game)
     : Scene(game)
 {
     registerAction(SDLK_ESCAPE, "QUIT");
-    registerAction(SDLK_t, "TOGGLE_TEXTURE");
-    registerAction(SDLK_c, "TOGGLE_COLLISION");
-    registerAction(SDLK_f, "FULLSCREEN");
+    registerAction(SDLK_T, "TOGGLE_TEXTURE");
+    registerAction(SDLK_C, "TOGGLE_COLLISION");
+    registerAction(SDLK_F, "FULLSCREEN");
     registerAction(SDL_BUTTON_LEFT , "MOUSE LEFT CLICK");
     loadMenu();
 }

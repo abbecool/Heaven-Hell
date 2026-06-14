@@ -5,8 +5,6 @@
 #include "core/Action.h"
 #include "physics/RandomArray.h"
 
-#include <SDL3_image/SDL_image.h>
-#include <SDL3_mixer/SDL_mixer.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -17,7 +15,7 @@ Scene_Inventory::Scene_Inventory(Game* game)
     : Scene(game)
 {
     registerAction(SDLK_ESCAPE, "QUIT");
-    registerAction(SDLK_e, "QUIT");
+    registerAction(SDLK_E, "QUIT");
     registerAction(SDL_BUTTON_LEFT , "CLICK");
     
     spawnItem("campfire");
@@ -28,7 +26,7 @@ void Scene_Inventory::sDoAction(const Action& action) {
         if (action.name() == "QUIT") { 
             onEnd(); // save inventory to savefile?
         } if (action.name() == "CLICK"){
-            Mix_PlayChannel(-1, m_game->assets().getAudio("loot_pickup"), 0);
+            m_game->assets().playAudio("loot_pickup");
         }
     }
 }

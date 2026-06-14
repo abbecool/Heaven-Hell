@@ -1,5 +1,17 @@
 #include "scenes/Scene.h"
 
+namespace {
+SDL_FRect toFRect(const SDL_Rect& rect)
+{
+    return SDL_FRect{
+        static_cast<float>(rect.x),
+        static_cast<float>(rect.y),
+        static_cast<float>(rect.w),
+        static_cast<float>(rect.h)
+    };
+}
+}
+
 Scene::Scene() {}
 
 Scene::Scene(Game* game)
@@ -38,11 +50,13 @@ EntityID Scene::SpawnDialog(
 }
 
 void Scene::spriteRender(Animation &animation){
-    SDL_RenderCopyEx(
+    SDL_FRect srcRect = toFRect(*animation.getSrcRect());
+    SDL_FRect destRect = toFRect(*animation.getDestRect());
+    SDL_RenderTextureRotated(
         m_game->renderer(), 
         animation.getTexture(), 
-        animation.getSrcRect(), 
-        animation.getDestRect(),
+        &srcRect, 
+        &destRect,
         animation.getAngle(),
         NULL,
         SDL_FLIP_NONE
@@ -86,13 +100,13 @@ void Scene::sRenderBasic() {
     for (const auto& e : dialogView){
         CText& dialog = dialogPool.getComponent(e);
         SDL_Color color = {255, 255, 255, 255};
-        SDL_Surface* surface = TTF_RenderText_Blended(getFont(dialog.font_name), dialog.text.c_str(), color);
+        SDL_Surface* surface = TTF_RenderText_Blended(getFont(dialog.font_name), dialog.text.c_str(), 0, color);
         if (!surface) {
-            SDL_Log("TTF_RenderText_Blended error: %s", TTF_GetError());
+            SDL_Log("TTF_RenderText_Blended error: %s", SDL_GetError());
             continue;
         }
         SDL_Texture* texture = SDL_CreateTextureFromSurface(m_game->renderer(), surface);
-        SDL_FreeSurface(surface);
+        SDL_DestroySurface(surface);
         if (!texture) {
             SDL_Log("SDL_CreateTextureFromSurface error: %s", SDL_GetError());
             continue;
@@ -107,11 +121,12 @@ void Scene::sRenderBasic() {
         texRect.w = int(dialog.size.x * totalZoom);
         texRect.h = int(dialog.size.y * totalZoom);
 
-        SDL_RenderCopyEx(
+        SDL_FRect renderRect = toFRect(texRect);
+        SDL_RenderTextureRotated(
             m_game->renderer(),
             texture,
             nullptr,
-            &texRect,
+            &renderRect,
             0,
             nullptr,
             SDL_FLIP_NONE
@@ -154,7 +169,8 @@ void Scene::renderBox(
         boxRect.h = box.size.y * totalZoom;
         SDL_Color color = box.color;
         SDL_SetRenderDrawColor(m_game->renderer(), color.r, color.g, color.b, color.a);
-        SDL_RenderDrawRect(m_game->renderer(), &boxRect);
+        SDL_FRect renderRect = toFRect(boxRect);
+        SDL_RenderRect(m_game->renderer(), &renderRect);
     }
 }
 

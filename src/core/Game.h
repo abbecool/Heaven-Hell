@@ -25,8 +25,8 @@ protected:
     int m_width = 640;
     int m_height = 360;
 
-    SDL_Window *m_window;
-    SDL_Renderer *m_renderer;
+    SDL_Window *m_window = nullptr;
+    SDL_Renderer *m_renderer = nullptr;
     SceneMap m_sceneMap;
     Assets m_assets;
     std::string m_currentScene;

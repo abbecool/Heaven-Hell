@@ -31,22 +31,37 @@ LevelLoader::LevelLoader(
     SDL_Surface* loadedSurface = IMG_Load(path);
     if (loadedSurface == nullptr) 
     {
-        std::cerr << path << " not loaded!" << std::endl;
+        std::cerr << path << " not loaded! SDL_Error: " << SDL_GetError() << std::endl;
+        return;
+    }
+    SDL_Surface* convertedSurface = SDL_ConvertSurface(loadedSurface, SDL_PIXELFORMAT_RGBA32);
+    SDL_DestroySurface(loadedSurface);
+    loadedSurface = convertedSurface;
+    if (loadedSurface == nullptr)
+    {
+        std::cerr << path << " could not be converted! SDL_Error: " << SDL_GetError() << std::endl;
+        return;
     }
 
     // Lock the surface to access the pixels
-    SDL_LockSurface(loadedSurface);
+    if (!SDL_LockSurface(loadedSurface)) {
+        std::cerr << path << " could not be locked! SDL_Error: " << SDL_GetError() << std::endl;
+        SDL_DestroySurface(loadedSurface);
+        return;
+    }
     Uint32* pixels = (Uint32*)loadedSurface->pixels;
+    int pitchPixels = loadedSurface->pitch / static_cast<int>(sizeof(Uint32));
+    const SDL_PixelFormatDetails* format = SDL_GetPixelFormatDetails(loadedSurface->format);
 
     const int HEIGHT_PIX = loadedSurface->h;
     const int WIDTH_PIX = loadedSurface->w;
     m_height = HEIGHT_PIX;
     m_width = WIDTH_PIX;
     m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
-    createPixelMatrix(pixels, loadedSurface->format, WIDTH_PIX, HEIGHT_PIX);
+    createPixelMatrix(pixels, format, WIDTH_PIX, HEIGHT_PIX, pitchPixels);
     // Unlock and free the surface
     SDL_UnlockSurface(loadedSurface);
-    SDL_FreeSurface(loadedSurface);
+    SDL_DestroySurface(loadedSurface);
     loadChunk(m_currentChunk);
 }
 
@@ -108,18 +123,19 @@ int LevelLoader::getObstacleTextureIndex(const std::array<bool, 4>& neighbors) {
 
 void LevelLoader::createPixelMatrix(
     Uint32* pixels, 
-    SDL_PixelFormat* format, 
+    const SDL_PixelFormatDetails* format, 
     int width, 
-    int height
+    int height,
+    int pitchPixels
 ) {
     m_pixelMatrix.resize(height * width);
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            Uint32 pixel = pixels[y * width + x];
+            Uint32 pixel = pixels[y * pitchPixels + x];
 
             Uint8 r, g, b, a;
-            SDL_GetRGBA(pixel, format, &r, &g, &b, &a);
+            SDL_GetRGBA(pixel, format, nullptr, &r, &g, &b, &a);
             
             TileType tile = TileType::UNKNOWN;
             if ((int)r == 192 && (int)g == 192 && (int)b == 192) {

@@ -155,9 +155,10 @@ void Animation::setTile(Vec2 grid) {
 
 SDL_Point Animation::getTextureSize() const
 {
-    SDL_Point size;
-    SDL_QueryTexture(m_texture, NULL, NULL, &size.x, &size.y);
-    return size;
+    float width = 0.0f;
+    float height = 0.0f;
+    SDL_GetTextureSize(m_texture, &width, &height);
+    return SDL_Point{static_cast<int>(width), static_cast<int>(height)};
 }
 
 void Animation::setAngle(float angle) {

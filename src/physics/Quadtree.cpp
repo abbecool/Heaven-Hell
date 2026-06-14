@@ -64,14 +64,14 @@ void Quadtree::renderBoundary(
         float width = m_size.x;
         float height = m_size.y;
         // Adjust the collision box position based on the camera position
-        SDL_Rect collisionRect;
-        collisionRect.x = int ( x - width/2 - camPos.x) * zoom + screenCenter.x;
-        collisionRect.y = int ( y - height/2 - camPos.y) * zoom + screenCenter.y;
-        collisionRect.w = int ( width ) * zoom;
-        collisionRect.h = int ( height ) * zoom;
+        SDL_FRect collisionRect;
+        collisionRect.x = (x - width/2 - camPos.x) * zoom + screenCenter.x;
+        collisionRect.y = (y - height/2 - camPos.y) * zoom + screenCenter.y;
+        collisionRect.w = width * zoom;
+        collisionRect.h = height * zoom;
 
         SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderDrawRect(renderer, &collisionRect);
+        SDL_RenderRect(renderer, &collisionRect);
         // render the number of objects in the quadtree
     }
 }

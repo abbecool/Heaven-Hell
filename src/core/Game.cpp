@@ -1,5 +1,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include <iostream>
 #include <fstream>
@@ -14,38 +15,58 @@
 
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {
-    SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");   
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
+        std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
+        m_running = false;
+        return;
+    }
 
     m_window = SDL_CreateWindow(
         "Heaven & Hell", 
-        SDL_WINDOWPOS_CENTERED, 
-        SDL_WINDOWPOS_CENTERED, 
         m_width, m_height, 
-        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+        SDL_WINDOW_RESIZABLE
     );
 
-    SDL_SetWindowIcon(
-        m_window, 
-        IMG_Load("assets/images/wizard_profile_pic.png")
-    );
     if ( NULL == m_window )
     {
         std::cout << "Window nullprt: " << SDL_GetError( ) << std::endl;
+        m_running = false;
+        return;
+    }
+
+    SDL_Surface* icon = IMG_Load("assets/images/wizard_profile_pic.png");
+    if (icon) {
+        SDL_SetWindowIcon(m_window, icon);
+        SDL_DestroySurface(icon);
     }
     SDL_SetWindowPosition(m_window, 0, 30);
     
     current_frame = steady_clock::now();
     last_fps_update = current_frame;
     
-    m_renderer = SDL_CreateRenderer(m_window, -1 , SDL_RENDERER_ACCELERATED);
+    m_renderer = SDL_CreateRenderer(m_window, nullptr);
+    if (!m_renderer) {
+        std::cerr << "Renderer creation failed: " << SDL_GetError() << std::endl;
+        m_running = false;
+        return;
+    }
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
-    TTF_Init();
-    Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
+    SDL_SetDefaultTextureScaleMode(m_renderer, SDL_SCALEMODE_NEAREST);
+    if (!TTF_Init()) {
+        std::cerr << "TTF_Init failed: " << SDL_GetError() << std::endl;
+        m_running = false;
+        return;
+    }
     m_assets.loadFromFile(pathImages, pathText, m_renderer);
     
-    SDL_GetCurrentDisplayMode(0, &DM);
-    updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
+    const SDL_DisplayMode* displayMode = SDL_GetCurrentDisplayMode(SDL_GetPrimaryDisplay());
+    if (displayMode) {
+        DM = *displayMode;
+    } else {
+        DM.w = VIRTUAL_WIDTH;
+        DM.h = VIRTUAL_HEIGHT;
+    }
+    updateResolution(std::max(1, int(DM.h / VIRTUAL_HEIGHT)-1));
     // updateResolution(1);
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
 }
@@ -60,13 +81,13 @@ void Game::updateResolution(int scale)
 }
 
 void Game::ToggleFullscreen(){
-    Uint32 flags = SDL_GetWindowFlags(m_window);
-    if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-        updateResolution(int(DM.h / VIRTUAL_HEIGHT)-1);
-        SDL_SetWindowFullscreen(m_window, 0); // Exit fullscreen
+    SDL_WindowFlags flags = SDL_GetWindowFlags(m_window);
+    if (flags & SDL_WINDOW_FULLSCREEN) {
+        updateResolution(std::max(1, int(DM.h / VIRTUAL_HEIGHT)-1));
+        SDL_SetWindowFullscreen(m_window, false); // Exit fullscreen
     } else {
-        updateResolution(int(DM.h / VIRTUAL_HEIGHT));
-        SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP); // Enter fullscreen
+        updateResolution(std::max(1, int(DM.h / VIRTUAL_HEIGHT)));
+        SDL_SetWindowFullscreen(m_window, true); // Enter fullscreen
     }
 }
 
@@ -108,22 +129,28 @@ void Game::run()
         SDL_RenderPresent(m_renderer);
 
     }
+    m_assets.shutdown();
+    if (m_fpsCacheTexture) {
+        SDL_DestroyTexture(m_fpsCacheTexture);
+        m_fpsCacheTexture = nullptr;
+    }
+    TTF_Quit();
+    SDL_DestroyRenderer(m_renderer);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
 }   
 
 void RenderText(SDL_Renderer* renderer, TTF_Font* font, const std::string& text, int x, int y, SDL_Color color)
 {
-    SDL_Surface* surface = TTF_RenderText_Blended(font, text.c_str(), color);
+    SDL_Surface* surface = TTF_RenderText_Blended(font, text.c_str(), 0, color);
     if (!surface) return;
     
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
+    SDL_FRect dstRect = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(surface->w), static_cast<float>(surface->h) };
+    SDL_DestroySurface(surface);
     if (!texture) return;
 
-    SDL_Rect dstRect = { x, y, surface->w, surface->h };
-    SDL_QueryTexture(texture, nullptr, nullptr, &dstRect.w, &dstRect.h);
-    SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
+    SDL_RenderTexture(renderer, texture, nullptr, &dstRect);
 
     SDL_DestroyTexture(texture);
 }
@@ -151,15 +178,27 @@ void Game::FrametimeHandler()
         auto font = m_assets.getFont("Minecraft");
         std::string temp_str = "FPS: " + std::to_string(average_fps);
         const char* text = temp_str.c_str();
-        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, text, white); 
+        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(font, text, 0, white); 
 
+        if (m_fpsCacheTexture) {
+            SDL_DestroyTexture(m_fpsCacheTexture);
+        }
         m_fpsCacheTexture = SDL_CreateTextureFromSurface(m_renderer, surfaceMessage);
+        SDL_DestroySurface(surfaceMessage);
 
         accumulated_frame_time = 0.0;
         frame_count = 0;
         last_fps_update = steady_clock::now();
     }
-    SDL_RenderCopy(m_renderer, m_fpsCacheTexture, NULL, &m_fpsCacheRect);
+    if (m_fpsCacheTexture) {
+        SDL_FRect fpsRect = {
+            static_cast<float>(m_fpsCacheRect.x),
+            static_cast<float>(m_fpsCacheRect.y),
+            static_cast<float>(m_fpsCacheRect.w),
+            static_cast<float>(m_fpsCacheRect.h)
+        };
+        SDL_RenderTexture(m_renderer, m_fpsCacheTexture, NULL, &fpsRect);
+    }
     auto targetFrameDuration = std::chrono::milliseconds(1000 / m_framerate);
 
     if (frameDuration < targetFrameDuration) {
@@ -231,34 +270,34 @@ void Game::sUserInput()
     currentScene()->updateMouseScroll(0);
     while ( SDL_PollEvent( &event ) )
     {
-        if (SDL_QUIT == event.type){
+        if (SDL_EVENT_QUIT == event.type){
             quit();
         }
         ActionMap actionMap = currentScene()->getActionMap();
-        if(event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) { 
-            SDL_Keycode key = event.key.keysym.sym;
+        if(event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) { 
+            SDL_Keycode key = event.key.key;
             if (actionMap.find(key) == actionMap.end()) {
                 continue;
             }
-            const std::string actionType = (event.type == SDL_KEYDOWN) ? "START" : "END";
+            const std::string actionType = (event.type == SDL_EVENT_KEY_DOWN) ? "START" : "END";
             // look up the action and send the action to the scene
             currentScene()->doAction(Action(actionMap.at(key), actionType));
         }
-        else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP){
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP){
             // Map the mouse button to an action, if needed (assuming you have mappings)
             if (actionMap.find(event.button.button) == actionMap.end()) {
                 continue;
             }
-            const std::string actionType = (event.type == SDL_MOUSEBUTTONDOWN ) ? "START" : "END";
+            const std::string actionType = (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ) ? "START" : "END";
             // look up the action and send the action to the scene  
             currentScene()->doAction(Action(actionMap.at(event.button.button), actionType));
         }
-        else if (event.type == SDL_MOUSEMOTION){
+        else if (event.type == SDL_EVENT_MOUSE_MOTION){
             currentScene()->updateMousePosition(Vec2{float(event.motion.x),float(event.motion.y)}/getScale());
         }
         // Mouse scroll wheel handling
-        else if (event.type == SDL_MOUSEWHEEL) {
-            currentScene()->updateMouseScroll(event.wheel.y);
+        else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
+            currentScene()->updateMouseScroll(event.wheel.integer_y);
             // Determine scroll direction: up or down
             if (actionMap.find(event.wheel.direction) == actionMap.end()) {
                 continue;

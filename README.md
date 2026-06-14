@@ -27,10 +27,10 @@ Install the compiler, CMake, Ninja, and debugger:
 pacman -S mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-gdb
 ```
 
-Install SDL2 and the SDL2 extension libraries:
+Install SDL3 and the SDL3 extension libraries:
 
 ```sh
-pacman -S mingw-w64-ucrt-x86_64-SDL2 mingw-w64-ucrt-x86_64-SDL2_image mingw-w64-ucrt-x86_64-SDL2_mixer mingw-w64-ucrt-x86_64-SDL2_ttf
+pacman -S mingw-w64-ucrt-x86_64-sdl3 mingw-w64-ucrt-x86_64-sdl3-image mingw-w64-ucrt-x86_64-sdl3-mixer mingw-w64-ucrt-x86_64-sdl3-ttf
 ```
 
 These packages install Windows libraries into:
@@ -82,18 +82,18 @@ run/Release/heavenhell.exe
 
 ## Linux Setup (only tested on Arch)
 
-Install a C++ compiler, CMake, GDB, and the SDL2 development packages.
+Install a C++ compiler, CMake, GDB, and the SDL3 development packages.
 
 On Arch Linux:
 
 ```sh
-sudo pacman -S gcc cmake gdb sdl2 sdl2_image sdl2_mixer sdl2_ttf
+sudo pacman -S gcc cmake gdb sdl3 sdl3_image sdl3_mixer sdl3_ttf
 ```
 
 On Debian/Ubuntu:
 
 ```sh
-sudo apt install build-essential cmake gdb libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+sudo apt install build-essential cmake gdb libsdl3-dev libsdl3-image-dev libsdl3-mixer-dev libsdl3-ttf-dev
 ```
 
 Open the repository in VS Code, select either `Run HeavenHell (Arch Release)` or `Debug HeavenHell (Arch Debug)`, and press F5. VS Code will configure CMake, build the project, and run the game.
