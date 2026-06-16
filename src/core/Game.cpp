@@ -1,5 +1,4 @@
 #include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include <iostream>
@@ -7,67 +6,43 @@
 #include <algorithm>
 #include <chrono>
 #include <ctime>
+#include <exception>
 #include <thread>
 
 #include "Game.h"
 #include "assets/Assets.h"
-#include "render/SDLRenderBackend.h"
 #include "scenes/Scene_Menu.h"
 
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
-        std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
+    try {
+        m_platform = std::make_unique<SDLPlatform>("Heaven & Hell", m_width, m_height);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
         m_running = false;
         return;
     }
-
-    m_window = SDL_CreateWindow(
-        "Heaven & Hell", 
-        m_width, m_height, 
-        SDL_WINDOW_RESIZABLE
-    );
-
-    if ( NULL == m_window )
-    {
-        std::cout << "Window nullprt: " << SDL_GetError( ) << std::endl;
-        m_running = false;
-        return;
-    }
-
-    SDL_Surface* icon = IMG_Load("assets/images/wizard_profile_pic.png");
-    if (icon) {
-        SDL_SetWindowIcon(m_window, icon);
-        SDL_DestroySurface(icon);
-    }
-    SDL_SetWindowPosition(m_window, 0, 30);
     
     current_frame = steady_clock::now();
     last_fps_update = current_frame;
-    
-    m_renderer = SDL_CreateRenderer(m_window, nullptr);
-    if (!m_renderer) {
-        std::cerr << "Renderer creation failed: " << SDL_GetError() << std::endl;
+
+    try {
+        m_renderBackend = std::make_unique<SDLRenderBackend>(m_platform->window(), m_assets);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
         m_running = false;
         return;
     }
-    m_renderBackend = std::make_unique<SDLRenderBackend>(m_renderer, m_assets);
+
     if (!TTF_Init()) {
         std::cerr << "TTF_Init failed: " << SDL_GetError() << std::endl;
         m_running = false;
         return;
     }
-    m_assets.loadFromFile(pathImages, pathText, m_renderer);
+    m_assets.loadFromFile(pathImages, pathText, m_renderBackend->getRenderer());
     
-    const SDL_DisplayMode* displayMode = SDL_GetCurrentDisplayMode(SDL_GetPrimaryDisplay());
-    if (displayMode) {
-        DM = *displayMode;
-    } else {
-        DM.w = VIRTUAL_WIDTH;
-        DM.h = VIRTUAL_HEIGHT;
-    }
+    DM = m_platform->currentDisplayMode(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
     updateResolution(std::max(1, int(DM.h / VIRTUAL_HEIGHT)-1));
-    // updateResolution(1);
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
 }
 
@@ -76,7 +51,7 @@ void Game::updateResolution(int scale)
     setScale(scale);
     setWidth(scale*VIRTUAL_WIDTH);
     setHeight(scale*VIRTUAL_HEIGHT);
-    SDL_SetWindowSize(m_window, scale*VIRTUAL_WIDTH, scale*VIRTUAL_HEIGHT);
+    m_platform->setWindowSize(scale*VIRTUAL_WIDTH, scale*VIRTUAL_HEIGHT);
     m_fpsRect = {
         static_cast<float>(scale * VIRTUAL_WIDTH - 100),
         static_cast<float>(scale * VIRTUAL_HEIGHT - 20),
@@ -86,13 +61,12 @@ void Game::updateResolution(int scale)
 }
 
 void Game::ToggleFullscreen(){
-    SDL_WindowFlags flags = SDL_GetWindowFlags(m_window);
-    if (flags & SDL_WINDOW_FULLSCREEN) {
+    if (m_platform->isFullscreen()) {
         updateResolution(std::max(1, int(DM.h / VIRTUAL_HEIGHT)-1));
-        SDL_SetWindowFullscreen(m_window, false); // Exit fullscreen
+        m_platform->setFullscreen(false);
     } else {
         updateResolution(std::max(1, int(DM.h / VIRTUAL_HEIGHT)));
-        SDL_SetWindowFullscreen(m_window, true); // Enter fullscreen
+        m_platform->setFullscreen(true);
     }
 }
 
@@ -135,9 +109,7 @@ void Game::run()
     m_assets.shutdown();
     TTF_Quit();
     m_renderBackend.reset();
-    SDL_DestroyRenderer(m_renderer);
-    SDL_DestroyWindow(m_window);
-    SDL_Quit();
+    m_platform.reset();
 }   
 
 void Game::FrametimeHandler()
@@ -200,7 +172,7 @@ RenderBackend& Game::render(){
 }
 
 SDL_Window* Game::window(){
-    return m_window;
+    return m_platform->window();
 }
 
 int Game::getVirtualWidth()
@@ -235,45 +207,7 @@ void Game::setHeight(int height)
 
 void Game::sUserInput()
 {
-    SDL_Event event;
-    currentScene()->updateMouseScroll(0);
-    while ( SDL_PollEvent( &event ) )
-    {
-        if (SDL_EVENT_QUIT == event.type){
-            quit();
-        }
-        ActionMap actionMap = currentScene()->getActionMap();
-        if(event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) { 
-            SDL_Keycode key = event.key.key;
-            if (actionMap.find(key) == actionMap.end()) {
-                continue;
-            }
-            const std::string actionType = (event.type == SDL_EVENT_KEY_DOWN) ? "START" : "END";
-            // look up the action and send the action to the scene
-            currentScene()->doAction(Action(actionMap.at(key), actionType));
-        }
-        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP){
-            // Map the mouse button to an action, if needed (assuming you have mappings)
-            if (actionMap.find(event.button.button) == actionMap.end()) {
-                continue;
-            }
-            const std::string actionType = (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ) ? "START" : "END";
-            // look up the action and send the action to the scene  
-            currentScene()->doAction(Action(actionMap.at(event.button.button), actionType));
-        }
-        else if (event.type == SDL_EVENT_MOUSE_MOTION){
-            currentScene()->updateMousePosition(Vec2{float(event.motion.x),float(event.motion.y)}/getScale());
-        }
-        // Mouse scroll wheel handling
-        else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
-            currentScene()->updateMouseScroll(event.wheel.integer_y);
-            // Determine scroll direction: up or down
-            if (actionMap.find(event.wheel.direction) == actionMap.end()) {
-                continue;
-            }
-            currentScene()->doAction(Action(actionMap.at(event.wheel.direction), ""));
-        }
-    }
+    m_platform->pollEvents(*this);
 }
 
 Assets& Game::assets(){

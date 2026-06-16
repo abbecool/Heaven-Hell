@@ -4,6 +4,8 @@
 #include "scenes/Scene.h"
 #include "assets/Assets.h"
 #include "render/RenderBackend.h"
+#include "render/SDLRenderBackend.h"
+#include "core/SDLPlatform.hpp"
 
 #include <chrono>
 #include <ctime>
@@ -26,9 +28,8 @@ protected:
     int m_width = 640;
     int m_height = 360;
 
-    SDL_Window *m_window = nullptr;
-    SDL_Renderer *m_renderer = nullptr;
-    std::unique_ptr<RenderBackend> m_renderBackend;
+    std::unique_ptr<SDLPlatform> m_platform;
+    std::unique_ptr<SDLRenderBackend> m_renderBackend;
     SceneMap m_sceneMap;
     Assets m_assets;
     std::string m_currentScene;

@@ -80,6 +80,34 @@ run/Debug/heavenhell.exe
 run/Release/heavenhell.exe
 ```
 
+## Windows Release Package
+
+To create a Windows release zip, run the package script from PowerShell:
+
+```powershell
+.\scripts\package-release.ps1
+```
+
+By default, the script uses the MSYS2 UCRT64 tools from `C:/msys64/ucrt64/bin`, builds the `Release` configuration, copies the game executable, assets, config files, and required runtime DLLs, then creates:
+
+```text
+dist/HeavenHell-<version>-win64.zip
+```
+
+The package version comes from `version.txt`.
+
+If MSYS2 is installed somewhere else, pass the MinGW/UCRT64 `bin` directory:
+
+```powershell
+.\scripts\package-release.ps1 -MingwBin "D:/msys64/ucrt64/bin"
+```
+
+To package an existing build without rebuilding first:
+
+```powershell
+.\scripts\package-release.ps1 -SkipBuild
+```
+
 ## Linux Setup (only tested on Arch)
 
 Install a C++ compiler, CMake, GDB, and the SDL3 development packages.

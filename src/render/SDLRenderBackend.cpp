@@ -5,6 +5,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include <stdexcept>
+
 namespace {
 SDL_FRect toSDLRect(const RectF& rect)
 {
@@ -12,17 +14,35 @@ SDL_FRect toSDLRect(const RectF& rect)
 }
 }
 
-SDLRenderBackend::SDLRenderBackend(SDL_Renderer* renderer, Assets& assets)
-    : m_renderer(renderer)
-    , m_assets(assets)
+SDLRenderBackend::SDLRenderBackend(SDL_Window* window, Assets& assets)
+    : m_assets(assets)
 {
+    m_renderer = SDL_CreateRenderer(window, nullptr);
+    if (!m_renderer) {
+        throw std::runtime_error(std::string("Renderer creation failed: ") + SDL_GetError());
+    }
+
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
     SDL_SetDefaultTextureScaleMode(m_renderer, SDL_SCALEMODE_NEAREST);
 }
 
+SDLRenderBackend::~SDLRenderBackend()
+{
+    if (m_renderer) {
+        SDL_DestroyRenderer(m_renderer);
+        m_renderer = nullptr;
+    }
+}
+
 void SDLRenderBackend::beginFrame(Color clearColor)
 {
-    SDL_SetRenderDrawColor(m_renderer, clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+    SDL_SetRenderDrawColor(
+        m_renderer, 
+        clearColor.r, 
+        clearColor.g, 
+        clearColor.b, 
+        clearColor.a
+    );
     SDL_RenderClear(m_renderer);
 }
 
@@ -68,7 +88,12 @@ void SDLRenderBackend::fillRect(const RectF& rect, Color color)
 
 void SDLRenderBackend::drawText(const TextDrawCommand& command)
 {
-    SDL_Color color = {command.color.r, command.color.g, command.color.b, command.color.a};
+    SDL_Color color = {
+        command.color.r, 
+        command.color.g, 
+        command.color.b, 
+        command.color.a
+    };
     SDL_Surface* surface = TTF_RenderText_Blended(
         m_assets.getFont(command.fontName),
         command.text.c_str(),
@@ -88,6 +113,18 @@ void SDLRenderBackend::drawText(const TextDrawCommand& command)
     }
 
     SDL_FRect dst = toSDLRect(command.dst);
-    SDL_RenderTextureRotated(m_renderer, texture, nullptr, &dst, 0.0, nullptr, SDL_FLIP_NONE);
+    SDL_RenderTextureRotated(
+        m_renderer, 
+        texture, 
+        nullptr, 
+        &dst, 
+        0.0, 
+        nullptr, 
+        SDL_FLIP_NONE
+    );
     SDL_DestroyTexture(texture);
+}
+
+SDL_Renderer* SDLRenderBackend::getRenderer() {
+    return m_renderer;
 }
