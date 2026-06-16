@@ -4,6 +4,11 @@
 
 class Game;
 
+struct DisplaySize {
+    int w = 0;
+    int h = 0;
+};
+
 class SDLPlatform {
     SDL_Window* m_window = nullptr;
 
@@ -12,7 +17,7 @@ public:
     ~SDLPlatform();
 
     SDL_Window* window();
-    SDL_DisplayMode currentDisplayMode(int fallbackWidth, int fallbackHeight) const;
+    DisplaySize currentDisplaySize(int fallbackWidth, int fallbackHeight) const;
     void pollEvents(Game& game);
     void setWindowSize(int width, int height);
     void setFullscreen(bool enabled);

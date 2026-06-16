@@ -4,18 +4,19 @@
 
 Animation::Animation() {};
 
-Animation::Animation(const std::string& name, SDL_Texture* t)
-: Animation(name, t, 1, 0, 1, 1) {}
+Animation::Animation(const std::string& name, TextureHandle texture)
+: Animation(name, texture, 1, 0, 1, 1, TextureSize{1, 1}) {}
 
 Animation::Animation(
         const std::string& name,
-        SDL_Texture* t,
+        TextureHandle texture,
         size_t frameCount,
         size_t speed,
         int rows,
-        int cols
+        int cols,
+        TextureSize textureSize
 ) : 
-    m_texture(t),
+    m_texture(texture),
     m_frameCount(frameCount),
     m_currentFrame(0),
     m_speed(speed),
@@ -25,33 +26,8 @@ Animation::Animation(
     m_currentRow(0),
     m_currentCol(0)
 {
-    m_size = Vec2((float)getTextureSize().x / cols, (float)getTextureSize().y / rows);
+    m_size = Vec2((float)textureSize.w / cols, (float)textureSize.h / rows);
     setSrcRect( 0, 0, (int)m_size.x, (int)m_size.y );
-}
-
-Animation::Animation(
-    const std::string& name, 
-    SDL_Texture* t, 
-    size_t frameCount, 
-    size_t speed, 
-    int rows, 
-    int cols, 
-    int width, 
-    int height)
-{
-    m_texture = t;
-    m_frameCount = rows*cols;
-    m_currentFrame = 0;
-    m_speed = speed;
-    m_name = name;
-    m_rows = rows;
-    m_cols = cols;
-    m_currentRow = 0;
-    m_currentCol = 0;    
-    m_size = Vec2((float)getTextureSize().x / cols, (float)getTextureSize().y / rows);
-
-    setSrcRect( 0, 0, (int)m_size.x, (int)m_size.y );
-
 }
 
 // update the animation to show the next frame, depending on its speed
@@ -83,43 +59,19 @@ const std::string& Animation::getName() const {
     return m_name;
 }
 
-SDL_Texture* Animation::getTexture() const {
-    return m_texture;
-}
-
-const SDL_Rect* Animation::getSrcRect() const
-{
-    return &m_srcRect;
-}
-
-const SDL_Rect* Animation::getDestRect() const
-{
-    return &m_destRect;
-}
-
 TextureHandle Animation::getTextureHandle() const
 {
-    return TextureHandle{m_name};
+    return m_texture;
 }
 
 RectF Animation::getSrcRectF() const
 {
-    return RectF{
-        static_cast<float>(m_srcRect.x),
-        static_cast<float>(m_srcRect.y),
-        static_cast<float>(m_srcRect.w),
-        static_cast<float>(m_srcRect.h)
-    };
+    return m_srcRect;
 }
 
 RectF Animation::getDestRectF() const
 {
-    return RectF{
-        static_cast<float>(m_destRect.x),
-        static_cast<float>(m_destRect.y),
-        static_cast<float>(m_destRect.w),
-        static_cast<float>(m_destRect.h)
-    };
+    return m_destRect;
 }
 
 float Animation::getAngle() const
@@ -132,10 +84,10 @@ bool Animation::hasEnded() const {
 }
 void Animation::setSrcRect(const int x, const int y, const int w, const int h)   
 {
-    m_srcRect.x = x;
-    m_srcRect.y = y;
-    m_srcRect.w = w;
-    m_srcRect.h = h;
+    m_srcRect.x = static_cast<float>(x);
+    m_srcRect.y = static_cast<float>(y);
+    m_srcRect.w = static_cast<float>(w);
+    m_srcRect.h = static_cast<float>(h);
 }
 
 void Animation::setSrcSize(Vec2 size)   
@@ -146,8 +98,8 @@ void Animation::setSrcSize(Vec2 size)
 
 void Animation::setDestRect(Vec2 pos)   
 {
-    m_destRect.x = (int)pos.x;
-    m_destRect.y = (int)pos.y;
+    m_destRect.x = pos.x;
+    m_destRect.y = pos.y;
 }
 
 void Animation::setDestSize(Vec2 size)   
@@ -158,10 +110,10 @@ void Animation::setDestSize(Vec2 size)
 
 void Animation::setDestRect(const int x, const int y, const int w, const int h)   
 {
-    m_destRect.x = x;
-    m_destRect.y = y;
-    m_destRect.w = w;
-    m_destRect.h = h;
+    m_destRect.x = static_cast<float>(x);
+    m_destRect.y = static_cast<float>(y);
+    m_destRect.w = static_cast<float>(w);
+    m_destRect.h = static_cast<float>(h);
 }
 
 Vec2 Animation::getDestSize() const
@@ -169,21 +121,9 @@ Vec2 Animation::getDestSize() const
     return Vec2 {(float)m_destRect.w , (float)m_destRect.h};
 }
 
-void Animation::setTexture(SDL_Texture *tex) {
-    m_texture = tex;
-}
-
 void Animation::setTile(Vec2 grid) {
     m_currentCol = (int)grid.x;
     m_currentRow = (int)grid.y;
-}
-
-SDL_Point Animation::getTextureSize() const
-{
-    float width = 0.0f;
-    float height = 0.0f;
-    SDL_GetTextureSize(m_texture, &width, &height);
-    return SDL_Point{static_cast<int>(width), static_cast<int>(height)};
 }
 
 void Animation::setAngle(float angle) {

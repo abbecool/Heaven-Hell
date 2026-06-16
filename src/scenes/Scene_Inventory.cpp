@@ -1,9 +1,10 @@
 #include "scenes/Scene_Inventory.h"
-#include "assets/Sprite.h"
 #include "assets/Assets.h"
 #include "ecs/Components.h"
 #include "core/Action.h"
 #include "physics/RandomArray.h"
+
+#include <SDL3/SDL.h>
 
 #include <iostream>
 #include <string>

@@ -2,6 +2,7 @@
 
 #include "assets/Animation.h"
 #include "physics/InventoryManager.hpp"
+#include "render/RenderTypes.h"
 #include "story/EventBus.h"
 
 #include <memory>
@@ -123,21 +124,26 @@ struct CBox
     Vec2 offset;
     CollisionMask layer = EMPTY_MASK;
     CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
-    SDL_Color color = {255, 255, 255, 255};
+    Color color = {255, 255, 255, 255};
 
     CBox() {}
     CBox(const Vec2& s) 
         : size(s), halfSize(s/2.0), color({255, 255, 255, 255}) {}
-    CBox(const Vec2& s, CollisionMask l, CollisionMask m, SDL_Color c) // only use this after the new collision system is implemented
+    CBox(const Vec2& s, CollisionMask l, CollisionMask m, Color c) // only use this after the new collision system is implemented
         : size(s), halfSize(s/2.0), layer(l), mask(m), color(c) {}
-    CBox(const Vec2& s, SDL_Color c) // only use this after the new collision system is implemented
+    CBox(const Vec2& s, Color c) // only use this after the new collision system is implemented
         : size(s), halfSize(s/2.0), color(c) {}
-    CBox(json j, SDL_Color c){
+    CBox(json j, Color c){
         color = c;
         size = j["size"];
         halfSize = size/2;
         if (j.contains("color")){
-            color = {j["color"]["r"], j["color"]["g"], j["color"]["b"], j["color"]["a"]};
+            color = Color{
+                static_cast<uint8_t>(j["color"]["r"].get<int>()),
+                static_cast<uint8_t>(j["color"]["g"].get<int>()),
+                static_cast<uint8_t>(j["color"]["b"].get<int>()),
+                static_cast<uint8_t>(j["color"]["a"].get<int>())
+            };
         }
         if (j.contains("layer")){
             layer = componentMaskMap[j["layer"]];
@@ -156,8 +162,8 @@ struct CCollisionBox : public CBox
     CCollisionBox() {}
     CCollisionBox(const Vec2& s) 
         : CBox(s) {}
-    CCollisionBox(const Vec2& s, const SDL_Color color) 
-        : CBox(s) {}
+    CCollisionBox(const Vec2& s, const Color color) 
+        : CBox(s, color) {}
 
     CCollisionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
         : CBox(size, layer, mask, {255, 255, 255, 255}) {}

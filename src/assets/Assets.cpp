@@ -1,16 +1,28 @@
 #include "Assets.h"
+#include "render/RenderBackend.h"
+
 #include <fstream>
 #include <string>
 #include <iostream>
 #include <limits>
+#include <stdexcept>
 
 
 #include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include "external/json.hpp"
 using json = nlohmann::json;
+
+namespace {
+std::string assetNameFromPath(const std::string& path)
+{
+    const size_t slash = path.find_last_of("/\\");
+    const size_t start = slash == std::string::npos ? 0 : slash + 1;
+    const size_t dot = path.find_last_of('.');
+    const size_t count = dot == std::string::npos || dot < start ? std::string::npos : dot - start;
+    return path.substr(start, count);
+}
+}
 
 Assets::Assets(){}
 
@@ -54,74 +66,6 @@ void Assets::shutdown()
         MIX_Quit();
     }
 
-    for (auto& [name, font] : m_fonts) {
-        TTF_CloseFont(font);
-    }
-    m_fonts.clear();
-
-    for (auto& [name, texture] : m_textures) {
-        SDL_DestroyTexture(texture);
-    }
-    m_textures.clear();
-}
-
-void Assets::addTexture(const std::string & path, SDL_Renderer * ren)
-{
-    const char *path_char = path.c_str(); 
-    std::string name = path.substr(0, path.find_last_of('.')).substr(path.find_last_of('/') + 1);
-    SDL_Surface* tempSurface = IMG_Load(path_char);
-    if (tempSurface == nullptr) {
-        std::cerr   << "Failed to load image: "
-                    << name
-                    << ", from path: "
-                    << path_char
-                    << ", SDL_Error: "
-                    << SDL_GetError()
-                    << std::endl;
-        return;
-    }
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, tempSurface);
-    SDL_DestroySurface(tempSurface);
-    if (texture == nullptr) {
-        std::cerr   << "Failed to load texture: " 
-                    << name 
-                    << ", from path: " 
-                    << path_char 
-                    << ", SDL_Error: " 
-                    << SDL_GetError() 
-                    << std::endl;
-        return;
-    }
-    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
-    m_textures[name] = texture;
-}
-
-SDL_Texture * Assets::getTexture(std::string name) const
-{
-    try {
-        return m_textures.at(name);
-    } catch (const std::out_of_range& e) {
-        std::cerr << "Texture not found: " << name << std::endl;
-        throw;
-    }
-}
-
-void Assets::addFont(const std::string& name, const std::string& path, const int font_size) {
-    std::string fontPath = "assets/fonts/" + name + ".ttf";
-    TTF_Font* font = TTF_OpenFont(fontPath.c_str(), font_size);
-    if (font == nullptr) {
-        std::cerr << "Failed to load font! SDL_Error: " << SDL_GetError() << std::endl;
-    }
-    m_fonts[name] = font;
-}
-
-TTF_Font* Assets::getFont(const std::string& name) const {
-    try {
-        return m_fonts.at(name);
-    } catch (const std::out_of_range& e) {
-        std::cerr << "Font not found: " << name << std::endl;
-        throw;
-    }
 }
 
 void Assets::addAnimation(const std::string& name, Animation animation) {
@@ -195,7 +139,7 @@ void Assets::playAudio(const std::string& name)
 void Assets::loadFromFile(
     const std::string & pathAssets, 
     const std::string & pathText, 
-    SDL_Renderer * ren
+    RenderBackend& renderBackend
 ){
     std::ifstream file_assets(pathAssets);
     if (!file_assets) {
@@ -208,20 +152,29 @@ void Assets::loadFromFile(
         std::string name = font["name"];
         std::string path = font["path"];
         int size = font["size"];
-        addFont(name, path, size);
+        renderBackend.loadFont(name, path, size);
     }
     const std::string pathTextures = j["textures"]["master_path"];
     for (const std::string path : j["textures"]["individual_paths"]) {
-        addTexture(pathTextures+path, ren);
+        const std::string texturePath = pathTextures + path;
+        renderBackend.loadTexture(assetNameFromPath(texturePath), texturePath);
     }
     for (const auto& animationJSON : j["animations"]) {
-        const auto name = animationJSON["name"];
+        const std::string name = animationJSON["name"];
         int frames = animationJSON["frames"];
         int frametime = animationJSON["frametime"];
         int rows = animationJSON["rows"];
         int cols = animationJSON["cols"];
-        SDL_Texture* tex = getTexture(animationJSON["name"]);
-        Animation animation = Animation( name, tex, frames, frametime, rows, cols);
+        TextureHandle texture{name};
+        Animation animation = Animation(
+            name,
+            texture,
+            frames,
+            frametime,
+            rows,
+            cols,
+            renderBackend.textureSize(texture)
+        );
         addAnimation(name, animation);
     }
     for (const auto& audio : j["audio"]) {
@@ -242,11 +195,9 @@ void Assets::loadFromFile(
     std::string head;
     std::string font_name;
     int r, g, b, a;
-    SDL_Color textColor = {255, 255, 255, 255};
     while (file_text >> head) {
         if (head == "Font"){
             file_text >> font_name >> r >> g >> b >> a;
-            textColor = {(Uint8)r, (Uint8)g, (Uint8)b, (Uint8)a};
         }
     }
 }

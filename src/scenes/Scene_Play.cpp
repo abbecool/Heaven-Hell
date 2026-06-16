@@ -2,7 +2,6 @@
 #include "scenes/Scene_Menu.h"
 #include "scenes/Scene_GameOver.h"
 
-#include "assets/Sprite.h"
 #include "assets/Assets.h"
 
 #include "core/Game.h"
@@ -15,6 +14,8 @@
 #include "ecs/Components.h"
 
 #include "external/json.hpp"
+
+#include <SDL3/SDL.h>
 
 #include <iostream>
 #include <string>

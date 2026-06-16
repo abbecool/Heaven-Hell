@@ -24,6 +24,12 @@ struct TextureHandle
     std::string name;
 };
 
+struct TextureSize
+{
+    int w = 0;
+    int h = 0;
+};
+
 struct SpriteDrawCommand
 {
     TextureHandle texture;

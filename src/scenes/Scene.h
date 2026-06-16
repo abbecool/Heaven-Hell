@@ -8,7 +8,6 @@
 #include "physics/Physics.h"
 #include "ecs/ComponentFactory.hpp"
 
-#include <SDL3_ttf/SDL_ttf.h>
 #include <cstddef>
 #include <map>
 
@@ -80,7 +79,6 @@ class Scene
     Vec2 getMousePosition();
     virtual Vec2 getCameraPosition();
     const Animation& getAnimation(const std::string& name) const;
-    TTF_Font* getFont(const std::string& name) const;
 
     void spawnButton(
         const Vec2 pos, 

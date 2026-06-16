@@ -4,8 +4,6 @@
 #include "scenes/Scene.h"
 #include "assets/Assets.h"
 #include "render/RenderBackend.h"
-#include "render/SDLRenderBackend.h"
-#include "core/SDLPlatform.hpp"
 
 #include <chrono>
 #include <ctime>
@@ -18,18 +16,19 @@ using nanoseconds = std::chrono::nanoseconds;
 using steady_clock = std::chrono::steady_clock;
 
 class Scene;
+class SDLPlatform;
 typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
 class Game
 {   
 protected:
-    SDL_DisplayMode DM;
     const int VIRTUAL_WIDTH = 640;
     const int VIRTUAL_HEIGHT = 360;
     int m_width = 640;
     int m_height = 360;
+    int m_displayHeight = 360;
 
     std::unique_ptr<SDLPlatform> m_platform;
-    std::unique_ptr<SDLRenderBackend> m_renderBackend;
+    std::unique_ptr<RenderBackend> m_renderBackend;
     SceneMap m_sceneMap;
     Assets m_assets;
     std::string m_currentScene;
@@ -63,6 +62,7 @@ protected:
 
 public:
     Game(const std::string & pathImages, const std::string & pathText);
+    ~Game();
     void changeScene(
         const std::string& sceneName,
         std::shared_ptr<Scene> scene,
@@ -73,7 +73,6 @@ public:
     bool isRunning();
     int framerate();
     RenderBackend& render();
-    SDL_Window* window(); 
     Assets& assets(); 
     SceneMap& sceneMap();
     int getVirtualWidth();

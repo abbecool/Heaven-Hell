@@ -3,14 +3,13 @@
 #include "physics/Vec2.h"
 #include "render/RenderTypes.h"
 
-#include <SDL3/SDL.h>
+#include <cstddef>
 #include <string>
 class Animation
 {
-    // SDL_Sprite m_sprite;
-    SDL_Texture* m_texture;
-    SDL_Rect m_srcRect;
-    SDL_Rect m_destRect;
+    TextureHandle m_texture;
+    RectF m_srcRect;
+    RectF m_destRect;
     Vec2 m_scale = Vec2{1, 1};    
     float m_angle = 0;
     size_t m_frameCount = 1; // total number of frames of animation
@@ -26,24 +25,15 @@ class Animation
     public:
 
     Animation();
-    Animation(const std::string& name, SDL_Texture* t);
+    Animation(const std::string& name, TextureHandle texture);
     Animation(
         const std::string& name,
-        SDL_Texture* t,
-        size_t frameCount,
-        size_t speed,
-        int rows,
-        int cols
-    );
-    Animation(
-        const std::string& name,
-        SDL_Texture* t,
+        TextureHandle texture,
         size_t frameCount,
         size_t speed,
         int rows,
         int cols,
-        int width,
-        int height
+        TextureSize textureSize
     );
 
     void update(size_t currentFrame);
@@ -52,9 +42,6 @@ class Animation
     const std::string& getName() const;
     const Vec2& getSize() const;
     const Vec2& getScale() const;
-    SDL_Texture* getTexture() const;
-    const SDL_Rect* getSrcRect() const;
-    const SDL_Rect* getDestRect() const;
     TextureHandle getTextureHandle() const;
     RectF getSrcRectF() const;
     RectF getDestRectF() const;
@@ -65,9 +52,7 @@ class Animation
     void setDestSize(Vec2 size);
     void setAngle(float angle);
     void setScale(Vec2 scale);
-    void setTexture(SDL_Texture *tex);
     void setTile(Vec2 grid);
-    SDL_Point getTextureSize() const;
     Vec2 getDestSize() const;
     float getAngle() const;
     void setCurrentFrame(size_t frame);

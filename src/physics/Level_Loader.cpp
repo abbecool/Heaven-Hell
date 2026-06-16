@@ -1,7 +1,6 @@
 #include "physics/Level_Loader.h"
 #include "scenes/Scene_Play.h"
 #include "scenes/Scene_Menu.h"
-#include "assets/Sprite.h"
 #include "assets/Assets.h"
 #include "core/Game.h"
 #include "ecs/Components.h"

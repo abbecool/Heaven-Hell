@@ -42,17 +42,13 @@ SDL_Window* SDLPlatform::window()
     return m_window;
 }
 
-SDL_DisplayMode SDLPlatform::currentDisplayMode(int fallbackWidth, int fallbackHeight) const
+DisplaySize SDLPlatform::currentDisplaySize(int fallbackWidth, int fallbackHeight) const
 {
-    SDL_DisplayMode displayMode{};
     const SDL_DisplayMode* currentMode = SDL_GetCurrentDisplayMode(SDL_GetPrimaryDisplay());
     if (currentMode) {
-        displayMode = *currentMode;
-    } else {
-        displayMode.w = fallbackWidth;
-        displayMode.h = fallbackHeight;
+        return DisplaySize{currentMode->w, currentMode->h};
     }
-    return displayMode;
+    return DisplaySize{fallbackWidth, fallbackHeight};
 }
 
 void SDLPlatform::pollEvents(Game& game)

@@ -1,11 +1,12 @@
 #include "render/SDLRenderBackend.h"
 
-#include "assets/Assets.h"
-
 #include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include <iostream>
 #include <stdexcept>
+#include <string>
 
 namespace {
 SDL_FRect toSDLRect(const RectF& rect)
@@ -14,12 +15,18 @@ SDL_FRect toSDLRect(const RectF& rect)
 }
 }
 
-SDLRenderBackend::SDLRenderBackend(SDL_Window* window, Assets& assets)
-    : m_assets(assets)
+SDLRenderBackend::SDLRenderBackend(SDL_Window* window)
 {
     m_renderer = SDL_CreateRenderer(window, nullptr);
     if (!m_renderer) {
         throw std::runtime_error(std::string("Renderer creation failed: ") + SDL_GetError());
+    }
+
+    if (!TTF_Init()) {
+        std::string error = SDL_GetError();
+        SDL_DestroyRenderer(m_renderer);
+        m_renderer = nullptr;
+        throw std::runtime_error("TTF_Init failed: " + error);
     }
 
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
@@ -28,10 +35,64 @@ SDLRenderBackend::SDLRenderBackend(SDL_Window* window, Assets& assets)
 
 SDLRenderBackend::~SDLRenderBackend()
 {
+    for (auto& [name, texture] : m_textures) {
+        SDL_DestroyTexture(texture);
+    }
+    m_textures.clear();
+
+    for (auto& [name, font] : m_fonts) {
+        TTF_CloseFont(font);
+    }
+    m_fonts.clear();
+
     if (m_renderer) {
         SDL_DestroyRenderer(m_renderer);
         m_renderer = nullptr;
     }
+    TTF_Quit();
+}
+
+void SDLRenderBackend::loadTexture(const std::string& name, const std::string& path)
+{
+    SDL_Surface* surface = IMG_Load(path.c_str());
+    if (!surface) {
+        throw std::runtime_error("Failed to load image " + name + " from " + path + ": " + SDL_GetError());
+    }
+
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(m_renderer, surface);
+    SDL_DestroySurface(surface);
+    if (!texture) {
+        throw std::runtime_error("Failed to create texture " + name + " from " + path + ": " + SDL_GetError());
+    }
+
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+    if (auto it = m_textures.find(name); it != m_textures.end()) {
+        SDL_DestroyTexture(it->second);
+    }
+    m_textures[name] = texture;
+}
+
+TextureSize SDLRenderBackend::textureSize(const TextureHandle& texture) const
+{
+    float width = 0.0f;
+    float height = 0.0f;
+    if (!SDL_GetTextureSize(getTexture(texture), &width, &height)) {
+        throw std::runtime_error("Failed to read texture size for " + texture.name + ": " + SDL_GetError());
+    }
+    return TextureSize{static_cast<int>(width), static_cast<int>(height)};
+}
+
+void SDLRenderBackend::loadFont(const std::string& name, const std::string& path, int size)
+{
+    TTF_Font* font = TTF_OpenFont(path.c_str(), size);
+    if (!font) {
+        throw std::runtime_error("Failed to load font " + name + " from " + path + ": " + SDL_GetError());
+    }
+
+    if (auto it = m_fonts.find(name); it != m_fonts.end()) {
+        TTF_CloseFont(it->second);
+    }
+    m_fonts[name] = font;
 }
 
 void SDLRenderBackend::beginFrame(Color clearColor)
@@ -53,7 +114,7 @@ void SDLRenderBackend::endFrame()
 
 void SDLRenderBackend::drawSprite(const SpriteDrawCommand& command)
 {
-    SDL_Texture* texture = m_assets.getTexture(command.texture.name);
+    SDL_Texture* texture = getTexture(command.texture);
     SDL_FRect src = toSDLRect(command.src);
     SDL_FRect dst = toSDLRect(command.dst);
     SDL_RenderTextureRotated(
@@ -95,7 +156,7 @@ void SDLRenderBackend::drawText(const TextDrawCommand& command)
         command.color.a
     };
     SDL_Surface* surface = TTF_RenderText_Blended(
-        m_assets.getFont(command.fontName),
+        getFont(command.fontName),
         command.text.c_str(),
         0,
         color
@@ -125,6 +186,20 @@ void SDLRenderBackend::drawText(const TextDrawCommand& command)
     SDL_DestroyTexture(texture);
 }
 
-SDL_Renderer* SDLRenderBackend::getRenderer() {
-    return m_renderer;
+SDL_Texture* SDLRenderBackend::getTexture(const TextureHandle& texture) const
+{
+    try {
+        return m_textures.at(texture.name);
+    } catch (const std::out_of_range&) {
+        throw std::runtime_error("Texture not found: " + texture.name);
+    }
+}
+
+TTF_Font* SDLRenderBackend::getFont(const std::string& name) const
+{
+    try {
+        return m_fonts.at(name);
+    } catch (const std::out_of_range&) {
+        throw std::runtime_error("Font not found: " + name);
+    }
 }

@@ -1,6 +1,3 @@
-#include <SDL3/SDL.h>
-#include <SDL3_ttf/SDL_ttf.h>
-
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -11,6 +8,8 @@
 
 #include "Game.h"
 #include "assets/Assets.h"
+#include "core/SDLPlatform.hpp"
+#include "render/SDLRenderBackend.h"
 #include "scenes/Scene_Menu.h"
 
 Game::Game(const std::string & pathImages, const std::string & pathText)
@@ -27,24 +26,21 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
     last_fps_update = current_frame;
 
     try {
-        m_renderBackend = std::make_unique<SDLRenderBackend>(m_platform->window(), m_assets);
+        m_renderBackend = std::make_unique<SDLRenderBackend>(m_platform->window());
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         m_running = false;
         return;
     }
 
-    if (!TTF_Init()) {
-        std::cerr << "TTF_Init failed: " << SDL_GetError() << std::endl;
-        m_running = false;
-        return;
-    }
-    m_assets.loadFromFile(pathImages, pathText, m_renderBackend->getRenderer());
+    m_assets.loadFromFile(pathImages, pathText, *m_renderBackend);
     
-    DM = m_platform->currentDisplayMode(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-    updateResolution(std::max(1, int(DM.h / VIRTUAL_HEIGHT)-1));
+    m_displayHeight = m_platform->currentDisplaySize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT).h;
+    updateResolution(std::max(1, int(m_displayHeight / VIRTUAL_HEIGHT)-1));
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
 }
+
+Game::~Game() = default;
 
 void Game::updateResolution(int scale)
 {
@@ -62,10 +58,10 @@ void Game::updateResolution(int scale)
 
 void Game::ToggleFullscreen(){
     if (m_platform->isFullscreen()) {
-        updateResolution(std::max(1, int(DM.h / VIRTUAL_HEIGHT)-1));
+        updateResolution(std::max(1, int(m_displayHeight / VIRTUAL_HEIGHT)-1));
         m_platform->setFullscreen(false);
     } else {
-        updateResolution(std::max(1, int(DM.h / VIRTUAL_HEIGHT)));
+        updateResolution(std::max(1, int(m_displayHeight / VIRTUAL_HEIGHT)));
         m_platform->setFullscreen(true);
     }
 }
@@ -107,7 +103,6 @@ void Game::run()
         m_renderBackend->endFrame();
     }
     m_assets.shutdown();
-    TTF_Quit();
     m_renderBackend.reset();
     m_platform.reset();
 }   
@@ -169,10 +164,6 @@ SceneMap& Game::sceneMap(){
 
 RenderBackend& Game::render(){
     return *m_renderBackend;
-}
-
-SDL_Window* Game::window(){
-    return m_platform->window();
 }
 
 int Game::getVirtualWidth()

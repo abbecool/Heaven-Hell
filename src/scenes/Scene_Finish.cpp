@@ -1,12 +1,13 @@
 #include "scenes/Scene_Finish.h"
 #include "scenes/Scene_Play.h"
-#include "assets/Sprite.h"
 #include "assets/Assets.h"
 #include "core/Game.h"
 #include "ecs/Components.h"
 #include "core/Action.h"
 
 #include "physics/RandomArray.h"
+
+#include <SDL3/SDL.h>
 
 #include <iostream>
 #include <string>

@@ -132,7 +132,7 @@ void Scene::renderBox(
             box.size.x * totalZoom,
             box.size.y * totalZoom
         };
-        m_game->render().drawRect(boxRect, {box.color.r, box.color.g, box.color.b, box.color.a});
+        m_game->render().drawRect(boxRect, box.color);
     }
 }
 
@@ -194,10 +194,6 @@ Vec2 Scene::getCameraPosition() {
 
 const Animation& Scene::getAnimation(const std::string& name) const {
     return m_game->assets().getAnimation(name);
-}
-
-TTF_Font* Scene::getFont(const std::string& name) const {
-    return m_game->assets().getFont(name);
 }
 
 void Scene::spawnButton(
