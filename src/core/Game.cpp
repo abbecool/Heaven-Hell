@@ -131,7 +131,6 @@ void Game::run()
         sUserInput();
         FrametimeHandler(); // caps the framerate and prints the theoretical unlimited FPS.
         m_renderBackend->endFrame();
-
     }
     m_assets.shutdown();
     TTF_Quit();

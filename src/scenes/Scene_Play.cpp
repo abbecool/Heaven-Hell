@@ -614,7 +614,7 @@ void Scene_Play::sRender() {
     const Animation& heart_empty = getAnimation("heart_empty");
     
     for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max / 2; i++)
-    {   
+    {
         if (hearts >= i)
         {
             animation = heart_full;
@@ -631,13 +631,13 @@ void Scene_Play::sRender() {
         animation.setDestRect(Vec2{(float)(i - 1) * animation.getSize().x * animation.getScale().x, 0.0f}*windowScale);
         spriteRender(animation);
     }
-
+    
     Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& healthPool = m_ECS.getComponentPool<CHealth>();
     auto viewHealth = m_ECS.View<CHealth>();
     for (auto entityID : viewHealth)
-    {   
+    {
         if (entityID == m_player) { continue; }
         auto& health = healthPool.getComponent(entityID);
         if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
