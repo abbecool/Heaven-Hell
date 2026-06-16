@@ -2,9 +2,9 @@
 
 #include <memory>
 
-#include "ecs/Entity.h"
-#include "physics/Vec2.h"
-#include "render/RenderBackend.h"
+#include "ecs/Entity.hpp"
+#include "physics/Vec2.hpp"
+#include "render/RenderBackend.hpp"
 
 class Quadtree
 {

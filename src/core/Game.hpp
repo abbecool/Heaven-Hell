@@ -1,9 +1,9 @@
 #pragma once
 
 #include "ecs/ECS.hpp"
-#include "scenes/Scene.h"
-#include "assets/Assets.h"
-#include "render/RenderBackend.h"
+#include "scenes/Scene.hpp"
+#include "assets/Assets.hpp"
+#include "render/RenderBackend.hpp"
 
 #include <chrono>
 #include <ctime>

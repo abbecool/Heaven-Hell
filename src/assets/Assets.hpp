@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include <SDL3_mixer/SDL_mixer.h>
-#include "SpriteDefinition.h"
+#include "SpriteDefinition.hpp"
 
 class RenderBackend;
 

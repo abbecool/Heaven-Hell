@@ -1,17 +1,17 @@
-#include "scenes/Scene_Play.h"
-#include "scenes/Scene_Menu.h"
-#include "scenes/Scene_GameOver.h"
+#include "scenes/Scene_Play.hpp"
+#include "scenes/Scene_Menu.hpp"
+#include "scenes/Scene_GameOver.hpp"
 
-#include "assets/Assets.h"
+#include "assets/Assets.hpp"
 
-#include "core/Game.h"
-#include "core/Action.h"
+#include "core/Game.hpp"
+#include "core/Action.hpp"
 
-#include "physics/Level_Loader.h"
-#include "physics/Camera.h"
-#include "physics/RandomArray.h"
+#include "physics/Level_Loader.hpp"
+#include "physics/Camera.hpp"
+#include "physics/RandomArray.hpp"
 
-#include "ecs/Components.h"
+#include "ecs/Components.hpp"
 
 #include "external/json.hpp"
 

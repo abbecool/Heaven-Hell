@@ -1,5 +1,5 @@
 #pragma once
-#include "ecs/Components.h"
+#include "ecs/Components.hpp"
 
 #include <fstream>
 #include <iostream>

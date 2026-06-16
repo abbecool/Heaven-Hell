@@ -2,10 +2,10 @@
 
 #include <memory>
 
-#include "physics/Quadtree.h"
-#include "ecs/Entity.h"
-#include "physics/Vec2.h"
-#include "render/RenderBackend.h"
+#include "physics/Quadtree.hpp"
+#include "ecs/Entity.hpp"
+#include "physics/Vec2.hpp"
+#include "render/RenderBackend.hpp"
 
 class Physics
 {   

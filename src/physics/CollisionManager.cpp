@@ -1,7 +1,7 @@
 #include <cmath>
 
-#include "physics/CollisionManager.h"
-#include "ecs/ScriptableEntity.h"
+#include "physics/CollisionManager.hpp"
+#include "ecs/ScriptableEntity.hpp"
 
 void handlePlayerObstacleCollision(Entity player, Entity obstacle, Vec2 overlap){
     player.getComponent<CTransform>().pos += overlap;

@@ -1,7 +1,4 @@
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-
-#include "core/Game.h"
+#include "core/Game.hpp"
 #include "external/json.hpp"
 using json = nlohmann::json;
 

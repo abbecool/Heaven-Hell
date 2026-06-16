@@ -1,9 +1,9 @@
 #pragma once
 
-#include "assets/SpriteDefinition.h"
+#include "assets/SpriteDefinition.hpp"
 #include "physics/InventoryManager.hpp"
-#include "render/RenderTypes.h"
-#include "story/EventBus.h"
+#include "render/RenderTypes.hpp"
+#include "story/EventBus.hpp"
 
 #include <memory>
 #include <unordered_set>

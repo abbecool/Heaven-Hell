@@ -1,4 +1,4 @@
-#include "SpriteDefinition.h"
+#include "SpriteDefinition.hpp"
 
 #include <algorithm>
 

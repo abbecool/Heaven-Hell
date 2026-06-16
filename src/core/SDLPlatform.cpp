@@ -1,6 +1,6 @@
 #include "core/SDLPlatform.hpp"
 
-#include "core/Game.h"
+#include "core/Game.hpp"
 
 #include <SDL3_image/SDL_image.h>
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ecs/Components.h"
-#include "scenes/Scene.h"
+#include "ecs/Components.hpp"
+#include "scenes/Scene.hpp"
 #include <memory>
 
 class Scene_GameOver : public Scene

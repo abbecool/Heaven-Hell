@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ecs/Components.h"
-#include "scenes/Scene.h"
-#include "scenes/Scene_Menu.h"
+#include "ecs/Components.hpp"
+#include "scenes/Scene.hpp"
+#include "scenes/Scene_Menu.hpp"
 #include <memory>
 
 class Scene_Finish : public Scene

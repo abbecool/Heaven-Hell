@@ -1,4 +1,4 @@
-#include "render/SDLRenderBackend.h"
+#include "render/SDLRenderBackend.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>

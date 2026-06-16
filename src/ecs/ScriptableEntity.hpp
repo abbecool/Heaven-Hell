@@ -1,9 +1,9 @@
 #pragma once
 
-#include "core/Game.h"
-#include "ecs/Entity.h"
-#include "physics/Physics.h"
-#include "scenes/Scene_Play.h"
+#include "core/Game.hpp"
+#include "ecs/Entity.hpp"
+#include "physics/Physics.hpp"
+#include "scenes/Scene_Play.hpp"
 
 #include <memory>
 #include <iostream>

@@ -1,4 +1,4 @@
-#include "Quadtree.h"
+#include "Quadtree.hpp"
 
 Quadtree::Quadtree(Vec2 pos, Vec2 size)
 : m_position(pos), m_size(size)

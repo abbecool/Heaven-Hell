@@ -2,8 +2,8 @@
 #include <string>
 #include <iostream>
 #include "external/json.hpp"
-#include "physics/Vec2.h"
-#include "story/EventBus.h"
+#include "physics/Vec2.hpp"
+#include "story/EventBus.hpp"
 using json = nlohmann::json;
 
 struct QuestStep {

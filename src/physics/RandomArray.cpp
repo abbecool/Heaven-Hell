@@ -1,4 +1,4 @@
-#include "RandomArray.h"
+#include "RandomArray.hpp"
 
 // Function to generate an array of random integers
 std::vector<int> generateRandomArray(int size, int seed, int minValue, int maxValue) {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "render/RenderTypes.h"
+#include "render/RenderTypes.hpp"
 
 class RenderBackend
 {

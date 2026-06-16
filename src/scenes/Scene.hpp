@@ -1,11 +1,11 @@
 #pragma once
 
-#include "core/Action.h"
+#include "core/Action.hpp"
 #include "ecs/ECS.hpp"
 #include "physics/Renderer.hpp"
-#include "core/Game.h"
-#include "physics/Camera.h"
-#include "physics/Physics.h"
+#include "core/Game.hpp"
+#include "physics/Camera.hpp"
+#include "physics/Physics.hpp"
 #include "ecs/ComponentFactory.hpp"
 
 #include <cstddef>

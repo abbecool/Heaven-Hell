@@ -1,7 +1,7 @@
 #pragma once
 
-#include "physics/Vec2.h"
-#include "render/RenderTypes.h"
+#include "physics/Vec2.hpp"
+#include "render/RenderTypes.hpp"
 
 #include <cstddef>
 #include <string>

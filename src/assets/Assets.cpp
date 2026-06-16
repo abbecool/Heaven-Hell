@@ -1,5 +1,5 @@
-#include "Assets.h"
-#include "render/RenderBackend.h"
+#include "Assets.hpp"
+#include "render/RenderBackend.hpp"
 
 #include <fstream>
 #include <string>

@@ -2,11 +2,11 @@
 #include <functional>
 #include <array>
 
-#include "ecs/Components.h"
+#include "ecs/Components.hpp"
 #include "ecs/ECS.hpp"
-#include "physics/Quadtree.h"
-#include "render/RenderBackend.h"
-// #include "scenes/Scene_Play.h"
+#include "physics/Quadtree.hpp"
+#include "render/RenderBackend.hpp"
+// #include "scenes/Scene_Play.hpp"
 class Scene_Play;
 
 using Handler = std::function<void(Entity, Entity, Vec2)>;

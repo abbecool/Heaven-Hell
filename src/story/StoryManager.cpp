@@ -1,6 +1,6 @@
-#include "story/StoryManager.h"
-#include "scenes/Scene_Play.h"
-#include "story/EventBus.h"
+#include "story/StoryManager.hpp"
+#include "scenes/Scene_Play.hpp"
+#include "story/EventBus.hpp"
 #include <fstream>
 
 #include "external/json.hpp"

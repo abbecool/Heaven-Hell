@@ -1,5 +1,5 @@
-#include "Camera.h"
-#include "Vec2.h"
+#include "Camera.hpp"
+#include "Vec2.hpp"
 
 #include <iostream>
 #include <random>
@@ -154,7 +154,7 @@ Vec2 Camera::getScreenSize() {
     return m_screenSize;
 }
 
-#include "ecs/ScriptableEntity.h"
+#include "ecs/ScriptableEntity.hpp"
 #include <iostream>
 
 class CameraController : public ScriptableEntity 

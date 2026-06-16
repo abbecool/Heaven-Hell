@@ -1,10 +1,10 @@
-#include "scenes/Scene_Menu.h"
-#include "scenes/Scene_Play.h"
-#include "assets/Assets.h"
-#include "core/Game.h"
-#include "ecs/Components.h"
-#include "core/Action.h"
-#include "physics/RandomArray.h"
+#include "scenes/Scene_Menu.hpp"
+#include "scenes/Scene_Play.hpp"
+#include "assets/Assets.hpp"
+#include "core/Game.hpp"
+#include "ecs/Components.hpp"
+#include "core/Action.hpp"
+#include "physics/RandomArray.hpp"
 
 #include <SDL3/SDL.h>
 

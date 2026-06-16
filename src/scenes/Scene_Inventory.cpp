@@ -1,8 +1,8 @@
-#include "scenes/Scene_Inventory.h"
-#include "assets/Assets.h"
-#include "ecs/Components.h"
-#include "core/Action.h"
-#include "physics/RandomArray.h"
+#include "scenes/Scene_Inventory.hpp"
+#include "assets/Assets.hpp"
+#include "ecs/Components.hpp"
+#include "core/Action.hpp"
+#include "physics/RandomArray.hpp"
 
 #include <SDL3/SDL.h>
 

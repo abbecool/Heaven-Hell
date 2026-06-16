@@ -1,7 +1,7 @@
 #pragma once
 #include "ecs/ECS.hpp"
-#include "story/Quest.h"
-#include "scenes/Scene_GameOver.h"
+#include "story/Quest.hpp"
+#include "scenes/Scene_GameOver.hpp"
 
 #include <unordered_map>
 #include <vector>

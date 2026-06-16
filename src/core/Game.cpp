@@ -6,11 +6,11 @@
 #include <exception>
 #include <thread>
 
-#include "Game.h"
-#include "assets/Assets.h"
+#include "Game.hpp"
+#include "assets/Assets.hpp"
 #include "core/SDLPlatform.hpp"
-#include "render/SDLRenderBackend.h"
-#include "scenes/Scene_Menu.h"
+#include "render/SDLRenderBackend.hpp"
+#include "scenes/Scene_Menu.hpp"
 
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {

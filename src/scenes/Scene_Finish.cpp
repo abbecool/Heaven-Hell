@@ -1,11 +1,11 @@
-#include "scenes/Scene_Finish.h"
-#include "scenes/Scene_Play.h"
-#include "assets/Assets.h"
-#include "core/Game.h"
-#include "ecs/Components.h"
-#include "core/Action.h"
+#include "scenes/Scene_Finish.hpp"
+#include "scenes/Scene_Play.hpp"
+#include "assets/Assets.hpp"
+#include "core/Game.hpp"
+#include "ecs/Components.hpp"
+#include "core/Action.hpp"
 
-#include "physics/RandomArray.h"
+#include "physics/RandomArray.hpp"
 
 #include <SDL3/SDL.h>
 
