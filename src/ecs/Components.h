@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assets/Animation.h"
+#include "assets/SpriteDefinition.h"
 #include "physics/InventoryManager.hpp"
 #include "render/RenderTypes.h"
 #include "story/EventBus.h"
@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <functional>
 #include <bitset>
+#include <algorithm>
 
 using json = nlohmann::json;
 
@@ -227,27 +228,57 @@ struct CLifespan
     CLifespan(int lf) : lifespan(lf){}
 };
 
+struct CSprite
+{
+    TextureHandle texture;
+    RectF src;
+    int layer = 0;
+    bool visible = true;
+
+    CSprite() {}
+    CSprite(const SpriteDefinition& sprite, int l)
+        : texture(sprite.texture()), src(sprite.firstFrame()), layer(l) {}
+
+    Vec2 size() const {
+        return Vec2{src.w, src.h};
+    }
+};
+
 struct CAnimation
 {
-    Animation animation;
-    std::string animation_name;
-    int layer;
+    size_t frameCount = 1;
+    size_t currentFrame = 0;
+    size_t frameDuration = 1;
+    Vec2 frameSize = {1, 1};
+    int cols = 1;
+    int currentRow = 0;
+    int currentCol = 0;
     bool repeat = true;
+
     CAnimation() {}
-    CAnimation(const Animation& animation)
-                : animation(animation){}
-    CAnimation(std::string name)
-                : animation_name(name){}
-    CAnimation(const Animation& animation, std::string name)
-                : animation(animation), animation_name(name){}
-    // CAnimation(const Animation& animation, bool r)
-    //             : animation(animation), repeat(r){}
-    CAnimation(const Animation& animation, bool r, int l)
-            : animation(animation), repeat(r), layer(l){}
-    CAnimation(const Animation& animation, int l)
-            : animation(animation), layer(l){}
-    CAnimation(const Animation& animation, std::string name, int l)
-            : animation(animation), animation_name(name), layer(l){}
+    CAnimation(const SpriteDefinition& sprite, bool r = true)
+        : frameCount(std::max<size_t>(1, sprite.frameCount())),
+          frameDuration(std::max<size_t>(1, sprite.frameDuration())),
+          frameSize(sprite.frameSize()),
+          cols(std::max(1, sprite.cols())),
+          repeat(r) {}
+
+    bool hasEnded() const {
+        return (currentFrame / frameDuration) % frameCount == frameCount - 1;
+    }
+
+    RectF sourceRect() const {
+        const size_t frame = (currentFrame / frameDuration) % frameCount;
+        int step = static_cast<int>(cols / static_cast<int>(frameCount));
+        step = std::max(1, step);
+        const int col = std::min(cols - 1, currentCol + static_cast<int>(frame) * step);
+        return RectF{
+            col * frameSize.x,
+            currentRow * frameSize.y,
+            frameSize.x,
+            frameSize.y
+        };
+    }
 };  
 
 struct CAudio
@@ -436,7 +467,6 @@ enum struct WeaponType {
 
 struct CWeapon
 {
-    // Animation animation;
     int damage = 1;
     int speed = 600;
     int delay = 0;

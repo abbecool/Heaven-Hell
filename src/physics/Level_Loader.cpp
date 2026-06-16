@@ -338,9 +338,9 @@ void LevelLoader::removeChunk(Vec2 chunk){
     for ( EntityID id : chunkChildren )
     {
         m_scene->m_ECS.queueRemoveEntity(id);
-        if ( m_scene->m_ECS.hasComponent<CAnimation>(id) )
+        if ( m_scene->m_ECS.hasComponent<CSprite>(id) )
         {
-            auto layer = m_scene->m_ECS.getComponent<CAnimation>(id).layer;
+            auto layer = m_scene->m_ECS.getComponent<CSprite>(id).layer;
             m_scene->m_rendererManager.queueRemoveEntityFromLayer(id, layer);
         }
     }

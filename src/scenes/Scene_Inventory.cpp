@@ -50,35 +50,37 @@ void Scene_Inventory::update() {
 void Scene_Inventory::sRender() {
     if ( m_open ) 
     {
-        Animation inventoryAnimation = getAnimation("inventory_open");
-        inventoryAnimation.setSrcSize(m_inventorySize*8);
-        inventoryAnimation.setScale({1, 1});
-        inventoryAnimation.setDestRect(m_inventoryPos + Vec2{-4, 4});
-        spriteRender(inventoryAnimation);
+        CSprite inventorySprite(getSprite("inventory_open"), 0);
+        inventorySprite.src.w = (m_inventorySize*8).x;
+        inventorySprite.src.h = (m_inventorySize*8).y;
+        Vec2 pos = m_inventoryPos + Vec2{-4, 4};
+        drawSprite(inventorySprite, RectF{pos.x, pos.y, inventorySprite.src.w, inventorySprite.src.h});
     }
-    Animation hotbar = getAnimation("inventory_open");
-    hotbar.setSrcSize(Vec2{4,1}*8);
-    hotbar.setScale({1, 1});
-    hotbar.setDestRect( Vec2{m_game->getWidth()-hotbar.getDestSize().x, 0.0f} + Vec2{-4, 4});
-    spriteRender(hotbar);
+    CSprite hotbar(getSprite("inventory_open"), 0);
+    hotbar.src.w = (Vec2{4,1}*8).x;
+    hotbar.src.h = (Vec2{4,1}*8).y;
+    Vec2 hotbarPos = Vec2{m_game->getWidth()-hotbar.src.w, 0.0f} + Vec2{-4, 4};
+    drawSprite(hotbar, RectF{hotbarPos.x, hotbarPos.y, hotbar.src.w, hotbar.src.h});
 
-    auto view = m_ECS.View<CTransform, CAnimation>();
+    auto view = m_ECS.View<CTransform, CSprite>();
     auto& transformPool2 = m_ECS.getComponentPool<CTransform>();
-    auto& animationPool2 = m_ECS.getComponentPool<CAnimation>();
+    auto& spritePool = m_ECS.getComponentPool<CSprite>();
 
     for (auto eID : view){
             
         auto& transform = transformPool2.getComponent(eID);
-        auto& animation = animationPool2.getComponent(eID).animation;
+        auto& sprite = spritePool.getComponent(eID);
 
-        Vec2 adjustedPos = Vec2{m_game->getWidth()-hotbar.getDestSize().x, 0.0f} + 
+        Vec2 adjustedPos = Vec2{m_game->getWidth()-hotbar.src.w, 0.0f} + 
                             Vec2{16, 16} + transform.pos*32 + Vec2{-4, 4};
 
-        animation.setScale(transform.scale);
-        animation.setAngle(transform.angle);
-        animation.setDestRect(adjustedPos - animation.getDestSize()/2);
-        
-        spriteRender(animation);
+        Vec2 destSize = sprite.size() * transform.scale;
+        drawSprite(sprite, RectF{
+            adjustedPos.x - destSize.x/2,
+            adjustedPos.y - destSize.y/2,
+            destSize.x,
+            destSize.y
+        }, transform.angle);
     }
 }
 
@@ -91,7 +93,7 @@ void Scene_Inventory::spawnItem(std::string sprite)
     m_ECS.addComponent<CTransform>(entityID, pos);
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8});
 
-    m_ECS.addComponent<CAnimation>(entityID, getAnimation(sprite), true, 3);
+    addVisual(entityID, sprite, 3);
 }
 
 void Scene_Inventory::Scroll(int scroll)

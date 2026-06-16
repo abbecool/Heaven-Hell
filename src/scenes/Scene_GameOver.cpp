@@ -50,7 +50,7 @@ void Scene_GameOver::spawnLevel(const Vec2 pos, std::string level)
 {   
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (getAnimation(level), true, 9);
+    addSprite(entityId, level, 9);
     entity.addComponent<CTransform>(pos);
     entity.addComponent<CName>(level);
 }
@@ -77,15 +77,14 @@ void Scene_GameOver::sDoAction(const Action& action)
         }
         else if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CText>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CSprite, CText>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
-                auto &animation = m_ECS.getComponent<CAnimation>(e);
                 if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
                 {
-                    animation.animation = getAnimation("button_pressed");
+                    setSprite(e, "button_pressed");
                 }
             }
         }   
@@ -104,8 +103,7 @@ void Scene_GameOver::sDoAction(const Action& action)
                     continue;
                 }
                 auto &name = m_ECS.getComponent<CName>(e).name;
-                auto &animation = m_ECS.getComponent<CAnimation>(e);
-                animation.animation = getAnimation("button_unpressed");
+                setSprite(e, "button_unpressed");
                 if ( name == "restart" )
                 {
                     std::string levelPath = "assets/images/levels/levelWorld.png";
@@ -128,10 +126,7 @@ void Scene_GameOver::update()
 
 void Scene_GameOver::sAnimation() 
 {
-    auto view = m_ECS.View<CAnimation>();
-    for ( auto e : view){
-        m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
-    }
+    updateAnimations();
 }
 
 void Scene_GameOver::sRender()

@@ -75,13 +75,13 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
-            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CText>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CSprite, CText>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
-                    m_ECS.getComponent<CAnimation>(e).animation = getAnimation("button_pressed");
+                    setSprite(e, "button_pressed");
                 }
             }
         }
@@ -157,10 +157,7 @@ void Scene_Pause::update() {
 }
 
 void Scene_Pause::sAnimation() {
-    auto view = m_ECS.View<CAnimation>();
-    for ( auto e : view){
-        m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
-    }
+    updateAnimations();
 }
 
 void Scene_Pause::sRender() {

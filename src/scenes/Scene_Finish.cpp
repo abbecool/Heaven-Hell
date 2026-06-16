@@ -64,15 +64,14 @@ void Scene_Finish::sDoAction(const Action& action)
         }
         else if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CText>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CSprite, CText>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
-                auto &animation = m_ECS.getComponent<CAnimation>(e);
                 if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
                 {
-                    animation.animation = getAnimation("button_pressed");
+                    setSprite(e, "button_pressed");
                 }
             }
         }   
@@ -91,8 +90,7 @@ void Scene_Finish::sDoAction(const Action& action)
                     continue;
                 }
                 auto &name = m_ECS.getComponent<CName>(e).name;
-                auto &animation = m_ECS.getComponent<CAnimation>(e);
-                animation.animation = getAnimation("button_unpressed");
+                setSprite(e, "button_unpressed");
                 if ( name == "restart" )
                 {
                     m_game->changeScene("MAIN_MENU", std::make_shared<Scene_Menu>(m_game));
@@ -110,10 +108,7 @@ void Scene_Finish::update()
 
 void Scene_Finish::sAnimation() 
 {
-    auto view = m_ECS.View<CAnimation>();
-    for ( auto e : view){
-        m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
-    }
+    updateAnimations();
 }
 
 void Scene_Finish::sRender()

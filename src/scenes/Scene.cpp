@@ -28,22 +28,83 @@ EntityID Scene::SpawnDialog(
     m_ECS.addComponent<CChild>(parentID, id);
     Vec2 relativePosition = {0, -2*m_gridSize.y};
     m_ECS.addComponent<CParent>(id, parentID, relativePosition);
-    CAnimation& animation =  m_ECS.addComponent<CAnimation>(id, getAnimation("button_unpressed"), layer);
-    Vec2 animationSize = animation.animation.getSize();
-    CText& text = m_ECS.addComponent<CText>(id, dialog, animationSize.y*0.9f, font);
-    animation.animation.setScale(Vec2{2*animationSize.x, animationSize.y});
-    m_rendererManager.addEntityToLayer(id, layer);
+    CSprite& sprite = addSprite(id, "button_unpressed", layer);
+    Vec2 spriteSize = sprite.size();
+    m_ECS.addComponent<CText>(id, dialog, spriteSize.y*0.9f, font);
     m_ECS.addComponent<CLifespan>(id, 60);
     return id;
 }
 
-void Scene::spriteRender(Animation &animation){
+CSprite& Scene::addSprite(EntityID entity, const std::string& spriteName, int layer)
+{
+    CSprite& sprite = m_ECS.addComponent<CSprite>(entity, getSprite(spriteName), layer);
+    m_rendererManager.addEntityToLayer(entity, layer);
+    return sprite;
+}
+
+void Scene::addVisual(EntityID entity, const std::string& spriteName, int layer, bool repeat)
+{
+    addSprite(entity, spriteName, layer);
+    if (getSprite(spriteName).isAnimated()) {
+        m_ECS.addComponent<CAnimation>(entity, getSprite(spriteName), repeat);
+    }
+}
+
+void Scene::setSprite(EntityID entity, const std::string& spriteName)
+{
+    const SpriteDefinition& spriteDefinition = getSprite(spriteName);
+    CSprite& sprite = m_ECS.getComponent<CSprite>(entity);
+    sprite.texture = spriteDefinition.texture();
+    sprite.src = spriteDefinition.firstFrame();
+}
+
+void Scene::setAnimation(EntityID entity, const std::string& spriteName, bool repeat)
+{
+    setSprite(entity, spriteName);
+    if (m_ECS.hasComponent<CAnimation>(entity)) {
+        m_ECS.getComponent<CAnimation>(entity) = CAnimation(getSprite(spriteName), repeat);
+        return;
+    }
+    m_ECS.addComponent<CAnimation>(entity, getSprite(spriteName), repeat);
+}
+
+void Scene::drawSprite(const CSprite& sprite, const RectF& dst, float angle)
+{
+    if (!sprite.visible) {
+        return;
+    }
     m_game->render().drawSprite(SpriteDrawCommand{
-        animation.getTextureHandle(),
-        animation.getSrcRectF(),
-        animation.getDestRectF(),
-        animation.getAngle()
+        sprite.texture,
+        sprite.src,
+        dst,
+        angle
     });
+}
+
+void Scene::drawSprite(const SpriteDefinition& sprite, const RectF& dst, float angle)
+{
+    m_game->render().drawSprite(SpriteDrawCommand{
+        sprite.texture(),
+        sprite.firstFrame(),
+        dst,
+        angle
+    });
+}
+
+void Scene::updateAnimations()
+{
+    auto view = m_ECS.View<CAnimation, CSprite>();
+    auto& animationPool = m_ECS.getComponentPool<CAnimation>();
+    auto& spritePool = m_ECS.getComponentPool<CSprite>();
+    for (auto e : view) {
+        auto& animation = animationPool.getComponent(e);
+        if (animation.hasEnded() && !animation.repeat) {
+            m_ECS.queueRemoveEntity(e);
+            continue;
+        }
+        animation.currentFrame++;
+        spritePool.getComponent(e).src = animation.sourceRect();
+    }
 }
 
 void Scene::sRenderBasic() {
@@ -57,24 +118,28 @@ void Scene::sRenderBasic() {
     // Above code does not have to be calculated every frame
 
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& animationPool = m_ECS.getComponentPool<CAnimation>();
+    auto& spritePool = m_ECS.getComponentPool<CSprite>();
     auto layers = m_rendererManager.getLayers();
     for (const auto& layer : layers){
         for (const auto& e : layer){                
-            if (!transformPool.hasComponent(e) || !animationPool.hasComponent(e)){
+            if (!transformPool.hasComponent(e) || !spritePool.hasComponent(e)){
                 continue;
             }
             auto& transform = transformPool.getComponent(e);
-            auto& animation = animationPool.getComponent(e).animation;
+            auto& sprite = spritePool.getComponent(e);
 
             // Adjust the entity's position based on the camera position
             Vec2 adjustedPosition = (transform.pos - m_camera.position)*totalZoom 
                                         + screenCenterZoomed;
 
-            animation.setScale(transform.scale * totalZoom);
-            animation.setAngle(transform.angle);
-            animation.setDestRect(adjustedPosition - animation.getDestSize() / 2);
-            spriteRender(animation);
+            Vec2 destSize = sprite.size() * transform.scale * totalZoom;
+            RectF dst{
+                adjustedPosition.x - destSize.x / 2,
+                adjustedPosition.y - destSize.y / 2,
+                destSize.x,
+                destSize.y
+            };
+            drawSprite(sprite, dst, transform.angle);
         }
     }
 
@@ -176,8 +241,8 @@ MouseState Scene::getMouseState(){
 Vec2 Scene::gridToMidPixel(Vec2 grid, EntityID entity) {
     Vec2 offset;
     Vec2 eSize;
-    if ( m_ECS.hasComponent<CAnimation>(entity) ){
-        eSize = m_ECS.getComponent<CAnimation>(entity).animation.getSize();
+    if ( m_ECS.hasComponent<CSprite>(entity) ){
+        eSize = m_ECS.getComponent<CSprite>(entity).size();
     } else {
         eSize = m_gridSize;
     }
@@ -192,8 +257,8 @@ Vec2 Scene::getCameraPosition() {
     return Vec2{0,0};
 }
 
-const Animation& Scene::getAnimation(const std::string& name) const {
-    return m_game->assets().getAnimation(name);
+const SpriteDefinition& Scene::getSprite(const std::string& name) const {
+    return m_game->assets().getSprite(name);
 }
 
 void Scene::spawnButton(
@@ -203,11 +268,10 @@ void Scene::spawnButton(
     const std::string& dialog)
 {   
     EntityID id = m_ECS.addEntity();
-    m_rendererManager.addEntityToLayer(id, 3);
-    CAnimation& animation = m_ECS.addComponent<CAnimation>(id, getAnimation(unpressed));
-    Vec2 animationSize = animation.animation.getSize();
+    CSprite& sprite = addSprite(id, unpressed, 3);
+    Vec2 spriteSize = sprite.size();
     m_ECS.addComponent<CTransform>(id, pos);
-    m_ECS.addComponent<CCollisionBox>(id, animationSize);
+    m_ECS.addComponent<CCollisionBox>(id, spriteSize);
     m_ECS.addComponent<CName>(id, name);
-    m_ECS.addComponent<CText>(id, dialog, animationSize.y*0.9f, "Minecraft");
+    m_ECS.addComponent<CText>(id, dialog, spriteSize.y*0.9f, "Minecraft");
 }

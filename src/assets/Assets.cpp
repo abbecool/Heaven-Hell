@@ -68,15 +68,15 @@ void Assets::shutdown()
 
 }
 
-void Assets::addAnimation(const std::string& name, Animation animation) {
-    m_animations[name] = animation;
+void Assets::addSprite(const std::string& name, SpriteDefinition sprite) {
+    m_sprites[name] = sprite;
 }
 
-const Animation& Assets::getAnimation(const std::string& name) const {
+const SpriteDefinition& Assets::getSprite(const std::string& name) const {
     try {
-        return m_animations.at(name);
+        return m_sprites.at(name);
     } catch (const std::out_of_range& e) {
-        std::cerr << "Animation not found: " << name << std::endl;
+        std::cerr << "Sprite not found: " << name << std::endl;
         throw;
     }
 }
@@ -159,14 +159,14 @@ void Assets::loadFromFile(
         const std::string texturePath = pathTextures + path;
         renderBackend.loadTexture(assetNameFromPath(texturePath), texturePath);
     }
-    for (const auto& animationJSON : j["animations"]) {
-        const std::string name = animationJSON["name"];
-        int frames = animationJSON["frames"];
-        int frametime = animationJSON["frametime"];
-        int rows = animationJSON["rows"];
-        int cols = animationJSON["cols"];
+    for (const auto& spriteJSON : j["animations"]) {
+        const std::string name = spriteJSON["name"];
+        int frames = spriteJSON["frames"];
+        int frametime = spriteJSON["frametime"];
+        int rows = spriteJSON["rows"];
+        int cols = spriteJSON["cols"];
         TextureHandle texture{name};
-        Animation animation = Animation(
+        SpriteDefinition sprite = SpriteDefinition(
             name,
             texture,
             frames,
@@ -175,7 +175,7 @@ void Assets::loadFromFile(
             cols,
             renderBackend.textureSize(texture)
         );
-        addAnimation(name, animation);
+        addSprite(name, sprite);
     }
     for (const auto& audio : j["audio"]) {
         std::string name = audio["name"];

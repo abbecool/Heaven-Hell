@@ -57,7 +57,13 @@ class Scene
     virtual void sDoAction(const Action& action) = 0;
     EntityID SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID);
     
-    void spriteRender(Animation &animation);
+    CSprite& addSprite(EntityID entity, const std::string& spriteName, int layer);
+    void addVisual(EntityID entity, const std::string& spriteName, int layer, bool repeat = true);
+    void setSprite(EntityID entity, const std::string& spriteName);
+    void setAnimation(EntityID entity, const std::string& spriteName, bool repeat = true);
+    void drawSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f);
+    void drawSprite(const SpriteDefinition& sprite, const RectF& dst, float angle = 0.0f);
+    void updateAnimations();
     void sRenderBasic();
     template<typename T>
     void renderBox(std::vector<EntityID> viewCollisions, ComponentPool<CTransform> transform, ComponentPool<T> box, const Vec2& screenCenterZoomed, int totalZoom);
@@ -78,7 +84,7 @@ class Scene
     MouseState getMouseState();
     Vec2 getMousePosition();
     virtual Vec2 getCameraPosition();
-    const Animation& getAnimation(const std::string& name) const;
+    const SpriteDefinition& getSprite(const std::string& name) const;
 
     void spawnButton(
         const Vec2 pos, 
@@ -86,5 +92,5 @@ class Scene
         const std::string& name, 
         const std::string& dialog
     );
-
+    
 };
