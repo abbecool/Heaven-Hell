@@ -27,6 +27,7 @@ public:
     TextureSize textureSize(const TextureHandle& texture) const override;
     void loadFont(const std::string& name, const std::string& path, int size) override;
 
+    void onWindowResized(int width, int height) override;
     void beginFrame(Color clearColor) override;
     void endFrame() override;
     void drawSprite(const SpriteDrawCommand& command) override;

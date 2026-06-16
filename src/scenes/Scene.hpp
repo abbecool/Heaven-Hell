@@ -7,13 +7,14 @@
 #include "physics/Camera.hpp"
 #include "physics/Physics.hpp"
 #include "ecs/ComponentFactory.hpp"
+#include "core/InputCode.hpp"
 
 #include <cstddef>
 #include <map>
 
 class Game;
 
-typedef std::map<int, std::string> ActionMap;
+typedef std::map<InputCode, std::string> ActionMap;
 
 struct MouseState {
     Vec2 pos = {0,0};
@@ -69,7 +70,7 @@ class Scene
     void renderBox(std::vector<EntityID> viewCollisions, ComponentPool<CTransform> transform, ComponentPool<T> box, const Vec2& screenCenterZoomed, int totalZoom);
 
     virtual void doAction(const Action& action);
-    void registerAction(int inputKey, const std::string& actionName);
+    void registerAction(InputCode inputKey, const std::string& actionName);
     
     int width() const;
     int height() const;

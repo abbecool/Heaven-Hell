@@ -1,0 +1,46 @@
+#pragma once
+
+#include <cstdint>
+
+enum class InputCode : std::uint16_t
+{
+    W,
+    Up,
+    S,
+    Down,
+    A,
+    Left,
+    D,
+    Right,
+    I,
+    E,
+    LeftShift,
+    LeftCtrl,
+    Escape,
+    U,
+    R,
+    T,
+    X,
+    Z,
+    Plus,
+    Minus,
+    Q,
+    P,
+    O,
+    K,
+    C,
+    F,
+    V,
+    F3,
+    F4,
+    F5,
+    Num1,
+    Num2,
+    Num3,
+    Num7,
+    Num8,
+    Num9,
+    MouseLeft,
+    MouseRight,
+    MouseWheel
+};

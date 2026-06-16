@@ -8,7 +8,6 @@
 #include "physics/RandomArray.hpp"
 #include "ecs/ECS.hpp"
 
-#include <SDL3_image/SDL_image.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -22,45 +21,18 @@
 LevelLoader::LevelLoader(
     Scene_Play* scene, 
     const Vec2 gridSize, 
-    const std::string levelPath
+    const PixelImage& levelImage
 ){
     m_scene = scene;
     m_gridSize = gridSize;
-    const char* path = levelPath.c_str();
-    SDL_Surface* loadedSurface = IMG_Load(path);
-    if (loadedSurface == nullptr) 
-    {
-        std::cerr << path << " not loaded! SDL_Error: " << SDL_GetError() << std::endl;
+    if (levelImage.width <= 0 || levelImage.height <= 0 || levelImage.pixels.empty()) {
+        std::cerr << "Level image has no pixels." << std::endl;
         return;
     }
-    SDL_Surface* convertedSurface = SDL_ConvertSurface(loadedSurface, SDL_PIXELFORMAT_RGBA32);
-    SDL_DestroySurface(loadedSurface);
-    loadedSurface = convertedSurface;
-    if (loadedSurface == nullptr)
-    {
-        std::cerr << path << " could not be converted! SDL_Error: " << SDL_GetError() << std::endl;
-        return;
-    }
-
-    // Lock the surface to access the pixels
-    if (!SDL_LockSurface(loadedSurface)) {
-        std::cerr << path << " could not be locked! SDL_Error: " << SDL_GetError() << std::endl;
-        SDL_DestroySurface(loadedSurface);
-        return;
-    }
-    Uint32* pixels = (Uint32*)loadedSurface->pixels;
-    int pitchPixels = loadedSurface->pitch / static_cast<int>(sizeof(Uint32));
-    const SDL_PixelFormatDetails* format = SDL_GetPixelFormatDetails(loadedSurface->format);
-
-    const int HEIGHT_PIX = loadedSurface->h;
-    const int WIDTH_PIX = loadedSurface->w;
-    m_height = HEIGHT_PIX;
-    m_width = WIDTH_PIX;
-    m_levelSize = Vec2{ (float)WIDTH_PIX, (float)HEIGHT_PIX };
-    createPixelMatrix(pixels, format, WIDTH_PIX, HEIGHT_PIX, pitchPixels);
-    // Unlock and free the surface
-    SDL_UnlockSurface(loadedSurface);
-    SDL_DestroySurface(loadedSurface);
+    m_height = levelImage.height;
+    m_width = levelImage.width;
+    m_levelSize = Vec2{ (float)m_width, (float)m_height };
+    createPixelMatrix(levelImage);
     loadChunk(m_currentChunk);
 }
 
@@ -120,32 +92,25 @@ int LevelLoader::getObstacleTextureIndex(const std::array<bool, 4>& neighbors) {
     return 0; // No neighbors are obstacles
 }
 
-void LevelLoader::createPixelMatrix(
-    Uint32* pixels, 
-    const SDL_PixelFormatDetails* format, 
-    int width, 
-    int height,
-    int pitchPixels
-) {
+void LevelLoader::createPixelMatrix(const PixelImage& levelImage) {
+    const int width = levelImage.width;
+    const int height = levelImage.height;
     m_pixelMatrix.resize(height * width);
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            Uint32 pixel = pixels[y * pitchPixels + x];
-
-            Uint8 r, g, b, a;
-            SDL_GetRGBA(pixel, format, nullptr, &r, &g, &b, &a);
+            const PixelRGBA& pixel = levelImage.pixels[y * width + x];
             
             TileType tile = TileType::UNKNOWN;
-            if ((int)r == 192 && (int)g == 192 && (int)b == 192) {
+            if ((int)pixel.r == 192 && (int)pixel.g == 192 && (int)pixel.b == 192) {
                 tile = TileType::OBSTACLE;
-            } else if ((int)r == 203 && (int)g == 129 && (int)b == 56) {
+            } else if ((int)pixel.r == 203 && (int)pixel.g == 129 && (int)pixel.b == 56) {
                 tile = TileType::DIRT;
-            } else if ((int)r == 0 && (int)g == 255 && (int)b == 0) {
+            } else if ((int)pixel.r == 0 && (int)pixel.g == 255 && (int)pixel.b == 0) {
                 tile = TileType::GRASS;
-            } else if ((int)r == 0 && (int)g == 0 && (int)b == 255) {
+            } else if ((int)pixel.r == 0 && (int)pixel.g == 0 && (int)pixel.b == 255) {
                 tile = TileType::WATER;
-            } else if ((int)r == 179 && (int)g == 0 && (int)b == 255) {
+            } else if ((int)pixel.r == 179 && (int)pixel.g == 0 && (int)pixel.b == 255) {
                 tile = TileType::WATER; // replaced bridge with water
             }
             m_pixelMatrix[y * width + x] = tile;

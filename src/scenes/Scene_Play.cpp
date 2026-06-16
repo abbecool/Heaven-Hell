@@ -15,8 +15,6 @@
 
 #include "external/json.hpp"
 
-#include <SDL3/SDL.h>
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -35,48 +33,48 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_collisionManager(&m_ECS, this), 
     m_interactionManager(&m_ECS, this), 
     m_storyManager(this, "config_files/story.json", "config_files/quests.json"),
-    m_levelLoader(this, m_gridSize, levelPath),
+    m_levelLoader(this, m_gridSize, game->loadImagePixels(levelPath)),
     m_newGame(newGame),
     m_inventoryManager("config_files/items")
 {
-    registerAction(SDLK_W, "UP");
-    registerAction(SDLK_UP, "UP");
-    registerAction(SDLK_S, "DOWN");
-    registerAction(SDLK_DOWN, "DOWN");
-    registerAction(SDLK_A, "LEFT");
-    registerAction(SDLK_LEFT, "LEFT");
-    registerAction(SDLK_D, "RIGHT");
-    registerAction(SDLK_RIGHT, "RIGHT");
+    registerAction(InputCode::W, "UP");
+    registerAction(InputCode::Up, "UP");
+    registerAction(InputCode::S, "DOWN");
+    registerAction(InputCode::Down, "DOWN");
+    registerAction(InputCode::A, "LEFT");
+    registerAction(InputCode::Left, "LEFT");
+    registerAction(InputCode::D, "RIGHT");
+    registerAction(InputCode::Right, "RIGHT");
     
-    registerAction(SDLK_I, "INVENTORY");
-    registerAction(SDL_BUTTON_LEFT , "ATTACK");
-    registerAction(SDL_BUTTON_RIGHT , "WRITE POSITION");
-    registerAction(SDL_MOUSEWHEEL_NORMAL , "SCROLL");
-    registerAction(SDLK_E, "INTERACT");
-    registerAction(SDLK_LSHIFT, "SHIFT");
-    registerAction(SDLK_LCTRL, "CTRL");
-    registerAction(SDLK_ESCAPE, "ESC");
-    registerAction(SDLK_U, "SAVE");
-    registerAction(SDLK_R, "RESET");
-    registerAction(SDLK_T, "TAKE OVER");
+    registerAction(InputCode::I, "INVENTORY");
+    registerAction(InputCode::MouseLeft, "ATTACK");
+    registerAction(InputCode::MouseRight, "WRITE POSITION");
+    registerAction(InputCode::MouseWheel, "SCROLL");
+    registerAction(InputCode::E, "INTERACT");
+    registerAction(InputCode::LeftShift, "SHIFT");
+    registerAction(InputCode::LeftCtrl, "CTRL");
+    registerAction(InputCode::Escape, "ESC");
+    registerAction(InputCode::U, "SAVE");
+    registerAction(InputCode::R, "RESET");
+    registerAction(InputCode::T, "TAKE OVER");
 
-    registerAction(SDLK_X, "CAMERA FOLLOW");
-    registerAction(SDLK_Z, "CAMERA PAN");
-    registerAction(SDLK_PLUS, "ZOOM IN");
-    registerAction(SDLK_MINUS, "ZOOM OUT");
-    registerAction(SDLK_Q, "WRITE QUADTREE");
-    registerAction(SDLK_P, "PAUSE");
-    registerAction(SDLK_O, "FPS COUNTER");
-    registerAction(SDLK_K, "KILL_PLAYER");
-    registerAction(SDLK_F3, "TOGGLE_COLLISION");
-    registerAction(SDLK_F4, "TOGGLE_INTERACTION");
-    registerAction(SDLK_F5, "TOGGLE_TEXTURE");
-    registerAction(SDLK_1, "Slot1");
-    registerAction(SDLK_2, "Slot2");
-    registerAction(SDLK_3, "Slot3");
-    registerAction(SDLK_7, "TP1");
-    registerAction(SDLK_8, "TP2");
-    registerAction(SDLK_9, "TP3");
+    registerAction(InputCode::X, "CAMERA FOLLOW");
+    registerAction(InputCode::Z, "CAMERA PAN");
+    registerAction(InputCode::Plus, "ZOOM IN");
+    registerAction(InputCode::Minus, "ZOOM OUT");
+    registerAction(InputCode::Q, "WRITE QUADTREE");
+    registerAction(InputCode::P, "PAUSE");
+    registerAction(InputCode::O, "FPS COUNTER");
+    registerAction(InputCode::K, "KILL_PLAYER");
+    registerAction(InputCode::F3, "TOGGLE_COLLISION");
+    registerAction(InputCode::F4, "TOGGLE_INTERACTION");
+    registerAction(InputCode::F5, "TOGGLE_TEXTURE");
+    registerAction(InputCode::Num1, "Slot1");
+    registerAction(InputCode::Num2, "Slot2");
+    registerAction(InputCode::Num3, "Slot3");
+    registerAction(InputCode::Num7, "TP1");
+    registerAction(InputCode::Num8, "TP2");
+    registerAction(InputCode::Num9, "TP3");
 
     loadConfig("config_files/config.txt");
     spawnPlayer();
@@ -743,7 +741,7 @@ void Scene_Play::sAudio()
     auto audioView = m_ECS.View<CAudio>();
     for (EntityID id : audioView){
         CAudio& audio = audioPool.getComponent(id);
-        m_game->assets().playAudio(audio.audioName);
+        m_game->playAudio(audio.audioName);
         m_ECS.removeComponent<CAudio>(id);
     }
 }

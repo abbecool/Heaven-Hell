@@ -3,7 +3,9 @@
 #include "ecs/ECS.hpp"
 #include "scenes/Scene.hpp"
 #include "assets/Assets.hpp"
+#include "core/PixelImage.hpp"
 #include "render/RenderBackend.hpp"
+#include "render/RenderDriver.hpp"
 
 #include <chrono>
 #include <ctime>
@@ -23,12 +25,12 @@ class Game
 protected:
     const int VIRTUAL_WIDTH = 640;
     const int VIRTUAL_HEIGHT = 360;
-    int m_width = 640;
-    int m_height = 360;
-    int m_displayHeight = 360;
+    int m_width = VIRTUAL_WIDTH;
+    int m_height = VIRTUAL_HEIGHT;
 
     std::unique_ptr<SDLPlatform> m_platform;
     std::unique_ptr<RenderBackend> m_renderBackend;
+    RenderDriver m_renderDriver = RenderDriver::SDLRenderer;
     SceneMap m_sceneMap;
     Assets m_assets;
     std::string m_currentScene;
@@ -59,6 +61,7 @@ protected:
     void setPaused(bool paused);
     void sUserInput();
     void FrametimeHandler();
+    int displayScale(bool fullscreen) const;
 
 public:
     Game(const std::string & pathImages, const std::string & pathText);
@@ -74,6 +77,8 @@ public:
     int framerate();
     RenderBackend& render();
     Assets& assets(); 
+    void playAudio(const std::string& name);
+    PixelImage loadImagePixels(const std::string& path) const;
     SceneMap& sceneMap();
     int getVirtualWidth();
     int getVirtualHeight();

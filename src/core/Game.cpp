@@ -4,6 +4,7 @@
 #include <chrono>
 #include <ctime>
 #include <exception>
+#include <stdexcept>
 #include <thread>
 
 #include "Game.hpp"
@@ -12,10 +13,27 @@
 #include "render/SDLRenderBackend.hpp"
 #include "scenes/Scene_Menu.hpp"
 
+namespace {
+std::unique_ptr<RenderBackend> createRenderBackend(RenderDriver driver, SDLPlatform& platform)
+{
+    switch (driver) {
+    case RenderDriver::SDLRenderer:
+        return std::make_unique<SDLRenderBackend>(platform.window());
+    case RenderDriver::OpenGL:
+        throw std::runtime_error("OpenGLRenderBackend is not implemented yet.");
+    }
+    throw std::runtime_error("Unknown render driver.");
+}
+}
+
 Game::Game(const std::string & pathImages, const std::string & pathText)
 {
     try {
-        m_platform = std::make_unique<SDLPlatform>("Heaven & Hell", m_width, m_height);
+        m_platform = std::make_unique<SDLPlatform>(
+            "Heaven & Hell",
+            m_width,
+            m_height,
+            m_renderDriver);
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         m_running = false;
@@ -26,17 +44,16 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
     last_fps_update = current_frame;
 
     try {
-        m_renderBackend = std::make_unique<SDLRenderBackend>(m_platform->window());
+        m_renderBackend = createRenderBackend(m_renderDriver, *m_platform);
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         m_running = false;
         return;
     }
 
-    m_assets.loadFromFile(pathImages, pathText, *m_renderBackend);
+    m_assets.loadFromFile(pathImages, pathText, *m_renderBackend, *m_platform);
     
-    m_displayHeight = m_platform->currentDisplaySize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT).h;
-    updateResolution(std::max(1, int(m_displayHeight / VIRTUAL_HEIGHT)-1));
+    updateResolution(displayScale(false));
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
 }
 
@@ -44,13 +61,16 @@ Game::~Game() = default;
 
 void Game::updateResolution(int scale)
 {
+    const int width = scale * VIRTUAL_WIDTH;
+    const int height = scale * VIRTUAL_HEIGHT;
     setScale(scale);
-    setWidth(scale*VIRTUAL_WIDTH);
-    setHeight(scale*VIRTUAL_HEIGHT);
-    m_platform->setWindowSize(scale*VIRTUAL_WIDTH, scale*VIRTUAL_HEIGHT);
+    setWidth(width);
+    setHeight(height);
+    m_platform->setWindowSize(width, height);
+    m_renderBackend->onWindowResized(width, height);
     m_fpsRect = {
-        static_cast<float>(scale * VIRTUAL_WIDTH - 100),
-        static_cast<float>(scale * VIRTUAL_HEIGHT - 20),
+        static_cast<float>(width - 100),
+        static_cast<float>(height - 20),
         100.0f,
         20.0f
     };
@@ -58,12 +78,19 @@ void Game::updateResolution(int scale)
 
 void Game::ToggleFullscreen(){
     if (m_platform->isFullscreen()) {
-        updateResolution(std::max(1, int(m_displayHeight / VIRTUAL_HEIGHT)-1));
         m_platform->setFullscreen(false);
+        updateResolution(displayScale(false));
     } else {
-        updateResolution(std::max(1, int(m_displayHeight / VIRTUAL_HEIGHT)));
         m_platform->setFullscreen(true);
+        updateResolution(displayScale(true));
     }
+}
+
+int Game::displayScale(bool fullscreen) const
+{
+    const int displayHeight = m_platform->currentDisplaySize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT).h;
+    const int scale = displayHeight / VIRTUAL_HEIGHT;
+    return std::max(1, fullscreen ? scale : scale - 1);
 }
 
 std::shared_ptr<Scene> Game::currentScene() {
@@ -203,6 +230,21 @@ void Game::sUserInput()
 
 Assets& Game::assets(){
     return m_assets;
+}
+
+void Game::playAudio(const std::string& name)
+{
+    m_platform->playAudio(name);
+}
+
+PixelImage Game::loadImagePixels(const std::string& path) const
+{
+    try {
+        return m_platform->loadImagePixels(path);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return {};
+    }
 }
 
 void Game::setPaused(bool paused)

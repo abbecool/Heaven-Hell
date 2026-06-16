@@ -11,6 +11,7 @@ public:
     virtual TextureSize textureSize(const TextureHandle& texture) const = 0;
     virtual void loadFont(const std::string& name, const std::string& path, int size) = 0;
 
+    virtual void onWindowResized(int width, int height) = 0;
     virtual void beginFrame(Color clearColor) = 0;
     virtual void endFrame() = 0;
     virtual void drawSprite(const SpriteDrawCommand& command) = 0;

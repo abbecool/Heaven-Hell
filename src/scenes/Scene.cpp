@@ -11,7 +11,7 @@ void Scene::doAction(const Action& action) {
     sDoAction(action);
 }
 
-void Scene::registerAction(int inputKey, const std::string& actionName) {
+void Scene::registerAction(InputCode inputKey, const std::string& actionName) {
     m_actionMap[inputKey] = actionName;
 }
 

@@ -9,8 +9,6 @@
 #include "external/json.hpp"
 using json = nlohmann::json;
 
-#include <SDL3/SDL.h>
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -22,12 +20,12 @@ using json = nlohmann::json;
 Scene_Pause::Scene_Pause(Game* game)
     : Scene(game)
 {
-    registerAction(SDLK_ESCAPE, "ESC");
-    registerAction(SDL_BUTTON_LEFT , "CLICK");
-    registerAction(SDLK_T, "TOGGLE_TEXTURES");
-    registerAction(SDLK_C, "TOGGLE_COLLISION");
-    registerAction(SDLK_S, "SAVE_LAYOUT");
-    registerAction(SDLK_LCTRL, "CTRL");
+    registerAction(InputCode::Escape, "ESC");
+    registerAction(InputCode::MouseLeft, "CLICK");
+    registerAction(InputCode::T, "TOGGLE_TEXTURES");
+    registerAction(InputCode::C, "TOGGLE_COLLISION");
+    registerAction(InputCode::S, "SAVE_LAYOUT");
+    registerAction(InputCode::LeftCtrl, "CTRL");
     loadLayout("config_files/pause_menu/button_placement.json");
 }
 

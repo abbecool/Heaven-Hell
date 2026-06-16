@@ -1,12 +1,13 @@
 #pragma once
 
+#include "core/PixelImage.hpp"
 #include "physics/Vec2.hpp"
 
-#include <SDL3/SDL.h>
+#include <array>
+#include <cstdint>
+#include <deque>
 #include <memory>
 #include <vector>
-#include <deque>
-#include <array>
 
 using EntityID = uint32_t;
 
@@ -24,10 +25,10 @@ class Scene_Play;
 class LevelLoader
 {
 private:
-    Scene_Play* m_scene;
-    int m_width;
-    int m_height;
-    Vec2 m_gridSize;
+    Scene_Play* m_scene = nullptr;
+    int m_width = 0;
+    int m_height = 0;
+    Vec2 m_gridSize = {0, 0};
     
     Vec2 m_currentChunk = Vec2{1, 0};
     Vec2 m_chunkSize = Vec2{12, 12};
@@ -39,12 +40,12 @@ private:
     
 public:
     LevelLoader(){}
-    LevelLoader(Scene_Play* scene, const Vec2 gridSize, const std::string levelPath);
+    LevelLoader(Scene_Play* scene, const Vec2 gridSize, const PixelImage& levelImage);
     std::vector<TileType> m_pixelMatrix;
     std::array<bool, 4> neighborCheck(int x, int y, int width, int height);
     std::array<TileType, 4> neighborTag(int x, int y, int width, int height);
     int getObstacleTextureIndex(const std::array<bool, 4>& neighbors);
-    void createPixelMatrix(Uint32* pixels, const SDL_PixelFormatDetails* format, int width, int height, int pitchPixels);
+    void createPixelMatrix(const PixelImage& levelImage);
     std::array<int, 5> createDualGrid(int x, int y);
     EntityID loadChunk(Vec2 chunk);
     void removeChunk(Vec2 chunk);

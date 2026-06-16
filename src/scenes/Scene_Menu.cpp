@@ -6,8 +6,6 @@
 #include "core/Action.hpp"
 #include "physics/RandomArray.hpp"
 
-#include <SDL3/SDL.h>
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -17,11 +15,11 @@
 Scene_Menu::Scene_Menu(Game* game)
     : Scene(game)
 {
-    registerAction(SDLK_ESCAPE, "QUIT");
-    registerAction(SDLK_T, "TOGGLE_TEXTURE");
-    registerAction(SDLK_C, "TOGGLE_COLLISION");
-    registerAction(SDLK_F, "FULLSCREEN");
-    registerAction(SDL_BUTTON_LEFT , "MOUSE LEFT CLICK");
+    registerAction(InputCode::Escape, "QUIT");
+    registerAction(InputCode::T, "TOGGLE_TEXTURE");
+    registerAction(InputCode::C, "TOGGLE_COLLISION");
+    registerAction(InputCode::F, "FULLSCREEN");
+    registerAction(InputCode::MouseLeft, "MOUSE LEFT CLICK");
     loadMenu();
 }
 
