@@ -74,8 +74,8 @@ public:
         return nullptr;
     }
     
-    // Returns a pointer to the layers so they can be for-looped through in another class
-    const std::vector<std::vector<EntityID>> getLayers() const {
+    // Returns the layers so they can be for-looped through in another class
+    const std::vector<std::vector<EntityID>>& getLayers() const {
         return layers;
     }
 
