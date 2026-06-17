@@ -202,7 +202,7 @@ void OpenGLRenderBackend::endFrame()
 {
     glUseProgram(m_triangleProgram);
     glBindVertexArray(m_triangleVertexArray);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     glUseProgram(0);
 
@@ -263,7 +263,11 @@ void OpenGLRenderBackend::createDebugTriangle()
     const float vertices[] = {
          0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
         -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.0f, 0.0f, 1.0f
+         0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+
+         0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+         -0.5f, 0.5f,  0.0f, 0.0f, 1.0f,
+         -0.5f, -0.5f,  0.0f, 1.0f, 0.0f
     };
 
     m_triangleProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
@@ -273,7 +277,7 @@ void OpenGLRenderBackend::createDebugTriangle()
 
     glBindVertexArray(m_triangleVertexArray);
     glBindBuffer(GL_ARRAY_BUFFER, m_triangleVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, 3 * 5 * sizeof(float), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 5 * sizeof(float), vertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
