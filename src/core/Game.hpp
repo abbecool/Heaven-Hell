@@ -30,7 +30,7 @@ protected:
 
     std::unique_ptr<SDLPlatform> m_platform;
     std::unique_ptr<RenderBackend> m_renderBackend;
-    RenderDriver m_renderDriver = RenderDriver::SDLRenderer;
+    RenderDriver m_renderDriver = RenderDriver::OpenGL;
     SceneMap m_sceneMap;
     Assets m_assets;
     std::string m_currentScene;

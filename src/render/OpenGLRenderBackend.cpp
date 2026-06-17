@@ -78,7 +78,7 @@ OpenGLRenderBackend::OpenGLRenderBackend(SDL_Window* window)
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
-    SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(1); // Effectivly enables vsync
     SDL_GetWindowSize(m_window, &m_width, &m_height);
     glViewport(0, 0, m_width, m_height);
 
@@ -261,9 +261,9 @@ void OpenGLRenderBackend::createDebugTriangle()
     )";
 
     const float vertices[] = {
-         0.0f,  0.6f,  1.0f, 0.2f, 0.2f,
-        -0.6f, -0.5f,  0.2f, 1.0f, 0.2f,
-         0.6f, -0.5f,  0.2f, 0.4f, 1.0f
+         0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+         0.5f, -0.5f,  0.0f, 0.0f, 1.0f
     };
 
     m_triangleProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
@@ -273,17 +273,11 @@ void OpenGLRenderBackend::createDebugTriangle()
 
     glBindVertexArray(m_triangleVertexArray);
     glBindBuffer(GL_ARRAY_BUFFER, m_triangleVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3 * 5 * sizeof(float), vertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        1,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        5 * sizeof(float),
-        reinterpret_cast<void*>(2 * sizeof(float))
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float))
     );
     glEnableVertexAttribArray(1);
 
