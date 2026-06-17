@@ -10,6 +10,7 @@
 #include "Game.hpp"
 #include "assets/Assets.hpp"
 #include "core/SDLPlatform.hpp"
+#include "render/OpenGLRenderBackend.hpp"
 #include "render/SDLRenderBackend.hpp"
 #include "scenes/Scene_Menu.hpp"
 
@@ -20,7 +21,7 @@ std::unique_ptr<RenderBackend> createRenderBackend(RenderDriver driver, SDLPlatf
     case RenderDriver::SDLRenderer:
         return std::make_unique<SDLRenderBackend>(platform.window());
     case RenderDriver::OpenGL:
-        throw std::runtime_error("OpenGLRenderBackend is not implemented yet.");
+        return std::make_unique<OpenGLRenderBackend>(platform.window());
     }
     throw std::runtime_error("Unknown render driver.");
 }

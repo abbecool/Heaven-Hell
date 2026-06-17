@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(heavenhell VERSION 0.1 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (WIN32 AND NOT MINGW)
     message(FATAL_ERROR "Windows builds are expected to use MSYS2/MinGW. Configure with -G \"MinGW Makefiles\".")
@@ -21,11 +22,21 @@ add_executable(heavenhell ${SOURCES})
 
 target_include_directories(heavenhell PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
+set_source_files_properties(src/external/glad/src/glad.c PROPERTIES LANGUAGE CXX)
+add_library(glad STATIC
+    src/external/glad/src/glad.c
+)
+
+target_include_directories(glad PUBLIC
+    src/external/glad/include
+)
+
 target_link_libraries(heavenhell PRIVATE
     SDL3::SDL3
     SDL3_image::SDL3_image
     SDL3_mixer::SDL3_mixer
     SDL3_ttf::SDL3_ttf
+    glad
 )
 
 if (WIN32)

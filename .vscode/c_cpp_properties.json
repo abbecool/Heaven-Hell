@@ -4,6 +4,7 @@
       "name": "Linux",
       "includePath": [
         "${workspaceFolder}/src",
+        "${workspaceFolder}/src/external/glad/include",
         "/usr/include/SDL2",
         "/usr/include/freetype2",
         "/usr/include/harfbuzz",
@@ -13,18 +14,21 @@
         "/usr/include/webp"
       ],
       "compilerPath": "/usr/bin/g++",
-      "cppStandard": "c++17",
+      "cppStandard": "c++20",
+      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
       "intelliSenseMode": "linux-gcc-x64"
     },
     {
       "name": "Win32",
       "includePath": [
         "${workspaceFolder}/src",
+        "${workspaceFolder}/src/external/glad/include",
         "C:/msys64/ucrt64/include",
-        "C:/msys64/ucrt64/include/SDL2"
+        "C:/msys64/ucrt64/include/SDL3"
       ],
       "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
-      "cppStandard": "c++17",
+      "cppStandard": "c++20",
+      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
       "intelliSenseMode": "windows-gcc-x64"
     }
   ],
