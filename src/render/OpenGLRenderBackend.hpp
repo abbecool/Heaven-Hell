@@ -15,7 +15,6 @@ struct TTF_Font;
 class OpenGLRenderBackend : public RenderBackend
 {
     static constexpr int MaxSpritesPerBatch = 8192;
-    static constexpr int VerticesPerSprite = 4;
     static constexpr int IndicesPerSprite = 6;
 
     struct OpenGLTexture {
@@ -23,9 +22,14 @@ class OpenGLRenderBackend : public RenderBackend
         TextureSize size;
     };
     
-    struct SpriteVertex {
+    struct QuadVertex {
         float x, y;
-        float u, v;
+    };
+
+    struct SpriteInstance {
+        float dstX, dstY, dstW, dstH;
+        float srcU0, srcV0, srcU1, srcV1;
+        float angle;
         float r, g, b, a;
     };
 
@@ -34,14 +38,16 @@ class OpenGLRenderBackend : public RenderBackend
     int m_width = 1;
     int m_height = 1;
     unsigned int m_spriteProgram = 0;
+    int m_screenSizeUniform = -1;
     unsigned int m_spriteVertexArray = 0;
     unsigned int m_spriteVertexBuffer = 0;
     unsigned int m_spriteIndexBuffer = 0;
+    unsigned int m_instanceBuffer = 0;
     unsigned int m_whiteTexture = 0;
     std::map<std::string, OpenGLTexture> m_textures;
     std::map<std::string, TTF_Font*> m_fonts;
-
-    std::vector<SpriteVertex> m_spriteVertices;
+    
+    std::vector<SpriteInstance> m_spriteInstances;
     unsigned int m_currentBatchTexture = 0;
     int m_spriteBatchCount = 0;
 

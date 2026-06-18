@@ -9,13 +9,9 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <array>
-#include <cmath>
 #include <cstddef>
 
 namespace {
-constexpr float Pi =  3.14159265358979323846f;
-
 unsigned int compileShader(unsigned int type, const char* source)
 {
     unsigned int shader = glCreateShader(type);
@@ -113,6 +109,10 @@ OpenGLRenderBackend::~OpenGLRenderBackend()
         if (m_spriteIndexBuffer != 0) {
             glDeleteBuffers(1, &m_spriteIndexBuffer);
             m_spriteIndexBuffer = 0;
+        }
+        if (m_instanceBuffer != 0) {
+            glDeleteBuffers(1, &m_instanceBuffer);
+            m_instanceBuffer = 0;
         }
         if (m_whiteTexture != 0) {
             glDeleteTextures(1, &m_whiteTexture);
@@ -234,7 +234,7 @@ void OpenGLRenderBackend::beginFrame(Color clearColor)
     );
     glClear(GL_COLOR_BUFFER_BIT);
 
-    m_spriteVertices.clear();
+    m_spriteInstances.clear();
     m_spriteBatchCount = 0;
     m_currentBatchTexture = 0;
 }
@@ -257,21 +257,27 @@ void OpenGLRenderBackend::flushSpriteBatch()
     glBindTexture(GL_TEXTURE_2D, m_currentBatchTexture);
 
     glBindVertexArray(m_spriteVertexArray);
-    glBindBuffer(GL_ARRAY_BUFFER, m_spriteVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_instanceBuffer);
     glBufferSubData(
         GL_ARRAY_BUFFER,
         0,
-        m_spriteVertices.size() * sizeof(SpriteVertex),
-        m_spriteVertices.data()
+        m_spriteInstances.size() * sizeof(SpriteInstance),
+        m_spriteInstances.data()
     );
-    glDrawElements(
+    glUniform2f(
+        m_screenSizeUniform,
+        static_cast<float>(m_width),
+        static_cast<float>(m_height)
+    );
+    glDrawElementsInstanced(
         GL_TRIANGLES,
-        m_spriteBatchCount * IndicesPerSprite,
+        IndicesPerSprite,
         GL_UNSIGNED_INT,
-        nullptr
+        nullptr,
+        m_spriteBatchCount
     );
     
-    m_spriteVertices.clear();
+    m_spriteInstances.clear();
     m_spriteBatchCount = 0;
     m_currentBatchTexture = 0;
 }
@@ -299,42 +305,17 @@ void OpenGLRenderBackend::drawTexturedQuad(
     const float v0 = src.y / static_cast<float>(textureSize.h);
     const float v1 = (src.y + src.h) / static_cast<float>(textureSize.h);
 
-    const float centerX = dst.x + dst.w * 0.5f;
-    const float centerY = dst.y + dst.h * 0.5f;
-    const float halfWidth = dst.w * 0.5f;
-    const float halfHeight = dst.h * 0.5f;
-    const float radians = angle * Pi / 180.0f;
-    const float cosAngle = std::cos(radians);
-    const float sinAngle = std::sin(radians);
-
-    auto rotatePoint = [&](float x, float y) -> std::array<float, 2> {
-        return {
-            centerX + x * cosAngle - y * sinAngle,
-            centerY + x * sinAngle + y * cosAngle
-        };
-    };
-
-    auto toClipSpace = [&](const std::array<float, 2>& point) -> std::array<float, 2> {
-        return {
-            point[0] / static_cast<float>(m_width) * 2.0f - 1.0f,
-            1.0f - point[1] / static_cast<float>(m_height) * 2.0f
-        };
-    };
-
-    const auto [topLeftX, topLeftY] = toClipSpace(rotatePoint(-halfWidth, -halfHeight));
-    const auto [topRightX, topRightY] = toClipSpace(rotatePoint(halfWidth, -halfHeight));
-    const auto [bottomRightX, bottomRightY] = toClipSpace(rotatePoint(halfWidth, halfHeight));
-    const auto [bottomLeftX, bottomLeftY] = toClipSpace(rotatePoint(-halfWidth, halfHeight));
-
     const float r = static_cast<float>(color.r) / 255.0f;
     const float g = static_cast<float>(color.g) / 255.0f;
     const float b = static_cast<float>(color.b) / 255.0f;
     const float a = static_cast<float>(color.a) / 255.0f;
 
-    m_spriteVertices.push_back({topRightX,      topRightY,      u1, v0, r, g, b, a});
-    m_spriteVertices.push_back({bottomRightX,   bottomRightY,   u1, v1, r, g, b, a});
-    m_spriteVertices.push_back({bottomLeftX,    bottomLeftY,    u0, v1, r, g, b, a});
-    m_spriteVertices.push_back({topLeftX,       topLeftY,       u0, v0, r, g, b, a});
+    m_spriteInstances.push_back(SpriteInstance{
+        dst.x, dst.y, dst.w, dst.h,
+        u0, v0, u1, v1,
+        angle,
+        r, g, b, a
+    });
 
     m_spriteBatchCount++;
 }
@@ -486,17 +467,37 @@ void OpenGLRenderBackend::createSpriteRenderer()
 {
     constexpr const char* vertexShaderSource = R"(
         #version 330 core
-        layout (location = 0) in vec2 position;
-        layout (location = 1) in vec2 texCoord;
-        layout (location = 2) in vec4 color;
+        layout (location = 0) in vec2 quadPosition;
+        layout (location = 1) in vec4 dst;
+        layout (location = 2) in vec4 srcUv;
+        layout (location = 3) in float angle;
+        layout (location = 4) in vec4 color;
+
         out vec2 vertexTexCoord;
         out vec4 vertexColor;
 
+        uniform vec2 screenSize;
+
         void main()
         {
-            vertexTexCoord = texCoord;
+            vec2 scaled = quadPosition * dst.zw;
+            float angleRadians = radians(angle);
+            float cosAngle = cos(angleRadians);
+            float sinAngle = sin(angleRadians);
+            vec2 rotated = vec2(
+                scaled.x * cosAngle - scaled.y * sinAngle,
+                scaled.x * sinAngle + scaled.y * cosAngle
+            );
+            vec2 center = dst.xy + dst.zw * 0.5;
+            vec2 pixelPosition = center + rotated;
+            vec2 clipPosition = vec2(
+                pixelPosition.x / screenSize.x * 2.0 - 1.0,
+                1.0 - pixelPosition.y / screenSize.y * 2.0
+            );
+
+            vertexTexCoord = mix(srcUv.xy, srcUv.zw, quadPosition + vec2(0.5));
             vertexColor = color;
-            gl_Position = vec4(position, 0.0, 1.0);
+            gl_Position = vec4(clipPosition, 0.0, 1.0);
         }
     )";
 
@@ -536,69 +537,103 @@ void OpenGLRenderBackend::createSpriteRenderer()
     );
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    glGenBuffers(1, &m_instanceBuffer);
     glGenVertexArrays(1, &m_spriteVertexArray);
     glGenBuffers(1, &m_spriteVertexBuffer);
     glGenBuffers(1, &m_spriteIndexBuffer);
 
     glBindVertexArray(m_spriteVertexArray);
 
+    constexpr QuadVertex quadVertices[] = {
+        {0.5f, -0.5f},
+        {0.5f, 0.5f},
+        {-0.5f, 0.5f},
+        {-0.5f, -0.5f}
+    };
+
     glBindBuffer(GL_ARRAY_BUFFER, m_spriteVertexBuffer);
     glBufferData(
         GL_ARRAY_BUFFER,
-        MaxSpritesPerBatch * VerticesPerSprite * sizeof(SpriteVertex),
+        sizeof(quadVertices),
+        quadVertices,
+        GL_STATIC_DRAW
+    );
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_spriteIndexBuffer);
+    constexpr unsigned int indices[] = {
+        0, 1, 2,
+        0, 2, 3
+    };
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        sizeof(indices),
+        indices,
+        GL_STATIC_DRAW
+    );
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), nullptr);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_instanceBuffer);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        MaxSpritesPerBatch * sizeof(SpriteInstance),
         nullptr,
         GL_DYNAMIC_DRAW
     );
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_spriteIndexBuffer);
-    std::vector<unsigned int> indices;
-    indices.reserve(MaxSpritesPerBatch * IndicesPerSprite);
-    
-    for (int i = 0; i < MaxSpritesPerBatch; ++i) {
-        unsigned int base = i * VerticesPerSprite;
-        indices.push_back(base + 0);
-        indices.push_back(base + 1);
-        indices.push_back(base + 2);
-        indices.push_back(base + 0);
-        indices.push_back(base + 2);
-        indices.push_back(base + 3);
-    }
-    
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        indices.size() * sizeof(unsigned int),
-        indices.data(),
-        GL_STATIC_DRAW
-    );
-    m_spriteVertices.reserve(MaxSpritesPerBatch * VerticesPerSprite);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), nullptr);
-    glEnableVertexAttribArray(0);
-
     glVertexAttribPointer(
         1, 
-        2, 
+        4, 
         GL_FLOAT, 
         GL_FALSE, 
-        sizeof(SpriteVertex), 
-        reinterpret_cast<void*>(offsetof(SpriteVertex, u))
+        sizeof(SpriteInstance), 
+        reinterpret_cast<void*>(offsetof(SpriteInstance, dstX))
     );
     glEnableVertexAttribArray(1);
+    glVertexAttribDivisor(1, 1);
 
     glVertexAttribPointer(
         2,
         4,
         GL_FLOAT,
         GL_FALSE,
-        sizeof(SpriteVertex),
-        reinterpret_cast<void*>(offsetof(SpriteVertex, r))
+        sizeof(SpriteInstance),
+        reinterpret_cast<void*>(offsetof(SpriteInstance, srcU0))
     );
     glEnableVertexAttribArray(2);
+    glVertexAttribDivisor(2, 1);
+
+    glVertexAttribPointer(
+        3,
+        1,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(SpriteInstance),
+        reinterpret_cast<void*>(offsetof(SpriteInstance, angle))
+    );
+    glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1);
+
+    glVertexAttribPointer(
+        4,
+        4,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(SpriteInstance),
+        reinterpret_cast<void*>(offsetof(SpriteInstance, r))
+    );
+    glEnableVertexAttribArray(4);
+    glVertexAttribDivisor(4, 1);
+
+    m_spriteInstances.reserve(MaxSpritesPerBatch);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     glUseProgram(m_spriteProgram);
     glUniform1i(glGetUniformLocation(m_spriteProgram, "spriteTexture"), 0);
+    m_screenSizeUniform = glGetUniformLocation(m_spriteProgram, "screenSize");
     glUseProgram(0);
 
     glEnable(GL_BLEND);
