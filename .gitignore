@@ -8,3 +8,5 @@ dist/
 
 # Ignore everything in run/
 run/**
+
+.venv
