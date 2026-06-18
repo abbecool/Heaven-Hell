@@ -67,7 +67,7 @@ void OpenGLSpriteBatch::create()
         out vec2 vertexTexCoord;
         out vec4 vertexColor;
 
-        uniform vec2 screenSize;
+        uniform mat4 projection;
 
         void main()
         {
@@ -81,14 +81,10 @@ void OpenGLSpriteBatch::create()
             );
             vec2 center = dst.xy + dst.zw * 0.5;
             vec2 pixelPosition = center + rotated;
-            vec2 clipPosition = vec2(
-                pixelPosition.x / screenSize.x * 2.0 - 1.0,
-                1.0 - pixelPosition.y / screenSize.y * 2.0
-            );
 
             vertexTexCoord = mix(srcUv.xy, srcUv.zw, quadPosition + vec2(0.5));
             vertexColor = color;
-            gl_Position = vec4(clipPosition, 0.0, 1.0);
+            gl_Position = projection * vec4(pixelPosition, 0.0, 1.0);
         }
     )";
 
@@ -213,7 +209,7 @@ void OpenGLSpriteBatch::create()
 
     glUseProgram(m_program);
     glUniform1i(glGetUniformLocation(m_program, "spriteTexture"), 0);
-    m_screenSizeUniform = glGetUniformLocation(m_program, "screenSize");
+    m_projectionUniform = glGetUniformLocation(m_program, "projection");
     glUseProgram(0);
 
     glEnable(GL_BLEND);
@@ -253,8 +249,14 @@ void OpenGLSpriteBatch::destroy()
 
 void OpenGLSpriteBatch::setScreenSize(int width, int height)
 {
-    m_screenWidth = width > 0 ? width : 1;
-    m_screenHeight = height > 0 ? height : 1;
+    const float safeWidth = static_cast<float>(width > 0 ? width : 1);
+    const float safeHeight = static_cast<float>(height > 0 ? height : 1);
+    m_projection = {
+        2.0f / safeWidth, 0.0f, 0.0f, 0.0f,
+        0.0f, -2.0f / safeHeight, 0.0f, 0.0f,
+        0.0f, 0.0f, -1.0f, 0.0f,
+        -1.0f, 1.0f, 0.0f, 1.0f
+    };
 }
 
 void OpenGLSpriteBatch::beginFrame()
@@ -282,11 +284,7 @@ void OpenGLSpriteBatch::flush()
         m_instances.size() * sizeof(SpriteInstance),
         m_instances.data()
     );
-    glUniform2f(
-        m_screenSizeUniform,
-        static_cast<float>(m_screenWidth),
-        static_cast<float>(m_screenHeight)
-    );
+    glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, m_projection.data());
     glDrawElementsInstanced(
         GL_TRIANGLES,
         IndicesPerSprite,
