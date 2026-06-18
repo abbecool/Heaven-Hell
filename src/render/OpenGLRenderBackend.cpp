@@ -8,8 +8,16 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <array>
+#include <cmath>
 
 namespace {
+const float Pi =  3.14159265358979323846f;
+const unsigned int QuadIndices[] = {
+    0, 1, 2,
+    0, 2, 3
+};
+
 unsigned int compileShader(unsigned int type, const char* source)
 {
     unsigned int shader = glCreateShader(type);
@@ -37,6 +45,7 @@ unsigned int createShaderProgram(const char* vertexSource, const char* fragmentS
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
     glLinkProgram(program);
+    glValidateProgram(program);
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
@@ -85,24 +94,28 @@ OpenGLRenderBackend::OpenGLRenderBackend(SDL_Window* window)
     const GLubyte* version = glGetString(GL_VERSION);
     std::cout << "OpenGL version: " << (version ? reinterpret_cast<const char*>(version) : "unknown") << std::endl;
 
-    createDebugTriangle();
+    createSpriteRenderer();
 }
 
 OpenGLRenderBackend::~OpenGLRenderBackend()
 {
     if (m_context) {
         SDL_GL_MakeCurrent(m_window, m_context);
-        if (m_triangleVertexBuffer != 0) {
-            glDeleteBuffers(1, &m_triangleVertexBuffer);
-            m_triangleVertexBuffer = 0;
+        if (m_spriteVertexBuffer != 0) {
+            glDeleteBuffers(1, &m_spriteVertexBuffer);
+            m_spriteVertexBuffer = 0;
         }
-        if (m_triangleVertexArray != 0) {
-            glDeleteVertexArrays(1, &m_triangleVertexArray);
-            m_triangleVertexArray = 0;
+        if (m_spriteIndexBuffer != 0) {
+            glDeleteBuffers(1, &m_spriteIndexBuffer);
+            m_spriteIndexBuffer = 0;
         }
-        if (m_triangleProgram != 0) {
-            glDeleteProgram(m_triangleProgram);
-            m_triangleProgram = 0;
+        if (m_spriteVertexArray != 0) {
+            glDeleteVertexArrays(1, &m_spriteVertexArray);
+            m_spriteVertexArray = 0;
+        }
+        if (m_spriteProgram != 0) {
+            glDeleteProgram(m_spriteProgram);
+            m_spriteProgram = 0;
         }
         for (auto& [name, texture] : m_textures) {
             if (texture.id != 0) {
@@ -200,17 +213,72 @@ void OpenGLRenderBackend::beginFrame(Color clearColor)
 
 void OpenGLRenderBackend::endFrame()
 {
-    glUseProgram(m_triangleProgram);
-    glBindVertexArray(m_triangleVertexArray);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
-    glUseProgram(0);
-
     SDL_GL_SwapWindow(m_window);
 }
 
 void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
 {
+    const OpenGLTexture& texture = getTexture(command.texture);
+
+    // const float left = command.dst.x / static_cast<float>(m_width) * 2.0f - 1.0f;
+    // const float right = (command.dst.x + command.dst.w) / static_cast<float>(m_width) * 2.0f - 1.0f;
+    // const float top = 1.0f - command.dst.y / static_cast<float>(m_height) * 2.0f;
+    // const float bottom = 1.0f - (command.dst.y + command.dst.h) / static_cast<float>(m_height) * 2.0f;
+
+    const float u0 = command.src.x / static_cast<float>(texture.size.w);
+    const float u1 = (command.src.x + command.src.w) / static_cast<float>(texture.size.w);
+    const float v0 = command.src.y / static_cast<float>(texture.size.h);
+    const float v1 = (command.src.y + command.src.h) / static_cast<float>(texture.size.h);
+
+    const float centerX = command.dst.x + command.dst.w * 0.5f;
+    const float centerY = command.dst.y + command.dst.h * 0.5f;
+    const float halfWidth = command.dst.w * 0.5f;
+    const float halfHeight = command.dst.h * 0.5f;
+    const float radians = command.angle * Pi / 180.0f;
+    const float cosAngle = std::cos(radians);
+    const float sinAngle = std::sin(radians);
+
+    auto rotatePoint = [&](float x, float y) -> std::array<float, 2> {
+        return {
+            centerX + x * cosAngle - y * sinAngle,
+            centerY + x * sinAngle + y * cosAngle
+        };
+    };
+
+    auto toClipSpace = [&](const std::array<float, 2>& point) -> std::array<float, 2> {
+        return {
+            point[0] / static_cast<float>(m_width) * 2.0f - 1.0f,
+            1.0f - point[1] / static_cast<float>(m_height) * 2.0f
+        };
+    };
+
+    const auto [topLeftX, topLeftY] = toClipSpace(rotatePoint(-halfWidth, -halfHeight));
+    const auto [topRightX, topRightY] = toClipSpace(rotatePoint(halfWidth, -halfHeight));
+    const auto [bottomRightX, bottomRightY] = toClipSpace(rotatePoint(halfWidth, halfHeight));
+    const auto [bottomLeftX, bottomLeftY] = toClipSpace(rotatePoint(-halfWidth, halfHeight));
+
+    const float vertices[] = {
+        //  x,           y,         u,  v
+        topRightX,    topRightY,    u1, v0,
+        bottomRightX, bottomRightY, u1, v1,
+        bottomLeftX,  bottomLeftY,  u0, v1,
+        topLeftX,     topLeftY,     u0, v0,
+    };
+
+    glUseProgram(m_spriteProgram);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+
+    glBindVertexArray(m_spriteVertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, m_spriteVertexBuffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
 }
 
 void OpenGLRenderBackend::drawRect(const RectF& rect, Color color)
@@ -234,57 +302,68 @@ const OpenGLRenderBackend::OpenGLTexture& OpenGLRenderBackend::getTexture(const 
     }
 }
 
-void OpenGLRenderBackend::createDebugTriangle()
+void OpenGLRenderBackend::createSpriteRenderer()
 {
     constexpr const char* vertexShaderSource = R"(
         #version 330 core
-        layout (location = 0) in vec2 position;
-        layout (location = 1) in vec3 color;
-        out vec3 vertexColor;
+        layout (location = 0) in vec4 position;
+        layout (location = 1) in vec2 texCoord;
+        out vec2 vertexTexCoord;
 
         void main()
         {
-            vertexColor = color;
-            gl_Position = vec4(position, 0.0, 1.0);
+            vertexTexCoord = texCoord;
+            gl_Position = position;
         }
     )";
 
     constexpr const char* fragmentShaderSource = R"(
         #version 330 core
-        in vec3 vertexColor;
+        in vec2 vertexTexCoord;
         out vec4 fragColor;
+
+        uniform sampler2D spriteTexture;
 
         void main()
         {
-            fragColor = vec4(vertexColor, 1.0);
+            fragColor = texture(spriteTexture, vertexTexCoord);
         }
     )";
 
-    const float vertices[] = {
-         0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+    m_spriteProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
 
-         0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-         -0.5f, 0.5f,  0.0f, 0.0f, 1.0f,
-         -0.5f, -0.5f,  0.0f, 1.0f, 0.0f
-    };
+    glGenVertexArrays(1, &m_spriteVertexArray);
+    glGenBuffers(1, &m_spriteVertexBuffer);
+    glGenBuffers(1, &m_spriteIndexBuffer);
 
-    m_triangleProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+    glBindVertexArray(m_spriteVertexArray);
 
-    glGenVertexArrays(1, &m_triangleVertexArray);
-    glGenBuffers(1, &m_triangleVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_spriteVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, 4 * 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
 
-    glBindVertexArray(m_triangleVertexArray);
-    glBindBuffer(GL_ARRAY_BUFFER, m_triangleVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * 5 * sizeof(float), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_spriteIndexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(QuadIndices), QuadIndices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float))
+
+    glVertexAttribPointer(
+        1, 
+        2, 
+        GL_FLOAT, 
+        GL_FALSE, 
+        4 * sizeof(float), 
+        reinterpret_cast<void*>(2 * sizeof(float))
     );
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    glUseProgram(m_spriteProgram);
+    glUniform1i(glGetUniformLocation(m_spriteProgram, "spriteTexture"), 0);
+    glUseProgram(0);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }

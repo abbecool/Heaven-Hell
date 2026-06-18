@@ -20,13 +20,14 @@ class OpenGLRenderBackend : public RenderBackend
     SDL_GLContext m_context = nullptr;
     int m_width = 1;
     int m_height = 1;
-    unsigned int m_triangleProgram = 0;
-    unsigned int m_triangleVertexArray = 0;
-    unsigned int m_triangleVertexBuffer = 0;
+    unsigned int m_spriteProgram = 0;
+    unsigned int m_spriteVertexArray = 0;
+    unsigned int m_spriteVertexBuffer = 0;
+    unsigned int m_spriteIndexBuffer = 0;
     std::map<std::string, OpenGLTexture> m_textures;
 
     const OpenGLTexture& getTexture(const TextureHandle& texture) const;
-    void createDebugTriangle();
+    void createSpriteRenderer();
 
 public:
     explicit OpenGLRenderBackend(SDL_Window* window);
