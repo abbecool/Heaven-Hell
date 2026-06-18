@@ -1,4 +1,4 @@
-#include "render/SDLRenderBackend.hpp"
+#include "render/sdl/SDLRenderBackend.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
@@ -102,10 +102,10 @@ void SDLRenderBackend::onWindowResized(int width, int height)
 void SDLRenderBackend::beginFrame(Color clearColor)
 {
     SDL_SetRenderDrawColor(
-        m_renderer, 
-        clearColor.r, 
-        clearColor.g, 
-        clearColor.b, 
+        m_renderer,
+        clearColor.r,
+        clearColor.g,
+        clearColor.b,
         clearColor.a
     );
     SDL_RenderClear(m_renderer);
@@ -154,9 +154,9 @@ void SDLRenderBackend::fillRect(const RectF& rect, Color color)
 void SDLRenderBackend::drawText(const TextDrawCommand& command)
 {
     SDL_Color color = {
-        command.color.r, 
-        command.color.g, 
-        command.color.b, 
+        command.color.r,
+        command.color.g,
+        command.color.b,
         command.color.a
     };
     SDL_Surface* surface = TTF_RenderText_Blended(
@@ -179,12 +179,12 @@ void SDLRenderBackend::drawText(const TextDrawCommand& command)
 
     SDL_FRect dst = toSDLRect(command.dst);
     SDL_RenderTextureRotated(
-        m_renderer, 
-        texture, 
-        nullptr, 
-        &dst, 
-        0.0, 
-        nullptr, 
+        m_renderer,
+        texture,
+        nullptr,
+        &dst,
+        0.0,
+        nullptr,
         SDL_FLIP_NONE
     );
     SDL_DestroyTexture(texture);

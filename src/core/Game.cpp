@@ -10,8 +10,8 @@
 #include "Game.hpp"
 #include "assets/Assets.hpp"
 #include "core/SDLPlatform.hpp"
-#include "render/OpenGLRenderBackend.hpp"
-#include "render/SDLRenderBackend.hpp"
+#include "render/opengl/OpenGLRenderBackend.hpp"
+#include "render/sdl/SDLRenderBackend.hpp"
 #include "scenes/Scene_Menu.hpp"
 
 namespace {
