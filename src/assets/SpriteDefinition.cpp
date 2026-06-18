@@ -15,8 +15,34 @@ SpriteDefinition::SpriteDefinition(
     int rows,
     int cols,
     TextureSize textureSize
+) : SpriteDefinition(
+    name,
+    texture,
+    frameCount,
+    frameDuration,
+    rows,
+    cols,
+    RectF{
+        0.0f,
+        0.0f,
+        static_cast<float>(textureSize.w),
+        static_cast<float>(textureSize.h)
+    }
+)
+{
+}
+
+SpriteDefinition::SpriteDefinition(
+    const std::string& name,
+    TextureHandle texture,
+    size_t frameCount,
+    size_t frameDuration,
+    int rows,
+    int cols,
+    RectF sourceRegion
 ) :
     m_texture(texture),
+    m_sourceRegion(sourceRegion),
     m_name(name),
     m_frameCount(std::max<size_t>(1, frameCount)),
     m_frameDuration(std::max<size_t>(1, frameDuration)),
@@ -24,8 +50,8 @@ SpriteDefinition::SpriteDefinition(
     m_cols(std::max(1, cols))
 {
     m_frameSize = Vec2{
-        static_cast<float>(textureSize.w) / m_cols,
-        static_cast<float>(textureSize.h) / m_rows
+        m_sourceRegion.w / m_cols,
+        m_sourceRegion.h / m_rows
     };
 }
 
@@ -42,6 +68,11 @@ TextureHandle SpriteDefinition::texture() const
 const Vec2& SpriteDefinition::frameSize() const
 {
     return m_frameSize;
+}
+
+const RectF& SpriteDefinition::sourceRegion() const
+{
+    return m_sourceRegion;
 }
 
 size_t SpriteDefinition::frameCount() const
@@ -67,8 +98,8 @@ bool SpriteDefinition::isAnimated() const
 RectF SpriteDefinition::frameRect(int col, int row) const
 {
     return RectF{
-        col * m_frameSize.x,
-        row * m_frameSize.y,
+        m_sourceRegion.x + col * m_frameSize.x,
+        m_sourceRegion.y + row * m_frameSize.y,
         m_frameSize.x,
         m_frameSize.y
     };

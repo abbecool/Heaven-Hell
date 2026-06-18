@@ -4,16 +4,27 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 struct SDL_GLContextState;
 using SDL_GLContext = SDL_GLContextState*;
 struct SDL_Window;
 
+
 class OpenGLRenderBackend : public RenderBackend
 {
+    static constexpr int MaxSpritesPerBatch = 8192;
+    static constexpr int VerticesPerSprite = 4;
+    static constexpr int IndicesPerSprite = 6;
+
     struct OpenGLTexture {
         unsigned int id = 0;
         TextureSize size;
+    };
+    
+    struct SpriteVertex {
+        float x, y;
+        float u, v;
     };
 
     SDL_Window* m_window = nullptr;
@@ -26,8 +37,13 @@ class OpenGLRenderBackend : public RenderBackend
     unsigned int m_spriteIndexBuffer = 0;
     std::map<std::string, OpenGLTexture> m_textures;
 
+    std::vector<SpriteVertex> m_spriteVertices;
+    unsigned int m_currentBatchTexture = 0;
+    int m_spriteBatchCount = 0;
+
     const OpenGLTexture& getTexture(const TextureHandle& texture) const;
     void createSpriteRenderer();
+    void flushSpriteBatch();
 
 public:
     explicit OpenGLRenderBackend(SDL_Window* window);

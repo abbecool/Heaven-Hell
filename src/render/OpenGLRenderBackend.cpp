@@ -10,13 +10,10 @@
 #include <string>
 #include <array>
 #include <cmath>
+#include <cstddef>
 
 namespace {
-const float Pi =  3.14159265358979323846f;
-const unsigned int QuadIndices[] = {
-    0, 1, 2,
-    0, 2, 3
-};
+constexpr float Pi =  3.14159265358979323846f;
 
 unsigned int compileShader(unsigned int type, const char* source)
 {
@@ -209,21 +206,62 @@ void OpenGLRenderBackend::beginFrame(Color clearColor)
         static_cast<float>(clearColor.a) / 255.0f
     );
     glClear(GL_COLOR_BUFFER_BIT);
+
+    m_spriteVertices.clear();
+    m_spriteBatchCount = 0;
+    m_currentBatchTexture = 0;
 }
 
 void OpenGLRenderBackend::endFrame()
 {
+    flushSpriteBatch();
     SDL_GL_SwapWindow(m_window);
+}
+
+void OpenGLRenderBackend::flushSpriteBatch()
+{
+    if (m_spriteBatchCount == 0) {
+        return;
+    }
+
+    
+    glUseProgram(m_spriteProgram);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_currentBatchTexture);
+
+    glBindVertexArray(m_spriteVertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, m_spriteVertexBuffer);
+    glBufferSubData(
+        GL_ARRAY_BUFFER,
+        0,
+        m_spriteVertices.size() * sizeof(SpriteVertex),
+        m_spriteVertices.data()
+    );
+    glDrawElements(
+        GL_TRIANGLES,
+        m_spriteBatchCount * IndicesPerSprite,
+        GL_UNSIGNED_INT,
+        nullptr
+    );
+    
+    m_spriteVertices.clear();
+    m_spriteBatchCount = 0;
+    m_currentBatchTexture = 0;
 }
 
 void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
 {
     const OpenGLTexture& texture = getTexture(command.texture);
 
-    // const float left = command.dst.x / static_cast<float>(m_width) * 2.0f - 1.0f;
-    // const float right = (command.dst.x + command.dst.w) / static_cast<float>(m_width) * 2.0f - 1.0f;
-    // const float top = 1.0f - command.dst.y / static_cast<float>(m_height) * 2.0f;
-    // const float bottom = 1.0f - (command.dst.y + command.dst.h) / static_cast<float>(m_height) * 2.0f;
+    if (m_spriteBatchCount > 0 && m_currentBatchTexture != texture.id) {
+        flushSpriteBatch();
+    }
+    
+    if (m_spriteBatchCount >= MaxSpritesPerBatch) {
+        flushSpriteBatch();
+    }
+    
+    m_currentBatchTexture = texture.id;
 
     const float u0 = command.src.x / static_cast<float>(texture.size.w);
     const float u1 = (command.src.x + command.src.w) / static_cast<float>(texture.size.w);
@@ -257,28 +295,12 @@ void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
     const auto [bottomRightX, bottomRightY] = toClipSpace(rotatePoint(halfWidth, halfHeight));
     const auto [bottomLeftX, bottomLeftY] = toClipSpace(rotatePoint(-halfWidth, halfHeight));
 
-    const float vertices[] = {
-        //  x,           y,         u,  v
-        topRightX,    topRightY,    u1, v0,
-        bottomRightX, bottomRightY, u1, v1,
-        bottomLeftX,  bottomLeftY,  u0, v1,
-        topLeftX,     topLeftY,     u0, v0,
-    };
+    m_spriteVertices.push_back({topRightX,      topRightY,      u1, v0});
+    m_spriteVertices.push_back({bottomRightX,   bottomRightY,   u1, v1});
+    m_spriteVertices.push_back({bottomLeftX,    bottomLeftY,    u0, v1});
+    m_spriteVertices.push_back({topLeftX,       topLeftY,       u0, v0});
 
-    glUseProgram(m_spriteProgram);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture.id);
-
-    glBindVertexArray(m_spriteVertexArray);
-    glBindBuffer(GL_ARRAY_BUFFER, m_spriteVertexBuffer);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-    
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glUseProgram(0);
+    m_spriteBatchCount++;
 }
 
 void OpenGLRenderBackend::drawRect(const RectF& rect, Color color)
@@ -306,14 +328,14 @@ void OpenGLRenderBackend::createSpriteRenderer()
 {
     constexpr const char* vertexShaderSource = R"(
         #version 330 core
-        layout (location = 0) in vec4 position;
+        layout (location = 0) in vec2 position;
         layout (location = 1) in vec2 texCoord;
         out vec2 vertexTexCoord;
 
         void main()
         {
             vertexTexCoord = texCoord;
-            gl_Position = position;
+            gl_Position = vec4(position, 0.0, 1.0);
         }
     )";
 
@@ -339,12 +361,35 @@ void OpenGLRenderBackend::createSpriteRenderer()
     glBindVertexArray(m_spriteVertexArray);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_spriteVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, 4 * 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        MaxSpritesPerBatch * VerticesPerSprite * sizeof(SpriteVertex),
+        nullptr,
+        GL_DYNAMIC_DRAW
+    );
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_spriteIndexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(QuadIndices), QuadIndices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+    std::vector<unsigned int> indices;
+    indices.reserve(MaxSpritesPerBatch * IndicesPerSprite);
+    
+    for (int i = 0; i < MaxSpritesPerBatch; ++i) {
+        unsigned int base = i * VerticesPerSprite;
+        indices.push_back(base + 0);
+        indices.push_back(base + 1);
+        indices.push_back(base + 2);
+        indices.push_back(base + 0);
+        indices.push_back(base + 2);
+        indices.push_back(base + 3);
+    }
+    
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        indices.size() * sizeof(unsigned int),
+        indices.data(),
+        GL_STATIC_DRAW
+    );
+    m_spriteVertices.reserve(MaxSpritesPerBatch * VerticesPerSprite);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), nullptr);
     glEnableVertexAttribArray(0);
 
     glVertexAttribPointer(
@@ -352,8 +397,8 @@ void OpenGLRenderBackend::createSpriteRenderer()
         2, 
         GL_FLOAT, 
         GL_FALSE, 
-        4 * sizeof(float), 
-        reinterpret_cast<void*>(2 * sizeof(float))
+        sizeof(SpriteVertex), 
+        reinterpret_cast<void*>(offsetof(SpriteVertex, u))
     );
     glEnableVertexAttribArray(1);
 

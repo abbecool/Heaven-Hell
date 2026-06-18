@@ -1079,6 +1079,11 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::array<int,
             static_cast<int>(tilePosition.x),
             static_cast<int>(tilePosition.y)
         );
+        if (tileKey == TileType::WATER) {
+            CAnimation& animation = m_ECS.addComponent<CAnimation>(entity, getSprite(spriteName), true);
+            animation.currentCol = static_cast<int>(tilePosition.x);
+            animation.currentRow = static_cast<int>(tilePosition.y);
+        }
         Vec2 midGrid = gridToMidPixel(pos, entity);
         m_ECS.addComponent<CTransform>(entity, midGrid);
     }

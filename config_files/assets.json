@@ -16,10 +16,6 @@
             "fireball.png",
             "fireball_explode.png",
             "fireball_create.png",
-            "dual_sheets/grass_dual_sheet.png",
-            "dual_sheets/water_dual_sheet.png",
-            "dual_sheets/mountain_dual_sheet.png",
-            "dual_sheets/dirt_dual_sheet.png",
             "levels/levelWorld.png",
             "shadow.png",
             "level0_screenshot.png",
@@ -45,6 +41,9 @@
             "activeItemInventory.png"
         ]
     },
+    "atlas_manifests": [
+        "config_files/dual_sheets_atlas.json"
+    ],
     "animations": [
         {
             "name": "heart_full",
@@ -315,42 +314,6 @@
             "rows": 1,
             "width": 32,
             "height": 32
-        },
-        {
-            "name": "grass_dual_sheet",
-            "frames": 1,
-            "frametime": 100,
-            "cols": 4,
-            "rows": 7,
-            "width": 16,
-            "height": 16
-        },
-        {
-            "name": "water_dual_sheet",
-            "frames": 2,
-            "frametime": 100,
-            "cols": 8,
-            "rows": 7,
-            "width": 16,
-            "height": 16
-        },
-        {
-            "name": "mountain_dual_sheet",
-            "frames": 1,
-            "frametime": 100,
-            "cols": 4,
-            "rows": 4,
-            "width": 16,
-            "height": 16
-        },
-        {
-            "name": "dirt_dual_sheet",
-            "frames": 1,
-            "frametime": 100,
-            "cols": 4,
-            "rows": 4,
-            "width": 16,
-            "height": 16
         }
     ],
     "audio": [

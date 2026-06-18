@@ -250,6 +250,7 @@ struct CAnimation
     size_t currentFrame = 0;
     size_t frameDuration = 1;
     Vec2 frameSize = {1, 1};
+    Vec2 sourceOrigin = {0, 0};
     int cols = 1;
     int currentRow = 0;
     int currentCol = 0;
@@ -260,6 +261,7 @@ struct CAnimation
         : frameCount(std::max<size_t>(1, sprite.frameCount())),
           frameDuration(std::max<size_t>(1, sprite.frameDuration())),
           frameSize(sprite.frameSize()),
+          sourceOrigin(Vec2{sprite.sourceRegion().x, sprite.sourceRegion().y}),
           cols(std::max(1, sprite.cols())),
           repeat(r) {}
 
@@ -273,8 +275,8 @@ struct CAnimation
         step = std::max(1, step);
         const int col = std::min(cols - 1, currentCol + static_cast<int>(frame) * step);
         return RectF{
-            col * frameSize.x,
-            currentRow * frameSize.y,
+            sourceOrigin.x + col * frameSize.x,
+            sourceOrigin.y + currentRow * frameSize.y,
             frameSize.x,
             frameSize.y
         };

@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 #include "external/json.hpp"
 using json = nlohmann::json;
@@ -18,6 +19,74 @@ std::string assetNameFromPath(const std::string& path)
     const size_t dot = path.find_last_of('.');
     const size_t count = dot == std::string::npos || dot < start ? std::string::npos : dot - start;
     return path.substr(start, count);
+}
+
+json loadJsonFile(const std::string& path)
+{
+    std::ifstream file(path);
+    if (!file) {
+        throw std::runtime_error("Could not load json file: " + path);
+    }
+
+    json data;
+    file >> data;
+    return data;
+}
+
+void loadTextures(const json& data, RenderBackend& renderBackend)
+{
+    if (!data.contains("textures")) {
+        return;
+    }
+
+    const std::string pathTextures = data["textures"]["master_path"];
+    for (const std::string path : data["textures"]["individual_paths"]) {
+        const std::string texturePath = pathTextures + path;
+        renderBackend.loadTexture(assetNameFromPath(texturePath), texturePath);
+    }
+}
+
+SpriteDefinition spriteDefinitionFromJson(
+    const json& spriteJSON,
+    RenderBackend& renderBackend
+)
+{
+    const std::string name = spriteJSON["name"];
+    const int frames = spriteJSON["frames"];
+    const int frametime = spriteJSON["frametime"];
+    const int rows = spriteJSON["rows"];
+    const int cols = spriteJSON["cols"];
+    const TextureHandle texture{
+        spriteJSON.value("texture", name)
+    };
+
+    if (spriteJSON.contains("atlas")) {
+        const auto& atlas = spriteJSON["atlas"];
+        return SpriteDefinition(
+            name,
+            texture,
+            frames,
+            frametime,
+            rows,
+            cols,
+            RectF{
+                static_cast<float>(atlas["x"].get<int>()),
+                static_cast<float>(atlas["y"].get<int>()),
+                static_cast<float>(atlas["w"].get<int>()),
+                static_cast<float>(atlas["h"].get<int>())
+            }
+        );
+    }
+
+    return SpriteDefinition(
+        name,
+        texture,
+        frames,
+        frametime,
+        rows,
+        cols,
+        renderBackend.textureSize(texture)
+    );
 }
 }
 
@@ -51,41 +120,33 @@ void Assets::loadFromFile(
     RenderBackend& renderBackend,
     SDLPlatform& platform
 ){
-    std::ifstream file_assets(pathAssets);
-    if (!file_assets) {
-        throw std::runtime_error("Could not load assets file: " + pathAssets);
-    }
-    json j;
-    file_assets >> j;
-    file_assets.close();
+    json j = loadJsonFile(pathAssets);
     for (const auto& font : j["fonts"]) {
         std::string name = font["name"];
         std::string path = font["path"];
         int size = font["size"];
         renderBackend.loadFont(name, path, size);
     }
-    const std::string pathTextures = j["textures"]["master_path"];
-    for (const std::string path : j["textures"]["individual_paths"]) {
-        const std::string texturePath = pathTextures + path;
-        renderBackend.loadTexture(assetNameFromPath(texturePath), texturePath);
+
+    loadTextures(j, renderBackend);
+
+    std::vector<json> atlasManifests;
+    if (j.contains("atlas_manifests")) {
+        for (const std::string path : j["atlas_manifests"]) {
+            atlasManifests.push_back(loadJsonFile(path));
+            loadTextures(atlasManifests.back(), renderBackend);
+        }
     }
+
     for (const auto& spriteJSON : j["animations"]) {
-        const std::string name = spriteJSON["name"];
-        int frames = spriteJSON["frames"];
-        int frametime = spriteJSON["frametime"];
-        int rows = spriteJSON["rows"];
-        int cols = spriteJSON["cols"];
-        TextureHandle texture{name};
-        SpriteDefinition sprite = SpriteDefinition(
-            name,
-            texture,
-            frames,
-            frametime,
-            rows,
-            cols,
-            renderBackend.textureSize(texture)
-        );
-        addSprite(name, sprite);
+        SpriteDefinition sprite = spriteDefinitionFromJson(spriteJSON, renderBackend);
+        addSprite(sprite.name(), sprite);
+    }
+    for (const auto& atlasManifest : atlasManifests) {
+        for (const auto& spriteJSON : atlasManifest["animations"]) {
+            SpriteDefinition sprite = spriteDefinitionFromJson(spriteJSON, renderBackend);
+            addSprite(sprite.name(), sprite);
+        }
     }
     for (const auto& audio : j["audio"]) {
         std::string name = audio["name"];
