@@ -9,6 +9,7 @@
 struct SDL_GLContextState;
 using SDL_GLContext = SDL_GLContextState*;
 struct SDL_Window;
+struct TTF_Font;
 
 
 class OpenGLRenderBackend : public RenderBackend
@@ -25,6 +26,7 @@ class OpenGLRenderBackend : public RenderBackend
     struct SpriteVertex {
         float x, y;
         float u, v;
+        float r, g, b, a;
     };
 
     SDL_Window* m_window = nullptr;
@@ -35,15 +37,25 @@ class OpenGLRenderBackend : public RenderBackend
     unsigned int m_spriteVertexArray = 0;
     unsigned int m_spriteVertexBuffer = 0;
     unsigned int m_spriteIndexBuffer = 0;
+    unsigned int m_whiteTexture = 0;
     std::map<std::string, OpenGLTexture> m_textures;
+    std::map<std::string, TTF_Font*> m_fonts;
 
     std::vector<SpriteVertex> m_spriteVertices;
     unsigned int m_currentBatchTexture = 0;
     int m_spriteBatchCount = 0;
 
     const OpenGLTexture& getTexture(const TextureHandle& texture) const;
+    TTF_Font* getFont(const std::string& name) const;
     void createSpriteRenderer();
     void flushSpriteBatch();
+    void drawTexturedQuad(
+        unsigned int textureId,
+        TextureSize textureSize,
+        const RectF& src,
+        const RectF& dst,
+        float angle,
+        Color color);
 
 public:
     explicit OpenGLRenderBackend(SDL_Window* window);

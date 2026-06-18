@@ -843,7 +843,7 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
         return spawnSword(pos);
     }
     auto i = SpawnFromJSON(name, pos);
-    std::cout << "Spawned entity: " << name << " with ID: " << i << std::endl;
+    // std::cout << "Spawned entity: " << name << " with ID: " << i << std::endl;
     return i;
 }
 

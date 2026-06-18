@@ -4,6 +4,7 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -91,6 +92,13 @@ OpenGLRenderBackend::OpenGLRenderBackend(SDL_Window* window)
     const GLubyte* version = glGetString(GL_VERSION);
     std::cout << "OpenGL version: " << (version ? reinterpret_cast<const char*>(version) : "unknown") << std::endl;
 
+    if (!TTF_Init()) {
+        std::string error = SDL_GetError();
+        SDL_GL_DestroyContext(m_context);
+        m_context = nullptr;
+        throw std::runtime_error("TTF_Init failed: " + error);
+    }
+
     createSpriteRenderer();
 }
 
@@ -106,6 +114,10 @@ OpenGLRenderBackend::~OpenGLRenderBackend()
             glDeleteBuffers(1, &m_spriteIndexBuffer);
             m_spriteIndexBuffer = 0;
         }
+        if (m_whiteTexture != 0) {
+            glDeleteTextures(1, &m_whiteTexture);
+            m_whiteTexture = 0;
+        }
         if (m_spriteVertexArray != 0) {
             glDeleteVertexArrays(1, &m_spriteVertexArray);
             m_spriteVertexArray = 0;
@@ -120,6 +132,12 @@ OpenGLRenderBackend::~OpenGLRenderBackend()
             }
         }
         m_textures.clear();
+
+        for (auto& [name, font] : m_fonts) {
+            TTF_CloseFont(font);
+        }
+        m_fonts.clear();
+        TTF_Quit();
 
         SDL_GL_DestroyContext(m_context);
         m_context = nullptr;
@@ -187,6 +205,15 @@ TextureSize OpenGLRenderBackend::textureSize(const TextureHandle& texture) const
 
 void OpenGLRenderBackend::loadFont(const std::string& name, const std::string& path, int size)
 {
+    TTF_Font* font = TTF_OpenFont(path.c_str(), size);
+    if (!font) {
+        throw std::runtime_error("Failed to load font " + name + " from " + path + ": " + SDL_GetError());
+    }
+
+    if (auto it = m_fonts.find(name); it != m_fonts.end()) {
+        TTF_CloseFont(it->second);
+    }
+    m_fonts[name] = font;
 }
 
 void OpenGLRenderBackend::onWindowResized(int width, int height)
@@ -249,11 +276,15 @@ void OpenGLRenderBackend::flushSpriteBatch()
     m_currentBatchTexture = 0;
 }
 
-void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
+void OpenGLRenderBackend::drawTexturedQuad(
+    unsigned int textureId,
+    TextureSize textureSize,
+    const RectF& src,
+    const RectF& dst,
+    float angle,
+    Color color)
 {
-    const OpenGLTexture& texture = getTexture(command.texture);
-
-    if (m_spriteBatchCount > 0 && m_currentBatchTexture != texture.id) {
+    if (m_spriteBatchCount > 0 && m_currentBatchTexture != textureId) {
         flushSpriteBatch();
     }
     
@@ -261,18 +292,18 @@ void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
         flushSpriteBatch();
     }
     
-    m_currentBatchTexture = texture.id;
+    m_currentBatchTexture = textureId;
 
-    const float u0 = command.src.x / static_cast<float>(texture.size.w);
-    const float u1 = (command.src.x + command.src.w) / static_cast<float>(texture.size.w);
-    const float v0 = command.src.y / static_cast<float>(texture.size.h);
-    const float v1 = (command.src.y + command.src.h) / static_cast<float>(texture.size.h);
+    const float u0 = src.x / static_cast<float>(textureSize.w);
+    const float u1 = (src.x + src.w) / static_cast<float>(textureSize.w);
+    const float v0 = src.y / static_cast<float>(textureSize.h);
+    const float v1 = (src.y + src.h) / static_cast<float>(textureSize.h);
 
-    const float centerX = command.dst.x + command.dst.w * 0.5f;
-    const float centerY = command.dst.y + command.dst.h * 0.5f;
-    const float halfWidth = command.dst.w * 0.5f;
-    const float halfHeight = command.dst.h * 0.5f;
-    const float radians = command.angle * Pi / 180.0f;
+    const float centerX = dst.x + dst.w * 0.5f;
+    const float centerY = dst.y + dst.h * 0.5f;
+    const float halfWidth = dst.w * 0.5f;
+    const float halfHeight = dst.h * 0.5f;
+    const float radians = angle * Pi / 180.0f;
     const float cosAngle = std::cos(radians);
     const float sinAngle = std::sin(radians);
 
@@ -295,24 +326,142 @@ void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
     const auto [bottomRightX, bottomRightY] = toClipSpace(rotatePoint(halfWidth, halfHeight));
     const auto [bottomLeftX, bottomLeftY] = toClipSpace(rotatePoint(-halfWidth, halfHeight));
 
-    m_spriteVertices.push_back({topRightX,      topRightY,      u1, v0});
-    m_spriteVertices.push_back({bottomRightX,   bottomRightY,   u1, v1});
-    m_spriteVertices.push_back({bottomLeftX,    bottomLeftY,    u0, v1});
-    m_spriteVertices.push_back({topLeftX,       topLeftY,       u0, v0});
+    const float r = static_cast<float>(color.r) / 255.0f;
+    const float g = static_cast<float>(color.g) / 255.0f;
+    const float b = static_cast<float>(color.b) / 255.0f;
+    const float a = static_cast<float>(color.a) / 255.0f;
+
+    m_spriteVertices.push_back({topRightX,      topRightY,      u1, v0, r, g, b, a});
+    m_spriteVertices.push_back({bottomRightX,   bottomRightY,   u1, v1, r, g, b, a});
+    m_spriteVertices.push_back({bottomLeftX,    bottomLeftY,    u0, v1, r, g, b, a});
+    m_spriteVertices.push_back({topLeftX,       topLeftY,       u0, v0, r, g, b, a});
 
     m_spriteBatchCount++;
 }
 
+void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
+{
+    const OpenGLTexture& texture = getTexture(command.texture);
+    drawTexturedQuad(
+        texture.id,
+        texture.size,
+        command.src,
+        command.dst,
+        command.angle,
+        {255, 255, 255, 255}
+    );
+}
+
 void OpenGLRenderBackend::drawRect(const RectF& rect, Color color)
 {
+    if (rect.w <= 0.0f || rect.h <= 0.0f) {
+        return;
+    }
+
+    constexpr float Thickness = 1.0f;
+    fillRect({rect.x, rect.y, rect.w, Thickness}, color);
+    fillRect({rect.x, rect.y + rect.h - Thickness, rect.w, Thickness}, color);
+    fillRect({rect.x, rect.y, Thickness, rect.h}, color);
+    fillRect({rect.x + rect.w - Thickness, rect.y, Thickness, rect.h}, color);
 }
 
 void OpenGLRenderBackend::fillRect(const RectF& rect, Color color)
 {
+    RectF dst = rect;
+    if (dst.w <= 0.0f || dst.h <= 0.0f) {
+        dst = RectF{
+            0.0f,
+            0.0f,
+            static_cast<float>(m_width),
+            static_cast<float>(m_height)
+        };
+    }
+
+    drawTexturedQuad(
+        m_whiteTexture,
+        TextureSize{1, 1},
+        RectF{0.0f, 0.0f, 1.0f, 1.0f},
+        dst,
+        0.0f,
+        color
+    );
 }
 
 void OpenGLRenderBackend::drawText(const TextDrawCommand& command)
 {
+    if (command.text.empty()) {
+        return;
+    }
+
+    SDL_Color color = {
+        command.color.r,
+        command.color.g,
+        command.color.b,
+        command.color.a
+    };
+    SDL_Surface* surface = TTF_RenderText_Blended(
+        getFont(command.fontName),
+        command.text.c_str(),
+        0,
+        color
+    );
+    if (!surface) {
+        SDL_Log("TTF_RenderText_Blended error: %s", SDL_GetError());
+        return;
+    }
+
+    SDL_Surface* convertedSurface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+    SDL_DestroySurface(surface);
+    if (!convertedSurface) {
+        SDL_Log("SDL_ConvertSurface error: %s", SDL_GetError());
+        return;
+    }
+
+    if (!SDL_LockSurface(convertedSurface)) {
+        SDL_Log("SDL_LockSurface error: %s", SDL_GetError());
+        SDL_DestroySurface(convertedSurface);
+        return;
+    }
+
+    unsigned int textureId = 0;
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA8,
+        convertedSurface->w,
+        convertedSurface->h,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        convertedSurface->pixels
+    );
+    glBindTexture(GL_TEXTURE_2D, 0);
+    SDL_UnlockSurface(convertedSurface);
+
+    const TextureSize textTextureSize{convertedSurface->w, convertedSurface->h};
+    SDL_DestroySurface(convertedSurface);
+
+    drawTexturedQuad(
+        textureId,
+        textTextureSize,
+        RectF{
+            0.0f,
+            0.0f,
+            static_cast<float>(textTextureSize.w),
+            static_cast<float>(textTextureSize.h)
+        },
+        command.dst,
+        0.0f,
+        {255, 255, 255, 255}
+    );
+    flushSpriteBatch();
+    glDeleteTextures(1, &textureId);
 }
 
 const OpenGLRenderBackend::OpenGLTexture& OpenGLRenderBackend::getTexture(const TextureHandle& texture) const
@@ -324,17 +473,29 @@ const OpenGLRenderBackend::OpenGLTexture& OpenGLRenderBackend::getTexture(const 
     }
 }
 
+TTF_Font* OpenGLRenderBackend::getFont(const std::string& name) const
+{
+    try {
+        return m_fonts.at(name);
+    } catch (const std::out_of_range&) {
+        throw std::runtime_error("Font not found: " + name);
+    }
+}
+
 void OpenGLRenderBackend::createSpriteRenderer()
 {
     constexpr const char* vertexShaderSource = R"(
         #version 330 core
         layout (location = 0) in vec2 position;
         layout (location = 1) in vec2 texCoord;
+        layout (location = 2) in vec4 color;
         out vec2 vertexTexCoord;
+        out vec4 vertexColor;
 
         void main()
         {
             vertexTexCoord = texCoord;
+            vertexColor = color;
             gl_Position = vec4(position, 0.0, 1.0);
         }
     )";
@@ -342,17 +503,38 @@ void OpenGLRenderBackend::createSpriteRenderer()
     constexpr const char* fragmentShaderSource = R"(
         #version 330 core
         in vec2 vertexTexCoord;
+        in vec4 vertexColor;
         out vec4 fragColor;
 
         uniform sampler2D spriteTexture;
 
         void main()
         {
-            fragColor = texture(spriteTexture, vertexTexCoord);
+            fragColor = texture(spriteTexture, vertexTexCoord) * vertexColor;
         }
     )";
 
     m_spriteProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+
+    const unsigned char whitePixel[] = {255, 255, 255, 255};
+    glGenTextures(1, &m_whiteTexture);
+    glBindTexture(GL_TEXTURE_2D, m_whiteTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA8,
+        1,
+        1,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        whitePixel
+    );
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     glGenVertexArrays(1, &m_spriteVertexArray);
     glGenBuffers(1, &m_spriteVertexBuffer);
@@ -401,6 +583,16 @@ void OpenGLRenderBackend::createSpriteRenderer()
         reinterpret_cast<void*>(offsetof(SpriteVertex, u))
     );
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(
+        2,
+        4,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(SpriteVertex),
+        reinterpret_cast<void*>(offsetof(SpriteVertex, r))
+    );
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

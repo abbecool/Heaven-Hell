@@ -119,7 +119,7 @@ void Scene::sRenderBasic() {
 
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& spritePool = m_ECS.getComponentPool<CSprite>();
-    auto layers = m_rendererManager.getLayers();
+    const auto& layers = m_rendererManager.getLayers();
     for (const auto& layer : layers){
         for (const auto& e : layer){                
             if (!transformPool.hasComponent(e) || !spritePool.hasComponent(e)){
