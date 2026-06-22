@@ -21,11 +21,18 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
+#include <cmath>
 #include <queue>
 
 // TODO: fix line count in file
 
 using json = nlohmann::json;
+
+namespace {
+constexpr float PHYSICS_DT = 1.0f / 60.0f;
+constexpr float SPRINT_MULTIPLIER = 2.0f;
+constexpr float STOP_SPEED = 1.0f;
+}
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), 
@@ -129,13 +136,18 @@ void Scene_Play::loadConfig(const std::string& confPath){
     std::string head;
     while (file >> head) {
         if (head == "Player") {
-            file >> m_playerConfig.x >> m_playerConfig.y >> m_playerConfig.SPEED >> m_playerConfig.MAXSPEED >> m_playerConfig.HP >> m_playerConfig.DAMAGE; // long line to be replaced when saving to json      
+            file >> m_playerConfig.x >> m_playerConfig.y
+                 >> m_playerConfig.moveForce >> m_playerConfig.maxSpeed
+                 >> m_playerConfig.mass >> m_playerConfig.linearDamping
+                 >> m_playerConfig.HP >> m_playerConfig.DAMAGE;
         }
         else if (head == "Rooter") {
-            file >> m_rooterConfig.SPEED >> m_rooterConfig.ATTACK_SPEED >> m_rooterConfig.HP >> m_rooterConfig.DAMAGE;
+            float unusedSpeed;
+            file >> unusedSpeed >> m_rooterConfig.ATTACK_SPEED >> m_rooterConfig.HP >> m_rooterConfig.DAMAGE;
         }
         else if (head == "Goblin") {
-            file >> m_goblinConfig.SPEED >> m_goblinConfig.ATTACK_SPEED >> m_goblinConfig.HP >> m_goblinConfig.DAMAGE;
+            float unusedSpeed;
+            file >> unusedSpeed >> m_goblinConfig.ATTACK_SPEED >> m_goblinConfig.HP >> m_goblinConfig.DAMAGE;
         }
         else if (head == "Camera") {
             file >> m_camera.config.SHAKE_DURATION_SMALL >> m_camera.config.SHAKE_INTENSITY_SMALL;
@@ -392,42 +404,62 @@ void Scene_Play::sAI()
 void Scene_Play::sMovement() {
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& velocityPool = m_ECS.getComponentPool<CVelocity>();
-
     auto& inputPool = m_ECS.getComponentPool<CInput>();
-    auto viewInputs = m_ECS.View<CInput, CTransform, CVelocity>();
-    for (auto e : viewInputs){
-        auto &transform = transformPool.getComponent(e);
-        auto &velocity = velocityPool.getComponent(e);
-        auto &inputs = inputPool.getComponent(e);
+    auto& bodyPool = m_ECS.getComponentPool<CPhysicsBody>();
 
-        velocity.vel = inputs.direction;
-        velocity.tempo = inputs.ctrl ? 2.0f : 1.0f;
+    // Convert movement intent into a force. Input itself remains an intent-only component.
+    const auto viewInputs = m_ECS.View<CInput, CVelocity, CPhysicsBody>();
+    for (auto e : viewInputs){
+        auto& inputs = inputPool.getComponent(e);
+        auto& body = bodyPool.getComponent(e);
+
+        if (!inputs.direction.isNull()) {
+            const float sprintMultiplier = inputs.ctrl ? SPRINT_MULTIPLIER : 1.0f;
+            body.accumulatedForce += inputs.direction.norm(body.moveForce * sprintMultiplier);
+        }
         if (e != m_player) {
             inputs = CInput(); // reset inputs for NPCs after processing
         }
     }
 
-    // auto viewKnockback = m_ECS.View<CKnockback, CTransform>();
-    // auto& knockbackPool = m_ECS.getComponentPool<CKnockback>();
-    // for (auto entityKnockback : viewKnockback){    
-    //     auto &transform = transformPool.getComponent(entityKnockback);
-    //     auto& knockback = knockbackPool.getComponent(entityKnockback);
-    //     transform.pos += m_physics.knockback(knockback);
-    //     if (knockback.duration <= 0){
-    //         m_ECS.queueRemoveComponent<CKnockback>(entityKnockback);
-    //     }
-    // }       
+    // Integrate force and exponential linear damping. This produces a stable terminal speed
+    // of moveForce / (mass * linearDamping) while movement input is held.
+    const auto viewBodies = m_ECS.View<CVelocity, CPhysicsBody>();
+    for (auto e : viewBodies) {
+        auto& velocity = velocityPool.getComponent(e);
+        auto& body = bodyPool.getComponent(e);
+        const Vec2 acceleration = body.accumulatedForce / body.mass;
 
-    auto viewTransform = m_ECS.View<CTransform, CVelocity>();
+        if (body.linearDamping > 0.0f) {
+            const float decay = std::exp(-body.linearDamping * PHYSICS_DT);
+            velocity.vel = velocity.vel * decay
+                         + acceleration * ((1.0f - decay) / body.linearDamping);
+        } else {
+            velocity.vel += acceleration * PHYSICS_DT;
+        }
+
+        float maxSpeed = body.maxSpeed;
+        if (m_ECS.hasComponent<CInput>(e) && inputPool.getComponent(e).ctrl) {
+            maxSpeed *= SPRINT_MULTIPLIER;
+        }
+        if (velocity.vel.length() > maxSpeed) {
+            velocity.vel = velocity.vel.norm(maxSpeed);
+        }
+        if (velocity.vel.length() < STOP_SPEED) {
+            velocity.vel = {0, 0};
+        }
+
+        body.accumulatedForce = {0, 0};
+    }
+
+    // Bodies and kinematic projectiles both move from their real world-space velocity.
+    const auto viewTransform = m_ECS.View<CTransform, CVelocity>();
     for (auto e : viewTransform){
         auto &transform = transformPool.getComponent(e);
         auto &velocity = velocityPool.getComponent(e);
-        
-        // Update position
+
         transform.prevPos = transform.pos;
-        if (!velocity.vel.isNull()){
-            transform.pos += velocity.vel.norm(velocity.tempo*velocity.speed/m_game->framerate());
-        }
+        transform.pos += velocity.vel * PHYSICS_DT;
     }
 
     auto viewParent = m_ECS.View<CParent, CTransform>();
@@ -777,8 +809,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     // if (c.contains("CFollow")){
     //     m_ECS.addComponent<CFollow>(id, c["CFollow"]);
     // }
-    if (c.contains("CVelocity")){
-        m_ECS.addComponent<CVelocity>(id, c["CVelocity"]);
+    if (c.contains("CPhysicsBody")) {
+        m_ECS.addComponent<CPhysicsBody>(id, c["CPhysicsBody"]);
+        m_ECS.addComponent<CVelocity>(id);
     }
     if (c.contains("CInteractionBox")){
         m_ECS.addComponent<CInteractionBox>(id, c["CInteractionBox"]);
@@ -874,7 +907,14 @@ EntityID Scene_Play::spawnPlayer()
     Vec2 midGrid = gridToMidPixel(pos, entityID);
     
     m_ECS.addComponent<CTransform>(entityID, midGrid);
-    m_ECS.addComponent<CVelocity>(entityID, m_playerConfig.SPEED);
+    m_ECS.addComponent<CVelocity>(entityID);
+    m_ECS.addComponent<CPhysicsBody>(
+        entityID,
+        m_playerConfig.mass,
+        m_playerConfig.moveForce,
+        m_playerConfig.maxSpeed,
+        m_playerConfig.linearDamping
+    );
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, PLAYER_LAYER, collisionMask);
     CollisionMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER | AREA_LAYER;
@@ -935,7 +975,7 @@ EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
     int layer = 7;
     Vec2 midGrid = gridToMidPixel(pos, id);
     m_ECS.addComponent<CTransform>(id, midGrid);
-    m_ECS.addComponent<CVelocity>(id, m_playerConfig.SPEED);
+    m_ECS.addComponent<CVelocity>(id);
     m_ECS.addComponent<CItem>(id, 2);
     
     CollisionMask interactionMask = PLAYER_LAYER;
@@ -1024,7 +1064,7 @@ EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
     int layer = 8;
     addVisual(id, "fireball", layer);
     m_ECS.addComponent<CTransform>(id, startPos, vel.angle());
-    m_ECS.addComponent<CVelocity>(id, vel, 200.0f);
+    m_ECS.addComponent<CVelocity>(id, vel.norm(200.0f));
     m_ECS.addComponent<CDamage>(id, 1);
     m_ECS.getComponent<CDamage>(id).damageType = {"Fire", "Explosive"};
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;

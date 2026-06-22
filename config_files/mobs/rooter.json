@@ -2,7 +2,7 @@
     "rooter": {
         "components": {
             "CTransform": {"pos": "Nan"},
-            "CVelocity": {"speed": 50},
+            "CPhysicsBody": {"mass": 1, "moveForce": 1200, "maxSpeed": 50, "linearDamping": 24},
             "CAnimation": {
                 "animation": "rooter-sheet",
                 "layer": 9

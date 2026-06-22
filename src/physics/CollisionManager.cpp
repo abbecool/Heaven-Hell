@@ -3,18 +3,64 @@
 #include "physics/CollisionManager.hpp"
 #include "ecs/ScriptableEntity.hpp"
 
-void handlePlayerObstacleCollision(Entity player, Entity obstacle, Vec2 overlap){
-    player.getComponent<CTransform>().pos += overlap;
+namespace {
+
+float dot(const Vec2& a, const Vec2& b)
+{
+    return a.x * b.x + a.y * b.y;
 }
 
-void handlePlayerEnemyCollision(Entity player, Entity enemy, Vec2 overlap){
-    player.getComponent<CTransform>().pos += overlap/2;
-    enemy.getComponent<CTransform>().pos -= overlap/2;
+float inverseMass(Entity& entity)
+{
+    if (!entity.hasComponent<CPhysicsBody>() || entity.hasComponent<CImmovable>()) {
+        return 0.0f;
+    }
+    return 1.0f / entity.getComponent<CPhysicsBody>().mass;
 }
 
-void handleFriendlyObstacleCollision(Entity friendly, Entity obstacle, Vec2 overlap){
-    friendly.getComponent<CTransform>().pos += overlap;
+void removeInwardVelocity(Entity& entity, const Vec2& outwardNormal)
+{
+    if (outwardNormal.isNull() || !entity.hasComponent<CVelocity>()) {
+        return;
+    }
+
+    CVelocity& velocity = entity.getComponent<CVelocity>();
+    const float normalVelocity = dot(velocity.vel, outwardNormal);
+    if (normalVelocity < 0.0f) {
+        velocity.vel -= outwardNormal * normalVelocity;
+    }
 }
+
+void resolveBodyCollision(Entity entityA, Entity entityB, const Vec2& overlap)
+{
+    if (overlap.isNull()) {
+        return;
+    }
+
+    const float inverseMassA = inverseMass(entityA);
+    const float inverseMassB = inverseMass(entityB);
+    const float inverseMassTotal = inverseMassA + inverseMassB;
+    if (inverseMassTotal == 0.0f) {
+        return;
+    }
+
+    CTransform& transformA = entityA.getComponent<CTransform>();
+    CTransform& transformB = entityB.getComponent<CTransform>();
+    const Vec2 outwardNormalA = overlap.norm();
+
+    transformA.pos += overlap * (inverseMassA / inverseMassTotal);
+    transformB.pos -= overlap * (inverseMassB / inverseMassTotal);
+
+    removeInwardVelocity(entityA, outwardNormalA);
+    removeInwardVelocity(entityB, outwardNormalA * -1.0f);
+}
+
+void handleBodyCollision(Entity entityA, Entity entityB, Vec2 overlap)
+{
+    resolveBodyCollision(entityA, entityB, overlap);
+}
+
+} // namespace
 
 void handleProjectileObstacleCollision(Entity projectile, Entity obstacle, Vec2 overlap){
     projectile.removeEntity();
@@ -24,16 +70,6 @@ void handleEnemyProjectileCollision(Entity enemy, Entity projectile, Vec2 overla
     int damage = projectile.getComponent<CDamage>().damage;
     enemy.getComponent<CHealth>().HP -= damage;
     projectile.removeEntity();
-}
-
-void handleEnemyEnemyCollision(Entity enemyA, Entity enemyB, Vec2 overlap){
-    enemyA.getComponent<CTransform>().pos += overlap/2;
-    enemyB.getComponent<CTransform>().pos -= overlap/2;
-}
-
-
-void handleEnemyObstacleCollision(Entity enemy, Entity obstacle, Vec2 overlap){
-    enemy.getComponent<CTransform>().pos += overlap;
 }
 
 void BaseCollisionManager::registerHandler(     
@@ -206,13 +242,15 @@ void BaseCollisionManager::renderQuadtree(
 CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene){
     m_ECS = ecs;
     m_scene = scene;
-    registerHandler(PLAYER_LAYER, OBSTACLE_LAYER, handlePlayerObstacleCollision);
-    registerHandler(PLAYER_LAYER, ENEMY_LAYER, handlePlayerEnemyCollision);
-    registerHandler(PLAYER_LAYER, FRIENDLY_LAYER, handlePlayerObstacleCollision);
-    registerHandler(FRIENDLY_LAYER, OBSTACLE_LAYER, handleFriendlyObstacleCollision);
+    registerHandler(PLAYER_LAYER, OBSTACLE_LAYER, handleBodyCollision);
+    registerHandler(PLAYER_LAYER, ENEMY_LAYER, handleBodyCollision);
+    registerHandler(PLAYER_LAYER, FRIENDLY_LAYER, handleBodyCollision);
+    registerHandler(FRIENDLY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
+    registerHandler(FRIENDLY_LAYER, FRIENDLY_LAYER, handleBodyCollision);
+    registerHandler(FRIENDLY_LAYER, ENEMY_LAYER, handleBodyCollision);
     registerHandler(ENEMY_LAYER, PROJECTILE_LAYER, handleEnemyProjectileCollision);
-    registerHandler(ENEMY_LAYER, ENEMY_LAYER, handleEnemyEnemyCollision);
-    registerHandler(ENEMY_LAYER, OBSTACLE_LAYER, handleEnemyObstacleCollision);
+    registerHandler(ENEMY_LAYER, ENEMY_LAYER, handleBodyCollision);
+    registerHandler(ENEMY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
     registerHandler(PROJECTILE_LAYER, OBSTACLE_LAYER, handleProjectileObstacleCollision);
 }
 

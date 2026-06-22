@@ -20,7 +20,7 @@ class Scene_Play : public Scene
     struct PlayerConfig
     {
         int x, y;
-        float SPEED, MAXSPEED;
+        float moveForce, maxSpeed, mass, linearDamping;
         int HP, DAMAGE;
         int ATTACK_SPEED;
     };

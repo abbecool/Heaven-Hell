@@ -10,6 +10,7 @@
 #include <functional>
 #include <bitset>
 #include <algorithm>
+#include <stdexcept>
 
 using json = nlohmann::json;
 
@@ -106,16 +107,45 @@ struct CTransform
 
 struct CVelocity
 {
-    Vec2 vel = {0, 0};    
-    float speed = 100;
-    float tempo = 1.0f;
+    // World-space linear velocity in pixels per second.
+    Vec2 vel = {0, 0};
     CVelocity() {}
-    CVelocity(const float s) 
-        : speed(s){}
-    CVelocity(const json j)
-        : speed(j["speed"]) {}
-    CVelocity(Vec2 v, const float s) 
-        : vel(v), speed(s){}
+    CVelocity(const Vec2& v)
+        : vel(v) {}
+};
+
+struct CPhysicsBody
+{
+    float mass = 1.0f;
+    float moveForce = 2400.0f;
+    float maxSpeed = 100.0f;
+    float linearDamping = 24.0f;
+    Vec2 accumulatedForce = {0, 0};
+
+    CPhysicsBody() = default;
+
+    CPhysicsBody(float bodyMass, float force, float speed, float damping)
+        : mass(bodyMass), moveForce(force), maxSpeed(speed), linearDamping(damping)
+    {
+        validate();
+    }
+
+    CPhysicsBody(const json& j)
+        : mass(j.at("mass").get<float>()),
+          moveForce(j.at("moveForce").get<float>()),
+          maxSpeed(j.at("maxSpeed").get<float>()),
+          linearDamping(j.at("linearDamping").get<float>())
+    {
+        validate();
+    }
+
+private:
+    void validate() const
+    {
+        if (mass <= 0.0f || moveForce < 0.0f || maxSpeed < 0.0f || linearDamping < 0.0f) {
+            throw std::invalid_argument("CPhysicsBody requires positive mass and non-negative tuning values");
+        }
+    }
 };
 
 struct CBox 

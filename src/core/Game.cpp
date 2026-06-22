@@ -138,31 +138,31 @@ void Game::run()
 void Game::FrametimeHandler()
 {
     m_currentFrame++;
-    if (!m_renderFPS){
-        return;
-    }
     auto now = std::chrono::steady_clock::now();
     auto frameDuration = now - current_frame;
 
-    int64_t frame_time_ns = std::chrono::duration_cast<nanoseconds>(frameDuration).count();
-    accumulated_frame_time += frame_time_ns;
-    frame_count++;
+    if (m_renderFPS) {
+        int64_t frame_time_ns = std::chrono::duration_cast<nanoseconds>(frameDuration).count();
+        accumulated_frame_time += frame_time_ns;
+        frame_count++;
 
-    if (steady_clock::now() - last_fps_update >= seconds(1))
-    {
-        float average_frame_time = accumulated_frame_time / frame_count;
-        average_fps = 1e9 / average_frame_time;
+        if (steady_clock::now() - last_fps_update >= seconds(1))
+        {
+            float average_frame_time = accumulated_frame_time / frame_count;
+            average_fps = 1e9 / average_frame_time;
 
-        accumulated_frame_time = 0.0;
-        frame_count = 0;
-        last_fps_update = steady_clock::now();
+            accumulated_frame_time = 0.0;
+            frame_count = 0;
+            last_fps_update = steady_clock::now();
+        }
+        m_renderBackend->drawText(TextDrawCommand{
+            "FPS: " + std::to_string(average_fps),
+            "Minecraft",
+            m_fpsRect,
+            {255, 255, 255, 255}
+        });
     }
-    m_renderBackend->drawText(TextDrawCommand{
-        "FPS: " + std::to_string(average_fps),
-        "Minecraft",
-        m_fpsRect,
-        {255, 255, 255, 255}
-    });
+
     auto targetFrameDuration = std::chrono::milliseconds(1000 / m_framerate);
 
     if (frameDuration < targetFrameDuration) {

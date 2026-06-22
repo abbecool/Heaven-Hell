@@ -2,7 +2,7 @@
     "wizard": {
         "components": {
             "CTransform": {"pos": "Nan"},
-            "CVelocity": {"speed": 100},
+            "CPhysicsBody": {"mass": 1, "moveForce": 2400, "maxSpeed": 100, "linearDamping": 24},
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
                 "layer": "FRIENDLY_LAYER", 
