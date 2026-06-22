@@ -1,21 +1,49 @@
 # Heaven-Hell
-This version of the game is a top-down RPG
 
-# Developer Setup
+Heaven-Hell is currently a top-down RPG built in C++20 with SDL3 as the
+platform layer. The renderer is abstracted behind `RenderBackend`; the project
+has both an SDL renderer and an OpenGL renderer, and the game currently defaults
+to OpenGL in `Game.hpp`.
 
-## Windows Setup with MSYS2
+## Current Architecture
 
-Install MSYS2 installer (C++ compiler) by clicking the link: https://github.com/msys2/msys2-installer/releases
+- `src/core`: game loop, SDL platform wrapper, input translation, shared pixel
+  image loading.
+- `src/render`: renderer-neutral types plus SDL and OpenGL backend
+  implementations.
+- `src/assets`: asset catalog and sprite metadata. Texture and font resources
+  are loaded through `RenderBackend`.
+- `src/ecs`: ECS storage, entities, components, and component factory.
+- `src/scenes`: game-specific scenes and gameplay flow.
+- `src/physics`: math, camera, level loading, quadtree, collision, and movement
+  helpers.
+- `src/story`: story, quest, and event support.
 
-Make sure to use the **MSYS2 UCRT64** terminal. This project is set up to use the UCRT64 MinGW compiler.
+The SDL platform layer owns SDL initialization, the window, input polling,
+audio loading/playback, and CPU-side image pixel loading. Rendering resources
+belong to the active render backend.
 
-First update MSYS2:
+## Developer Setup
+
+### Windows Setup with MSYS2
+
+Install MSYS2 from:
+
+```text
+https://github.com/msys2/msys2-installer/releases
+```
+
+Use the **MSYS2 UCRT64** terminal. This project is set up for the UCRT64 MinGW
+toolchain.
+
+Update MSYS2:
 
 ```sh
 pacman -Syu
 ```
 
-If MSYS2 asks you to close the terminal after updating, close it, open **MSYS2 UCRT64** again, and run:
+If MSYS2 asks you to close the terminal after updating, close it, open
+**MSYS2 UCRT64** again, and run:
 
 ```sh
 pacman -Syu
@@ -33,43 +61,47 @@ Install SDL3 and the SDL3 extension libraries:
 pacman -S mingw-w64-ucrt-x86_64-sdl3 mingw-w64-ucrt-x86_64-sdl3-image mingw-w64-ucrt-x86_64-sdl3-mixer mingw-w64-ucrt-x86_64-sdl3-ttf
 ```
 
-These packages install Windows libraries into:
+These packages install Windows tools and libraries into:
 
 ```text
 C:/msys64/ucrt64
 ```
 
-The compiler should be located at:
+The main tools should be:
 
 ```text
 C:/msys64/ucrt64/bin/g++.exe
-```
-
-The debugger should be located at:
-
-```text
+C:/msys64/ucrt64/bin/cmake.exe
+C:/msys64/ucrt64/bin/ninja.exe
 C:/msys64/ucrt64/bin/gdb.exe
 ```
 
-Ninja should be located at:
-
-```text
-C:/msys64/ucrt64/bin/ninja.exe
-```
-
-When MSYS2 is ready, open the repository in VS Code, select the desired launch configuration, and press F5. VS Code will configure CMake, build the project, and run the game.
+When MSYS2 is ready, open the repository in VS Code, select a launch
+configuration, and press F5. VS Code will configure CMake, build the project,
+and run the game.
 
 ## Windows Manual Build
 
-To configure and build manually from the terminal:
+The VS Code tasks and package script use Ninja build trees under
+`build/Windows/Ninja`.
 
-```sh
-cmake -S . -B build/Windows/Ninja/Debug -DCMAKE_BUILD_TYPE=Debug -G "Ninja"
+PowerShell:
+
+```powershell
+$env:PATH = "C:\msys64\ucrt64\bin;$env:PATH"
+```
+
+Debug:
+
+```powershell
+cmake -S . -B build/Windows/Ninja/Debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe -DCMAKE_MAKE_PROGRAM=C:/msys64/ucrt64/bin/ninja.exe -G Ninja
 cmake --build build/Windows/Ninja/Debug
 ```
 
-```sh
-cmake -S . -B build/Windows/Ninja/Release -DCMAKE_BUILD_TYPE=Release -G "Ninja"
+Release:
+
+```powershell
+cmake -S . -B build/Windows/Ninja/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe -DCMAKE_MAKE_PROGRAM=C:/msys64/ucrt64/bin/ninja.exe -G Ninja
 cmake --build build/Windows/Ninja/Release
 ```
 
@@ -88,7 +120,9 @@ To create a Windows release zip, run the package script from PowerShell:
 .\scripts\package-release.ps1
 ```
 
-By default, the script uses the MSYS2 UCRT64 tools from `C:/msys64/ucrt64/bin`, builds the `Release` configuration, copies the game executable, assets, config files, and required runtime DLLs, then creates:
+By default, the script uses the MSYS2 UCRT64 tools from
+`C:/msys64/ucrt64/bin`, builds the `Release` configuration, copies the game
+executable, assets, config files, and runtime DLL dependencies, then creates:
 
 ```text
 dist/HeavenHell-<version>-win64.zip
@@ -108,7 +142,10 @@ To package an existing build without rebuilding first:
 .\scripts\package-release.ps1 -SkipBuild
 ```
 
-## Linux Setup (only tested on Arch)
+## Linux Setup
+
+Linux support exists in the CMake and VS Code setup, but the current day-to-day
+workflow is Windows/MSYS2/Ninja.
 
 Install a C++ compiler, CMake, GDB, and the SDL3 development packages.
 
@@ -118,15 +155,13 @@ On Arch Linux:
 sudo pacman -S gcc cmake gdb sdl3 sdl3_image sdl3_mixer sdl3_ttf
 ```
 
-On Debian/Ubuntu:
+On Debian/Ubuntu, package names may vary depending on distro version:
 
 ```sh
 sudo apt install build-essential cmake gdb libsdl3-dev libsdl3-image-dev libsdl3-mixer-dev libsdl3-ttf-dev
 ```
 
-Open the repository in VS Code, select either `Run HeavenHell (Arch Release)` or `Debug HeavenHell (Arch Debug)`, and press F5. VS Code will configure CMake, build the project, and run the game.
-
-To configure and build manually from the terminal:
+Manual build:
 
 ```sh
 cmake -S . -B build/Debug -DCMAKE_BUILD_TYPE=Debug
@@ -144,3 +179,18 @@ The Linux executable is created at:
 run/Debug/heavenhell
 run/Release/heavenhell
 ```
+
+## Current Backend Notes
+
+- SDL3 is still the platform API.
+- OpenGL is the current default render driver.
+- The SDL backend is useful as a compatibility/reference renderer.
+- The OpenGL backend supports batched textured sprites, filled/drawn
+  rectangles, and text through glyph atlases.
+- World-space camera projection has not moved into the renderer yet; scenes
+  still calculate camera-to-screen transforms on the CPU.
+- Tests are not enabled in CMake yet. `tests/test_math.cpp` is currently a
+  commented-out starter file.
+
+See [doc/BackendSetupRoadmap.md](doc/BackendSetupRoadmap.md) for the recommended
+backend/setup work before shifting fully back to gameplay features.

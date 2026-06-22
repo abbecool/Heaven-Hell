@@ -1,134 +1,116 @@
 # TODO: Next Steps for Game Development
 
-## 🛠️ Code Quality & Testing Roadmap
+This file tracks broad game and code-health work. For backend/setup priorities,
+see [BackendSetupRoadmap.md](BackendSetupRoadmap.md).
 
-### Phase 1: Critical Fixes ✅ (Mostly Complete)
-Address correctness and safety issues that could cause crashes or undefined behavior
-- [x] Fix unreachable code in ECS.hpp (move debug output before return)
-- [x] Replace all NULL with nullptr for consistency
-- [x] Remove exit(-1) calls and implement exception-based error handling in Assets.cpp
-- [x] Add const to getter methods in Animation.h, Sprite.h, and other asset classes
+## Code Quality And Backend Status
 
-### Phase 2: Code Quality Improvements 🔄 (In Progress)
-Enhance maintainability and follow C++ best practices
-- [ ] Change string parameters to const references in Assets.cpp and related files to avoid copies
-- [ ] Remove hardcoded player entity ID (0) and track it properly in Scene_Play
-- [ ] Extract magic numbers to named constants in config loading
-- [x] Refactor large functions in CollisionManager.cpp into smaller helpers
+### Completed Refactors
 
-### Phase 3: Testing Infrastructure 🚀 (Partial)
-Establish unit testing foundation
-- [ ] Uncomment and expand tests in test_math.cpp for Vec2 operations
-- [ ] Add unit tests for ComponentPool add/remove/get operations
-- [ ] Create integration tests for asset loading and ECS entity lifecycle
-- [ ] Enable testing in CMakeLists.txt with Catch2
+- [x] Move SDL window/lifetime/input ownership into `SDLPlatform`.
+- [x] Keep `RenderBackend` renderer-neutral instead of exposing
+  `SDL_Renderer*`.
+- [x] Move SDL texture/font ownership into `SDLRenderBackend`.
+- [x] Make `Assets` load render resources through `RenderBackend`.
+- [x] Replace the old `Animation` class with `SpriteDefinition`, `CSprite`,
+  and `CAnimation` data.
+- [x] Replace render-facing `SDL_Color` usage in ECS components with `Color`.
+- [x] Remove the unused legacy `SDL_Sprite` files.
+- [x] Add an OpenGL backend that can render sprites, rectangles, and text.
+- [x] Replace project-owned `NULL` usage with `nullptr` where applicable.
+- [x] Replace hard exits in asset loading with exceptions.
+- [x] Refactor collision handling into smaller helpers in
+  `CollisionManager.cpp`.
 
-### Phase 4: Documentation and Polish 📚 (Backlog)
-Improve code readability and maintainability
-- [ ] Add Doxygen-style comments to key classes (ECS, Game, CollisionManager)
-- [ ] Document ECS architecture design decisions
-- [ ] Add compile-time warnings to CMakeLists.txt
-- [ ] Create contributor guidelines for code style
+### Still Worth Doing Before Big Feature Pushes
 
----
+- [ ] Move world camera projection into the render backend, especially for
+  OpenGL.
+- [ ] Add explicit world-space render commands or render passes so HUD/UI stays
+  screen-space and world entities use camera-space consistently.
+- [ ] Make render driver selection configurable instead of hard-coding OpenGL
+  in `Game.hpp`.
+- [ ] Split reusable engine code from Heaven-Hell-specific game code.
+- [ ] Enable tests in CMake and revive `tests/test_math.cpp`.
+- [ ] Add compile warnings to CMake.
+- [ ] Add a `CMakePresets.json` so VS Code, manual builds, and packaging use
+  the same build directories.
+- [ ] Improve release packaging so source art files and unused/old assets are
+  not copied into player builds unless intentionally wanted.
+- [ ] Move audio resource ownership out of `SDLPlatform` into a small audio
+  layer or resource system.
+- [ ] Move level loading out of `src/physics` into a world/level module.
+- [ ] Replace config text parsing in `Scene_Play::loadConfig` with JSON.
+- [ ] Cache or throttle SDL text texture creation in `SDLRenderBackend`.
 
-## :rocket: High Priority
+## Gameplay Priorities
 
-### Player swimming animations
-- **Draw new swimming animations for the player**
+### High Priority
 
-### Manage child entities using masks similarly to collision layers
-- **Each entity has a childMask that stores which childern the entitie has.**
-- **Access the childern using a vector storing the childIDs in the same order as the mask bitset. Thus the correct child can always be found**
-- **Update the child mask and ID vector dynamically to stay up-to-date**
+#### Player Swimming Animations
 
-### More attacks
-- **Different attacks for the rooter and goblin**
-  - Goblin uses normal melee attacks
-  - Rooter throws sticks until they run out. When empty the stick regenerate
-- **Player can pick up a sword that can be swinged for melee damage**  
-  - Draw/animate the sword
-  - Add the sword to the game
-  - Implement the swinging mechanincs using rendering angle
+- Draw new swimming animations for the player.
+- Wire the animation into the movement/state system.
 
-## 🎯 Medium Priority
+#### Child Entity Ownership
 
-### Start developing story/progression manager
-- **Story manager**
-- **Progression manager**
+- Track child entities using a child mask or clearer child collection.
+- Keep child IDs synchronized when children are created or removed.
+- Use the system for shadows, dialogs, projectiles, hitboxes, and other
+  parented entities.
 
-### :heart: Remove HP heart system and use a health bar instead
+#### More Attacks
 
-# :robot: AI suggested improvements
+- Give rooters and goblins different attacks.
+- Let goblins use normal melee attacks.
+- Let rooters throw sticks that regenerate after they run out.
+- Let the player pick up and swing a sword for melee damage.
+- Use transform angle/render angle for sword swing placement.
 
-### 1. Improve Player Mechanics
-- **Swimming Enhancements**
-  - Add buoyancy effect (smooth movement in water)
-  - Add water surface movement animation
+### Medium Priority
 
-### 2. Advanced Combat System
-- **Melee Attacks**
-  - Create attack animation
-  - Add enemy hit reactions
-- **Ranged Attacks**
-  - Implement projectile movement & collision detection
-  - Add different weapon types (bow, magic, etc.)
-- **Enemy AI**
-  - Implement patrolling behavior
-  - Add attack logic based on distance
-  - Create dodge & retreat behavior
-  - A* pathing
+#### Story And Progression
 
+- Continue developing the story manager.
+- Add a clearer progression manager.
+- Add quest tracking UI.
 
-### 3. Dynamic World System
-- **Chunk Loading System**
-  - Implement procedural generation for new areas
-  - Improve saving/loading of world state
-- **Weather System**
-  - Add rain, snow, and fog effects
-  - Implement time-based weather changes
-  - Adjust player/enemy movement in different weather
-- **Day/Night Cycle**
-  - Modify lighting based on time
-  - Adjust enemy behavior at night
-  - Add time-sensitive events (shops close at night, etc.)
+#### Health UI
 
-### 4. Inventory & UI System
-- **Inventory Management**
-  - Implement drag-and-drop system
-  - Add stackable items (e.g., potions)
-  - Display detailed item descriptions
-- **Quest System**
-  - Implement quest tracking UI
-  - Add main and side quests
-  - Improve dialog system for NPCs
+- Replace the heart HUD with a health bar if that still matches the game
+  direction.
 
-### 5. Improved Rendering & Visual Effects
-- **Layered Rendering System**
-  - Optimize sprite batching for performance
-- **Special Effects**
-  - Implement light sources & shadows
-  - Create particle effects for magic & attacks
+## AI Suggested Improvements To Revisit Later
 
-### 6. AI suggested code improvements
-- **1. FPS Counter Rendering (HIGH Impact - 5-10% FPS Gain)**
-  - Issue: FPS text is rendered every frame with string concatenation, font lookups, /
-    and texture creation destruction.
-  - Location: Game.cpp:130-176
-  - Fix: Cache the FPS texture and only update it when the value changes (5-minute effort).
-- **2. Scene Rendering Cache Miss (MEDIUM Impact - 8-15% FPS Gain)**
-  - Issue: Screen center, zoom, and layer data are recalculated every frame for hundreds of entities.
-  - Location: Scene.cpp:30-60
-  - Fix: Cache these values and only update when camera/window state changes (30-minute effort).
-- **3. ECS Component Pool Lookups (MEDIUM Impact - 10-20% FPS Gain)**
-  - Issue: Frequent type_index hash lookups in unordered_map for component access in hot paths.
-  - Location: ECS.hpp:180-210
-  - Fix: Cache pool pointers or use compile-time component IDs with direct array indexing (1-2 hour effort).
-- **4. Level Loading & Quadtree Inefficiencies (MEDIUM-HIGH Impact - 15-30% FPS + Memory Gain)**
-  - Issue: Entire pixel matrix loaded at once, shared_ptr overhead in quadtree, expensive vector operations.
-  - Location: Level_Loader.cpp:18-50, Quadtree.h:1-80
-  - Fix: Implement streaming chunk loading, replace shared_ptr with unique_ptr, optimize vector operations (2-3h effort).
-- **5. Excessive String/Memory Operations (MEDIUM Impact - 5-8% FPS Gain)**
-  - Issue: String concatenations, asset lookups by string, config duplication in hot paths.
-  - Location: Assets.h, Scene_Play.h:32-48
-  - Fix: Cache hot assets, use compile-time IDs instead of strings, consolidate configs data-driven (2-hour effort).
+### Player Mechanics
+
+- Improve swimming movement.
+- Add water surface movement animation.
+
+### Combat
+
+- Add attack animations.
+- Add enemy hit reactions.
+- Add more weapon types.
+- Expand projectile behavior and collision handling.
+- Improve enemy AI with patrol, chase, dodge, retreat, and pathfinding.
+
+### World Systems
+
+- Continue chunk loading improvements.
+- Consider procedural generation later.
+- Improve saving/loading of world state.
+- Consider weather and day/night systems only after the core loop is stable.
+
+### Inventory And UI
+
+- Add drag-and-drop inventory behavior.
+- Add stackable items.
+- Display detailed item descriptions.
+- Improve dialog UI and quest UI.
+
+### Rendering And Effects
+
+- Add light sources and shadows once OpenGL world projection is stable.
+- Add particles for magic, attacks, pickups, and damage feedback.
+- Consider camera culling before submitting world draw commands.
