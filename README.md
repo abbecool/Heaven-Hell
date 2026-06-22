@@ -82,8 +82,8 @@ and run the game.
 
 ## Windows Manual Build
 
-The VS Code tasks and package script use Ninja build trees under
-`build/Windows/Ninja`.
+The VS Code tasks and package script use CMake presets. Windows presets use
+Ninja build trees under `build/Windows/Ninja`.
 
 PowerShell:
 
@@ -94,15 +94,15 @@ $env:PATH = "C:\msys64\ucrt64\bin;$env:PATH"
 Debug:
 
 ```powershell
-cmake -S . -B build/Windows/Ninja/Debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe -DCMAKE_MAKE_PROGRAM=C:/msys64/ucrt64/bin/ninja.exe -G Ninja
-cmake --build build/Windows/Ninja/Debug
+C:/msys64/ucrt64/bin/cmake.exe --preset windows-ninja-debug
+C:/msys64/ucrt64/bin/cmake.exe --build --preset windows-ninja-debug
 ```
 
 Release:
 
 ```powershell
-cmake -S . -B build/Windows/Ninja/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe -DCMAKE_MAKE_PROGRAM=C:/msys64/ucrt64/bin/ninja.exe -G Ninja
-cmake --build build/Windows/Ninja/Release
+C:/msys64/ucrt64/bin/cmake.exe --preset windows-ninja-release
+C:/msys64/ucrt64/bin/cmake.exe --build --preset windows-ninja-release
 ```
 
 The Windows executable is created at:
@@ -142,6 +142,16 @@ To package an existing build without rebuilding first:
 .\scripts\package-release.ps1 -SkipBuild
 ```
 
+## Tests
+
+Configure and build the debug preset, then run CTest:
+
+```powershell
+C:/msys64/ucrt64/bin/cmake.exe --preset windows-ninja-debug
+C:/msys64/ucrt64/bin/cmake.exe --build --preset windows-ninja-debug
+C:/msys64/ucrt64/bin/ctest.exe --preset windows-ninja-debug --output-on-failure
+```
+
 ## Linux Setup
 
 Linux support exists in the CMake and VS Code setup, but the current day-to-day
@@ -164,13 +174,13 @@ sudo apt install build-essential cmake gdb libsdl3-dev libsdl3-image-dev libsdl3
 Manual build:
 
 ```sh
-cmake -S . -B build/Debug -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/Debug
+cmake --preset linux-debug
+cmake --build --preset linux-debug
 ```
 
 ```sh
-cmake -S . -B build/Release -DCMAKE_BUILD_TYPE=Release
-cmake --build build/Release
+cmake --preset linux-release
+cmake --build --preset linux-release
 ```
 
 The Linux executable is created at:
@@ -189,8 +199,8 @@ run/Release/heavenhell
   rectangles, and text through glyph atlases.
 - World-space camera projection has not moved into the renderer yet; scenes
   still calculate camera-to-screen transforms on the CPU.
-- Tests are not enabled in CMake yet. `tests/test_math.cpp` is currently a
-  commented-out starter file.
+- CTest is enabled with small `Vec2`, `RandomArray`, `SpriteDefinition`, and
+  ECS/component-pool test suites.
 
 See [doc/BackendSetupRoadmap.md](doc/BackendSetupRoadmap.md) for the recommended
 backend/setup work before shifting fully back to gameplay features.

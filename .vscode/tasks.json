@@ -6,19 +6,14 @@
       "type": "shell",
       "command": "cmake",
       "args": [
-        "-S", ".",
-        "-B", "build/Release",
-        "-DCMAKE_BUILD_TYPE=Release"
+        "--preset",
+        "linux-release"
       ],
       "windows": {
         "command": "C:/msys64/ucrt64/bin/cmake.exe",
         "args": [
-          "-S", ".",
-          "-B", "build/Windows/Ninja/Release",
-          "-DCMAKE_BUILD_TYPE=Release",
-          "-DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe",
-          "-DCMAKE_MAKE_PROGRAM=C:/msys64/ucrt64/bin/ninja.exe",
-          "-G", "Ninja"
+          "--preset",
+          "windows-ninja-release"
         ],
         "options": {
           "env": {
@@ -43,12 +38,16 @@
       "type": "shell",
       "command": "cmake",
       "args": [
-        "--build", "build/Release"
+        "--build",
+        "--preset",
+        "linux-release"
       ],
       "windows": {
         "command": "C:/msys64/ucrt64/bin/cmake.exe",
         "args": [
-          "--build", "build/Windows/Ninja/Release"
+          "--build",
+          "--preset",
+          "windows-ninja-release"
         ],
         "options": {
           "env": {
@@ -63,19 +62,14 @@
       "type": "shell",
       "command": "cmake",
       "args": [
-        "-S", ".",
-        "-B", "build/Debug",
-        "-DCMAKE_BUILD_TYPE=Debug"
+        "--preset",
+        "linux-debug"
       ],
       "windows": {
         "command": "C:/msys64/ucrt64/bin/cmake.exe",
         "args": [
-          "-S", ".",
-          "-B", "build/Windows/Ninja/Debug",
-          "-DCMAKE_BUILD_TYPE=Debug",
-          "-DCMAKE_CXX_COMPILER=C:/msys64/ucrt64/bin/g++.exe",
-          "-DCMAKE_MAKE_PROGRAM=C:/msys64/ucrt64/bin/ninja.exe",
-          "-G", "Ninja"
+          "--preset",
+          "windows-ninja-debug"
         ],
         "options": {
           "env": {
@@ -100,12 +94,38 @@
       "type": "shell",
       "command": "cmake",
       "args": [
-        "--build", "build/Debug"
+        "--build",
+        "--preset",
+        "linux-debug"
       ],
       "windows": {
         "command": "C:/msys64/ucrt64/bin/cmake.exe",
         "args": [
-          "--build", "build/Windows/Ninja/Debug"
+          "--build",
+          "--preset",
+          "windows-ninja-debug"
+        ],
+        "options": {
+          "env": {
+            "PATH": "C:/msys64/ucrt64/bin;${env:PATH}"
+          }
+        }
+      },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "test-debug",
+      "type": "shell",
+      "command": "ctest",
+      "args": [
+        "--preset",
+        "linux-debug"
+      ],
+      "windows": {
+        "command": "C:/msys64/ucrt64/bin/ctest.exe",
+        "args": [
+          "--preset",
+          "windows-ninja-debug"
         ],
         "options": {
           "env": {

@@ -20,6 +20,7 @@ $CMake = Join-Path $MingwBin "cmake.exe"
 $Ninja = Join-Path $MingwBin "ninja.exe"
 $Gxx = Join-Path $MingwBin "g++.exe"
 $Objdump = Join-Path $MingwBin "objdump.exe"
+$Preset = "windows-ninja-$($Configuration.ToLowerInvariant())"
 
 function Assert-ToolExists {
     param([string]$Path)
@@ -141,14 +142,11 @@ $env:PATH = "$MingwBin;$env:PATH"
 
 if (-not $SkipBuild) {
     & $CMake `
-        -S $RepoRoot `
-        -B $BuildDir `
-        "-DCMAKE_BUILD_TYPE=$Configuration" `
+        --preset $Preset `
         "-DCMAKE_CXX_COMPILER=$Gxx" `
-        "-DCMAKE_MAKE_PROGRAM=$Ninja" `
-        -G Ninja
+        "-DCMAKE_MAKE_PROGRAM=$Ninja"
 
-    & $CMake --build $BuildDir
+    & $CMake --build --preset $Preset
 }
 
 if (-not (Test-Path $ExePath)) {

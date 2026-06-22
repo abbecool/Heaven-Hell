@@ -27,6 +27,10 @@ notes in `context.md`.
 - Release packaging:
   `scripts/package-release.ps1` builds a release and copies runtime DLL
   dependencies into a zip.
+- CMake presets and starter tests:
+  `CMakePresets.json` defines Windows/Linux debug and release presets, and
+  CTest runs lightweight `Vec2`, `RandomArray`, `SpriteDefinition`, and ECS
+  component-pool suites.
 
 ## Highest Priority
 
@@ -80,20 +84,20 @@ Why now:
 - You can verify backend changes against the SDL reference path.
 - It makes OpenGL regressions easier to isolate.
 
-### 3. Enable Tests
+### 3. Expand Tests
 
 Current state:
 
-- `tests/test_math.cpp` is fully commented out.
-- `CMakeLists.txt` does not call `enable_testing()`.
-- There is no test target.
+- `tests/vec2/test_vec2.cpp` has dependency-free `Vec2` coverage.
+- CTest also covers deterministic `RandomArray` behavior and `SpriteDefinition`
+  frame calculations, plus ECS/component-pool lifecycle behavior.
 
 Recommended work:
 
-- Add a test executable in CMake.
-- Use Catch2, doctest, or simple assert-based tests to start.
-- Add tests for `Vec2`, `ComponentPool`, `SpriteDefinition`, and pure
-  `LevelLoader` helpers.
+- Add tests for `ComponentPool`, `SpriteDefinition`, and pure `LevelLoader`
+  helpers.
+- Keep using assert-based tests until the test surface is large enough to
+  justify Catch2 or doctest.
 - Keep renderer tests as manual/smoke tests for now unless you add an offscreen
   path later.
 
@@ -104,20 +108,18 @@ Why now:
 
 ## Important Setup Work
 
-### 4. Add CMake Presets
+### 4. Keep CMake Presets As The Single Build Entry Point
 
 Current state:
 
-- VS Code tasks know about `build/Windows/Ninja/Debug` and
-  `build/Windows/Ninja/Release`.
-- README and scripts also use those paths.
-- There is no `CMakePresets.json`.
+- `CMakePresets.json` defines Windows/Linux debug and release presets.
+- VS Code tasks, README, and package script use presets.
 
 Recommended work:
 
-- Add presets for Windows Debug/Release Ninja.
-- Add Linux Debug/Release presets if Linux remains supported.
-- Point README, VS Code tasks, and package script at the presets.
+- Keep future build options in `CMakePresets.json`.
+- Avoid adding duplicate configure/build argument lists to VS Code tasks or
+  scripts.
 
 Why now:
 
@@ -312,11 +314,10 @@ Recommended work:
 
 ## Suggested Order
 
-1. Add CMake presets and enable a basic test target.
-2. Add configurable render-driver selection.
-3. Implement world-space render commands and OpenGL world projection.
-4. Verify SDL/OpenGL visual parity.
-5. Clean release packaging.
-6. Split CMake targets into engine and game inside this repo.
-7. Move audio and level loading to cleaner modules.
-8. Only then consider a physical engine/game repo split.
+1. Add configurable render-driver selection.
+2. Implement world-space render commands and OpenGL world projection.
+3. Verify SDL/OpenGL visual parity.
+4. Clean release packaging.
+5. Split CMake targets into engine and game inside this repo.
+6. Move audio and level loading to cleaner modules.
+7. Only then consider a physical engine/game repo split.

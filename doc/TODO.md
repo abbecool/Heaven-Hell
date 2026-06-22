@@ -31,7 +31,8 @@ see [BackendSetupRoadmap.md](BackendSetupRoadmap.md).
 - [ ] Make render driver selection configurable instead of hard-coding OpenGL
   in `Game.hpp`.
 - [ ] Split reusable engine code from Heaven-Hell-specific game code.
-- [ ] Enable tests in CMake and revive `tests/test_math.cpp`.
+- [x] Enable CTest and add dependency-free coverage for `Vec2`, `RandomArray`,
+  `SpriteDefinition`, ECS, and `ComponentPool`.
 - [ ] Add compile warnings to CMake.
 - [ ] Add a `CMakePresets.json` so VS Code, manual builds, and packaging use
   the same build directories.

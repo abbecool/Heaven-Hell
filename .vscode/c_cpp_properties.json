@@ -15,7 +15,7 @@
       ],
       "compilerPath": "/usr/bin/g++",
       "cppStandard": "c++20",
-      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+      "compileCommands": "${workspaceFolder}/build/Debug/compile_commands.json",
       "intelliSenseMode": "linux-gcc-x64"
     },
     {
@@ -28,7 +28,7 @@
       ],
       "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
       "cppStandard": "c++20",
-      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+      "compileCommands": "${workspaceFolder}/build/Windows/Ninja/Debug/compile_commands.json",
       "intelliSenseMode": "windows-gcc-x64"
     }
   ],
