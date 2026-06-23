@@ -291,8 +291,8 @@ Recommended work:
 
 ## Suggested Order
 
-1. Add configurable render-driver selection.
-2. Verify SDL/OpenGL visual parity using the world-space rendering path.
+1. DONE. Add configurable render-driver selection.
+2. DONE. Verify SDL/OpenGL visual parity using the world-space rendering path.
 3. Clean release packaging.
 4. Split CMake targets into engine and game inside this repo.
 5. Move audio and level loading to cleaner modules.

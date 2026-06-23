@@ -5,37 +5,12 @@ see [BackendSetupRoadmap.md](BackendSetupRoadmap.md).
 
 ## Code Quality And Backend Status
 
-### Completed Refactors
-
-- [x] Move SDL window/lifetime/input ownership into `SDLPlatform`.
-- [x] Keep `RenderBackend` renderer-neutral instead of exposing
-  `SDL_Renderer*`.
-- [x] Move SDL texture/font ownership into `SDLRenderBackend`.
-- [x] Make `Assets` load render resources through `RenderBackend`.
-- [x] Replace the old `Animation` class with `SpriteDefinition`, `CSprite`,
-  and `CAnimation` data.
-- [x] Replace render-facing `SDL_Color` usage in ECS components with `Color`.
-- [x] Remove the unused legacy `SDL_Sprite` files.
-- [x] Add an OpenGL backend that can render sprites, rectangles, and text.
-- [x] Replace project-owned `NULL` usage with `nullptr` where applicable.
-- [x] Replace hard exits in asset loading with exceptions.
-- [x] Refactor collision handling into smaller helpers in
-  `CollisionManager.cpp`.
-
 ### Still Worth Doing Before Big Feature Pushes
 
-- [ ] Move world camera projection into the render backend, especially for
-  OpenGL.
-- [ ] Add explicit world-space render commands or render passes so HUD/UI stays
-  screen-space and world entities use camera-space consistently.
 - [ ] Make render driver selection configurable instead of hard-coding OpenGL
   in `Game.hpp`.
 - [ ] Split reusable engine code from Heaven-Hell-specific game code.
-- [x] Enable CTest and add dependency-free coverage for `Vec2`, `RandomArray`,
-  `SpriteDefinition`, ECS, and `ComponentPool`.
 - [ ] Add compile warnings to CMake.
-- [ ] Add a `CMakePresets.json` so VS Code, manual builds, and packaging use
-  the same build directories.
 - [ ] Improve release packaging so source art files and unused/old assets are
   not copied into player builds unless intentionally wanted.
 - [ ] Move audio resource ownership out of `SDLPlatform` into a small audio
@@ -65,7 +40,6 @@ see [BackendSetupRoadmap.md](BackendSetupRoadmap.md).
 - Give rooters and goblins different attacks.
 - Let goblins use normal melee attacks.
 - Let rooters throw sticks that regenerate after they run out.
-- Let the player pick up and swing a sword for melee damage.
 - Use transform angle/render angle for sword swing placement.
 
 ### Medium Priority

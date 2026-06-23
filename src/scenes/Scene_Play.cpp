@@ -289,8 +289,8 @@ void Scene_Play::update()
     if (!m_pause) 
     {
         sLoader();
-        sAttack();
         sAI();
+        sAttack();
         sMovement();
         sStatus();
         sCollision();
