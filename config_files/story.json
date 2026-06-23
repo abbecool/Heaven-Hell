@@ -9,7 +9,7 @@
       },
       "reaction": {
         "event_type": "EntitySpawned",
-        "subject": "copper_staff",
+        "subject": "staff",
         "position": {"x": 353, "y": 61}
       }
     },
@@ -18,7 +18,7 @@
       "description": "Find the staff.",
       "trigger": {
         "event_type": "ItemPickedUp",
-        "subject": "copper_staff",
+        "subject": "staff",
         "position": {"x": 0, "y": 0}
       }
     },

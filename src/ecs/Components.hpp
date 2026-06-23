@@ -211,11 +211,6 @@ struct CInteractionBox : public CBox
         : CBox(j, {0, 0, 255, 255}) {} 
 };
 
-struct CImmovable
-{
-    CImmovable(){}    
-};
-
 struct CWater {
     bool isDeep = false;  // Differentiates deep vs shallow water
     CWater() {}
@@ -400,27 +395,6 @@ struct CPossesLevel
         else if (j.contains("level")) {
             level = j["level"];
         }
-    }
-};
-
-struct CFollow
-{
-    std::string target;
-    CFollow() {}
-    CFollow(json j){
-        target = j.get<std::string>();
-    }
-};
-
-struct CPath
-{
-    std::vector<Vec2> path;
-    int index = 0;
-    CPath() {}
-    CPath( std::vector<Vec2> p)
-        : path(p){}
-    CPath(json j){
-        path = j.get<std::vector<Vec2>>();
     }
 };
 

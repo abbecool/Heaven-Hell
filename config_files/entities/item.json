@@ -1,0 +1,22 @@
+{
+    "item": {
+        "components": {
+            "CTransform": {
+                "pos": "spawn_position"
+            },
+            "CName": "$item.name",
+            "CItem": {
+                "itemID": "$item.id"
+            },
+            "CInteractionBox": {
+                "size": {"x": 8, "y": 8},
+                "layer": "LOOT_LAYER",
+                "mask": ["PLAYER_LAYER"]
+            },
+            "CAnimation": {
+                "animation": "$item.iconPath",
+                "layer": 6
+            }
+        }
+    }
+}

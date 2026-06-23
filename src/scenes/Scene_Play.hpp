@@ -59,20 +59,9 @@ class Scene_Play : public Scene
     void saveGame(const std::string& filename);
     
     EntityID spawnPlayer();
-    EntityID spawnWeapon(Vec2 pos, std::string weaponName = "staff");
-    EntityID spawnSword(Vec2 pos, std::string weaponName = "sword");
-    EntityID spawnEmblem(Vec2 pos, const size_t layer);
-    EntityID spawnCoin(Vec2 pos, const size_t layer);
-    EntityID spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer);
-    EntityID spawnDecoration(
-        Vec2 pos, 
-        Vec2 collisionBox, 
-        const size_t layer, 
-        std::string animation
-    );
+    EntityID spawnShadow(EntityID parentID);
     
     EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
-    EntityID spawnCampfire  (const Vec2 pos, int layer);
     EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
     std::vector<EntityID> spawnDualTiles(
         const Vec2 pos, 

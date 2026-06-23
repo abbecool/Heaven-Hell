@@ -13,7 +13,6 @@
                 "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
             },
             "CState": {"state": "Nan"},
-            "CFollow": "Nan",
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

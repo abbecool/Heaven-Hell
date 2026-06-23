@@ -2,7 +2,6 @@
 
 #include "ecs/Components.hpp"
 #include "ComponentPool.hpp"
-// #include "ComponentFactory.hpp"
 
 #include <iostream>
 #include <unordered_map>

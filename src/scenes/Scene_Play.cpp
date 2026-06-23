@@ -564,7 +564,11 @@ void Scene_Play::sStatus() {
             m_restart = true;
             continue;
         }
-        spawnCoin(transform.pos, 6);
+        const Vec2 gridPos{
+            std::floor(transform.pos.x / m_gridSize.x),
+            std::floor(transform.pos.y / m_gridSize.y)
+        };
+        Spawn("coin", gridPos);
         m_ECS.queueRemoveEntity(entityID);
         m_ECS.addComponent<CAudio>(entityID, "enemy_death");
         Emit(Event{EventType::EntityKilled, m_ECS.getComponent<CName>(entityID).name});
@@ -768,8 +772,24 @@ void Scene_Play::sAudio()
 
 EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
 {
-    std::ifstream file("config_files/mobs/"+name+".json");
-    if (!file){
+    const Item* item = m_inventoryManager.findItem(name);
+    std::ifstream file;
+    std::string definitionName = name;
+
+    for (const std::string& directory : {"config_files/mobs", "config_files/entities"}) {
+        file.open(directory + "/" + name + ".json");
+        if (file.is_open()) {
+            break;
+        }
+        file.clear();
+    }
+
+    if (!file.is_open() && item) {
+        file.open("config_files/entities/item.json");
+        definitionName = "item";
+    }
+
+    if (!file.is_open()) {
         std::cerr << "Could not load entity spawn json file for: " << name << std::endl;
         return -1;
     }
@@ -777,16 +797,44 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     json j;
     file >> j;
     file.close();
-    json c = j[name]["components"];
+    if (!j.contains(definitionName) || !j[definitionName].contains("components")) {
+        std::cerr << "Invalid entity spawn json file for: " << name << std::endl;
+        return -1;
+    }
+
+    const json& definition = j[definitionName];
+    json c = definition["components"];
+    if (item && definitionName == "item") {
+        c["CName"] = item->name;
+        c["CItem"]["itemID"] = item->id;
+        c["CAnimation"]["animation"] = item->iconPath;
+    }
+
+    bool hasEvent = false;
+    Event event;
+    if (definition.contains("event")) {
+        const json& eventConfig = definition["event"];
+        if (!eventConfig.is_object() || !eventConfig.contains("type") || !eventConfig.contains("subject")) {
+            std::cerr << "Invalid event directive for: " << name << std::endl;
+            return -1;
+        }
+
+        try {
+            event = Event{
+                m_storyManager.getEventTypeFromString(eventConfig.at("type").get<std::string>()),
+                eventConfig.at("subject").get<std::string>()
+            };
+            hasEvent = true;
+        }
+        catch (const std::exception& exception) {
+            std::cerr << "Invalid event directive for " << name << ": " << exception.what() << std::endl;
+            return -1;
+        }
+    }
     
     EntityID id = m_ECS.addEntity();
     
-    m_ECS.addComponent<CName>(id, name);
-    if (c.contains("CTransform")){
-
-        c["CTransform"]["pos"] = {{"x", pos.x}, {"y", pos.y}};
-        m_ECS.addComponent<CTransform>(id, c["CTransform"]);
-    }
+    m_ECS.addComponent<CName>(id, c.value("CName", name));
     if (c.contains("CAnimation")){
         addVisual(
             id,
@@ -794,9 +842,12 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
             c["CAnimation"]["layer"]
         );
     }
-    // if (c.contains("CFollow")){
-    //     m_ECS.addComponent<CFollow>(id, c["CFollow"]);
-    // }
+    if (c.contains("CTransform")){
+
+        pos = gridToMidPixel(pos, id);
+        c["CTransform"]["pos"] = {{"x", pos.x}, {"y", pos.y}};
+        m_ECS.addComponent<CTransform>(id, c["CTransform"]);
+    }
     if (c.contains("CPhysicsBody")) {
         m_ECS.addComponent<CPhysicsBody>(id, c["CPhysicsBody"]);
         m_ECS.addComponent<CVelocity>(id);
@@ -804,15 +855,15 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     if (c.contains("CInteractionBox")){
         m_ECS.addComponent<CInteractionBox>(id, c["CInteractionBox"]);
     }
+    if (c.contains("CItem")) {
+        m_ECS.addComponent<CItem>(id, c["CItem"].at("itemID").get<int>());
+    }
     if (c.contains("CCollisionBox")){
         m_ECS.addComponent<CCollisionBox>(id, c["CCollisionBox"]);
     }
     if (c.contains("CState")){
         m_ECS.addComponent<CState>(id);
     }
-    // if (c.contains("CPath")){
-    //     m_ECS.addComponent<CPath>(id, c["CPath"]);
-    // }
     if (c.contains("CHealth")){
         m_ECS.addComponent<CHealth>(id, c["CHealth"]);
     }
@@ -833,39 +884,18 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         // Record spawn position for patrol anchor
         m_ECS.getComponent<CAIAgent>(id).spawnPos = pos;
     }
+    if (hasEvent) {
+        m_ECS.addComponent<CEvent>(id, event);
+    }
+    if (m_ECS.hasComponent<CTransform>(id) && m_ECS.hasComponent<CSprite>(id)) {
+        spawnShadow(id);
+    }
     return id;
 }
 
 EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
 {
-    pos = pos*m_gridSize;
-    if (name == "copper_staff"){
-        return spawnWeapon(pos, name);
-    }
-    if (name == "emblem"){
-        return spawnEmblem(pos, 6);
-    }
-    if (name == "coin"){
-        return spawnCoin(pos, 6);
-    }
-    if (name == "tree"){
-        return spawnDecoration(pos, Vec2 {6, 8}, 6, "tree");
-    }
-    if (name == "house"){
-        EntityID id = spawnDecoration(pos, Vec2 {56, 44}, 6, name);
-        m_ECS.addComponent<CEvent>(id, Event{EventType::EnteredArea, name});
-        m_ECS.addComponent<CInteractionBox>(id, Vec2{16, 64}, AREA_LAYER, PLAYER_LAYER);
-        return id;
-    }
-    if (name == "campfire"){
-        return spawnCampfire(pos, 6);
-    }
-    if (name == "sword"){
-        return spawnSword(pos);
-    }
-    auto i = SpawnFromJSON(name, pos);
-    // std::cout << "Spawned entity: " << name << " with ID: " << i << std::endl;
-    return i;
+    return SpawnFromJSON(name, pos * m_gridSize);
 }
 
 EntityID Scene_Play::spawnPlayer()
@@ -909,7 +939,7 @@ EntityID Scene_Play::spawnPlayer()
     m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {4, 4}, PLAYER_LAYER, interactionMask);
     m_ECS.addComponent<CName>(entityID, "demon");
     addVisual(entityID, "demon-sheet", layer);
-    spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
+    spawnShadow(entityID);
     m_ECS.addComponent<CInput>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
     m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
@@ -930,65 +960,24 @@ EntityID Scene_Play::spawnPlayer()
     return entityID;
 }
 
-EntityID Scene_Play::spawnShadow(EntityID parentID, Vec2 relPos, int size, int layer){
+EntityID Scene_Play::spawnShadow(EntityID parentID){
+    const CTransform& parentTransform = m_ECS.getComponent<CTransform>(parentID);
+    const CSprite& parentSprite = m_ECS.getComponent<CSprite>(parentID);
+    const SpriteDefinition& shadowSprite = getSprite("shadow");
+
+    const Vec2 parentSize = parentSprite.size() * parentTransform.scale;
+    const Vec2 shadowSize = shadowSprite.frameSize();
+    const float shadowScale = parentSize.x / shadowSize.x;
+    const Vec2 scaledShadowSize = shadowSize * shadowScale;
+    const Vec2 relativePos{0, parentSize.y / 2.0f - scaledShadowSize.y / 2.0f};
+
     auto shadowID = m_ECS.addEntity();
     m_ECS.addComponent<CTransform>(shadowID);
-    m_ECS.getComponent<CTransform>(shadowID).scale *= size;
-    m_ECS.addComponent<CParent>(shadowID, parentID, relPos);
-    addSprite(shadowID, "shadow", layer);
+    m_ECS.getComponent<CTransform>(shadowID).scale = {shadowScale, shadowScale};
+    m_ECS.addComponent<CParent>(shadowID, parentID, relativePos);
+    addSprite(shadowID, "shadow", parentSprite.layer - 1);
     m_ECS.addComponent<CChild>(parentID, shadowID);
     return shadowID;
-    // return 0;
-}
-
-EntityID Scene_Play::spawnWeapon(Vec2 pos, std::string weaponName){
-    auto entityID = m_ECS.addEntity();
-    int layer = 7;
-    Vec2 midGrid = gridToMidPixel(pos, entityID);
-    m_ECS.addComponent<CTransform>(entityID, midGrid);
-    m_ECS.addComponent<CVelocity>(entityID);
-    m_ECS.addComponent<CItem>(entityID, 1);
-    
-    CollisionMask interactionMask = PLAYER_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
-    m_ECS.addComponent<CName>(entityID, weaponName);
-    addSprite(entityID, "staff", layer);
-    m_ECS.addComponent<CWeapon>(entityID);
-    spawnShadow(entityID, Vec2{0,0}, 1, layer-1);
-    return entityID;
-}
-
-EntityID Scene_Play::spawnSword(Vec2 pos, std::string weaponName){
-    auto id = m_ECS.addEntity();
-    int layer = 7;
-    Vec2 midGrid = gridToMidPixel(pos, id);
-    m_ECS.addComponent<CTransform>(id, midGrid);
-    m_ECS.addComponent<CVelocity>(id);
-    m_ECS.addComponent<CItem>(id, 2);
-    
-    CollisionMask interactionMask = PLAYER_LAYER;
-    m_ECS.addComponent<CInteractionBox>(id, Vec2 {6, 6}, LOOT_LAYER, interactionMask);
-    
-    m_ECS.addComponent<CName>(id, "sword");
-    addSprite(id, "sword", layer);
-    // m_ECS.addComponent<CDamage>(id, 1, 180, std::unordered_set<std::string> {"Fire", "Explosive"});
-    m_ECS.addComponent<CWeapon>(id);
-    spawnShadow(id, Vec2{0,0}, 1, layer-1);
-    return id;
-}
-
-EntityID Scene_Play::spawnDecoration(Vec2 pos, Vec2 collisionBox, const size_t layer, std::string animationName){
-    EntityID id = m_ECS.addEntity();
-    
-    Vec2 midGrid = gridToMidPixel(pos, id);
-    m_ECS.addComponent<CTransform>(id, midGrid);
-    addSprite(id, animationName, layer);
-    CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
-    m_ECS.addComponent<CCollisionBox>(id, collisionBox, OBSTACLE_LAYER, collisionMask);
-    m_ECS.addComponent<CName>(id, animationName);
-    m_ECS.addComponent<CImmovable>(id);
-    spawnShadow(id, Vec2{0,-4}, 3, layer-1);
-    return id;
 }
 
 EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
@@ -997,17 +986,6 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0.5f,0.5f});
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
     m_ECS.addComponent<CCollisionBox>(entity, Vec2 {16, 16}, OBSTACLE_LAYER, collisionMask);
-
-    m_ECS.addComponent<CImmovable>(entity); // remove when new collision system is implemented
-    return entity;
-}
-
-EntityID Scene_Play::spawnCampfire(const Vec2 pos, int layer)
-{
-    auto entity = m_ECS.addEntity();
-    addVisual(entity, "campfire", layer);
-    Vec2 midGrid = gridToMidPixel(pos, entity);
-    m_ECS.addComponent<CTransform>(entity, midGrid);
     return entity;
 }
 
@@ -1018,31 +996,6 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
     m_ECS.addComponent<CTransform>(entity, midGrid);
     m_ECS.addComponent<CWater>(entity, CWater{false});
     m_ECS.addComponent<CCollisionBox>(entity, Vec2{16, 16});
-    return entity;
-}
-
-EntityID Scene_Play::spawnEmblem(Vec2 pos, const size_t layer)
-{
-    auto entity = m_ECS.addEntity();
-    m_ECS.addComponent<CName>(entity, "emblem");
-    addVisual(entity, "emblem", layer);
-    m_ECS.addComponent<CTransform>(entity, pos);
-    m_ECS.addComponent<CItem>(entity, 0); // TODO: fix correct item here
-    CollisionMask interactionMask = PLAYER_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8, 8}, LOOT_LAYER, interactionMask);
-    spawnShadow(entity, Vec2{0,0}, 1, layer-1);
-    return entity;
-}
-
-EntityID Scene_Play::spawnCoin(Vec2 pos, const size_t layer)
-{
-    auto entity = m_ECS.addEntity();
-    addVisual(entity, "coin", layer);
-    m_ECS.addComponent<CTransform>(entity, pos);
-    m_ECS.addComponent<CItem>(entity, 0);
-    CollisionMask interactionMask = PLAYER_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entity, Vec2 {8, 8}, LOOT_LAYER, interactionMask);
-    spawnShadow(entity, Vec2{0,0}, 1, layer-1);
     return entity;
 }
 
@@ -1058,7 +1011,6 @@ EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
     m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
     m_ECS.addComponent<CLifespan>(id, 60);
-    // spawnShadow(id, Vec2{0,0}, 1, layer-1);
     return id;
 }
 EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction, CollisionMask layer, CollisionMask mask)
@@ -1204,7 +1156,7 @@ bool Scene_Play::hasLineOfSight(Vec2 origin, Vec2 target)
     auto& transformPool  = m_ECS.getComponentPool<CTransform>();
     auto& collisionPool  = m_ECS.getComponentPool<CCollisionBox>();
 
-    for (EntityID obstacle : m_ECS.View<CCollisionBox, CTransform, CImmovable>()) {
+    for (EntityID obstacle : m_ECS.View<CCollisionBox, CTransform>()) {
         auto& box = collisionPool.getComponent(obstacle);
         if ((box.layer & OBSTACLE_LAYER) == 0) continue;   // only solid obstacles
 

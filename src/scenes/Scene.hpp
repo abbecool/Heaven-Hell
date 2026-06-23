@@ -6,7 +6,6 @@
 #include "core/Game.hpp"
 #include "physics/Camera.hpp"
 #include "physics/Physics.hpp"
-#include "ecs/ComponentFactory.hpp"
 #include "core/InputCode.hpp"
 
 #include <cstddef>

@@ -1,6 +1,7 @@
 #pragma once
 #include "ecs/Components.hpp"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -61,16 +62,25 @@ class InventoryManager
     public:
     InventoryManager(){}
     InventoryManager(const std::string& path) {
-        std::vector<std::string> names = {"coin", "staff", "sword"};
-        for (std::string name: names){
-            std::ifstream file("config_files/items/"+name+".json");
-            if (!file) {
-                throw std::runtime_error("Could not load item file: config_files/items/" + name + ".json");
+        for (const auto& entry : std::filesystem::directory_iterator(path)) {
+            if (!entry.is_regular_file() || entry.path().extension() != ".json") {
+                continue;
             }
+
+            std::ifstream file(entry.path());
+            if (!file) {
+                throw std::runtime_error("Could not load item file: " + entry.path().string());
+            }
+
             json j;
             file >> j;
-            file.close();
-            Item item(j[name]);
+
+            const std::string itemName = entry.path().stem().string();
+            if (!j.contains(itemName)) {
+                throw std::runtime_error("Item file is missing its '" + itemName + "' definition: " + entry.path().string());
+            }
+
+            Item item(j[itemName]);
             addItem(item);
         }
     }
@@ -81,6 +91,15 @@ class InventoryManager
     
     const Item& getItem(int id) const {
         return items.at(id);
+    }
+
+    const Item* findItem(const std::string& name) const {
+        for (const auto& [id, item] : items) {
+            if (item.name == name) {
+                return &item;
+            }
+        }
+        return nullptr;
     }
     
 

@@ -12,7 +12,7 @@ float dot(const Vec2& a, const Vec2& b)
 
 float inverseMass(Entity& entity)
 {
-    if (!entity.hasComponent<CPhysicsBody>() || entity.hasComponent<CImmovable>()) {
+    if (!entity.hasComponent<CPhysicsBody>()) {
         return 0.0f;
     }
     return 1.0f / entity.getComponent<CPhysicsBody>().mass;
