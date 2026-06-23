@@ -18,14 +18,14 @@ class Physics
         void clearQuadtree();
         void createQuadtree(Vec2 pos, Vec2 size);
         void insertQuadtree(Entity e);
-        void renderQuadtree(RenderBackend& renderer, int zoom, Vec2 screenCenter, Vec2 camPos);
+        void renderQuadtree(RenderBackend& renderer);
         int countQuadtree(int count);
         std::vector<std::shared_ptr<Quadtree>> createQuadtreeVector();
 
         void clearInteractionQuadtree();
         void createInteractionQuadtree(Vec2 pos, Vec2 size);
         void insertInteractionQuadtree(Entity e);
-        void renderInteractionQuadtree(RenderBackend& renderer, int zoom, Vec2 screenCenter, Vec2 camPos);
+        void renderInteractionQuadtree(RenderBackend& renderer);
         int countInteractionQuadtree(int count);
         std::vector<std::shared_ptr<Quadtree>> createInteractionQuadtreeVector();
         

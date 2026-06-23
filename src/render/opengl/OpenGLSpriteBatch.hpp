@@ -5,6 +5,12 @@
 #include <array>
 #include <vector>
 
+enum class OpenGLRenderSpace
+{
+    Screen,
+    World
+};
+
 class OpenGLSpriteBatch
 {
     static constexpr int MaxSpritesPerBatch = 8192;
@@ -29,12 +35,17 @@ class OpenGLSpriteBatch
     unsigned int m_instanceBuffer = 0;
     unsigned int m_whiteTexture = 0;
     unsigned int m_currentTexture = 0;
-    std::array<float, 16> m_projection = {
+    int m_screenWidth = 1;
+    int m_screenHeight = 1;
+    RenderView m_worldView;
+    std::array<float, 16> m_screenProjection = {
         2.0f, 0.0f, 0.0f, 0.0f,
         0.0f, -2.0f, 0.0f, 0.0f,
         0.0f, 0.0f, -1.0f, 0.0f,
         -1.0f, 1.0f, 0.0f, 1.0f
     };
+    std::array<float, 16> m_worldProjection = m_screenProjection;
+    OpenGLRenderSpace m_currentSpace = OpenGLRenderSpace::Screen;
     int m_batchCount = 0;
     std::vector<SpriteInstance> m_instances;
 
@@ -42,6 +53,7 @@ public:
     void create();
     void destroy();
     void setScreenSize(int width, int height);
+    void setWorldView(const RenderView& view);
     void beginFrame();
     void flush();
 
@@ -52,5 +64,6 @@ public:
         const RectF& src,
         const RectF& dst,
         float angle,
-        Color color);
+        Color color,
+        OpenGLRenderSpace renderSpace);
 };

@@ -91,6 +91,47 @@ void Scene::drawSprite(const SpriteDefinition& sprite, const RectF& dst, float a
     });
 }
 
+void Scene::drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle)
+{
+    if (!sprite.visible) {
+        return;
+    }
+    m_game->render().drawWorldSprite(WorldSpriteDrawCommand{
+        sprite.texture,
+        sprite.src,
+        dst,
+        angle
+    });
+}
+
+void Scene::drawWorldSprite(const SpriteDefinition& sprite, const RectF& dst, float angle)
+{
+    m_game->render().drawWorldSprite(WorldSpriteDrawCommand{
+        sprite.texture(),
+        sprite.firstFrame(),
+        dst,
+        angle
+    });
+}
+
+RenderView Scene::worldRenderView()
+{
+    const Vec2 screenCenter = Vec2{
+        static_cast<float>(width()),
+        static_cast<float>(height())
+    } / 2;
+    const int totalZoom = m_game->getScale() - m_camera.getCameraZoom();
+    const Vec2 screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
+
+    return RenderView{
+        m_camera.position.x,
+        m_camera.position.y,
+        static_cast<float>(totalZoom),
+        screenCenterZoomed.x,
+        screenCenterZoomed.y
+    };
+}
+
 void Scene::updateAnimations()
 {
     auto view = m_ECS.View<CAnimation, CSprite>();
@@ -108,14 +149,10 @@ void Scene::updateAnimations()
 }
 
 void Scene::sRenderBasic() {
+    m_game->render().setWorldView(worldRenderView());
     if (!m_drawTextures){
         return;
     }
-    Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
-    int windowScale = m_game->getScale();
-    int totalZoom = windowScale - m_camera.getCameraZoom(); // Combined zoom level with screen resolution and camera zoom
-    Vec2 screenCenterZoomed = screenCenter * m_camera.getCameraZoom(); // Tranpose the screen center to the zoomed screen center
-    // Above code does not have to be calculated every frame
 
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& spritePool = m_ECS.getComponentPool<CSprite>();
@@ -128,18 +165,14 @@ void Scene::sRenderBasic() {
             auto& transform = transformPool.getComponent(e);
             auto& sprite = spritePool.getComponent(e);
 
-            // Adjust the entity's position based on the camera position
-            Vec2 adjustedPosition = (transform.pos - m_camera.position)*totalZoom 
-                                        + screenCenterZoomed;
-
-            Vec2 destSize = sprite.size() * transform.scale * totalZoom;
+            const Vec2 destSize = sprite.size() * transform.scale;
             RectF dst{
-                adjustedPosition.x - destSize.x / 2,
-                adjustedPosition.y - destSize.y / 2,
+                transform.pos.x - destSize.x / 2,
+                transform.pos.y - destSize.y / 2,
                 destSize.x,
                 destSize.y
             };
-            drawSprite(sprite, dst, transform.angle);
+            drawWorldSprite(sprite, dst, transform.angle);
         }
     }
 
@@ -148,17 +181,15 @@ void Scene::sRenderBasic() {
     for (const auto& e : dialogView){
         CText& dialog = dialogPool.getComponent(e);
         CTransform& transform = transformPool.getComponent(e);
-        Vec2 pos = (transform.pos - m_camera.position- dialog.size/2)*totalZoom 
-                    + screenCenterZoomed;
                     
-        m_game->render().drawText(TextDrawCommand{
+        m_game->render().drawWorldText(WorldTextDrawCommand{
             dialog.text,
             dialog.font_name,
             RectF{
-                pos.x,
-                pos.y,
-                dialog.size.x * totalZoom,
-                dialog.size.y * totalZoom
+                transform.pos.x - dialog.size.x / 2,
+                transform.pos.y - dialog.size.y / 2,
+                dialog.size.x,
+                dialog.size.y
             },
             {255, 255, 255, 255}
         });
@@ -168,36 +199,33 @@ void Scene::sRenderBasic() {
     {
         auto viewCollisions = m_ECS.View<CCollisionBox, CTransform>();
         auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
-        renderBox<CCollisionBox>(viewCollisions, transformPool, collisionPool, screenCenterZoomed, totalZoom);
+        renderBox<CCollisionBox>(viewCollisions, transformPool, collisionPool);
     }
     if (m_drawInteraction)
     {
         auto viewInteractions = m_ECS.View<CInteractionBox, CTransform>();
         auto& interactionPool = m_ECS.getComponentPool<CInteractionBox>();
-        renderBox<CInteractionBox>(viewInteractions, transformPool, interactionPool, screenCenterZoomed, totalZoom);
+        renderBox<CInteractionBox>(viewInteractions, transformPool, interactionPool);
     }
 }
 
 template<typename BoxType>
 void Scene::renderBox(
-    std::vector<EntityID> view, 
-    ComponentPool<CTransform> transformPool, 
-    ComponentPool<BoxType> boxPool, 
-    const Vec2& screenCenterZoomed, 
-    int totalZoom
+    const std::vector<EntityID>& view,
+    ComponentPool<CTransform>& transformPool,
+    ComponentPool<BoxType>& boxPool
 ) {
     for (auto e : view)
     {   
         auto& transform = transformPool.getComponent(e);
         auto& box = boxPool.getComponent(e);
-        // Adjust the box box position based on the camera position
         RectF boxRect{
-            (transform.pos.x - box.halfSize.x - m_camera.position.x) * totalZoom + screenCenterZoomed.x,
-            (transform.pos.y - box.halfSize.y - m_camera.position.y) * totalZoom + screenCenterZoomed.y,
-            box.size.x * totalZoom,
-            box.size.y * totalZoom
+            transform.pos.x - box.halfSize.x,
+            transform.pos.y - box.halfSize.y,
+            box.size.x,
+            box.size.y
         };
-        m_game->render().drawRect(boxRect, box.color);
+        m_game->render().drawWorldRect(boxRect, box.color);
     }
 }
 

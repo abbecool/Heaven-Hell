@@ -48,7 +48,7 @@ class BaseCollisionManager
     
     template <typename T>
     void newQuadtree(Vec2 pos, Vec2 size);
-    void renderQuadtree(RenderBackend& renderer, int zoom, Vec2 screenCenter, Vec2 camPos);
+    void renderQuadtree(RenderBackend& renderer);
 };
 
 class CollisionManager : public BaseCollisionManager

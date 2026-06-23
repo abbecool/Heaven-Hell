@@ -171,4 +171,17 @@ if (BUILD_TESTING)
         copy_and_view
         queued_removal
     )
+
+    add_executable(render_view_tests
+        tests/render/test_render_view.cpp
+    )
+    target_include_directories(render_view_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/tests
+    )
+    add_named_tests(render_view_tests render_view
+        point_conversion
+        rect_conversion
+        camera_zoom_origin
+    )
 endif()

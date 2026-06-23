@@ -30,39 +30,15 @@ notes in `context.md`.
 - CMake presets and starter tests:
   `CMakePresets.json` defines Windows/Linux debug and release presets, and
   CTest runs lightweight `Vec2`, `RandomArray`, `SpriteDefinition`, and ECS
-  component-pool suites.
+  component-pool suites plus pure `RenderView` transform coverage.
+- World-space rendering:
+  `RenderView` and explicit world draw commands keep camera projection inside
+  the render backends. SDL performs the transform on the CPU and OpenGL applies
+  it through a world projection matrix. See [WorldSpaceRendering.md](WorldSpaceRendering.md).
 
 ## Highest Priority
 
-### 1. Move Camera Projection Into The Renderer
-
-This is the most important render/backend item.
-
-Current state:
-
-- `Scene::sRenderBasic()` converts world positions into screen rectangles.
-- `Scene_Play::sRender()` also does camera math for enemy hearts and debug
-  rendering.
-- `OpenGLSpriteBatch` only has a screen-space projection.
-
-Recommended work:
-
-- Add `RenderView` to `RenderTypes.hpp`.
-- Add world-space draw methods to `RenderBackend`.
-- Let SDL convert world commands to screen commands internally.
-- Let OpenGL use a world projection matrix.
-- Keep HUD, menus, inventory, pause, game over, finish, and FPS text
-  screen-space.
-
-Why now:
-
-- It removes duplicated camera math.
-- It makes OpenGL the real source of truth for 2D world projection.
-- It gives you the right shape for future 3D rendering.
-
-Detailed plan: [WorldSpaceRendering.md](WorldSpaceRendering.md).
-
-### 2. Make Render Driver Selection Configurable
+### 1. Make Render Driver Selection Configurable
 
 Current state:
 
@@ -84,13 +60,14 @@ Why now:
 - You can verify backend changes against the SDL reference path.
 - It makes OpenGL regressions easier to isolate.
 
-### 3. Expand Tests
+### 2. Expand Tests
 
 Current state:
 
 - `tests/vec2/test_vec2.cpp` has dependency-free `Vec2` coverage.
-- CTest also covers deterministic `RandomArray` behavior and `SpriteDefinition`
-  frame calculations, plus ECS/component-pool lifecycle behavior.
+- CTest also covers deterministic `RandomArray` behavior, `SpriteDefinition`
+  frame calculations, ECS/component-pool lifecycle behavior, and pure
+  `RenderView` world-to-screen conversion.
 
 Recommended work:
 
@@ -315,9 +292,8 @@ Recommended work:
 ## Suggested Order
 
 1. Add configurable render-driver selection.
-2. Implement world-space render commands and OpenGL world projection.
-3. Verify SDL/OpenGL visual parity.
-4. Clean release packaging.
-5. Split CMake targets into engine and game inside this repo.
-6. Move audio and level loading to cleaner modules.
-7. Only then consider a physical engine/game repo split.
+2. Verify SDL/OpenGL visual parity using the world-space rendering path.
+3. Clean release packaging.
+4. Split CMake targets into engine and game inside this repo.
+5. Move audio and level loading to cleaner modules.
+6. Only then consider a physical engine/game repo split.

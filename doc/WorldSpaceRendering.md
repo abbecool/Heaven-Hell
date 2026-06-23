@@ -1,304 +1,91 @@
-# Moving Camera Transform Into The Renderer
+# World-Space Rendering
 
-This document describes a planned refactor. It has not been implemented yet.
+World-space rendering is implemented. The renderer now owns conversion from
+world coordinates to display coordinates, while game code continues to own
+camera state.
 
-## Current State
+## Render Spaces
 
-World-space rendering is still converted to screen-space in scene code.
+- Screen space is for menus, HUD elements, inventory, pause overlays, and FPS
+  text. Existing `drawSprite`, `drawRect`, `fillRect`, and `drawText` methods
+  remain screen-space APIs.
+- World space is for entities, world dialog, collision/interaction debug
+  boxes, quadtree overlays, and enemy damage hearts. These use explicit
+  `drawWorld*` methods.
 
-`Scene::sRenderBasic()` currently computes:
-
-```text
-screen = (world - camera) * totalZoom + screenCenterZoomed
-```
-
-Then it submits ordinary screen-space `SpriteDrawCommand`, `TextDrawCommand`,
-and rectangle commands to `RenderBackend`.
-
-`Scene_Play::sRender()` also performs camera math for enemy damage hearts and
-quadtree debug rendering.
-
-The OpenGL renderer currently receives screen-space rectangles and applies only
-a screen-pixel orthographic projection in `OpenGLSpriteBatch`.
-
-## Goal
-
-Keep two kinds of rendering:
-
-- Screen-space rendering: HUD, FPS text, menus, inventory, pause overlays.
-- World-space rendering: level sprites, enemies, player, world dialog,
-  collision debug boxes, interaction boxes, and quadtree debug overlays.
-
-The renderer should not own the gameplay `Camera` object. Scene/game logic
-should still update camera position, zoom, shake, and pan. The renderer should
-receive a small view description and apply it consistently.
-
-## Proposed Render Types
-
-Add to `src/render/RenderTypes.hpp`:
-
-```cpp
-struct RenderView
-{
-    float cameraX = 0.0f;
-    float cameraY = 0.0f;
-    float scale = 1.0f;
-    float originX = 0.0f;
-    float originY = 0.0f;
-};
-```
-
-This preserves the current scene formula:
+`RenderView` describes the active world transform:
 
 ```text
 screen = (world - camera) * scale + origin
 ```
 
-Add world-space commands:
-
-```cpp
-struct WorldSpriteDrawCommand
-{
-    TextureHandle texture;
-    RectF src;
-    float centerX = 0.0f;
-    float centerY = 0.0f;
-    float width = 0.0f;
-    float height = 0.0f;
-    float angle = 0.0f;
-    Color color = {255, 255, 255, 255};
-};
-
-struct WorldTextDrawCommand
-{
-    std::string text;
-    std::string fontName;
-    RectF dst;
-    Color color = {255, 255, 255, 255};
-};
-```
-
-Use `RectF` directly for world rectangles. In world-space, `RectF::x/y` means
-world top-left and `RectF::w/h` means world size.
-
-## Proposed RenderBackend API
-
-Add to `src/render/RenderBackend.hpp`:
-
-```cpp
-virtual void setWorldView(const RenderView& view) = 0;
-virtual void drawWorldSprite(const WorldSpriteDrawCommand& command) = 0;
-virtual void drawWorldRect(const RectF& rect, Color color) = 0;
-virtual void fillWorldRect(const RectF& rect, Color color) = 0;
-virtual void drawWorldText(const WorldTextDrawCommand& command) = 0;
-```
-
-Both SDL and OpenGL backends must implement these before the project compiles.
-
-## SDL Implementation
-
-`SDLRenderBackend` can keep doing the world-to-screen math on the CPU.
-
-Add:
-
-```cpp
-RenderView m_worldView;
-```
-
-Helpers:
-
-```cpp
-float worldToScreenX(float x) const
-{
-    return (x - m_worldView.cameraX) * m_worldView.scale + m_worldView.originX;
-}
-
-float worldToScreenY(float y) const
-{
-    return (y - m_worldView.cameraY) * m_worldView.scale + m_worldView.originY;
-}
-
-RectF worldRectToScreen(const RectF& rect) const
-{
-    return RectF{
-        worldToScreenX(rect.x),
-        worldToScreenY(rect.y),
-        rect.w * m_worldView.scale,
-        rect.h * m_worldView.scale
-    };
-}
-```
-
-Then world methods can convert to screen-space and delegate to the existing
-screen-space methods.
-
-## OpenGL Implementation
-
-`OpenGLSpriteBatch` currently has a single `m_projection`. It should gain a
-screen projection and a world projection.
-
-Add a render-space enum:
-
-```cpp
-enum class OpenGLRenderSpace
-{
-    Screen,
-    World
-};
-```
-
-Then track:
-
-```cpp
-std::array<float, 16> m_screenProjection;
-std::array<float, 16> m_worldProjection;
-OpenGLRenderSpace m_currentSpace = OpenGLRenderSpace::Screen;
-```
-
-Flush the batch when either the texture or render space changes.
-
-## World Projection Matrix
-
-The existing screen projection maps screen pixels to clip space:
-
-```cpp
-std::array<float, 16> makeScreenProjection(float width, float height)
-{
-    return {
-        2.0f / width, 0.0f, 0.0f, 0.0f,
-        0.0f, -2.0f / height, 0.0f, 0.0f,
-        0.0f, 0.0f, -1.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 1.0f
-    };
-}
-```
-
-The world projection should include:
+It contains camera position, scale, and origin, plus pure helpers that convert
+world points and rectangles to screen space. The current scene preserves the
+previous zoom behavior exactly:
 
 ```text
-screenX = (worldX - cameraX) * scale + originX
-screenY = (worldY - cameraY) * scale + originY
+scale  = gameScale - cameraZoom
+origin = virtualScreenCenter * cameraZoom
 ```
 
-Matrix:
+## RenderBackend API
+
+`RenderBackend` exposes the following world-space operations:
 
 ```cpp
-std::array<float, 16> makeWorldProjection(
-    float width,
-    float height,
-    const RenderView& view)
-{
-    const float safeWidth = width > 0.0f ? width : 1.0f;
-    const float safeHeight = height > 0.0f ? height : 1.0f;
-    const float scale = view.scale;
-
-    return {
-        2.0f * scale / safeWidth, 0.0f, 0.0f, 0.0f,
-        0.0f, -2.0f * scale / safeHeight, 0.0f, 0.0f,
-        0.0f, 0.0f, -1.0f, 0.0f,
-        ((view.originX - view.cameraX * scale) * 2.0f / safeWidth) - 1.0f,
-        1.0f - ((view.originY - view.cameraY * scale) * 2.0f / safeHeight),
-        0.0f,
-        1.0f
-    };
-}
+setWorldView(const RenderView& view)
+drawWorldSprite(const WorldSpriteDrawCommand& command)
+drawWorldRect(const RectF& rect, Color color)
+fillWorldRect(const RectF& rect, Color color)
+drawWorldText(const WorldTextDrawCommand& command)
 ```
 
-This lets the shader receive world coordinates directly.
+World sprite and text commands use a top-left `RectF dst` in world units.
+There is intentionally no general sprite tint API yet; existing sprites are
+drawn with their original colors.
 
-## Scene Migration
+## Camera And Scene Responsibilities
 
-At the top of `Scene::sRenderBasic()`, build a `RenderView` from the current
-camera values:
+`Camera` is unchanged. It still owns follow movement, pan, shake, and zoom.
+It does not depend on a renderer or OpenGL types.
 
-```cpp
-Vec2 screenCenter = Vec2{(float)width(), (float)height()} / 2;
-int windowScale = m_game->getScale();
-int totalZoom = windowScale - m_camera.getCameraZoom();
-Vec2 screenCenterZoomed = screenCenter * m_camera.getCameraZoom();
+`Scene` builds one `RenderView` from the current camera and game scale, gives
+it to the render backend, and decides whether a draw belongs to the world or
+the UI. `Scene::sRenderBasic()` now submits entity sprites, dialog text, and
+debug boxes in world coordinates. `Scene_Play` submits enemy damage hearts and
+quadtree outlines in world coordinates while keeping player hearts and the
+inventory in screen space.
 
-m_game->render().setWorldView(RenderView{
-    m_camera.position.x,
-    m_camera.position.y,
-    static_cast<float>(totalZoom),
-    screenCenterZoomed.x,
-    screenCenterZoomed.y
-});
-```
+## SDL Backend
 
-Then replace per-sprite camera subtraction with `drawWorldSprite`.
+`SDLRenderBackend` stores the active `RenderView`. Each world draw command is
+converted to the existing screen-space equivalent on the CPU and then uses the
+normal SDL renderer path. This keeps SDL behavior aligned with the old scene
+math and makes it a useful reference implementation.
 
-For an entity:
+## OpenGL Backend
 
-```cpp
-Vec2 worldSize = sprite.size() * transform.scale;
-m_game->render().drawWorldSprite(WorldSpriteDrawCommand{
-    sprite.texture,
-    sprite.src,
-    transform.pos.x,
-    transform.pos.y,
-    worldSize.x,
-    worldSize.y,
-    transform.angle,
-    {255, 255, 255, 255}
-});
-```
+`OpenGLSpriteBatch` keeps independent screen and world projection matrices.
+The world matrix includes the `RenderView` transform and maps world coordinates
+directly to OpenGL clip space. The batch tracks whether queued quads are screen
+or world space and flushes when the texture, render space, or active world view
+would change.
 
-World text and debug boxes should use `drawWorldText` and `drawWorldRect`.
+World rectangle outlines use `1 / view.scale` world units in OpenGL, yielding
+the same one-screen-pixel thickness as SDL. `fillWorldRect` ignores invalid
+rectangles; the screen-space `fillRect` full-window shorthand is unchanged.
 
-## Keep UI Screen-Space
+## Verification
 
-Do not convert HUD and menu overlay code unless it is intentionally part of the
-world.
+- `render_view_tests` covers world point conversion, rectangle conversion, and
+  the current camera-zoom origin behavior.
+- Build with the Windows CMake debug preset and run CTest for automated
+  coverage.
+- Manual OpenGL checks should cover camera follow, shake, pan, zoom, dialogs,
+  collision/interactions, quadtree outlines, and fixed HUD/UI elements.
 
-Keep these screen-space:
+## Not Included
 
-- FPS counter
-- player hearts or future health bar
-- inventory UI
-- pause overlay
-- game over overlay
-- finish overlay
-- menus
-
-## Test Plan
-
-Before building, close any running `heavenhell.exe`; Windows will refuse to
-overwrite a running executable.
-
-Build:
-
-```powershell
-$env:PATH = "C:\msys64\ucrt64\bin;$env:PATH"
-cmake --build build/Windows/Ninja/Release
-```
-
-Verify both SDL and OpenGL after adding configurable render-driver selection:
-
-- World sprites appear in the same positions as before.
-- Camera follow, shake, pan, and zoom still work.
-- Collision and interaction debug boxes still line up.
-- Quadtree debug overlays still line up.
-- Dialog text follows world entities.
-- HUD hearts, inventory, pause overlay, and FPS counter do not move with the
-  camera.
-- OpenGL and SDL are visually close enough for the current 2D game.
-
-## Expected Result
-
-After this change:
-
-- `Scene::sRenderBasic()` no longer performs per-sprite camera subtraction.
-- SDL performs world-to-screen math inside the SDL backend.
-- OpenGL applies the world camera transform through a projection matrix.
-- Screen-space UI remains unaffected by the world camera.
-- The renderer has a cleaner path toward future 3D concepts:
-  `projection * view * model`.
-
-## Future Improvements
-
-- Add explicit `beginWorldPass()` and `beginUiPass()` if render state grows.
-- Add frustum/camera culling before sending world draw commands.
-- Cache static world sprite commands for stationary tiles/entities.
-- Keep SDL as a compatibility backend while OpenGL becomes the main engine
-  renderer.
+- Runtime SDL/OpenGL driver selection remains a separate backend roadmap item.
+- Camera-model cleanup, world culling, static command caching, and future 3D
+  view/projection work remain future improvements.

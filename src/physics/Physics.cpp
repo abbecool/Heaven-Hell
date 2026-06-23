@@ -36,9 +36,9 @@ void Physics::insertQuadtree(Entity e)
     m_quadRoot->insert<CCollisionBox>(e);
 }
 
-void Physics::renderQuadtree(RenderBackend& renderer, int zoom, Vec2 screenCenter, Vec2 camPos)
+void Physics::renderQuadtree(RenderBackend& renderer)
 {
-    m_quadRoot->renderBoundary(renderer, zoom, screenCenter, camPos, {255, 0, 0, 255});
+    m_quadRoot->renderBoundary(renderer, {255, 0, 0, 255});
 }
 
 int Physics::countQuadtree(int count)
@@ -67,9 +67,9 @@ void Physics::insertInteractionQuadtree(Entity e)
     m_interactionQuadRoot->insert<CInteractionBox>(e);
 }
 
-void Physics::renderInteractionQuadtree(RenderBackend& renderer, int zoom, Vec2 screenCenter, Vec2 camPos)
+void Physics::renderInteractionQuadtree(RenderBackend& renderer)
 {
-    m_interactionQuadRoot->renderBoundary(renderer, zoom, screenCenter, camPos, {0, 0, 255, 255});
+    m_interactionQuadRoot->renderBoundary(renderer, {0, 0, 255, 255});
 }
 
 int Physics::countInteractionQuadtree(int count)

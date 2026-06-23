@@ -229,14 +229,9 @@ bool BaseCollisionManager::isCollided(CTransform t1, CTransform t2, CBox b1, CBo
     return (x_overlap && y_overlap);
 }
 
-void BaseCollisionManager::renderQuadtree(
-    RenderBackend& renderer, 
-    int zoom, 
-    Vec2 center, 
-    Vec2 cameraPosition
-){
+void BaseCollisionManager::renderQuadtree(RenderBackend& renderer){
     Color color = {255, 0, 0, 255};
-    m_quadRoot->renderBoundary(renderer, zoom, center, cameraPosition, color);
+    m_quadRoot->renderBoundary(renderer, color);
 }
 
 CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene){

@@ -14,8 +14,14 @@ public:
     virtual void onWindowResized(int width, int height) = 0;
     virtual void beginFrame(Color clearColor) = 0;
     virtual void endFrame() = 0;
+
+    virtual void setWorldView(const RenderView& view) = 0;
     virtual void drawSprite(const SpriteDrawCommand& command) = 0;
+    virtual void drawWorldSprite(const WorldSpriteDrawCommand& command) = 0;
     virtual void drawRect(const RectF& rect, Color color) = 0;
+    virtual void drawWorldRect(const RectF& rect, Color color) = 0;
     virtual void fillRect(const RectF& rect, Color color) = 0;
+    virtual void fillWorldRect(const RectF& rect, Color color) = 0;
     virtual void drawText(const TextDrawCommand& command) = 0;
+    virtual void drawWorldText(const WorldTextDrawCommand& command) = 0;
 };

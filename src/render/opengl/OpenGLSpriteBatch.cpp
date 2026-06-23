@@ -9,6 +9,34 @@
 namespace {
 constexpr unsigned char WhitePixel[] = {255, 255, 255, 255};
 
+std::array<float, 16> makeScreenProjection(int width, int height)
+{
+    const float safeWidth = static_cast<float>(width > 0 ? width : 1);
+    const float safeHeight = static_cast<float>(height > 0 ? height : 1);
+    return {
+        2.0f / safeWidth, 0.0f, 0.0f, 0.0f,
+        0.0f, -2.0f / safeHeight, 0.0f, 0.0f,
+        0.0f, 0.0f, -1.0f, 0.0f,
+        -1.0f, 1.0f, 0.0f, 1.0f
+    };
+}
+
+std::array<float, 16> makeWorldProjection(int width, int height, const RenderView& view)
+{
+    const float safeWidth = static_cast<float>(width > 0 ? width : 1);
+    const float safeHeight = static_cast<float>(height > 0 ? height : 1);
+
+    return {
+        2.0f * view.scale / safeWidth, 0.0f, 0.0f, 0.0f,
+        0.0f, -2.0f * view.scale / safeHeight, 0.0f, 0.0f,
+        0.0f, 0.0f, -1.0f, 0.0f,
+        ((view.originX - view.cameraX * view.scale) * 2.0f / safeWidth) - 1.0f,
+        1.0f - ((view.originY - view.cameraY * view.scale) * 2.0f / safeHeight),
+        0.0f,
+        1.0f
+    };
+}
+
 unsigned int compileShader(unsigned int type, const char* source)
 {
     unsigned int shader = glCreateShader(type);
@@ -245,18 +273,25 @@ void OpenGLSpriteBatch::destroy()
     m_instances.clear();
     m_batchCount = 0;
     m_currentTexture = 0;
+    m_currentSpace = OpenGLRenderSpace::Screen;
 }
 
 void OpenGLSpriteBatch::setScreenSize(int width, int height)
 {
-    const float safeWidth = static_cast<float>(width > 0 ? width : 1);
-    const float safeHeight = static_cast<float>(height > 0 ? height : 1);
-    m_projection = {
-        2.0f / safeWidth, 0.0f, 0.0f, 0.0f,
-        0.0f, -2.0f / safeHeight, 0.0f, 0.0f,
-        0.0f, 0.0f, -1.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 1.0f
-    };
+    m_screenWidth = width > 0 ? width : 1;
+    m_screenHeight = height > 0 ? height : 1;
+    m_screenProjection = makeScreenProjection(m_screenWidth, m_screenHeight);
+    m_worldProjection = makeWorldProjection(m_screenWidth, m_screenHeight, m_worldView);
+}
+
+void OpenGLSpriteBatch::setWorldView(const RenderView& view)
+{
+    if (m_batchCount > 0 && m_currentSpace == OpenGLRenderSpace::World) {
+        flush();
+    }
+
+    m_worldView = view;
+    m_worldProjection = makeWorldProjection(m_screenWidth, m_screenHeight, m_worldView);
 }
 
 void OpenGLSpriteBatch::beginFrame()
@@ -264,6 +299,7 @@ void OpenGLSpriteBatch::beginFrame()
     m_instances.clear();
     m_batchCount = 0;
     m_currentTexture = 0;
+    m_currentSpace = OpenGLRenderSpace::Screen;
 }
 
 void OpenGLSpriteBatch::flush()
@@ -284,7 +320,9 @@ void OpenGLSpriteBatch::flush()
         m_instances.size() * sizeof(SpriteInstance),
         m_instances.data()
     );
-    glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, m_projection.data());
+    const std::array<float, 16>& projection =
+        m_currentSpace == OpenGLRenderSpace::World ? m_worldProjection : m_screenProjection;
+    glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, projection.data());
     glDrawElementsInstanced(
         GL_TRIANGLES,
         IndicesPerSprite,
@@ -309,9 +347,11 @@ void OpenGLSpriteBatch::drawTexturedQuad(
     const RectF& src,
     const RectF& dst,
     float angle,
-    Color color)
+    Color color,
+    OpenGLRenderSpace renderSpace)
 {
-    if (m_batchCount > 0 && m_currentTexture != textureId) {
+    if (m_batchCount > 0 &&
+        (m_currentTexture != textureId || m_currentSpace != renderSpace)) {
         flush();
     }
 
@@ -320,6 +360,7 @@ void OpenGLSpriteBatch::drawTexturedQuad(
     }
 
     m_currentTexture = textureId;
+    m_currentSpace = renderSpace;
 
     const float u0 = src.x / static_cast<float>(textureSize.w);
     const float u1 = (src.x + src.w) / static_cast<float>(textureSize.w);

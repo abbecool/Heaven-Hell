@@ -198,6 +198,12 @@ void OpenGLRenderBackend::endFrame()
     SDL_GL_SwapWindow(m_window);
 }
 
+void OpenGLRenderBackend::setWorldView(const RenderView& view)
+{
+    m_worldView = view;
+    m_spriteBatch.setWorldView(view);
+}
+
 void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
 {
     const OpenGLTexture& texture = getTexture(command.texture);
@@ -207,7 +213,22 @@ void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
         command.src,
         command.dst,
         command.angle,
-        {255, 255, 255, 255}
+        {255, 255, 255, 255},
+        OpenGLRenderSpace::Screen
+    );
+}
+
+void OpenGLRenderBackend::drawWorldSprite(const WorldSpriteDrawCommand& command)
+{
+    const OpenGLTexture& texture = getTexture(command.texture);
+    m_spriteBatch.drawTexturedQuad(
+        texture.id,
+        texture.size,
+        command.src,
+        command.dst,
+        command.angle,
+        {255, 255, 255, 255},
+        OpenGLRenderSpace::World
     );
 }
 
@@ -222,6 +243,19 @@ void OpenGLRenderBackend::drawRect(const RectF& rect, Color color)
     fillRect({rect.x, rect.y + rect.h - Thickness, rect.w, Thickness}, color);
     fillRect({rect.x, rect.y, Thickness, rect.h}, color);
     fillRect({rect.x + rect.w - Thickness, rect.y, Thickness, rect.h}, color);
+}
+
+void OpenGLRenderBackend::drawWorldRect(const RectF& rect, Color color)
+{
+    if (rect.w <= 0.0f || rect.h <= 0.0f) {
+        return;
+    }
+
+    const float thickness = m_worldView.scale > 0.0f ? 1.0f / m_worldView.scale : 1.0f;
+    fillWorldRect({rect.x, rect.y, rect.w, thickness}, color);
+    fillWorldRect({rect.x, rect.y + rect.h - thickness, rect.w, thickness}, color);
+    fillWorldRect({rect.x, rect.y, thickness, rect.h}, color);
+    fillWorldRect({rect.x + rect.w - thickness, rect.y, thickness, rect.h}, color);
 }
 
 void OpenGLRenderBackend::fillRect(const RectF& rect, Color color)
@@ -242,19 +276,64 @@ void OpenGLRenderBackend::fillRect(const RectF& rect, Color color)
         RectF{0.0f, 0.0f, 1.0f, 1.0f},
         dst,
         0.0f,
-        color
+        color,
+        OpenGLRenderSpace::Screen
+    );
+}
+
+void OpenGLRenderBackend::fillWorldRect(const RectF& rect, Color color)
+{
+    if (rect.w <= 0.0f || rect.h <= 0.0f) {
+        return;
+    }
+
+    m_spriteBatch.drawTexturedQuad(
+        m_spriteBatch.whiteTexture(),
+        TextureSize{1, 1},
+        RectF{0.0f, 0.0f, 1.0f, 1.0f},
+        rect,
+        0.0f,
+        color,
+        OpenGLRenderSpace::World
     );
 }
 
 void OpenGLRenderBackend::drawText(const TextDrawCommand& command)
 {
-    if (command.text.empty()) {
+    drawTextImpl(
+        command.text,
+        command.fontName,
+        command.dst,
+        command.color,
+        OpenGLRenderSpace::Screen
+    );
+}
+
+void OpenGLRenderBackend::drawWorldText(const WorldTextDrawCommand& command)
+{
+    drawTextImpl(
+        command.text,
+        command.fontName,
+        command.dst,
+        command.color,
+        OpenGLRenderSpace::World
+    );
+}
+
+void OpenGLRenderBackend::drawTextImpl(
+    const std::string& text,
+    const std::string& fontName,
+    const RectF& dst,
+    Color color,
+    OpenGLRenderSpace renderSpace)
+{
+    if (text.empty()) {
         return;
     }
 
-    const OpenGLGlyphAtlas& atlas = getFontAtlas(command.fontName);
-    TTF_Font* font = getFont(command.fontName);
-    if (atlas.height() <= 0 || command.dst.w == 0.0f || command.dst.h == 0.0f) {
+    const OpenGLGlyphAtlas& atlas = getFontAtlas(fontName);
+    TTF_Font* font = getFont(fontName);
+    if (atlas.height() <= 0 || dst.w == 0.0f || dst.h == 0.0f) {
         return;
     }
 
@@ -262,7 +341,7 @@ void OpenGLRenderBackend::drawText(const TextDrawCommand& command)
     char previousCharacter = '\0';
     bool hasPreviousCharacter = false;
 
-    for (char rawCharacter : command.text) {
+    for (char rawCharacter : text) {
         const char character = OpenGLGlyphAtlas::atlasCharacterFor(rawCharacter);
         const OpenGLGlyphInfo* glyph = atlas.glyphFor(character);
         if (!glyph) {
@@ -289,14 +368,14 @@ void OpenGLRenderBackend::drawText(const TextDrawCommand& command)
         return;
     }
 
-    const float scaleX = command.dst.w / naturalWidth;
-    const float scaleY = command.dst.h / static_cast<float>(atlas.height());
+    const float scaleX = dst.w / naturalWidth;
+    const float scaleY = dst.h / static_cast<float>(atlas.height());
 
     float penX = 0.0f;
     previousCharacter = '\0';
     hasPreviousCharacter = false;
 
-    for (char rawCharacter : command.text) {
+    for (char rawCharacter : text) {
         const char character = OpenGLGlyphAtlas::atlasCharacterFor(rawCharacter);
         const OpenGLGlyphInfo* glyph = atlas.glyphFor(character);
         if (!glyph) {
@@ -317,8 +396,8 @@ void OpenGLRenderBackend::drawText(const TextDrawCommand& command)
         if (glyph->hasImage) {
             const float glyphX = penX + static_cast<float>(glyph->minX);
             const RectF glyphDst{
-                command.dst.x + glyphX * scaleX,
-                command.dst.y,
+                dst.x + glyphX * scaleX,
+                dst.y,
                 static_cast<float>(glyph->surfaceWidth) * scaleX,
                 static_cast<float>(glyph->surfaceHeight) * scaleY
             };
@@ -329,7 +408,8 @@ void OpenGLRenderBackend::drawText(const TextDrawCommand& command)
                 glyph->src,
                 glyphDst,
                 0.0f,
-                command.color
+                color,
+                renderSpace
             );
         }
 

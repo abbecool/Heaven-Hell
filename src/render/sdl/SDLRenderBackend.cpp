@@ -116,6 +116,11 @@ void SDLRenderBackend::endFrame()
     SDL_RenderPresent(m_renderer);
 }
 
+void SDLRenderBackend::setWorldView(const RenderView& view)
+{
+    m_worldView = view;
+}
+
 void SDLRenderBackend::drawSprite(const SpriteDrawCommand& command)
 {
     SDL_Texture* texture = getTexture(command.texture);
@@ -132,11 +137,30 @@ void SDLRenderBackend::drawSprite(const SpriteDrawCommand& command)
     );
 }
 
+void SDLRenderBackend::drawWorldSprite(const WorldSpriteDrawCommand& command)
+{
+    drawSprite(SpriteDrawCommand{
+        command.texture,
+        command.src,
+        m_worldView.worldToScreen(command.dst),
+        command.angle
+    });
+}
+
 void SDLRenderBackend::drawRect(const RectF& rect, Color color)
 {
     SDL_FRect sdlRect = toSDLRect(rect);
     SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
     SDL_RenderRect(m_renderer, &sdlRect);
+}
+
+void SDLRenderBackend::drawWorldRect(const RectF& rect, Color color)
+{
+    if (rect.w <= 0.0f || rect.h <= 0.0f) {
+        return;
+    }
+
+    drawRect(m_worldView.worldToScreen(rect), color);
 }
 
 void SDLRenderBackend::fillRect(const RectF& rect, Color color)
@@ -149,6 +173,15 @@ void SDLRenderBackend::fillRect(const RectF& rect, Color color)
 
     SDL_FRect sdlRect = toSDLRect(rect);
     SDL_RenderFillRect(m_renderer, &sdlRect);
+}
+
+void SDLRenderBackend::fillWorldRect(const RectF& rect, Color color)
+{
+    if (rect.w <= 0.0f || rect.h <= 0.0f) {
+        return;
+    }
+
+    fillRect(m_worldView.worldToScreen(rect), color);
 }
 
 void SDLRenderBackend::drawText(const TextDrawCommand& command)
@@ -188,6 +221,16 @@ void SDLRenderBackend::drawText(const TextDrawCommand& command)
         SDL_FLIP_NONE
     );
     SDL_DestroyTexture(texture);
+}
+
+void SDLRenderBackend::drawWorldText(const WorldTextDrawCommand& command)
+{
+    drawText(TextDrawCommand{
+        command.text,
+        command.fontName,
+        m_worldView.worldToScreen(command.dst),
+        command.color
+    });
 }
 
 SDL_Texture* SDLRenderBackend::getTexture(const TextureHandle& texture) const

@@ -13,6 +13,7 @@ struct TTF_Font;
 class SDLRenderBackend : public RenderBackend
 {
     SDL_Renderer* m_renderer = nullptr;
+    RenderView m_worldView;
     std::map<std::string, SDL_Texture*> m_textures;
     std::map<std::string, TTF_Font*> m_fonts;
 
@@ -30,8 +31,14 @@ public:
     void onWindowResized(int width, int height) override;
     void beginFrame(Color clearColor) override;
     void endFrame() override;
+
+    void setWorldView(const RenderView& view) override;
     void drawSprite(const SpriteDrawCommand& command) override;
+    void drawWorldSprite(const WorldSpriteDrawCommand& command) override;
     void drawRect(const RectF& rect, Color color) override;
+    void drawWorldRect(const RectF& rect, Color color) override;
     void fillRect(const RectF& rect, Color color) override;
+    void fillWorldRect(const RectF& rect, Color color) override;
     void drawText(const TextDrawCommand& command) override;
+    void drawWorldText(const WorldTextDrawCommand& command) override;
 };

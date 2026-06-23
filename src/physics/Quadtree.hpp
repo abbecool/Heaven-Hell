@@ -139,7 +139,7 @@ public:
         return (x_overlap && y_overlap);
     }
 
-    void renderBoundary(RenderBackend& renderer, int zoom, Vec2 screenCenter, Vec2 camPos, Color color);
+    void renderBoundary(RenderBackend& renderer, Color color);
     int countLeafs(int count );
     std::vector<Entity> getObjects() const;
     std::vector<std::shared_ptr<Quadtree>> createQuadtreeVector();

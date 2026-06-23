@@ -668,7 +668,8 @@ void Scene_Play::sRender() {
         }
     }
     
-    Vec2 screenCenter = Vec2{(float)width(), (float)height()}/2;
+    const RenderView view = worldRenderView();
+    const float viewScale = view.scale > 0.0f ? view.scale : 1.0f;
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& healthPool = m_ECS.getComponentPool<CHealth>();
     auto viewHealth = m_ECS.View<CHealth>();
@@ -682,12 +683,9 @@ void Scene_Play::sRender() {
         }
         auto& transform = transformPool.getComponent(entityID);
 
-        Vec2 adjustedPosition = (transform.pos - m_camera.position) * (windowScale - m_camera.getCameraZoom());
-        adjustedPosition += screenCenter*m_camera.getCameraZoom();
-
         auto hearts = float(health.HP) / 2;
         const CSprite& entitySprite = m_ECS.getComponent<CSprite>(entityID);
-        const float entityVisualHeight = entitySprite.size().y * transform.scale.y * (windowScale - m_camera.getCameraZoom());
+        const float entityVisualHeight = entitySprite.size().y * transform.scale.y;
 
         for (int i = 1; i <= health.HP_max / 2; i++)
         {   
@@ -701,10 +699,10 @@ void Scene_Play::sRender() {
                 heart = &heart_half;
             }
 
-            Vec2 heartSize = heart->frameSize() * transform.scale * windowScale;
-            drawSprite(*heart, RectF{
-                adjustedPosition.x + (float)(i - 1 - (float)health.HP_max / 4) * heartSize.x,
-                adjustedPosition.y - entityVisualHeight / 2,
+            Vec2 heartSize = heart->frameSize() * transform.scale * (static_cast<float>(windowScale) / viewScale);
+            drawWorldSprite(*heart, RectF{
+                transform.pos.x + (float)(i - 1 - (float)health.HP_max / 4) * heartSize.x,
+                transform.pos.y - entityVisualHeight / 2,
                 heartSize.x,
                 heartSize.y
             });
@@ -713,22 +711,12 @@ void Scene_Play::sRender() {
 
     if (m_drawCollision)
     {
-        m_collisionManager.renderQuadtree(
-            m_game->render(), 
-            windowScale - m_camera.getCameraZoom(), 
-            screenCenter * m_camera.getCameraZoom(), 
-            m_camera.position
-        );
+        m_collisionManager.renderQuadtree(m_game->render());
     }
 
     if (m_drawInteraction)
     {
-        m_interactionManager.renderQuadtree(
-            m_game->render(), 
-            windowScale - m_camera.getCameraZoom(), 
-            screenCenter * m_camera.getCameraZoom(), 
-            m_camera.position
-        );
+        m_interactionManager.renderQuadtree(m_game->render());
     }
     
     // render player inventory

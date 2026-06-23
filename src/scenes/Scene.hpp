@@ -45,6 +45,9 @@ class Scene
     Vec2 m_gridSize = {16, 16};    
     virtual void onEnd() = 0;
     Vec2 gridToMidPixel(Vec2 grid, EntityID);
+    RenderView worldRenderView();
+    void drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f);
+    void drawWorldSprite(const SpriteDefinition& sprite, const RectF& dst, float angle = 0.0f);
     
     public:
     ECS m_ECS;
@@ -67,7 +70,10 @@ class Scene
     void updateAnimations();
     void sRenderBasic();
     template<typename T>
-    void renderBox(std::vector<EntityID> viewCollisions, ComponentPool<CTransform> transform, ComponentPool<T> box, const Vec2& screenCenterZoomed, int totalZoom);
+    void renderBox(
+        const std::vector<EntityID>& view,
+        ComponentPool<CTransform>& transformPool,
+        ComponentPool<T>& boxPool);
 
     virtual void doAction(const Action& action);
     void registerAction(InputCode inputKey, const std::string& actionName);

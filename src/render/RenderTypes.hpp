@@ -19,6 +19,35 @@ struct RectF
     float h = 0.0f;
 };
 
+struct RenderView
+{
+    float cameraX = 0.0f;
+    float cameraY = 0.0f;
+    float scale = 1.0f;
+    float originX = 0.0f;
+    float originY = 0.0f;
+
+    float worldToScreenX(float x) const
+    {
+        return (x - cameraX) * scale + originX;
+    }
+
+    float worldToScreenY(float y) const
+    {
+        return (y - cameraY) * scale + originY;
+    }
+
+    RectF worldToScreen(const RectF& rect) const
+    {
+        return RectF{
+            worldToScreenX(rect.x),
+            worldToScreenY(rect.y),
+            rect.w * scale,
+            rect.h * scale
+        };
+    }
+};
+
 struct TextureHandle
 {
     std::string name;
@@ -38,7 +67,23 @@ struct SpriteDrawCommand
     float angle = 0.0f;
 };
 
+struct WorldSpriteDrawCommand
+{
+    TextureHandle texture;
+    RectF src;
+    RectF dst;
+    float angle = 0.0f;
+};
+
 struct TextDrawCommand
+{
+    std::string text;
+    std::string fontName;
+    RectF dst;
+    Color color = {255, 255, 255, 255};
+};
+
+struct WorldTextDrawCommand
 {
     std::string text;
     std::string fontName;
