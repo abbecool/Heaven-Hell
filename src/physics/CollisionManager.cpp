@@ -70,6 +70,7 @@ void handleEnemyProjectileCollision(Entity enemy, Entity projectile, Vec2 overla
     int damage = projectile.getComponent<CDamage>().damage;
     enemy.getComponent<CHealth>().HP -= damage;
     projectile.removeEntity();
+    projectile.addComponent<CAudio>("fireball_destroy");    
 }
 
 void BaseCollisionManager::registerHandler(     

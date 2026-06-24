@@ -77,6 +77,8 @@ class Scene_Play : public Scene
     void sStatus();
     void sAnimation();
     void sRender();
+    void sRenderHealth();
+    void sRenderUI();
     void sAudio();
     
     void sDoAction(const Action&);

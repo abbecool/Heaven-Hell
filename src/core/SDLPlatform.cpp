@@ -1,7 +1,7 @@
 #include "core/SDLPlatform.hpp"
-
 #include "core/Game.hpp"
 #include "core/InputCode.hpp"
+#include "scenes/Scene.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ecs/ECS.hpp"
-#include "scenes/Scene.hpp"
 #include "assets/Assets.hpp"
 #include "core/PixelImage.hpp"
 #include "render/RenderBackend.hpp"
@@ -21,7 +20,7 @@ class Scene;
 class SDLPlatform;
 typedef std::map<std::string, std::shared_ptr<Scene>> SceneMap;
 class Game
-{   
+{
 protected:
     const int VIRTUAL_WIDTH = 640;
     const int VIRTUAL_HEIGHT = 360;

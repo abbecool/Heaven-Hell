@@ -11,6 +11,7 @@
         "individual_paths": [
             "campfire.png",
             "heart_full.png",
+            "hearts.png",
             "heart_half.png",
             "heart_empty.png",
             "fireball.png",
@@ -45,6 +46,15 @@
         "config_files/dual_sheets_atlas.json"
     ],
     "animations": [
+        {
+            "name": "hearts",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 20,
+            "rows": 2,
+            "width": 320,
+            "height": 32
+        },
         {
             "name": "heart_full",
             "frames": 1,
@@ -320,6 +330,18 @@
         {
             "name": "loot_pickup",
             "path": "loot_pickup.wav"
+        },
+        {
+            "name": "fireball_shot",
+            "path": "fireball_shot.wav"
+        },
+        {
+            "name": "fireball_destroy",
+            "path": "fireball_destroy.wav"
+        },
+        {
+            "name": "enemy_death_ida",
+            "path": "enemy_death_ida.wav"
         },
         {
             "name": "enemy_death",

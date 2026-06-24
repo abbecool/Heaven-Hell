@@ -47,6 +47,7 @@ class Scene
     RenderView worldRenderView();
     void drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f);
     void drawWorldSprite(const SpriteDefinition& sprite, const RectF& dst, float angle = 0.0f);
+    void drawWorldSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
     
     public:
     ECS m_ECS;

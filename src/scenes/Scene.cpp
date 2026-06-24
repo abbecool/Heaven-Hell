@@ -114,6 +114,16 @@ void Scene::drawWorldSprite(const SpriteDefinition& sprite, const RectF& dst, fl
     });
 }
 
+void Scene::drawWorldSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle)
+{
+    m_game->render().drawWorldSprite(WorldSpriteDrawCommand{
+        sprite.texture(),
+        src,
+        dst,
+        angle
+    });
+}
+
 RenderView Scene::worldRenderView()
 {
     const Vec2 screenCenter = Vec2{

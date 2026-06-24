@@ -570,7 +570,8 @@ void Scene_Play::sStatus() {
         };
         Spawn("coin", gridPos);
         m_ECS.queueRemoveEntity(entityID);
-        m_ECS.addComponent<CAudio>(entityID, "enemy_death");
+        // m_ECS.addComponent<CAudio>(entityID, "enemy_death_ida");
+        m_game->playAudio("enemy_death_ida");
         Emit(Event{EventType::EntityKilled, m_ECS.getComponent<CName>(entityID).name});
     }
 }
@@ -620,17 +621,50 @@ void Scene_Play::sAnimation() {
     updateAnimations();
 }
 
-void Scene_Play::sRender() {
-    // Debug: Print renderer layer sizes
-    // const auto& layers = m_rendererManager.getLayers();
-    // std::string totalEntitiesInLayers;
-    // for (const auto& layer : layers) {
-    //     totalEntitiesInLayers += ", " + std::to_string(layer.size());
-    // }
-    // std::cout << "Renderer Total Entities: " << totalEntitiesInLayers << " | Layers: " << layers.size() << std::endl;
-    
-    sRenderBasic();
-    
+void Scene_Play::sRenderHealth() {
+    int windowScale = m_game->getScale();
+
+    const SpriteDefinition& heartsSprite = getSprite("hearts");
+    const SpriteDefinition& heart_empty = getSprite("heart_empty");
+
+    const RenderView view = worldRenderView();
+    const float viewScale = view.scale > 0.0f ? view.scale : 1.0f;
+    auto& transformPool = m_ECS.getComponentPool<CTransform>();
+    auto& healthPool = m_ECS.getComponentPool<CHealth>();
+    auto viewHealth = m_ECS.View<CHealth, CTransform>();
+    for (auto entityID : viewHealth)
+    {
+        // if (entityID == m_player) { continue; }
+        auto& health = healthPool.getComponent(entityID);
+        // if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
+        // {
+        //     continue;
+        // }
+        auto& transform = transformPool.getComponent(entityID);
+
+        float hearts = health.HP / 2;
+        
+        Vec2 heartSize = heartsSprite.frameSize() * transform.scale * (static_cast<float>(windowScale) / viewScale);
+        const RectF src = {
+            (10-ceil(hearts)) * heartSize.y * (int)(hearts != floor(hearts)),
+            // 0.0f,
+            heartSize.y * (int)(hearts != floor(hearts)),
+            heartSize.x * (float)ceil(hearts),
+            heartSize.y
+        };
+        const CSprite& entitySprite = m_ECS.getComponent<CSprite>(entityID);
+        const float entityVisualHeight = entitySprite.size().y * transform.scale.y;
+        const RectF dst = {
+            transform.pos.x - ceil(hearts) * heartSize.x / 2,
+            transform.pos.y - entityVisualHeight / 2 - heartSize.y / 2,
+            heartSize.x * ceil(hearts),
+            heartSize.y
+        };
+        drawWorldSprite(heartsSprite, src, dst);
+    }
+}
+
+void Scene_Play::sRenderUI() {
     int windowScale = m_game->getScale();
 
     auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP) / 2;
@@ -671,58 +705,7 @@ void Scene_Play::sRender() {
             });
         }
     }
-    
-    const RenderView view = worldRenderView();
-    const float viewScale = view.scale > 0.0f ? view.scale : 1.0f;
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& healthPool = m_ECS.getComponentPool<CHealth>();
-    auto viewHealth = m_ECS.View<CHealth>();
-    for (auto entityID : viewHealth)
-    {
-        if (entityID == m_player) { continue; }
-        auto& health = healthPool.getComponent(entityID);
-        if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
-        {
-            continue;
-        }
-        auto& transform = transformPool.getComponent(entityID);
 
-        auto hearts = float(health.HP) / 2;
-        const CSprite& entitySprite = m_ECS.getComponent<CSprite>(entityID);
-        const float entityVisualHeight = entitySprite.size().y * transform.scale.y;
-
-        for (int i = 1; i <= health.HP_max / 2; i++)
-        {   
-            const SpriteDefinition* heart = &heart_empty;
-            if (hearts >= i)
-            {
-                heart = &heart_full;
-            }
-            else if (i - hearts == 0.5f)
-            {
-                heart = &heart_half;
-            }
-
-            Vec2 heartSize = heart->frameSize() * transform.scale * (static_cast<float>(windowScale) / viewScale);
-            drawWorldSprite(*heart, RectF{
-                transform.pos.x + (float)(i - 1 - (float)health.HP_max / 4) * heartSize.x,
-                transform.pos.y - entityVisualHeight / 2,
-                heartSize.x,
-                heartSize.y
-            });
-        }
-    }
-
-    if (m_drawCollision)
-    {
-        m_collisionManager.renderQuadtree(m_game->render());
-    }
-
-    if (m_drawInteraction)
-    {
-        m_interactionManager.renderQuadtree(m_game->render());
-    }
-    
     // render player inventory
     const SpriteDefinition& inventorySprite = getSprite("inventory");
     Vec2 inventorySize = inventorySprite.frameSize() * windowScale;
@@ -757,6 +740,25 @@ void Scene_Play::sRender() {
             itemSize.y
         });
     }
+}
+
+void Scene_Play::sRender() {    
+    sRenderBasic();
+    sRenderHealth();
+    sRenderUI();
+    
+    int windowScale = m_game->getScale();
+
+    if (m_drawCollision)
+    {
+        m_collisionManager.renderQuadtree(m_game->render());
+    }
+
+    if (m_drawInteraction)
+    {
+        m_interactionManager.renderQuadtree(m_game->render());
+    }
+    
 }
 
 void Scene_Play::sAudio()
@@ -1011,6 +1013,7 @@ EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
     CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
     m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
     m_ECS.addComponent<CLifespan>(id, 60);
+    m_ECS.addComponent<CAudio>(id, "fireball_shot");
     return id;
 }
 EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction, CollisionMask layer, CollisionMask mask)
