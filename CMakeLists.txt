@@ -56,10 +56,13 @@ if (WIN32)
             $<TARGET_FILE_DIR:heavenhell>)
 endif()
 
-add_custom_command(TARGET heavenhell POST_BUILD
+add_custom_target(sync_assets ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/assets"
-        "$<TARGET_FILE_DIR:heavenhell>/assets")
+        "$<TARGET_FILE_DIR:heavenhell>/assets"
+    COMMENT "Syncing assets to the run directory")
+
+add_dependencies(sync_assets heavenhell)
 
 add_custom_command(TARGET heavenhell POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
