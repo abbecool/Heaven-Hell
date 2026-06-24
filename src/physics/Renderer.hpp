@@ -20,7 +20,7 @@ public:
 
     void removeEntityFromLayer(EntityID id, uint8_t layerIndex) {
         if (layerIndex >= layers.size()) {
-            std::cout << "ERROR: Layer " << (int)layerIndex << " doesn't exist! (max: " 
+            std::cout << "ERROR: Layer " << static_cast<int>(layerIndex) << " doesn't exist! (max: "
                       << layers.size() << ")" << std::endl;
             return;
         }
@@ -28,7 +28,7 @@ public:
         size_t before = layer.size();
         layer.erase(std::remove(layer.begin(), layer.end(), id), layer.end());
         if (before == layer.size()) {
-            std::cout << "WARNING: Entity " << id << " not found in Layer " << (int)layerIndex << std::endl;
+            std::cout << "WARNING: Entity " << id << " not found in Layer " << static_cast<int>(layerIndex) << std::endl;
             // Check if it exists in any other layer
             for (size_t i = 0; i < layers.size(); ++i) {
                 if (i == layerIndex) continue;
@@ -48,9 +48,9 @@ public:
     void update() {
         entitiesToRemove.resize(layers.size());
         
-        for (int layerIndex = 0; layerIndex < entitiesToRemove.size(); layerIndex++) {
+        for (size_t layerIndex = 0; layerIndex < entitiesToRemove.size(); layerIndex++) {
             for (auto entityID : entitiesToRemove[layerIndex]) {
-                removeEntityFromLayer(entityID, layerIndex);
+                removeEntityFromLayer(entityID, static_cast<uint8_t>(layerIndex));
             }
         }
         entitiesToRemove.clear();

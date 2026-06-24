@@ -518,7 +518,7 @@ void Scene_Play::sAttack(){
 
 void Scene_Play::sInteraction()
 {
-    auto screenSize = Vec2{(float)width(), (float)height()};
+    auto screenSize = Vec2{static_cast<float>(width()), static_cast<float>(height())};
     Vec2 treePos = m_camera.position + screenSize/2 - Vec2{32, 32};
     Vec2 treeSize = Vec2{1048, 1048};
 
@@ -527,7 +527,7 @@ void Scene_Play::sInteraction()
 
 void Scene_Play::sCollision() 
 {
-    auto screenSize = Vec2{(float)width(), (float)height()};
+    auto screenSize = Vec2{static_cast<float>(width()), static_cast<float>(height())};
     Vec2 treePos = m_camera.position + screenSize/2 - Vec2{32, 32};
     Vec2 treeSize = Vec2{1048, 1048};
 
@@ -600,7 +600,7 @@ void Scene_Play::sAnimation() {
         }
         // // change player animation
         if (state.changeAnimate) {
-            animation.currentRow = (int)state.state;
+            animation.currentRow = static_cast<int>(state.state);
         }
     }
 
@@ -625,8 +625,6 @@ void Scene_Play::sRenderHealth() {
     int windowScale = m_game->getScale();
 
     const SpriteDefinition& heartsSprite = getSprite("hearts");
-    const SpriteDefinition& heart_empty = getSprite("heart_empty");
-
     const RenderView view = worldRenderView();
     const float viewScale = view.scale > 0.0f ? view.scale : 1.0f;
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
@@ -636,28 +634,28 @@ void Scene_Play::sRenderHealth() {
     {
         // if (entityID == m_player) { continue; }
         auto& health = healthPool.getComponent(entityID);
-        // if ((int)(m_currentFrame - health.damage_frame) >= health.i_frames)
+        // if (static_cast<int>(m_currentFrame - health.damage_frame) >= health.i_frames)
         // {
         //     continue;
         // }
         auto& transform = transformPool.getComponent(entityID);
 
-        float hearts = health.HP / 2;
+        const float hearts = static_cast<float>(health.HP) / 2.0f;
         
         Vec2 heartSize = heartsSprite.frameSize() * transform.scale * (static_cast<float>(windowScale) / viewScale);
         const RectF src = {
-            (10-ceil(hearts)) * heartSize.y * (int)(hearts != floor(hearts)),
+            (10.0f - std::ceil(hearts)) * heartSize.y * static_cast<float>(hearts != std::floor(hearts)),
             // 0.0f,
-            heartSize.y * (int)(hearts != floor(hearts)),
-            heartSize.x * (float)ceil(hearts),
+            heartSize.y * static_cast<float>(hearts != std::floor(hearts)),
+            heartSize.x * std::ceil(hearts),
             heartSize.y
         };
         const CSprite& entitySprite = m_ECS.getComponent<CSprite>(entityID);
         const float entityVisualHeight = entitySprite.size().y * transform.scale.y;
         const RectF dst = {
-            transform.pos.x - ceil(hearts) * heartSize.x / 2,
-            transform.pos.y - entityVisualHeight / 2 - heartSize.y / 2,
-            heartSize.x * ceil(hearts),
+            transform.pos.x - std::ceil(hearts) * heartSize.x / 2.0f,
+            transform.pos.y - entityVisualHeight / 2.0f - heartSize.y / 2.0f,
+            heartSize.x * std::ceil(hearts),
             heartSize.y
         };
         drawWorldSprite(heartsSprite, src, dst);
@@ -667,7 +665,7 @@ void Scene_Play::sRenderHealth() {
 void Scene_Play::sRenderUI() {
     int windowScale = m_game->getScale();
 
-    auto hearts = float(m_ECS.getComponent<CHealth>(m_player).HP) / 2;
+    const float hearts = static_cast<float>(m_ECS.getComponent<CHealth>(m_player).HP) / 2.0f;
     const SpriteDefinition& heart_full = getSprite("heart_full");
     const SpriteDefinition& heart_half = getSprite("heart_half");
     const SpriteDefinition& heart_empty = getSprite("heart_empty");
@@ -678,7 +676,7 @@ void Scene_Play::sRenderUI() {
         {
             const Vec2 heartSize = heart_full.frameSize() * windowScale;
             drawSprite(heart_full, RectF{
-                (float)(i - 1) * heart_full.frameSize().x * windowScale * windowScale,
+                static_cast<float>(i - 1) * heart_full.frameSize().x * windowScale * windowScale,
                 0.0f,
                 heartSize.x,
                 heartSize.y
@@ -688,7 +686,7 @@ void Scene_Play::sRenderUI() {
         {
             const Vec2 heartSize = heart_half.frameSize() * windowScale;
             drawSprite(heart_half, RectF{
-                (float)(i - 1) * heart_half.frameSize().x * windowScale * windowScale,
+                static_cast<float>(i - 1) * heart_half.frameSize().x * windowScale * windowScale,
                 0.0f,
                 heartSize.x,
                 heartSize.y
@@ -698,7 +696,7 @@ void Scene_Play::sRenderUI() {
         {
             const Vec2 heartSize = heart_empty.frameSize() * windowScale;
             drawSprite(heart_empty, RectF{
-                (float)(i - 1) * heart_empty.frameSize().x * windowScale * windowScale,
+                static_cast<float>(i - 1) * heart_empty.frameSize().x * windowScale * windowScale,
                 0.0f,
                 heartSize.x,
                 heartSize.y
@@ -747,8 +745,6 @@ void Scene_Play::sRender() {
     sRenderHealth();
     sRenderUI();
     
-    int windowScale = m_game->getScale();
-
     if (m_drawCollision)
     {
         m_collisionManager.renderQuadtree(m_game->render());
@@ -923,7 +919,7 @@ EntityID Scene_Play::spawnPlayer()
         hp = j["player"]["hp"];        
     }
     
-    Vec2 pos = Vec2{16*(float)pos_x, 16*(float)pos_y};
+    Vec2 pos = Vec2{16.0f * static_cast<float>(pos_x), 16.0f * static_cast<float>(pos_y)};
     Vec2 midGrid = gridToMidPixel(pos, entityID);
     
     m_ECS.addComponent<CTransform>(entityID, midGrid);
@@ -1056,8 +1052,10 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::array<int,
         entityIDs.push_back(entity);
         const std::string spriteName = tile_name + "_dual_sheet";
         CSprite& sprite = addSprite(entity, spriteName, layer);
-        Vec2 tilePosition = Vec2{   (float)(textureIndex % 4), 
-                                    (float)(int)(textureIndex / 4)};
+        Vec2 tilePosition = Vec2{
+            static_cast<float>(textureIndex % 4),
+            static_cast<float>(textureIndex / 4)
+        };
         sprite.src = getSprite(spriteName).frameRect(
             static_cast<int>(tilePosition.x),
             static_cast<int>(tilePosition.y)

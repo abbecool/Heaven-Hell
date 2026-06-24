@@ -31,7 +31,7 @@ LevelLoader::LevelLoader(
     }
     m_height = levelImage.height;
     m_width = levelImage.width;
-    m_levelSize = Vec2{ (float)m_width, (float)m_height };
+    m_levelSize = Vec2{static_cast<float>(m_width), static_cast<float>(m_height)};
     createPixelMatrix(levelImage);
     loadChunk(m_currentChunk);
 }
@@ -68,7 +68,7 @@ std::array<TileType, 4> LevelLoader::neighborTag(
 }
 
 int LevelLoader::getObstacleTextureIndex(const std::array<bool, 4>& neighbors) {
-    int numObstacles = (int)std::count(neighbors.begin(), neighbors.end(), true);
+    int numObstacles = static_cast<int>(std::count(neighbors.begin(), neighbors.end(), true));
     if (numObstacles == 1) {
         if (neighbors[0]) return 12;    // Top
         if (neighbors[1]) return 1;     // Right
@@ -102,15 +102,15 @@ void LevelLoader::createPixelMatrix(const PixelImage& levelImage) {
             const PixelRGBA& pixel = levelImage.pixels[y * width + x];
             
             TileType tile = TileType::UNKNOWN;
-            if ((int)pixel.r == 192 && (int)pixel.g == 192 && (int)pixel.b == 192) {
+            if (static_cast<int>(pixel.r) == 192 && static_cast<int>(pixel.g) == 192 && static_cast<int>(pixel.b) == 192) {
                 tile = TileType::OBSTACLE;
-            } else if ((int)pixel.r == 203 && (int)pixel.g == 129 && (int)pixel.b == 56) {
+            } else if (static_cast<int>(pixel.r) == 203 && static_cast<int>(pixel.g) == 129 && static_cast<int>(pixel.b) == 56) {
                 tile = TileType::DIRT;
-            } else if ((int)pixel.r == 0 && (int)pixel.g == 255 && (int)pixel.b == 0) {
+            } else if (static_cast<int>(pixel.r) == 0 && static_cast<int>(pixel.g) == 255 && static_cast<int>(pixel.b) == 0) {
                 tile = TileType::GRASS;
-            } else if ((int)pixel.r == 0 && (int)pixel.g == 0 && (int)pixel.b == 255) {
+            } else if (static_cast<int>(pixel.r) == 0 && static_cast<int>(pixel.g) == 0 && static_cast<int>(pixel.b) == 255) {
                 tile = TileType::WATER;
-            } else if ((int)pixel.r == 179 && (int)pixel.g == 0 && (int)pixel.b == 255) {
+            } else if (static_cast<int>(pixel.r) == 179 && static_cast<int>(pixel.g) == 0 && static_cast<int>(pixel.b) == 255) {
                 tile = TileType::WATER; // replaced bridge with water
             }
             m_pixelMatrix[y * width + x] = tile;
@@ -132,7 +132,7 @@ std::array<int, 5> LevelLoader::createDualGrid(int x, int y)
 
     for ( TileType tile : tileQ ) {
 
-        int numTiles = (int)std::count(tileQ.begin(), tileQ.end(), tile);
+        int numTiles = static_cast<int>(std::count(tileQ.begin(), tileQ.end(), tile));
         int uniqueCount = 0;
         bool seen[5] = {false};  // Since TileType has 5 values
         for (TileType t : tileQ) {
@@ -219,7 +219,7 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             int textureIndex = getObstacleTextureIndex(neighbors);
             std::array<int, 5> tileIndex = createDualGrid(x, y);
             std::vector<EntityID> ids = m_scene->spawnDualTiles(
-                Vec2 {16*(float)x - 16/2, 16*(float)y - 16/2},  
+                Vec2 {16.0f * static_cast<float>(x) - 8.0f, 16.0f * static_cast<float>(y) - 8.0f},
                 tileIndex
             );
             chunkChildren.reserve(chunkChildren.size() + ids.size());
@@ -230,7 +230,7 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             if (pixel == TileType::OBSTACLE && textureIndex != 10) 
             {
                 EntityID id = m_scene->spawnObstacle(
-                    Vec2 {16*(float)x, 16*(float)y}, 
+                    Vec2 {16.0f * static_cast<float>(x), 16.0f * static_cast<float>(y)},
                     false, textureIndex
                 );
                 chunkChildren.push_back(id);
@@ -238,7 +238,7 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             else if (pixel == TileType::WATER && textureIndex != 10) 
             {
                 EntityID id = m_scene->spawnWater(
-                    Vec2 {16*(float)x,16*(float)y}, 
+                    Vec2 {16.0f * static_cast<float>(x), 16.0f * static_cast<float>(y)},
                     "Water", 
                     textureIndex
                 );

@@ -78,8 +78,8 @@ void BaseCollisionManager::registerHandler(
     CollisionMask layerB, 
     Handler handler
 ){
-    uint8_t indexA = std::log2((uint8_t)layerA.to_ulong());
-    uint8_t indexB = std::log2((uint8_t)layerB.to_ulong());
+    uint8_t indexA = static_cast<uint8_t>(std::log2(static_cast<uint8_t>(layerA.to_ulong())));
+    uint8_t indexB = static_cast<uint8_t>(std::log2(static_cast<uint8_t>(layerB.to_ulong())));
     
     if (indexA > indexB) {
         std::swap(indexA, indexB);
@@ -105,8 +105,8 @@ void BaseCollisionManager::newQuadtree(Vec2 pos, Vec2 size){
 void BaseCollisionManager::handleCollision(
     EntityID entityIDA, CollisionMask layerA, 
     EntityID entityIDB, CollisionMask layerB, Vec2 overlap){
-    uint8_t indexA = std::log2((uint8_t)layerA.to_ulong());
-    uint8_t indexB = std::log2((uint8_t)layerB.to_ulong());
+    uint8_t indexA = static_cast<uint8_t>(std::log2(static_cast<uint8_t>(layerA.to_ulong())));
+    uint8_t indexB = static_cast<uint8_t>(std::log2(static_cast<uint8_t>(layerB.to_ulong())));
     
     // Ensure entityA always corresponds to the smaller index for handler signature consistency
     if (indexA > indexB) {

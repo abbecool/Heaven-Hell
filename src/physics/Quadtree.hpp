@@ -8,7 +8,7 @@
 
 class Quadtree
 {
-    int m_capacity = 8;
+    size_t m_capacity = 8;
     
     Vec2 m_position;
     Vec2 m_size;
@@ -48,7 +48,7 @@ public:
         }
 
         m_objects.push_back(entity);
-        if ((int)m_objects.size() >= m_capacity){
+        if (m_objects.size() >= m_capacity){
             if (!m_divided)
             {
                 subdivide();
@@ -79,7 +79,7 @@ public:
             return;
         }
         m_objects.push_back(entity);
-        if ((int)m_objects.size() > m_capacity)
+        if (m_objects.size() > m_capacity)
         {
             if (!m_divided)
             {

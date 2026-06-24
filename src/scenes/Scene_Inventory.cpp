@@ -86,8 +86,12 @@ void Scene_Inventory::spawnItem(std::string sprite)
 {
     auto entityID = m_ECS.addEntity();
     m_item = entityID;
-    Vec2 pos = {(float)((int)(entityID-1)%(int)m_inventorySize.x), 
-                (float)((int)(entityID-1)/(int)m_inventorySize.x)};
+    const int itemIndex = static_cast<int>(entityID - 1);
+    const int columnCount = static_cast<int>(m_inventorySize.x);
+    Vec2 pos = {
+        static_cast<float>(itemIndex % columnCount),
+        static_cast<float>(itemIndex / columnCount)
+    };
     m_ECS.addComponent<CTransform>(entityID, pos);
     m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8});
 
@@ -97,8 +101,9 @@ void Scene_Inventory::spawnItem(std::string sprite)
 void Scene_Inventory::Scroll(int scroll)
 {
     auto& pos = m_ECS.getComponent<CTransform>(m_item).pos;
-    pos.x = (int)(pos.x+scroll)%(int)m_inventorySize.x;
-    pos.x = std::min(std::max(0, (int)pos.x), (int)(m_inventorySize.x-1));
+    const int columnCount = static_cast<int>(m_inventorySize.x);
+    const int column = static_cast<int>(pos.x + static_cast<float>(scroll)) % columnCount;
+    pos.x = static_cast<float>(std::clamp(column, 0, columnCount - 1));
 }
 
 void Scene_Inventory::onEnd() {}
