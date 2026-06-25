@@ -641,21 +641,25 @@ void Scene_Play::sRenderHealth() {
         auto& transform = transformPool.getComponent(entityID);
 
         const float hearts = static_cast<float>(health.HP) / 2.0f;
+        const float maxHearts = static_cast<float>(health.HP_max) / 2.0f;
         
-        Vec2 heartSize = heartsSprite.frameSize() * transform.scale * (static_cast<float>(windowScale) / viewScale);
+        const Vec2 heartFrameSize = heartsSprite.frameSize();
+        const Vec2 heartSize = heartFrameSize * transform.scale * (static_cast<float>(windowScale) / viewScale);
+        const bool hasHalfHeart = hearts != std::floor(hearts);
+        const float visibleHeartSlots = std::ceil(hearts);
+        const RectF heartSource = heartsSprite.sourceRegion();
         const RectF src = {
-            (10.0f - std::ceil(hearts)) * heartSize.y * static_cast<float>(hearts != std::floor(hearts)),
-            // 0.0f,
-            heartSize.y * static_cast<float>(hearts != std::floor(hearts)),
-            heartSize.x * std::ceil(hearts),
-            heartSize.y
+            heartSource.x + (10.0f - visibleHeartSlots) * heartFrameSize.x,
+            heartSource.y + heartFrameSize.y * static_cast<float>(hasHalfHeart),
+            heartFrameSize.x * std::ceil(maxHearts),
+            heartFrameSize.y
         };
         const CSprite& entitySprite = m_ECS.getComponent<CSprite>(entityID);
         const float entityVisualHeight = entitySprite.size().y * transform.scale.y;
         const RectF dst = {
-            transform.pos.x - std::ceil(hearts) * heartSize.x / 2.0f,
+            transform.pos.x - std::ceil(maxHearts) * heartSize.x / 2.0f,
             transform.pos.y - entityVisualHeight / 2.0f - heartSize.y / 2.0f,
-            heartSize.x * std::ceil(hearts),
+            heartSize.x * std::ceil(maxHearts),
             heartSize.y
         };
         drawWorldSprite(heartsSprite, src, dst);
