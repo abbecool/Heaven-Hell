@@ -1,0 +1,64 @@
+{
+    "player": {
+        "spawn": {
+            "x": 349,
+            "y": 63
+        },
+        "components": {
+            "CTransform": {
+                "pos": "spawn_position"
+            },
+            "CName": "demon",
+            "CAnimation": {
+                "animation": "demon-sheet",
+                "layer": 9
+            },
+            "CPhysicsBody": {
+                "mass": 1,
+                "moveForce": 2400,
+                "maxSpeed": 100,
+                "linearDamping": 24
+            },
+            "CCollisionBox": {
+                "size": {
+                    "x": 8,
+                    "y": 8
+                },
+                "layer": "PLAYER_LAYER",
+                "mask": [
+                    "ENEMY_LAYER",
+                    "OBSTACLE_LAYER",
+                    "FRIENDLY_LAYER"
+                ]
+            },
+            "CInteractionBox": {
+                "size": {
+                    "x": 4,
+                    "y": 4
+                },
+                "layer": "PLAYER_LAYER",
+                "mask": [
+                    "ENEMY_LAYER",
+                    "FRIENDLY_LAYER",
+                    "LOOT_LAYER",
+                    "AREA_LAYER"
+                ]
+            },
+            "CInput": 0,
+            "CState": {
+                "state": "STAND"
+            },
+            "CHealth": {
+                "HP": 10,
+                "HP_max": 10,
+                "i_frames": 60
+            },
+            "CInventory": {
+                "slots": 3
+            }
+        },
+        "progressionDefaults": {
+            "damage": 1
+        }
+    }
+}

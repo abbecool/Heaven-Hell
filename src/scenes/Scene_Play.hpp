@@ -17,25 +17,12 @@
 
 class Scene_Play : public Scene
 {
-    struct PlayerConfig
-    {
-        int x = 0;
-        int y = 0;
-        float moveForce = 0.0f;
-        float maxSpeed = 0.0f;
-        float mass = 0.0f;
-        float linearDamping = 0.0f;
-        int HP = 0;
-        int DAMAGE = 0;
-        int iFrames = 60;
-    };
-    
     protected:
     
     friend class LevelLoader;
     EntityID m_player;
+    std::string m_playerDefinition = "player";
     std::string m_levelPath;
-    PlayerConfig m_playerConfig;
     
     CollisionManager m_collisionManager;
     InteractionManager m_interactionManager;
@@ -56,7 +43,6 @@ class Scene_Play : public Scene
         {"piercing", {"shielded"}}
     };
     
-    void loadConfig(const std::string& path);
     void loadMobsNItems(const std::string& path);
     void SubscribeToStoryEvents();
     void saveGame();

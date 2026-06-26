@@ -3,16 +3,6 @@
 #include "physics/Vec2.hpp"
 #include "ecs/Entity.hpp"
 
-struct CameraConfig
-{
-    int SHAKE_DURATION_SMALL = 0;
-    int SHAKE_DURATION_MEDIUM = 0;
-    int SHAKE_DURATION_LARGE = 0;
-    int SHAKE_INTENSITY_SMALL = 0;
-    int SHAKE_INTENSITY_MEDIUM = 0;
-    int SHAKE_INTENSITY_LARGE = 0;
-};
-
 class Camera {
 
     bool m_cameraFollow = false;
@@ -32,7 +22,6 @@ class Camera {
     Vec2 panPos = Vec2{0,0};
     Vec2 panStartPos = Vec2{0,0};
 public:
-    CameraConfig config;
     int panDuration = 0;
     Camera();
     void calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize);

@@ -32,6 +32,18 @@ namespace {
 constexpr float PHYSICS_DT = 1.0f / 60.0f;
 constexpr float SPRINT_MULTIPLIER = 2.0f;
 constexpr float STOP_SPEED = 1.0f;
+
+json loadJsonFile(const std::string& path)
+{
+    std::ifstream file(path);
+    if (!file) {
+        throw std::runtime_error("Could not load json file: " + path);
+    }
+
+    json data;
+    file >> data;
+    return data;
+}
 }
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
@@ -83,7 +95,6 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(InputCode::Num8, "TP2");
     registerAction(InputCode::Num9, "TP3");
 
-    loadConfig("config_files/config.json");
     spawnPlayer();
     // mobs have to spawn after player, so they can target the player
     loadMobsNItems("config_files/mobs.json");
@@ -127,43 +138,21 @@ void Scene_Play::loadMobsNItems(const std::string& path){
     }
 }
 
-void Scene_Play::loadConfig(const std::string& confPath){
-    std::ifstream file(confPath);
-    if (!file) {
-        throw std::runtime_error("Could not load config file: " + confPath);
-    }
-    json j;
-    file >> j;
-
-    const json& player = j.at("player");
-    const json& spawn = player.at("spawn");
-    const json& physics = player.at("physics");
-    const json& health = player.at("health");
-
-    m_playerConfig.x = spawn.at("x").get<int>();
-    m_playerConfig.y = spawn.at("y").get<int>();
-    m_playerConfig.moveForce = physics.at("moveForce").get<float>();
-    m_playerConfig.maxSpeed = physics.at("maxSpeed").get<float>();
-    m_playerConfig.mass = physics.at("mass").get<float>();
-    m_playerConfig.linearDamping = physics.at("linearDamping").get<float>();
-    m_playerConfig.HP = health.at("maxHp").get<int>();
-    m_playerConfig.iFrames = health.at("iFrames").get<int>();
-    m_playerConfig.DAMAGE = player.at("damage").get<int>();
-
-    const json& shake = j.at("camera").at("shake");
-    m_camera.config.SHAKE_DURATION_SMALL = shake.at("small").at("duration").get<int>();
-    m_camera.config.SHAKE_INTENSITY_SMALL = shake.at("small").at("intensity").get<int>();
-    m_camera.config.SHAKE_DURATION_MEDIUM = shake.at("medium").at("duration").get<int>();
-    m_camera.config.SHAKE_INTENSITY_MEDIUM = shake.at("medium").at("intensity").get<int>();
-    m_camera.config.SHAKE_DURATION_LARGE = shake.at("large").at("duration").get<int>();
-    m_camera.config.SHAKE_INTENSITY_LARGE = shake.at("large").at("intensity").get<int>();
-}
-
 // Function to save the game state to a file
 void Scene_Play::saveGame() 
 {
     Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos;
     int hp = m_ECS.getComponent<CHealth>(m_player).HP;
+    const CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
+
+    json inventoryItems = json::array();
+    for (const Item& item : inventory.items) {
+        if (item.id == -1) {
+            inventoryItems.push_back(nullptr);
+            continue;
+        }
+        inventoryItems.push_back(item.id);
+    }
 
     std::ofstream file("config_files/game_save.json");
     if (!file) {
@@ -171,13 +160,18 @@ void Scene_Play::saveGame()
     }    
     json save = {
         {"player", {
+            {"definition", m_playerDefinition},
             {"position", {
                 {"x", int(playerPos.x / m_gridSize.x)},
                 {"y", int(playerPos.y / m_gridSize.y)}
             }},
-            {"hp", hp}
-        }},
-        {"inventory", {1, 2}}
+            {"hp", hp},
+            {"inventory", {
+                {"items", inventoryItems},
+                {"activeSlot", inventory.activeItem.index}
+            }},
+            {"progression", json::object()}
+        }}
     };
     file << save.dump(4);
     file.close();
@@ -614,10 +608,7 @@ void Scene_Play::sAnimation() {
             if ( animation.hasEnded() ) {
                 projectileState.state = "Ready";
                 setAnimation(e, "fireball", true);
-                m_camera.startShake(
-                    m_camera.config.SHAKE_INTENSITY_SMALL,
-                    m_camera.config.SHAKE_DURATION_SMALL
-                );
+                m_camera.startShake(50, 100);
             }
         }
     }
@@ -873,6 +864,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     if (c.contains("CInput")){
         m_ECS.addComponent<CInput>(id);
     }
+    if (c.contains("CInventory")) {
+        m_ECS.addComponent<CInventory>(id);
+    }
     if (c.contains("CAIAgent")) {
         m_ECS.addComponent<CAIAgent>(id, c["CAIAgent"]);
         // Record spawn position for patrol anchor
@@ -894,61 +888,70 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
 
 EntityID Scene_Play::spawnPlayer()
 {
-    uint8_t layer = 9;
-    auto entityID = m_ECS.addEntity();
+    json save;
+    json playerSave;
+    m_playerDefinition = "player";
+
+    if (!m_newGame){
+        save = loadJsonFile("config_files/game_save.json");
+        playerSave = save.at("player");
+        m_playerDefinition = playerSave.value("definition", "player");
+    }
+
+    const std::string definitionPath = "config_files/entities/" + m_playerDefinition + ".json";
+    json playerDefinitionJson = loadJsonFile(definitionPath);
+    const json& playerDefinition = playerDefinitionJson.at(m_playerDefinition);
+    Vec2 spawnGrid = playerDefinition.at("spawn");
+    if (playerSave.contains("position")) {
+        spawnGrid = playerSave.at("position");
+    }
+
+    EntityID entityID = Spawn(m_playerDefinition, spawnGrid);
+    if (entityID == static_cast<EntityID>(-1)) {
+        throw std::runtime_error("Could not spawn player from definition: " + m_playerDefinition);
+    }
     m_player = entityID;
 
-    int pos_x = m_playerConfig.x;
-    int pos_y = m_playerConfig.y;
-    int hp = m_playerConfig.HP;
-    
-    json j;
-    if (!m_newGame){
-        std::ifstream file_json("config_files/game_save.json");
-        if (!file_json) {
-            throw std::runtime_error("Could not load game save file: config_files/game_save.json");
+    if (playerSave.contains("hp") && m_ECS.hasComponent<CHealth>(entityID)) {
+        m_ECS.getComponent<CHealth>(entityID).HP = playerSave.at("hp").get<int>();
+    }
+
+    if (!m_ECS.hasComponent<CInventory>(entityID)) {
+        m_ECS.addComponent<CInventory>(entityID);
+    }
+
+    auto loadInventoryItems = [this, entityID](const json& itemIDs, int activeSlot) {
+        auto& inventory = m_ECS.getComponent<CInventory>(entityID);
+        const int slotCount = static_cast<int>(inventory.items.size());
+        const int count = std::min(slotCount, static_cast<int>(itemIDs.size()));
+
+        for (int i = 0; i < count; ++i) {
+            if (itemIDs[i].is_null()) {
+                continue;
+            }
+            inventory.items[i] = m_inventoryManager.getItem(itemIDs[i].get<int>());
+            inventory.items[i].index = i;
         }
 
-        file_json >> j;
-        file_json.close();
-        Vec2 pos = j["player"]["position"];
-        hp = j["player"]["hp"];        
-    }
-    
-    Vec2 pos = Vec2{16.0f * static_cast<float>(pos_x), 16.0f * static_cast<float>(pos_y)};
-    Vec2 midGrid = gridToMidPixel(pos, entityID);
-    
-    m_ECS.addComponent<CTransform>(entityID, midGrid);
-    m_ECS.addComponent<CVelocity>(entityID);
-    m_ECS.addComponent<CPhysicsBody>(
-        entityID,
-        m_playerConfig.mass,
-        m_playerConfig.moveForce,
-        m_playerConfig.maxSpeed,
-        m_playerConfig.linearDamping
-    );
-    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER | FRIENDLY_LAYER;
-    m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8}, PLAYER_LAYER, collisionMask);
-    CollisionMask interactionMask = ENEMY_LAYER | FRIENDLY_LAYER | LOOT_LAYER | AREA_LAYER;
-    m_ECS.addComponent<CInteractionBox>(entityID, Vec2 {4, 4}, PLAYER_LAYER, interactionMask);
-    m_ECS.addComponent<CName>(entityID, "demon");
-    addVisual(entityID, "demon-sheet", layer);
-    spawnShadow(entityID);
-    m_ECS.addComponent<CInput>(entityID);
-    m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
-    m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, m_playerConfig.iFrames);
-    m_ECS.addComponent<CInventory>(entityID);
-    
-    if (j.contains("inventory")){
-        auto& inventory = m_ECS.getComponent<CInventory>(entityID);
-        int i = 0;
-        for (int itemID : j["inventory"])
-        {
-            inventory.items[i] = m_inventoryManager.getItem(itemID);
-            inventory.items[i].index = i;
-            i++;
+        if (activeSlot >= 0 && activeSlot < slotCount) {
+            inventory.activeItem = inventory.items[activeSlot];
         }
-        inventory.activeItem = inventory.items[0];
+    };
+
+    if (playerSave.contains("inventory")) {
+        const json& inventorySave = playerSave.at("inventory");
+        if (inventorySave.is_object()) {
+            loadInventoryItems(
+                inventorySave.value("items", json::array()),
+                inventorySave.value("activeSlot", 0)
+            );
+        }
+        else if (inventorySave.is_array()) {
+            loadInventoryItems(inventorySave, 0);
+        }
+    }
+    else if (save.contains("inventory")) {
+        loadInventoryItems(save.at("inventory"), 0);
     }
 
     return entityID;
@@ -1006,6 +1009,7 @@ EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
     m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
     m_ECS.addComponent<CLifespan>(id, 60);
     m_ECS.addComponent<CAudio>(id, "fireball_shot");
+    m_camera.startShake(2, 60);
     return id;
 }
 EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction, CollisionMask layer, CollisionMask mask)
