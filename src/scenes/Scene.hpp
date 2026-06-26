@@ -67,6 +67,7 @@ class Scene
     void setAnimation(EntityID entity, const std::string& spriteName, bool repeat = true);
     void drawSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f);
     void drawSprite(const SpriteDefinition& sprite, const RectF& dst, float angle = 0.0f);
+    void drawSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
     void updateAnimations();
     void sRenderBasic();
     template<typename T>

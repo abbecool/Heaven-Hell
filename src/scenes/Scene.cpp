@@ -91,6 +91,16 @@ void Scene::drawSprite(const SpriteDefinition& sprite, const RectF& dst, float a
     });
 }
 
+void Scene::drawSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle)
+{
+    m_game->render().drawSprite(SpriteDrawCommand{
+        sprite.texture(),
+        src,
+        dst,
+        angle
+    });
+}
+
 void Scene::drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle)
 {
     if (!sprite.visible) {

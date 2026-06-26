@@ -632,7 +632,7 @@ void Scene_Play::sRenderHealth() {
     auto viewHealth = m_ECS.View<CHealth, CTransform>();
     for (auto entityID : viewHealth)
     {
-        // if (entityID == m_player) { continue; }
+        if (entityID == m_player) { continue; }
         auto& health = healthPool.getComponent(entityID);
         // if (static_cast<int>(m_currentFrame - health.damage_frame) >= health.i_frames)
         // {
@@ -669,44 +669,32 @@ void Scene_Play::sRenderHealth() {
 void Scene_Play::sRenderUI() {
     int windowScale = m_game->getScale();
 
-    const float hearts = static_cast<float>(m_ECS.getComponent<CHealth>(m_player).HP) / 2.0f;
-    const SpriteDefinition& heart_full = getSprite("heart_full");
-    const SpriteDefinition& heart_half = getSprite("heart_half");
-    const SpriteDefinition& heart_empty = getSprite("heart_empty");
+    const SpriteDefinition& heartsSprite = getSprite("hearts");
+    auto& healthPool = m_ECS.getComponentPool<CHealth>();
+
+    auto& health = healthPool.getComponent(m_player);
+
+    const float hearts = static_cast<float>(health.HP) / 2.0f;
+    const float maxHearts = static_cast<float>(health.HP_max) / 2.0f;
     
-    for (int i = 1; i <= m_ECS.getComponent<CHealth>(m_player).HP_max / 2; i++)
-    {
-        if (hearts >= i)
-        {
-            const Vec2 heartSize = heart_full.frameSize() * windowScale;
-            drawSprite(heart_full, RectF{
-                static_cast<float>(i - 1) * heart_full.frameSize().x * windowScale * windowScale,
-                0.0f,
-                heartSize.x,
-                heartSize.y
-            });
-        }
-        else if (i - hearts == 0.5f)
-        {
-            const Vec2 heartSize = heart_half.frameSize() * windowScale;
-            drawSprite(heart_half, RectF{
-                static_cast<float>(i - 1) * heart_half.frameSize().x * windowScale * windowScale,
-                0.0f,
-                heartSize.x,
-                heartSize.y
-            });
-        }
-        else
-        {
-            const Vec2 heartSize = heart_empty.frameSize() * windowScale;
-            drawSprite(heart_empty, RectF{
-                static_cast<float>(i - 1) * heart_empty.frameSize().x * windowScale * windowScale,
-                0.0f,
-                heartSize.x,
-                heartSize.y
-            });
-        }
-    }
+    const Vec2 heartFrameSize = heartsSprite.frameSize();
+    const Vec2 heartSize = heartFrameSize * windowScale;
+    const bool hasHalfHeart = hearts != std::floor(hearts);
+    const float visibleHeartSlots = std::ceil(hearts);
+    const RectF heartSource = heartsSprite.sourceRegion();
+    const RectF src = {
+        heartSource.x + (10.0f - visibleHeartSlots) * heartFrameSize.x,
+        heartSource.y + heartFrameSize.y * static_cast<float>(hasHalfHeart),
+        heartFrameSize.x * std::ceil(maxHearts),
+        heartFrameSize.y
+    };
+    const RectF dst = {
+        0.0f,
+        0.0f,
+        heartSize.x * std::ceil(maxHearts),
+        heartSize.y
+    };
+    drawSprite(heartsSprite, src, dst);
 
     // render player inventory
     const SpriteDefinition& inventorySprite = getSprite("inventory");
