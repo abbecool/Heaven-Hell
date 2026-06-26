@@ -100,6 +100,54 @@ public:
         return index < m_dense.size() && m_dense[index] == entity;
     }
 
+    void attachChild(EntityID parent, EntityID child, Vec2 relativePos, bool removeOnDeath = true) {
+        if (!isAlive(parent) || !isAlive(child)) {
+            return;
+        }
+
+        if (hasComponent<CParent>(child)) {
+            detachChild(child);
+        }
+        addComponent<CParent>(child, parent, relativePos);
+
+        if (!hasComponent<CChild>(parent)) {
+            addComponent<CChild>(parent, child, removeOnDeath);
+            return;
+        }
+
+        auto& children = getComponent<CChild>(parent).children;
+        for (auto& childLink : children) {
+            if (childLink.child == child) {
+                childLink.removeOnDeath = removeOnDeath;
+                return;
+            }
+        }
+        children.emplace_back(child, removeOnDeath);
+    }
+
+    void detachChild(EntityID child) {
+        if (!isAlive(child) || !hasComponent<CParent>(child)) {
+            return;
+        }
+
+        const EntityID parent = getComponent<CParent>(child).parent;
+        if (isAlive(parent) && hasComponent<CChild>(parent)) {
+            auto& children = getComponent<CChild>(parent).children;
+            children.erase(
+                std::remove_if(
+                    children.begin(),
+                    children.end(),
+                    [child](const auto& childLink) {
+                        return childLink.child == child;
+                    }
+                ),
+                children.end()
+            );
+        }
+
+        removeComponent<CParent>(child);
+    }
+
     void queueRemoveEntity(EntityID entity) {
         if (entity == 0) {
             std::cerr << "Error: Attempting to remove player entity!" << std::endl;
@@ -107,19 +155,23 @@ public:
         }
         if (hasComponent<CParent>(entity))
         {
-            auto parentID = getComponent<CParent>(entity).parent;
-            queueRemoveComponent<CChild>(parentID);
-            queueRemoveComponent<CParent>(entity);
+            detachChild(entity);
         }
         if (hasComponent<CChild>(entity))
         {
-            auto childID = getComponent<CChild>(entity).childID;
-            queueRemoveComponent<CParent>(childID);
-            queueRemoveComponent<CChild>(entity);
-            if ( getComponent<CChild>(entity).removeOnDeath )
-            {
-                m_entitiesToRemove.push_back(childID);
+            const auto children = getComponent<CChild>(entity).children;
+            for (const auto& childLink : children) {
+                if (!isAlive(childLink.child)) {
+                    continue;
+                }
+                if (childLink.removeOnDeath) {
+                    queueRemoveEntity(childLink.child);
+                }
+                else if (hasComponent<CParent>(childLink.child)) {
+                    removeComponent<CParent>(childLink.child);
+                }
             }
+            getComponent<CChild>(entity).children.clear();
         }
         m_entitiesToRemove.push_back(entity);
     }

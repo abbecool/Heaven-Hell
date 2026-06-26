@@ -25,9 +25,8 @@ EntityID Scene::SpawnDialog(
     int layer = 8;
     auto id = m_ECS.addEntity();
     m_ECS.addComponent<CTransform>(id);
-    m_ECS.addComponent<CChild>(parentID, id);
     Vec2 relativePosition = {0, -2*m_gridSize.y};
-    m_ECS.addComponent<CParent>(id, parentID, relativePosition);
+    m_ECS.attachChild(parentID, id, relativePosition);
     CSprite& sprite = addSprite(id, "button_unpressed", layer);
     Vec2 spriteSize = sprite.size();
     m_ECS.addComponent<CText>(id, dialog, spriteSize.y*0.9f, font);

@@ -74,6 +74,7 @@ class Scene_Play : public Scene
     void onEnd();
     void togglePause();
     void changePlayerState(EntityID entity, PlayerState s);
+    void beginProjectileFlight(EntityID projectileID);
     bool hasLineOfSight(Vec2 origin, Vec2 target);
     bool rayIntersectsAABB(Vec2 origin, Vec2 dir, float maxDist, 
         Vec2 boxMin, Vec2 boxMax);
@@ -85,6 +86,7 @@ class Scene_Play : public Scene
     
     EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
     EntityID spawnHitbox(Vec2 position, Vec2 size, CollisionMask layer, CollisionMask mask);
+    void destroyProjectile(EntityID projectileID);
     void updateActiveItem(int newActiveItem);
     void update();
     void setPaused(bool);

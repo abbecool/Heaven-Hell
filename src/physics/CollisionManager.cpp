@@ -2,6 +2,7 @@
 
 #include "physics/CollisionManager.hpp"
 #include "ecs/ScriptableEntity.hpp"
+#include "scenes/Scene_Play.hpp"
 
 namespace {
 
@@ -61,17 +62,6 @@ void handleBodyCollision(Entity entityA, Entity entityB, Vec2 overlap)
 }
 
 } // namespace
-
-void handleProjectileObstacleCollision(Entity projectile, Entity obstacle, Vec2 overlap){
-    projectile.removeEntity();
-}
-
-void handleEnemyProjectileCollision(Entity enemy, Entity projectile, Vec2 overlap){
-    int damage = projectile.getComponent<CDamage>().damage;
-    enemy.getComponent<CHealth>().HP -= damage;
-    projectile.removeEntity();
-    projectile.addComponent<CAudio>("fireball_destroy");    
-}
 
 void BaseCollisionManager::registerHandler(     
     CollisionMask layerA, 
@@ -244,10 +234,34 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene){
     registerHandler(FRIENDLY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
     registerHandler(FRIENDLY_LAYER, FRIENDLY_LAYER, handleBodyCollision);
     registerHandler(FRIENDLY_LAYER, ENEMY_LAYER, handleBodyCollision);
-    registerHandler(ENEMY_LAYER, PROJECTILE_LAYER, handleEnemyProjectileCollision);
+    registerHandler(
+        ENEMY_LAYER,
+        PROJECTILE_LAYER,
+        [this](Entity enemy, Entity projectile, Vec2 overlap) {
+            if (!projectile.hasComponent<CProjectileState>() ||
+                projectile.getComponent<CProjectileState>().phase != ProjectilePhase::Flying) {
+                return;
+            }
+
+            int damage = projectile.getComponent<CDamage>().damage;
+            enemy.getComponent<CHealth>().HP -= damage;
+            m_scene->destroyProjectile(projectile.getID());
+        }
+    );
     registerHandler(ENEMY_LAYER, ENEMY_LAYER, handleBodyCollision);
     registerHandler(ENEMY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
-    registerHandler(PROJECTILE_LAYER, OBSTACLE_LAYER, handleProjectileObstacleCollision);
+    registerHandler(
+        PROJECTILE_LAYER,
+        OBSTACLE_LAYER,
+        [this](Entity projectile, Entity obstacle, Vec2 overlap) {
+            if (!projectile.hasComponent<CProjectileState>() ||
+                projectile.getComponent<CProjectileState>().phase != ProjectilePhase::Flying) {
+                return;
+            }
+
+            m_scene->destroyProjectile(projectile.getID());
+        }
+    );
 }
 
 void CollisionManager::processQuadtreeLeaf(std::vector<Entity>& entityVector) {
@@ -314,7 +328,18 @@ bool InteractionManager::talkToNPC(Entity player, Entity friendly){
     int currentQuestID = m_scene->getStoryManager().getCurrentQuestID();
     std::string name = friendly.getComponent<CName>().name;
     std::string currentDialog = m_scene->getStoryManager().getDialog(name);
-    if (!friendly.hasComponent<CChild>()) {
+
+    bool hasDialog = false;
+    if (friendly.hasComponent<CChild>()) {
+        for (const auto& childLink : friendly.getComponent<CChild>().children) {
+            if (m_ECS->isAlive(childLink.child) && m_ECS->hasComponent<CText>(childLink.child)) {
+                hasDialog = true;
+                break;
+            }
+        }
+    }
+
+    if (!hasDialog) {
         m_scene->SpawnDialog(currentDialog, 16, "Minecraft", friendly.getID());
     }
     m_scene->Emit(Event{EventType::DialogueFinished, name});

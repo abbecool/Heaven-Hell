@@ -11,6 +11,7 @@
 #include <bitset>
 #include <algorithm>
 #include <stdexcept>
+#include <vector>
 
 using json = nlohmann::json;
 
@@ -63,9 +64,26 @@ struct CParent
 
 struct CProjectile
 {
-    EntityID projectileID;
+    EntityID owner = 0;
+    Vec2 direction = {1, 0};
+    float speed = 200.0f;
+    int flightLifetime = 60;
+    float createOffset = 12.0f;
     CProjectile() {}
-    CProjectile(EntityID p) : projectileID(p){}
+    CProjectile(EntityID projectileOwner, Vec2 projectileDirection)
+        : owner(projectileOwner), direction(projectileDirection) {}
+    CProjectile(
+        EntityID projectileOwner,
+        Vec2 projectileDirection,
+        float projectileSpeed,
+        int lifetime,
+        float offset
+    )
+        : owner(projectileOwner),
+          direction(projectileDirection),
+          speed(projectileSpeed),
+          flightLifetime(lifetime),
+          createOffset(offset) {}
 };
 
 struct CInput
@@ -79,6 +97,7 @@ struct CInput
     bool ctrl       = false;
     bool interact   = false;
     bool attack     = false;
+    bool attackHeld = false;
 
     bool shoot      = false;
     bool canShoot   = false;
@@ -326,12 +345,19 @@ struct CState
     CState() {}
     CState(const PlayerState s) : state(s), preState(s) {}
 }; 
+
+enum class ProjectilePhase {
+    Creating,
+    Flying,
+    Destroying
+};
+
 struct CProjectileState
 {
-    std::string state;
-    bool changeAnimate = false;
+    ProjectilePhase phase = ProjectilePhase::Creating;
+    bool createComplete = false;
     CProjectileState() {}
-    CProjectileState(std::string state ) : state(state) {}
+    CProjectileState(ProjectilePhase projectilePhase) : phase(projectilePhase) {}
 }; 
 struct CName
 {
@@ -511,18 +537,25 @@ struct CEvent
             : event(e){}
 };
 
+struct ChildLink
+{
+    EntityID child = 0;
+    bool removeOnDeath = true;
+
+    ChildLink() {}
+    ChildLink(EntityID childID, bool remove)
+        : child(childID), removeOnDeath(remove) {}
+};
+
 struct CChild
 {
+    std::vector<ChildLink> children;
 
-    std::vector<std::tuple<EntityID, bool>> children;
-
-    EntityID childID;
-    bool removeOnDeath;
     CChild() {}
     CChild(EntityID cID)
-                : childID(cID), removeOnDeath(true){}
+        : children{{cID, true}} {}
     CChild(EntityID cID, bool remove)
-                : childID(cID), removeOnDeath(remove){}
+        : children{{cID, remove}} {}
 };
 
 struct CChunk

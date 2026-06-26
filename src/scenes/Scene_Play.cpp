@@ -199,7 +199,11 @@ void Scene_Play::sDoAction(const Action& action){
         if ( action.name() == "CTRL"){m_ECS.getComponent<CInput>(m_player).ctrl = true;}
         if ( action.name() == "INTERACT"){m_ECS.getComponent<CInput>(m_player).interact = true;}
         if ( action.name() == "TAKE OVER"){m_ECS.getComponent<CInput>(m_player).posses = true;}
-        if ( action.name() == "ATTACK"){m_ECS.getComponent<CInput>(m_player).attack = true;}
+        if ( action.name() == "ATTACK"){
+            auto& input = m_ECS.getComponent<CInput>(m_player);
+            input.attack = true;
+            input.attackHeld = true;
+        }
     }
     else if ( action.type() == "END")
     {
@@ -225,7 +229,11 @@ void Scene_Play::sDoAction(const Action& action){
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInput>(m_player).ctrl = false; }
         if ( action.name() == "INTERACT") { m_ECS.getComponent<CInput>(m_player).interact = false; }
         if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInput>(m_player).posses = false; }
-        if ( action.name() == "ATTACK") { m_ECS.getComponent<CInput>(m_player).attack = false; }
+        if ( action.name() == "ATTACK") {
+            auto& input = m_ECS.getComponent<CInput>(m_player);
+            input.attack = false;
+            input.attackHeld = false;
+        }
         if ( action.name() == "WRITE POSITION") { 
             Vec2 cursorPosition = (m_mousePosition+m_camera.position)/m_gridSize;
             cursorPosition.print("Cursor position");
@@ -593,7 +601,7 @@ void Scene_Play::sAnimation() {
         } else if(velocity.vel.mainDir().y < 0) {
             changePlayerState(e, PlayerState::RUN_UP);
         }
-        // // change player animation
+        // change player animation
         if (state.changeAnimate) {
             animation.currentRow = static_cast<int>(state.state);
         }
@@ -601,14 +609,36 @@ void Scene_Play::sAnimation() {
 
     auto viewProjectileState = m_ECS.View<CProjectileState, CAnimation>();
     auto& projectileStatePool = m_ECS.getComponentPool<CProjectileState>();
+    auto& projectilePool = m_ECS.getComponentPool<CProjectile>();
     for ( auto e : viewProjectileState ) {
         auto& animation = animationPool.getComponent(e);
         auto& projectileState = projectileStatePool.getComponent(e);
-        if ( projectileState.state == "Create" ) {
-            if ( animation.hasEnded() ) {
-                projectileState.state = "Ready";
+        if (projectileState.phase == ProjectilePhase::Creating) {
+            bool attackReleased = false;
+            if (m_ECS.hasComponent<CProjectile>(e)) {
+                const auto& projectile = projectilePool.getComponent(e);
+                attackReleased = !m_ECS.hasComponent<CInput>(projectile.owner) ||
+                    !m_ECS.getComponent<CInput>(projectile.owner).attackHeld;
+            }
+
+            if (!projectileState.createComplete && animation.hasEnded()) {
+                projectileState.createComplete = true;
                 setAnimation(e, "fireball", true);
-                m_camera.startShake(50, 100);
+            }
+
+            if (projectileState.createComplete && attackReleased) {
+                beginProjectileFlight(e);
+            }
+        }
+        else if (projectileState.phase == ProjectilePhase::Flying) {
+            if (!m_ECS.hasComponent<CProjectile>(e)) {
+                continue;
+            }
+
+            auto& projectile = projectilePool.getComponent(e);
+            projectile.flightLifetime--;
+            if (projectile.flightLifetime <= 0) {
+                destroyProjectile(e);
             }
         }
     }
@@ -971,9 +1001,8 @@ EntityID Scene_Play::spawnShadow(EntityID parentID){
     auto shadowID = m_ECS.addEntity();
     m_ECS.addComponent<CTransform>(shadowID);
     m_ECS.getComponent<CTransform>(shadowID).scale = {shadowScale, shadowScale};
-    m_ECS.addComponent<CParent>(shadowID, parentID, relativePos);
     addSprite(shadowID, "shadow", parentSprite.layer - 1);
-    m_ECS.addComponent<CChild>(parentID, shadowID);
+    m_ECS.attachChild(parentID, shadowID, relativePos);
     return shadowID;
 }
 
@@ -999,19 +1028,95 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
 EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
 {
     auto id = m_ECS.addEntity();
-    int layer = 8;
-    addVisual(id, "fireball", layer);
-    m_ECS.addComponent<CTransform>(id, startPos, vel.angle());
-    m_ECS.addComponent<CVelocity>(id, vel.norm(200.0f));
+    const int layer = 8;
+    const float speed = 200.0f;
+    const int flightLifetime = 60;
+    const float createOffset = 12.0f;
+
+    Vec2 direction = vel.norm();
+    if (direction.isNull()) {
+        direction = Vec2{1, 0};
+    }
+
+    addVisual(id, "fireball_create", layer, false);
+    m_ECS.addComponent<CTransform>(id, startPos + direction * createOffset, direction.angle());
+    m_ECS.attachChild(m_player, id, direction * createOffset);
+    m_ECS.addComponent<CProjectile>(id, m_player, direction, speed, flightLifetime, createOffset);
+    m_ECS.addComponent<CProjectileState>(id, ProjectilePhase::Creating);
     m_ECS.addComponent<CDamage>(id, 1);
     m_ECS.getComponent<CDamage>(id).damageType = {"Fire", "Explosive"};
-    CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
-    m_ECS.addComponent<CCollisionBox>(id, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
-    m_ECS.addComponent<CLifespan>(id, 60);
-    m_ECS.addComponent<CAudio>(id, "fireball_shot");
-    m_camera.startShake(2, 60);
     return id;
 }
+
+void Scene_Play::beginProjectileFlight(EntityID projectileID)
+{
+    if (!m_ECS.hasComponent<CProjectile>(projectileID) ||
+        !m_ECS.hasComponent<CProjectileState>(projectileID) ||
+        !m_ECS.hasComponent<CTransform>(projectileID)) {
+        return;
+    }
+
+    auto& projectileState = m_ECS.getComponent<CProjectileState>(projectileID);
+    if (projectileState.phase != ProjectilePhase::Creating) {
+        return;
+    }
+
+    auto& projectile = m_ECS.getComponent<CProjectile>(projectileID);
+    auto& transform = m_ECS.getComponent<CTransform>(projectileID);
+    Vec2 direction = projectile.direction;
+    if (projectile.owner == m_player) {
+        const Vec2 mouseWorldPosition = getMousePosition() + getCameraPosition();
+        direction = (mouseWorldPosition - transform.pos).norm();
+        if (direction.isNull()) {
+            direction = projectile.direction;
+        }
+        projectile.direction = direction;
+    }
+
+    m_ECS.detachChild(projectileID);
+    transform.angle = direction.angle();
+    projectileState.phase = ProjectilePhase::Flying;
+    setAnimation(projectileID, "fireball", true);
+
+    if (m_ECS.hasComponent<CVelocity>(projectileID)) {
+        m_ECS.getComponent<CVelocity>(projectileID).vel = direction.norm(projectile.speed);
+    }
+    else {
+        m_ECS.addComponent<CVelocity>(projectileID, direction.norm(projectile.speed));
+    }
+
+    const CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
+    m_ECS.addComponent<CCollisionBox>(projectileID, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
+    m_ECS.addComponent<CAudio>(projectileID, "fireball_shot");
+    m_camera.startShake(2, 60);
+}
+
+void Scene_Play::destroyProjectile(EntityID projectileID)
+{
+    if (!m_ECS.hasComponent<CProjectileState>(projectileID)) {
+        return;
+    }
+
+    auto& projectileState = m_ECS.getComponent<CProjectileState>(projectileID);
+    if (projectileState.phase == ProjectilePhase::Destroying) {
+        return;
+    }
+
+    projectileState.phase = ProjectilePhase::Destroying;
+    if (m_ECS.hasComponent<CParent>(projectileID)) {
+        m_ECS.detachChild(projectileID);
+    }
+    if (m_ECS.hasComponent<CVelocity>(projectileID)) {
+        m_ECS.getComponent<CVelocity>(projectileID).vel = Vec2{0, 0};
+    }
+    if (m_ECS.hasComponent<CCollisionBox>(projectileID)) {
+        m_ECS.queueRemoveComponent<CCollisionBox>(projectileID);
+    }
+
+    setAnimation(projectileID, "fireball_explode", false);
+    m_ECS.addComponent<CAudio>(projectileID, "fireball_destroy");
+}
+
 EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction, CollisionMask layer, CollisionMask mask)
 {
     auto id = m_ECS.addEntity();
