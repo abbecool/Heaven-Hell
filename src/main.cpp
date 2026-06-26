@@ -7,7 +7,7 @@ using json = nlohmann::json;
 // Different weapons have differant elemental effects and damage types... very original
 
 int main(int argc, char* argv[]){   
-    Game g("config_files/assets.json", "config_files/text.txt");
+    Game g("config_files/assets.json");
     g.run();
 
     return EXIT_SUCCESS;

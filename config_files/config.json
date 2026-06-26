@@ -1,0 +1,35 @@
+{
+    "player": {
+        "spawn": {
+            "x": 349,
+            "y": 63
+        },
+        "physics": {
+            "moveForce": 2400,
+            "maxSpeed": 100,
+            "mass": 1,
+            "linearDamping": 24
+        },
+        "health": {
+            "maxHp": 10,
+            "iFrames": 60
+        },
+        "damage": 1
+    },
+    "camera": {
+        "shake": {
+            "small": {
+                "duration": 30,
+                "intensity": 2
+            },
+            "medium": {
+                "duration": 0,
+                "intensity": 0
+            },
+            "large": {
+                "duration": 0,
+                "intensity": 0
+            }
+        }
+    }
+}

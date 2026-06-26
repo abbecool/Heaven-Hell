@@ -83,7 +83,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(InputCode::Num8, "TP2");
     registerAction(InputCode::Num9, "TP3");
 
-    loadConfig("config_files/config.txt");
+    loadConfig("config_files/config.json");
     spawnPlayer();
     // mobs have to spawn after player, so they can target the player
     loadMobsNItems("config_files/mobs.json");
@@ -128,38 +128,39 @@ void Scene_Play::loadMobsNItems(const std::string& path){
 }
 
 void Scene_Play::loadConfig(const std::string& confPath){
-    // TODO: line count fix be using json
     std::ifstream file(confPath);
     if (!file) {
         throw std::runtime_error("Could not load config file: " + confPath);
     }
-    std::string head;
-    while (file >> head) {
-        if (head == "Player") {
-            file >> m_playerConfig.x >> m_playerConfig.y
-                 >> m_playerConfig.moveForce >> m_playerConfig.maxSpeed
-                 >> m_playerConfig.mass >> m_playerConfig.linearDamping
-                 >> m_playerConfig.HP >> m_playerConfig.DAMAGE;
-        }
-        else if (head == "Rooter") {
-            float unusedSpeed;
-            file >> unusedSpeed >> m_rooterConfig.ATTACK_SPEED >> m_rooterConfig.HP >> m_rooterConfig.DAMAGE;
-        }
-        else if (head == "Goblin") {
-            float unusedSpeed;
-            file >> unusedSpeed >> m_goblinConfig.ATTACK_SPEED >> m_goblinConfig.HP >> m_goblinConfig.DAMAGE;
-        }
-        else if (head == "Camera") {
-            file >> m_camera.config.SHAKE_DURATION_SMALL >> m_camera.config.SHAKE_INTENSITY_SMALL;
-        }
-        else {
-            throw std::runtime_error("Invalid config entry: " + head + ". Config file format is incorrect.");
-        }
-    }
+    json j;
+    file >> j;
+
+    const json& player = j.at("player");
+    const json& spawn = player.at("spawn");
+    const json& physics = player.at("physics");
+    const json& health = player.at("health");
+
+    m_playerConfig.x = spawn.at("x").get<int>();
+    m_playerConfig.y = spawn.at("y").get<int>();
+    m_playerConfig.moveForce = physics.at("moveForce").get<float>();
+    m_playerConfig.maxSpeed = physics.at("maxSpeed").get<float>();
+    m_playerConfig.mass = physics.at("mass").get<float>();
+    m_playerConfig.linearDamping = physics.at("linearDamping").get<float>();
+    m_playerConfig.HP = health.at("maxHp").get<int>();
+    m_playerConfig.iFrames = health.at("iFrames").get<int>();
+    m_playerConfig.DAMAGE = player.at("damage").get<int>();
+
+    const json& shake = j.at("camera").at("shake");
+    m_camera.config.SHAKE_DURATION_SMALL = shake.at("small").at("duration").get<int>();
+    m_camera.config.SHAKE_INTENSITY_SMALL = shake.at("small").at("intensity").get<int>();
+    m_camera.config.SHAKE_DURATION_MEDIUM = shake.at("medium").at("duration").get<int>();
+    m_camera.config.SHAKE_INTENSITY_MEDIUM = shake.at("medium").at("intensity").get<int>();
+    m_camera.config.SHAKE_DURATION_LARGE = shake.at("large").at("duration").get<int>();
+    m_camera.config.SHAKE_INTENSITY_LARGE = shake.at("large").at("intensity").get<int>();
 }
 
 // Function to save the game state to a file
-void Scene_Play::saveGame(const std::string& filename) 
+void Scene_Play::saveGame() 
 {
     Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos;
     int hp = m_ECS.getComponent<CHealth>(m_player).HP;
@@ -218,7 +219,7 @@ void Scene_Play::sDoAction(const Action& action){
         if ( action.name() == "ZOOM OUT"){ m_camera.stepCameraZoom(1, m_game->getScale()); }
         if ( action.name() == "CAMERA FOLLOW"){ m_camera.toggleCameraFollow(); }
         if ( action.name() == "CAMERA PAN"){ m_pause = m_camera.startPan(2048, 1000, Vec2{0,0}, m_pause); }
-        if ( action.name() == "SAVE"){ saveGame("config_files/game_save.txt"); }
+        if ( action.name() == "SAVE"){ saveGame(); }
         if ( action.name() == "TP1") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{460*16, 460*16}; }
         if ( action.name() == "TP2") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{292*16, 236*16}; }
         if ( action.name() == "TP3") { m_ECS.getComponent<CTransform>(m_player).pos = Vec2{801*16, 181*16}; }
@@ -237,7 +238,7 @@ void Scene_Play::sDoAction(const Action& action){
         }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
-            saveGame("config_files/game_save.txt");
+            saveGame();
             m_pause = true;
         }
     }
@@ -613,7 +614,10 @@ void Scene_Play::sAnimation() {
             if ( animation.hasEnded() ) {
                 projectileState.state = "Ready";
                 setAnimation(e, "fireball", true);
-                m_camera.startShake(50, 100);
+                m_camera.startShake(
+                    m_camera.config.SHAKE_INTENSITY_SMALL,
+                    m_camera.config.SHAKE_DURATION_SMALL
+                );
             }
         }
     }
@@ -932,7 +936,7 @@ EntityID Scene_Play::spawnPlayer()
     spawnShadow(entityID);
     m_ECS.addComponent<CInput>(entityID);
     m_ECS.addComponent<CState>(entityID, PlayerState::STAND);
-    m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, 60);
+    m_ECS.addComponent<CHealth>(entityID, hp, m_playerConfig.HP, m_playerConfig.iFrames);
     m_ECS.addComponent<CInventory>(entityID);
     
     if (j.contains("inventory")){

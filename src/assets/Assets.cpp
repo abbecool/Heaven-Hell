@@ -116,7 +116,6 @@ const SpriteDefinition& Assets::getSprite(const std::string& name) const {
 
 void Assets::loadFromFile(
     const std::string & pathAssets, 
-    const std::string & pathText, 
     RenderBackend& renderBackend,
     SDLPlatform& platform
 ){
@@ -157,18 +156,5 @@ void Assets::loadFromFile(
         std::string name = music["name"];
         std::string path = music["path"];
         platform.loadMusic(name, path);
-    }
-    
-    std::ifstream file_text(pathText);
-    if (!file_text) {
-        throw std::runtime_error("Could not load text file: " + pathText);
-    }
-    std::string head;
-    std::string font_name;
-    int r, g, b, a;
-    while (file_text >> head) {
-        if (head == "Font"){
-            file_text >> font_name >> r >> g >> b >> a;
-        }
     }
 }

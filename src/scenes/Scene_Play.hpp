@@ -19,10 +19,15 @@ class Scene_Play : public Scene
 {
     struct PlayerConfig
     {
-        int x, y;
-        float moveForce, maxSpeed, mass, linearDamping;
-        int HP, DAMAGE;
-        int ATTACK_SPEED;
+        int x = 0;
+        int y = 0;
+        float moveForce = 0.0f;
+        float maxSpeed = 0.0f;
+        float mass = 0.0f;
+        float linearDamping = 0.0f;
+        int HP = 0;
+        int DAMAGE = 0;
+        int iFrames = 60;
     };
     
     protected:
@@ -31,8 +36,6 @@ class Scene_Play : public Scene
     EntityID m_player;
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
-    PlayerConfig m_rooterConfig;
-    PlayerConfig m_goblinConfig;
     
     CollisionManager m_collisionManager;
     InteractionManager m_interactionManager;
@@ -56,7 +59,7 @@ class Scene_Play : public Scene
     void loadConfig(const std::string& path);
     void loadMobsNItems(const std::string& path);
     void SubscribeToStoryEvents();
-    void saveGame(const std::string& filename);
+    void saveGame();
     
     EntityID spawnPlayer();
     EntityID spawnShadow(EntityID parentID);

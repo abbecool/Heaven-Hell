@@ -63,7 +63,7 @@ protected:
     int displayScale(bool fullscreen) const;
 
 public:
-    Game(const std::string & pathImages, const std::string & pathText);
+    Game(const std::string & pathImages);
     ~Game();
     void changeScene(
         const std::string& sceneName,

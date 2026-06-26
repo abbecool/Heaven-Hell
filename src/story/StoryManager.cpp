@@ -10,7 +10,7 @@ StoryManager::StoryManager(Scene_Play* scene, std::string storyFilePath, std::st
 {
     m_scene = scene;
     loadStory(storyFilePath);
-    loadQuests(storyFilePath);
+    loadQuests(questFilePath);
     loadDialogs("config_files/dialogs.json");
     m_currentQuest = m_storyQuests[m_questID];
 }
@@ -25,12 +25,12 @@ void StoryManager::loadQuests(const std::string& questFilePath)
     file_assets >> j;
     file_assets.close();
 
-    for (const auto& quest_json : j) {
+    for (const auto& [questName, quest_json] : j.items()) {
         Quest quest;
-        for (const auto& step : quest_json){
+        quest.id = quest_json.at("id").get<int>();
+        quest.name = questName;
+        for (const auto& step : quest_json.at("steps")){
             QuestStep stepQuest;
-            quest.id = step["id"].get<int>();
-            quest.name = step["description"];
             
             stepQuest.requiredType = getEventTypeFromString(step["trigger"]["event_type"].get<std::string>());
     

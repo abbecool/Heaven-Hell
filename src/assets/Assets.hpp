@@ -23,7 +23,6 @@ public:
 
 	void loadFromFile(
 		const std::string & pathImages, 
-		const std::string & pathText, 
 		RenderBackend& renderBackend,
 		SDLPlatform& platform
 	);

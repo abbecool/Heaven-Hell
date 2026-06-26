@@ -27,7 +27,7 @@ std::unique_ptr<RenderBackend> createRenderBackend(RenderDriver driver, SDLPlatf
 }
 }
 
-Game::Game(const std::string & pathImages, const std::string & pathText)
+Game::Game(const std::string & pathImages)
 {
     try {
         m_platform = std::make_unique<SDLPlatform>(
@@ -52,7 +52,7 @@ Game::Game(const std::string & pathImages, const std::string & pathText)
         return;
     }
 
-    m_assets.loadFromFile(pathImages, pathText, *m_renderBackend, *m_platform);
+    m_assets.loadFromFile(pathImages, *m_renderBackend, *m_platform);
     
     updateResolution(displayScale(false));
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
