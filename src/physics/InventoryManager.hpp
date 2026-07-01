@@ -15,7 +15,8 @@ enum class ItemType {
     WeaponRanged,
     WeaponAoE,
     Consumable,
-    Quest
+    Quest,
+    Currency
 };
 
 enum class PickupMode {
@@ -39,6 +40,7 @@ struct Item {
     int stack = 0;
     int maxStack = 1;
     PickupMode pickupMode = PickupMode::Manual;
+    int currencyValue = 0;
 
     ItemType type = ItemType::None;
     int damage = 0;
@@ -51,6 +53,7 @@ struct Item {
         if (typeStr == "WeaponAoE") return ItemType::WeaponAoE;
         if (typeStr == "Consumable") return ItemType::Consumable;
         if (typeStr == "Quest") return ItemType::Quest;
+        if (typeStr == "Currency") return ItemType::Currency;
         return ItemType::None;
     }
     Item(const nlohmann::json& j) {
@@ -60,6 +63,7 @@ struct Item {
         iconPath    = j.value("iconPath", "");
         maxStack    = j.value("maxStack", 1);
         pickupMode  = pickupModeFromString(j.value("pickupMode", "Manual"));
+        currencyValue = j.value("value", 0);
 
         type = getItemTypeFromString(j.value("type", "None"));
 

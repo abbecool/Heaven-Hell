@@ -67,6 +67,8 @@ class Scene_Play : public Scene
     void sAnimation();
     void sRender();
     void sRenderHealth();
+    void sRenderCurrency();
+    void sRenderInventory();
     void sRenderUI();
     void sAudio();
     
@@ -85,8 +87,10 @@ class Scene_Play : public Scene
     Vec2 getCameraPosition() override;
     
     EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
-    EntityID spawnHitbox(Vec2 position, Vec2 size, CollisionMask layer, CollisionMask mask);
+    EntityID spawnHitbox(EntityID attackerID, Vec2 direction, const CWeapon& weapon);
     void destroyProjectile(EntityID projectileID);
+    bool addCurrencyToPlayer(int amount);
+    bool addCurrencyToPlayer(const Item& item);
     void updateActiveItem(int newActiveItem);
     void update();
     void setPaused(bool);

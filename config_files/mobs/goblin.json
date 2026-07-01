@@ -12,6 +12,11 @@
                 "layer": "ENEMY_LAYER", 
                 "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
             },
+            "CInteractionBox": {
+                "size": {"x": 32, "y":32}, 
+                "layer": "ENEMY_LAYER", 
+                "mask": ["PLAYER_LAYER"]
+            },
             "CState": {"state": "Nan"},
             "CHealth": {
                 "HP": 6,
@@ -19,12 +24,11 @@
                 "i_frames": 30,
                 "type": ["Grass", "Organic"]
             },
-            "CAttack": {
-                "damage": 1, 
-                "speed": 120, 
-                "duration": 30, 
-                "range": 48, 
-                "area": {"x": 16, "y": 16}
+            "CWeapon": {
+                "damage": 1,
+                "speed": 120,
+                "range": 48,
+                "type": "Melee"
             },
             "CInput": "Nan"
         }

@@ -30,12 +30,11 @@
                 "i_frames": 30,
                 "type": ["Rock"]
             },
-            "CAttack": {
-                "damage": 1, 
-                "speed": 120, 
-                "duration": 30, 
-                "range": 48, 
-                "area": {"x": 16, "y": 16}
+            "CWeapon": {
+                "damage": 1,
+                "speed": 120,
+                "range": 48,
+                "type": "Melee"
             }
         }
     }

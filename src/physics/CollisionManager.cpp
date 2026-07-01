@@ -303,7 +303,7 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
 }
 
 void InteractionManager::handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap){
-    if (!enemy.hasComponent<CWeapon>()){
+    if (!enemy.hasComponent<CWeapon>() || !enemy.hasComponent<CInput>()){
         return;
     }
     CInput& input = enemy.getComponent<CInput>();
@@ -312,6 +312,31 @@ void InteractionManager::handlePlayerEnemy(Entity player, Entity enemy, Vec2 ove
         input.attack = true;
     }
     return;
+}
+
+void InteractionManager::handleDamageHitbox(Entity entityA, Entity entityB, Vec2 overlap)
+{
+    Entity hitbox = entityA;
+    Entity target = entityB;
+    if (!hitbox.hasComponent<CAttackHitbox>()) {
+        std::swap(hitbox, target);
+    }
+
+    if (!hitbox.hasComponent<CAttackHitbox>() ||
+        !hitbox.hasComponent<CDamage>() ||
+        !target.hasComponent<CHealth>()) {
+        return;
+    }
+
+    CAttackHitbox& attackHitbox = hitbox.getComponent<CAttackHitbox>();
+    const EntityID targetID = target.getID();
+    if (targetID == attackHitbox.owner ||
+        attackHitbox.hitEntities.find(targetID) != attackHitbox.hitEntities.end()) {
+        return;
+    }
+
+    attackHitbox.hitEntities.insert(targetID);
+    target.getComponent<CHealth>().HP -= hitbox.getComponent<CDamage>().damage;
 }
 
 bool InteractionManager::talkToNPC(Entity player, Entity friendly){
@@ -360,6 +385,9 @@ bool InteractionManager::possesNPC(Entity player, Entity friendly){
     m_ECS->copyComponent<CInteractionBox>(newID, oldID);
     m_ECS->copyComponent<CInventory>(newID, oldID);
     m_ECS->copyComponent<CHealth>(newID, oldID);
+    if (player.hasComponent<CCurrency>()) {
+        m_ECS->copyComponent<CCurrency>(newID, oldID);
+    }
     m_ECS->copyComponent<CState>(newID, oldID);
 
     // Copy weapon only if old player had one
@@ -484,8 +512,11 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
     const PickupMode pickupMode = lootItem.hasPickupModeOverride
         ? lootItem.pickupModeOverride
         : item.pickupMode;
+    const bool isCurrency = item.type == ItemType::Currency;
 
-    showLootLabel(loot, item.name);
+    if (!isCurrency || pickupMode == PickupMode::Manual) {
+        showLootLabel(loot, item.name);
+    }
 
     if (pickupMode == PickupMode::Manual) {
         if (!player.hasComponent<CInput>() || !player.getComponent<CInput>().interact) {
@@ -493,10 +524,21 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
         }
     }
 
-    if (!addItemToInventory(player, item)) {
+    if (isCurrency) {
+        if (!m_scene->addCurrencyToPlayer(item)) {
+            return;
+        }
+        loot.removeEntity();
+        loot.addComponent<CAudio>("loot_pickup");
+        if (pickupMode == PickupMode::Manual && player.hasComponent<CInput>()) {
+            player.getComponent<CInput>().interact = false;
+        }
         return;
     }
 
+    if (!addItemToInventory(player, item)) {
+        return;
+    }
     loot.removeEntity();
     loot.addComponent<CAudio>("loot_pickup");
     if (player.hasComponent<CInput>()) {
@@ -530,12 +572,28 @@ InteractionManager::InteractionManager(ECS* ecs, Scene_Play* scene){
     registerHandler(PLAYER_LAYER, AREA_LAYER, 
         [this](Entity a, Entity b, Vec2 overlap) {handlePlayerArea(a, b, overlap);}
     );
+    registerHandler(DAMAGE_LAYER, ENEMY_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) {handleDamageHitbox(a, b, overlap);}
+    );
+    registerHandler(DAMAGE_LAYER, PLAYER_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) {handleDamageHitbox(a, b, overlap);}
+    );
     // registerHandler(PLAYER_LAYER, AREA_LAYER, 
     //     [this](Entity a, Entity b, Vec2 overlap) {handlePlayerArea(a, b, overlap);}
     // );
 }
 
 bool InteractionManager::checkInteractionLayerMask(const CInteractionBox& boxA, const CInteractionBox& boxB) const {
+    const bool aIsDamage = (boxA.layer & DAMAGE_LAYER) == DAMAGE_LAYER;
+    const bool bIsDamage = (boxB.layer & DAMAGE_LAYER) == DAMAGE_LAYER;
+
+    if (aIsDamage && !bIsDamage) {
+        return (boxB.layer & boxA.mask) != boxB.layer;
+    }
+    if (bIsDamage && !aIsDamage) {
+        return (boxA.layer & boxB.mask) != boxA.layer;
+    }
+
     bool BLayer = (boxB.layer & boxA.mask) != boxB.layer;
     bool ALayer = (boxA.layer & boxB.mask) != boxA.layer;
     return BLayer || ALayer;

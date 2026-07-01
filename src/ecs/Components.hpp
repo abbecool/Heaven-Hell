@@ -239,10 +239,10 @@ struct CWater {
 
 struct CCurrency
 {
-    int value = 1;
-    CCurrency() {}    
-    CCurrency(const json j) 
-        : value(j["value"]){}    
+    int value = 0;
+    CCurrency() {}
+    CCurrency(const json& j)
+        : value(j.value("value", 0)){}
 };
 
 struct CHealth
@@ -366,27 +366,6 @@ struct CName
     CName(const std::string nm) : name(nm) {}
 }; 
 
-struct CAttack
-{
-    int damage = 1;
-    int speed = 120;
-    int attackTimer = 120;
-    int duration = 30;
-    int range = 3*64;
-    Vec2 area = {16, 16};
-    CAttack() {}
-    CAttack(int dmg, int spd, int dur, int rg, Vec2 ae) 
-        : damage(dmg), speed(spd), attackTimer(spd), duration(dur), range(rg), area(ae){}
-    CAttack(json j){
-        damage      = j["damage"];
-        speed       = j["speed"];
-        attackTimer = j["speed"];
-        duration    = j["duration"];
-        range       = j["range"];
-        area        = j["area"];
-    }
-};
-
 struct CDamage
 {
     int damage;
@@ -395,6 +374,16 @@ struct CDamage
     CDamage(int dmg) : damage(dmg) {}
     CDamage(int dmg, std::unordered_set<std::string> dmgType) 
         : damage(dmg), damageType(dmgType) {}
+};
+
+struct CAttackHitbox
+{
+    EntityID owner = 0;
+    std::unordered_set<EntityID> hitEntities;
+
+    CAttackHitbox() {}
+    CAttackHitbox(EntityID ownerID)
+        : owner(ownerID) {}
 };
 
 struct CText

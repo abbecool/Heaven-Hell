@@ -143,6 +143,10 @@ void Scene_Play::saveGame()
 {
     Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos;
     int hp = m_ECS.getComponent<CHealth>(m_player).HP;
+    int currency = 0;
+    if (m_ECS.hasComponent<CCurrency>(m_player)) {
+        currency = m_ECS.getComponent<CCurrency>(m_player).value;
+    }
     const CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
 
     json inventoryItems = json::array();
@@ -166,6 +170,7 @@ void Scene_Play::saveGame()
                 {"y", int(playerPos.y / m_gridSize.y)}
             }},
             {"hp", hp},
+            {"currency", currency},
             {"inventory", {
                 {"items", inventoryItems},
                 {"activeSlot", inventory.activeItem.index}
@@ -274,7 +279,7 @@ void Scene_Play::updateActiveItem(int newIndex){
     switch (activeItem.type)
     {
     case ItemType::WeaponMelee:
-        m_ECS.addComponent<CWeapon>(m_player, activeItem.damage, 60, 180, WeaponType::Melee);
+        m_ECS.addComponent<CWeapon>(m_player, activeItem.damage, 60, 32, WeaponType::Melee);
         break;
     case ItemType::WeaponRanged:
         m_ECS.addComponent<CWeapon>(m_player, activeItem.damage, 60, 180, WeaponType::Projectile);
@@ -283,7 +288,28 @@ void Scene_Play::updateActiveItem(int newIndex){
         std::cout << "Consumable" << std::endl;
         // useConsumable(activeItem);
         break;
+    case ItemType::None:
+    case ItemType::Weapon:
+    case ItemType::WeaponAoE:
+    case ItemType::Quest:
+    case ItemType::Currency:
+        break;
     }
+}
+
+bool Scene_Play::addCurrencyToPlayer(int amount)
+{
+    if (!m_ECS.hasComponent<CCurrency>(m_player)) {
+        m_ECS.addComponent<CCurrency>(m_player);
+    }
+
+    m_ECS.getComponent<CCurrency>(m_player).value += amount;
+    return true;
+}
+
+bool Scene_Play::addCurrencyToPlayer(const Item& item)
+{
+    return addCurrencyToPlayer(item.currencyValue);
 }
 
 void Scene_Play::update() 
@@ -390,7 +416,8 @@ void Scene_Play::sAI()
         {
         case AIStateType::Chase:
             input.direction = (playerPos - pos).norm();
-            input.attack        = distToPlayer < 32.0f;   // melee range
+            input.attack = m_ECS.hasComponent<CWeapon>(e) &&
+                distToPlayer < static_cast<float>(m_ECS.getComponent<CWeapon>(e).range);
             break;
 
         case AIStateType::Investigate:
@@ -498,21 +525,28 @@ void Scene_Play::sAttack(){
         else {
             weapon.delay = weapon.speed;
         }
-        Vec2 position = transformPool.getComponent(m_player).pos;
-        Vec2 direction = velocityPool.getComponent(m_player).vel;
+        Vec2 position = transform.pos;
+        Vec2 direction = velocity.vel;
         if (id == m_player){
             direction = (getMousePosition()-position+getCameraPosition()).norm();
         }
+        else if (!inputs.direction.isNull()) {
+            direction = inputs.direction.norm();
+        }
+        if (direction.isNull()) {
+            direction = Vec2{1, 0};
+        }
+
         switch (weapon.weaponType)
         {
         case WeaponType::Melee:
-            spawnHitbox(position, direction, PROJECTILE_LAYER, ENEMY_LAYER);
+            spawnHitbox(id, direction, weapon);
             break;
         case WeaponType::Projectile:
             spawnProjectile(position, direction);
             break;
         case WeaponType::AoE:
-            spawnHitbox(position, direction, PROJECTILE_LAYER, ENEMY_LAYER);
+            spawnHitbox(id, direction, weapon);
             break;
         }
         inputs.attack = false;
@@ -650,6 +684,29 @@ void Scene_Play::sRenderHealth() {
     int windowScale = m_game->getScale();
 
     const SpriteDefinition& heartsSprite = getSprite("hearts");
+
+    auto& playerHealth = m_ECS.getComponent<CHealth>(m_player);
+    const float playerHearts = static_cast<float>(playerHealth.HP) / 2.0f;
+    const float playerMaxHearts = static_cast<float>(playerHealth.HP_max) / 2.0f;
+    const Vec2 playerHeartFrameSize = heartsSprite.frameSize();
+    const Vec2 playerHeartSize = playerHeartFrameSize * windowScale;
+    const bool playerHasHalfHeart = playerHearts != std::floor(playerHearts);
+    const float playerVisibleHeartSlots = std::ceil(playerHearts);
+    const RectF playerHeartSource = heartsSprite.sourceRegion();
+    const RectF playerSrc = {
+        playerHeartSource.x + (10.0f - playerVisibleHeartSlots) * playerHeartFrameSize.x,
+        playerHeartSource.y + playerHeartFrameSize.y * static_cast<float>(playerHasHalfHeart),
+        playerHeartFrameSize.x * std::ceil(playerMaxHearts),
+        playerHeartFrameSize.y
+    };
+    const RectF playerDst = {
+        0.0f,
+        0.0f,
+        playerHeartSize.x * std::ceil(playerMaxHearts),
+        playerHeartSize.y
+    };
+    drawSprite(heartsSprite, playerSrc, playerDst);
+
     const RenderView view = worldRenderView();
     const float viewScale = view.scale > 0.0f ? view.scale : 1.0f;
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
@@ -691,35 +748,45 @@ void Scene_Play::sRenderHealth() {
     }
 }
 
-void Scene_Play::sRenderUI() {
+void Scene_Play::sRenderCurrency() {
     int windowScale = m_game->getScale();
 
-    const SpriteDefinition& heartsSprite = getSprite("hearts");
-    auto& healthPool = m_ECS.getComponentPool<CHealth>();
+    const SpriteDefinition& coinSprite = getSprite("coin");
+    const int currency = m_ECS.hasComponent<CCurrency>(m_player)
+        ? m_ECS.getComponent<CCurrency>(m_player).value
+        : 0;
+    const std::string currencyText = std::to_string(currency);
+    const Vec2 coinSize = coinSprite.frameSize() * windowScale;
+    const float margin = 4.0f * windowScale;
+    const float gap = 3.0f * windowScale;
+    const float textHeight = std::max(8.0f * windowScale, coinSize.y * 0.55f);
+    const float textWidth = std::max(
+        8.0f * windowScale,
+        static_cast<float>(currencyText.length()) * textHeight * 0.5f
+    );
+    const float currencyWidth = coinSize.x + gap + textWidth;
+    const float currencyX = static_cast<float>(width() * windowScale) - currencyWidth - margin;
+    drawSprite(coinSprite, RectF{
+        currencyX,
+        margin,
+        coinSize.x,
+        coinSize.y
+    });
+    m_game->render().drawText(TextDrawCommand{
+        currencyText,
+        "Minecraft",
+        RectF{
+            currencyX + coinSize.x + gap,
+            margin + (coinSize.y - textHeight) / 2.0f,
+            textWidth,
+            textHeight
+        },
+        {255, 255, 255, 255}
+    });
+}
 
-    auto& health = healthPool.getComponent(m_player);
-
-    const float hearts = static_cast<float>(health.HP) / 2.0f;
-    const float maxHearts = static_cast<float>(health.HP_max) / 2.0f;
-    
-    const Vec2 heartFrameSize = heartsSprite.frameSize();
-    const Vec2 heartSize = heartFrameSize * windowScale;
-    const bool hasHalfHeart = hearts != std::floor(hearts);
-    const float visibleHeartSlots = std::ceil(hearts);
-    const RectF heartSource = heartsSprite.sourceRegion();
-    const RectF src = {
-        heartSource.x + (10.0f - visibleHeartSlots) * heartFrameSize.x,
-        heartSource.y + heartFrameSize.y * static_cast<float>(hasHalfHeart),
-        heartFrameSize.x * std::ceil(maxHearts),
-        heartFrameSize.y
-    };
-    const RectF dst = {
-        0.0f,
-        0.0f,
-        heartSize.x * std::ceil(maxHearts),
-        heartSize.y
-    };
-    drawSprite(heartsSprite, src, dst);
+void Scene_Play::sRenderInventory() {
+    int windowScale = m_game->getScale();
 
     // render player inventory
     const SpriteDefinition& inventorySprite = getSprite("inventory");
@@ -757,9 +824,14 @@ void Scene_Play::sRenderUI() {
     }
 }
 
+void Scene_Play::sRenderUI() {
+    sRenderHealth();
+    sRenderCurrency();
+    sRenderInventory();
+}
+
 void Scene_Play::sRender() {    
     sRenderBasic();
-    sRenderHealth();
     sRenderUI();
     
     if (m_drawCollision)
@@ -882,9 +954,6 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     if (c.contains("CHealth")){
         m_ECS.addComponent<CHealth>(id, c["CHealth"]);
     }
-    if (c.contains("CAttack")){
-        m_ECS.addComponent<CAttack>(id, c["CAttack"]);
-    }
     if (c.contains("CPossesLevel")){
         m_ECS.addComponent<CPossesLevel>(id, c["CPossesLevel"]);
     }
@@ -896,6 +965,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     }
     if (c.contains("CInventory")) {
         m_ECS.addComponent<CInventory>(id);
+    }
+    if (c.contains("CCurrency")) {
+        m_ECS.addComponent<CCurrency>(id, c["CCurrency"]);
     }
     if (c.contains("CAIAgent")) {
         m_ECS.addComponent<CAIAgent>(id, c["CAIAgent"]);
@@ -972,6 +1044,13 @@ EntityID Scene_Play::spawnPlayer()
         m_ECS.getComponent<CHealth>(entityID).HP = playerSave.at("hp").get<int>();
     }
 
+    if (!m_ECS.hasComponent<CCurrency>(entityID)) {
+        m_ECS.addComponent<CCurrency>(entityID);
+    }
+    m_ECS.getComponent<CCurrency>(entityID).value = playerSave.contains("currency")
+        ? playerSave.at("currency").get<int>()
+        : 0;
+
     if (!m_ECS.hasComponent<CInventory>(entityID)) {
         m_ECS.addComponent<CInventory>(entityID);
     }
@@ -1008,6 +1087,12 @@ EntityID Scene_Play::spawnPlayer()
     }
     else if (save.contains("inventory")) {
         loadInventoryItems(save.at("inventory"), 0);
+    }
+
+    const auto& inventory = m_ECS.getComponent<CInventory>(entityID);
+    if (inventory.activeItem.index >= 0 &&
+        inventory.activeItem.index < static_cast<int>(inventory.items.size())) {
+        updateActiveItem(inventory.activeItem.index);
     }
 
     return entityID;
@@ -1143,14 +1228,35 @@ void Scene_Play::destroyProjectile(EntityID projectileID)
     m_ECS.addComponent<CAudio>(projectileID, "fireball_destroy");
 }
 
-EntityID Scene_Play::spawnHitbox(Vec2 position, Vec2 direction, CollisionMask layer, CollisionMask mask)
+EntityID Scene_Play::spawnHitbox(EntityID attackerID, Vec2 direction, const CWeapon& weapon)
 {
     auto id = m_ECS.addEntity();
     int render_layer = 9;
+    if (direction.isNull()) {
+        direction = Vec2{1, 0};
+    }
+
+    CollisionMask targetMask = ENEMY_LAYER;
+    if (m_ECS.hasComponent<CCollisionBox>(attackerID)) {
+        const CollisionMask attackerLayer = m_ECS.getComponent<CCollisionBox>(attackerID).layer;
+        if ((attackerLayer & ENEMY_LAYER) == ENEMY_LAYER) {
+            targetMask = PLAYER_LAYER;
+        }
+        else if ((attackerLayer & PLAYER_LAYER) == PLAYER_LAYER ||
+                 (attackerLayer & FRIENDLY_LAYER) == FRIENDLY_LAYER) {
+            targetMask = ENEMY_LAYER;
+        }
+    }
+
+    const Vec2 attackerPosition = m_ECS.getComponent<CTransform>(attackerID).pos;
+    const float range = std::max(16.0f, static_cast<float>(weapon.range));
+    const Vec2 hitboxSize = Vec2{range, range};
+
     addSprite(id, "sword", render_layer);
-    m_ECS.addComponent<CTransform>(id, position+direction*8, direction.angle());
-    m_ECS.addComponent<CDamage>(id, 1);
-    m_ECS.addComponent<CInteractionBox>(id, Vec2{24, 24}, layer, mask);
+    m_ECS.addComponent<CTransform>(id, attackerPosition + direction.norm(range / 2.0f), direction.angle());
+    m_ECS.addComponent<CDamage>(id, weapon.damage);
+    m_ECS.addComponent<CAttackHitbox>(id, attackerID);
+    m_ECS.addComponent<CInteractionBox>(id, hitboxSize, DAMAGE_LAYER, targetMask);
     m_ECS.addComponent<CLifespan>(id, 15);
     return id;
 }
