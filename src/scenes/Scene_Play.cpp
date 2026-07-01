@@ -916,6 +916,32 @@ EntityID Scene_Play::Spawn(std::string name, Vec2 pos)
     return SpawnFromJSON(name, pos * m_gridSize);
 }
 
+EntityID Scene_Play::DropItem(const Item& item, Vec2 position)
+{
+    if (item.id == -1) {
+        return static_cast<EntityID>(-1);
+    }
+
+    EntityID droppedID = SpawnFromJSON(item.name, position);
+    if (droppedID == static_cast<EntityID>(-1)) {
+        return droppedID;
+    }
+
+    if (m_ECS.hasComponent<CTransform>(droppedID)) {
+        CTransform& transform = m_ECS.getComponent<CTransform>(droppedID);
+        transform.pos = position;
+        transform.prevPos = position;
+    }
+
+    if (m_ECS.hasComponent<CItem>(droppedID)) {
+        CItem& droppedItem = m_ECS.getComponent<CItem>(droppedID);
+        droppedItem.hasPickupModeOverride = true;
+        droppedItem.pickupModeOverride = PickupMode::Manual;
+    }
+
+    return droppedID;
+}
+
 EntityID Scene_Play::spawnPlayer()
 {
     json save;

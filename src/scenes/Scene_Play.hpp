@@ -101,6 +101,7 @@ class Scene_Play : public Scene
 
     EntityID SpawnFromJSON(std::string name, Vec2 pos);
     EntityID Spawn(std::string name, Vec2 pos);
+    EntityID DropItem(const Item& item, Vec2 position);
 
 // event - subscriber: These emit a signal when called
     void onItemPickedUp(const std::string& itemName) {

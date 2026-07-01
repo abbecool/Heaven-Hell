@@ -462,8 +462,13 @@ struct CAIAgent {
 
 struct CItem{
     int itemID;
+    bool hasPickupModeOverride = false;
+    PickupMode pickupModeOverride = PickupMode::Manual;
+
     CItem(int id)
         : itemID(id) {}
+    CItem(int id, PickupMode mode)
+        : itemID(id), hasPickupModeOverride(true), pickupModeOverride(mode) {}
 };
 
 struct CInventory{

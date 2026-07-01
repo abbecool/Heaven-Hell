@@ -412,12 +412,37 @@ bool InteractionManager::addItemToInventory(Entity player, const Item& item)
         return true;
     }
 
-    return false;
+    if (!player.hasComponent<CTransform>()) {
+        return false;
+    }
+
+    const int activeIndex = activeItem.index;
+    if (activeIndex < 0 || activeIndex >= static_cast<int>(inventory.items.size())) {
+        return false;
+    }
+
+    Item droppedItem = inventory.items[activeIndex];
+    if (droppedItem.id == -1) {
+        return false;
+    }
+
+    EntityID droppedID = m_scene->DropItem(
+        droppedItem,
+        player.getComponent<CTransform>().pos
+    );
+    if (droppedID == static_cast<EntityID>(-1)) {
+        return false;
+    }
+
+    inventory.items[activeIndex] = item;
+    inventory.items[activeIndex].index = activeIndex;
+    m_scene->updateActiveItem(activeIndex);
+    return true;
 }
 
 void InteractionManager::showLootLabel(Entity loot, const std::string& name)
 {
-    constexpr int LabelLifespan = 8;
+    constexpr int LabelLifespan = 16;
 
     if (loot.hasComponent<CChild>()) {
         for (const auto& childLink : loot.getComponent<CChild>().children) {
@@ -455,10 +480,14 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
     std::string name = loot.getComponent<CName>().name;
     int itemID = loot.getComponent<CItem>().itemID;
     Item item = m_scene->getInventoryManager().getItem(itemID);
+    CItem& lootItem = loot.getComponent<CItem>();
+    const PickupMode pickupMode = lootItem.hasPickupModeOverride
+        ? lootItem.pickupModeOverride
+        : item.pickupMode;
 
     showLootLabel(loot, item.name);
 
-    if (item.pickupMode == PickupMode::Manual) {
+    if (pickupMode == PickupMode::Manual) {
         if (!player.hasComponent<CInput>() || !player.getComponent<CInput>().interact) {
             return;
         }
@@ -470,6 +499,9 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
 
     loot.removeEntity();
     loot.addComponent<CAudio>("loot_pickup");
+    if (player.hasComponent<CInput>()) {
+        player.getComponent<CInput>().interact = false;
+    }
     m_scene->Emit(Event{EventType::ItemPickedUp, name});
     return;
 }
