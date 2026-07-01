@@ -4,6 +4,7 @@
         "name": "sword",
         "description": "A weak sword.",
         "iconPath": "sword",
+        "pickupMode": "Manual",
         "maxStack": 1,
         "type": "WeaponMelee",
         "damage": 2

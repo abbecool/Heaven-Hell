@@ -1,4 +1,7 @@
 #include "scenes/Scene.hpp"
+#include "scenes/TextBoxHelpers.hpp"
+
+#include <algorithm>
 
 Scene::Scene() {}
 
@@ -22,15 +25,44 @@ EntityID Scene::SpawnDialog(
     EntityID parentID
 )
 {
+    return SpawnTextBox(
+        dialog,
+        size,
+        font,
+        parentID,
+        Vec2{0, -2 * m_gridSize.y},
+        60
+    );
+}
+
+EntityID Scene::SpawnTextBox(
+    const std::string& text,
+    int size,
+    const std::string& font,
+    EntityID parentID,
+    const Vec2& relativePosition,
+    int lifespan
+) {
     int layer = 8;
     auto id = m_ECS.addEntity();
-    m_ECS.addComponent<CTransform>(id);
-    Vec2 relativePosition = {0, -2*m_gridSize.y};
-    m_ECS.attachChild(parentID, id, relativePosition);
+    Vec2 position = relativePosition;
+    if (m_ECS.hasComponent<CTransform>(parentID)) {
+        position += m_ECS.getComponent<CTransform>(parentID).pos;
+    }
+
+    CTransform& transform = m_ECS.addComponent<CTransform>(id, position);
     CSprite& sprite = addSprite(id, "button_unpressed", layer);
-    Vec2 spriteSize = sprite.size();
-    m_ECS.addComponent<CText>(id, dialog, spriteSize.y*0.9f, font);
-    m_ECS.addComponent<CLifespan>(id, 60);
+    CText& textComponent = m_ECS.addComponent<CText>(
+        id,
+        text,
+        static_cast<float>(size),
+        font
+    );
+    const float padding = std::max(2.0f, static_cast<float>(size) * 0.35f);
+    TextBoxHelpers::configureSpriteBackedTextBox(textComponent, transform, sprite, padding);
+
+    m_ECS.attachChild(parentID, id, relativePosition);
+    m_ECS.addComponent<CLifespan>(id, lifespan);
     return id;
 }
 

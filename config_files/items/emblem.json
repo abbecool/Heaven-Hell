@@ -4,6 +4,7 @@
         "name": "emblem",
         "description": "A lost emblem that the farmer lost.",
         "iconPath": "emblem",
+        "pickupMode": "Manual",
         "maxStack": 1
     }
 }

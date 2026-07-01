@@ -1,9 +1,12 @@
 #pragma once
-#include "ecs/Components.hpp"
+#include "external/json.hpp"
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
 
 enum class ItemType {
     None,
@@ -15,18 +18,31 @@ enum class ItemType {
     Quest
 };
 
+enum class PickupMode {
+    Manual,
+    Automatic
+};
+
+inline PickupMode pickupModeFromString(const std::string& mode)
+{
+    if (mode == "Manual") return PickupMode::Manual;
+    if (mode == "Automatic") return PickupMode::Automatic;
+    throw std::invalid_argument("Unknown pickup mode: " + mode);
+}
+
 struct Item {
     int id = -1;
     int index = -1;
     std::string name;
     std::string description;
     std::string iconPath;
-    int stack;
+    int stack = 0;
     int maxStack = 1;
+    PickupMode pickupMode = PickupMode::Manual;
 
     ItemType type = ItemType::None;
-    int damage;
-    int healing;
+    int damage = 0;
+    int healing = 0;
     
     Item() = default;
     ItemType getItemTypeFromString(const std::string& typeStr) {
@@ -37,12 +53,13 @@ struct Item {
         if (typeStr == "Quest") return ItemType::Quest;
         return ItemType::None;
     }
-    Item(const json& j) {
+    Item(const nlohmann::json& j) {
         id          = j.value("id", -1);
         name        = j.value("name", "Unknown");
         description = j.value("description", "");
         iconPath    = j.value("iconPath", "");
         maxStack    = j.value("maxStack", 1);
+        pickupMode  = pickupModeFromString(j.value("pickupMode", "Manual"));
 
         type = getItemTypeFromString(j.value("type", "None"));
 
@@ -72,7 +89,7 @@ class InventoryManager
                 throw std::runtime_error("Could not load item file: " + entry.path().string());
             }
 
-            json j;
+            nlohmann::json j;
             file >> j;
 
             const std::string itemName = entry.path().stem().string();

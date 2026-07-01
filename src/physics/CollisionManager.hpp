@@ -72,6 +72,8 @@ class InteractionManager : public BaseCollisionManager
     
     bool talkToNPC(Entity player, Entity friendly);
     bool possesNPC(Entity player, Entity friendly);
+    bool addItemToInventory(Entity player, const Item& item);
+    void showLootLabel(Entity loot, const std::string& name);
     void handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap);
     void handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap);
     void handlePlayerLoot(Entity player, Entity loot, Vec2 overlap);

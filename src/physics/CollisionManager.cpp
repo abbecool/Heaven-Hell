@@ -390,29 +390,86 @@ void InteractionManager::handlePlayerFriendly(Entity player, Entity friendly, Ve
     return;
 }
 
-void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overlap){
-    loot.removeEntity();
-    loot.addComponent<CAudio>("loot_pickup");
-    if (!loot.hasComponent<CName>()){
-        return;
+bool InteractionManager::addItemToInventory(Entity player, const Item& item)
+{
+    if (!player.hasComponent<CInventory>()) {
+        return false;
     }
-    std::string name = loot.getComponent<CName>().name;
-    int itemID = loot.getComponent<CItem>().itemID;
-    Item item = m_scene->getInventoryManager().getItem(itemID);
+
     auto& inventory = player.getComponent<CInventory>();
     auto& activeItem = inventory.activeItem;
     for (auto& slot : inventory.items) {
-        if (slot.id != -1) { // Assuming -1 means empty slot
+        if (slot.id != -1) {
             continue;
         }
+
         int index = slot.index;
         slot = item;
         slot.index = index;
         if (index == activeItem.index){
             m_scene->updateActiveItem(index);
         }
-        break;
+        return true;
     }
+
+    return false;
+}
+
+void InteractionManager::showLootLabel(Entity loot, const std::string& name)
+{
+    constexpr int LabelLifespan = 8;
+
+    if (loot.hasComponent<CChild>()) {
+        for (const auto& childLink : loot.getComponent<CChild>().children) {
+            if (!m_ECS->isAlive(childLink.child) || !m_ECS->hasComponent<CText>(childLink.child)) {
+                continue;
+            }
+
+            CText& label = m_ECS->getComponent<CText>(childLink.child);
+            label.text = name;
+            if (m_ECS->hasComponent<CLifespan>(childLink.child)) {
+                m_ECS->getComponent<CLifespan>(childLink.child).lifespan = LabelLifespan;
+            }
+            else {
+                m_ECS->addComponent<CLifespan>(childLink.child, LabelLifespan);
+            }
+            return;
+        }
+    }
+
+    m_scene->SpawnTextBox(
+        name,
+        12,
+        "Minecraft",
+        loot.getID(),
+        Vec2{0, -24},
+        LabelLifespan
+    );
+}
+
+void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overlap){
+    if (!loot.hasComponent<CName>() || !loot.hasComponent<CItem>()){
+        return;
+    }
+
+    std::string name = loot.getComponent<CName>().name;
+    int itemID = loot.getComponent<CItem>().itemID;
+    Item item = m_scene->getInventoryManager().getItem(itemID);
+
+    showLootLabel(loot, item.name);
+
+    if (item.pickupMode == PickupMode::Manual) {
+        if (!player.hasComponent<CInput>() || !player.getComponent<CInput>().interact) {
+            return;
+        }
+    }
+
+    if (!addItemToInventory(player, item)) {
+        return;
+    }
+
+    loot.removeEntity();
+    loot.addComponent<CAudio>("loot_pickup");
     m_scene->Emit(Event{EventType::ItemPickedUp, name});
     return;
 }

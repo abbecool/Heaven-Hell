@@ -4,6 +4,7 @@
         "name": "staff",
         "description": "A simple magic staff that can cast simple magic spells.",
         "iconPath": "staff",
+        "pickupMode": "Manual",
         "maxStack": 1,
         "type": "WeaponRanged",
         "damage": 1

@@ -4,6 +4,7 @@
         "name": "coin",
         "description": "The currency in this game, can be used to purchase items.",
         "iconPath": "coin",
+        "pickupMode": "Automatic",
         "maxStack": 10
     }
 }

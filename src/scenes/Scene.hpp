@@ -60,6 +60,14 @@ class Scene
     virtual void update() = 0;
     virtual void sDoAction(const Action& action) = 0;
     EntityID SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID);
+    EntityID SpawnTextBox(
+        const std::string& text,
+        int size,
+        const std::string& font,
+        EntityID parentID,
+        const Vec2& relativePosition,
+        int lifespan
+    );
     
     CSprite& addSprite(EntityID entity, const std::string& spriteName, int layer);
     void addVisual(EntityID entity, const std::string& spriteName, int layer, bool repeat = true);
