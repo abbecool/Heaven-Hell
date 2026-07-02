@@ -74,7 +74,7 @@ struct Item {
         if (j.contains("healing")) {
             healing = j["healing"].get<int>();
         }
-    }
+    };
 };
 
 

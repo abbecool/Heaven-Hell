@@ -35,8 +35,11 @@
             "CWeapon": {
                 "damage": 1,
                 "speed": 60,
-                "range": 48,
-                "type": "Melee"
+                "range": 16,
+                "windupFrames": 20,
+                "recoveryFrames": 8,
+                "type": "Melee",
+                "mask": ["PLAYER_LAYER"]
             }
         }
     }

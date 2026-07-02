@@ -61,6 +61,36 @@ void handleBodyCollision(Entity entityA, Entity entityB, Vec2 overlap)
     resolveBodyCollision(entityA, entityB, overlap);
 }
 
+bool isFlyingProjectile(Entity projectile)
+{
+    return projectile.hasComponent<CProjectileState>() &&
+        projectile.getComponent<CProjectileState>().phase == ProjectilePhase::Flying;
+}
+
+void handleProjectileHit(Scene_Play* scene, Entity target, Entity projectile)
+{
+    if (!isFlyingProjectile(projectile) ||
+        !projectile.hasComponent<CProjectile>() ||
+        !projectile.hasComponent<CDamage>() ||
+        !target.hasComponent<CHealth>()) {
+        return;
+    }
+
+    if (target.getID() == projectile.getComponent<CProjectile>().owner) {
+        return;
+    }
+
+    target.getComponent<CHealth>().HP -= projectile.getComponent<CDamage>().damage;
+    scene->destroyProjectile(projectile.getID());
+}
+
+bool checkCollisionLayerMask(const CCollisionBox& boxA, const CCollisionBox& boxB)
+{
+    const bool aTargetsB = (boxB.layer & boxA.mask) == boxB.layer;
+    const bool bTargetsA = (boxA.layer & boxB.mask) == boxA.layer;
+    return aTargetsB || bTargetsA;
+}
+
 } // namespace
 
 void BaseCollisionManager::registerHandler(     
@@ -238,14 +268,21 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene){
         ENEMY_LAYER,
         PROJECTILE_LAYER,
         [this](Entity enemy, Entity projectile, Vec2 overlap) {
-            if (!projectile.hasComponent<CProjectileState>() ||
-                projectile.getComponent<CProjectileState>().phase != ProjectilePhase::Flying) {
-                return;
-            }
-
-            int damage = projectile.getComponent<CDamage>().damage;
-            enemy.getComponent<CHealth>().HP -= damage;
-            m_scene->destroyProjectile(projectile.getID());
+            handleProjectileHit(m_scene, enemy, projectile);
+        }
+    );
+    registerHandler(
+        PLAYER_LAYER,
+        PROJECTILE_LAYER,
+        [this](Entity player, Entity projectile, Vec2 overlap) {
+            handleProjectileHit(m_scene, player, projectile);
+        }
+    );
+    registerHandler(
+        FRIENDLY_LAYER,
+        PROJECTILE_LAYER,
+        [this](Entity friendly, Entity projectile, Vec2 overlap) {
+            handleProjectileHit(m_scene, friendly, projectile);
         }
     );
     registerHandler(ENEMY_LAYER, ENEMY_LAYER, handleBodyCollision);
@@ -281,6 +318,9 @@ void CollisionManager::processQuadtreeLeaf(std::vector<Entity>& entityVector) {
             
             // Check if entities actually collide
             if (!isCollided(transformA, transformB, collisionA, collisionB)) {
+                continue;
+            }
+            if (!checkCollisionLayerMask(collisionA, collisionB)) {
                 continue;
             }
             
@@ -576,6 +616,9 @@ InteractionManager::InteractionManager(ECS* ecs, Scene_Play* scene){
         [this](Entity a, Entity b, Vec2 overlap) {handleDamageHitbox(a, b, overlap);}
     );
     registerHandler(DAMAGE_LAYER, PLAYER_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) {handleDamageHitbox(a, b, overlap);}
+    );
+    registerHandler(DAMAGE_LAYER, FRIENDLY_LAYER,
         [this](Entity a, Entity b, Vec2 overlap) {handleDamageHitbox(a, b, overlap);}
     );
     // registerHandler(PLAYER_LAYER, AREA_LAYER, 

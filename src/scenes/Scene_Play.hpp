@@ -86,7 +86,7 @@ class Scene_Play : public Scene
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 getCameraPosition() override;
     
-    EntityID spawnProjectile(Vec2 startPos, Vec2 vel);
+    EntityID spawnProjectile(EntityID attackerID, Vec2 direction, const CWeapon& weapon);
     EntityID spawnHitbox(EntityID attackerID, Vec2 direction, const CWeapon& weapon);
     void destroyProjectile(EntityID projectileID);
     bool addCurrencyToPlayer(int amount);

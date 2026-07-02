@@ -44,6 +44,7 @@ json loadJsonFile(const std::string& path)
     file >> data;
     return data;
 }
+
 }
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
@@ -442,6 +443,12 @@ void Scene_Play::sMovement() {
     for (auto e : viewInputs){
         auto& inputs = inputPool.getComponent(e);
         auto& body = bodyPool.getComponent(e);
+        auto& velocity = velocityPool.getComponent(e);
+
+        if (e != m_player && m_ECS.hasComponent<CAttackState>(e)) {
+            inputs.direction = {0, 0};
+            velocity.vel = {0, 0};
+        }
 
         if (!inputs.direction.isNull()) {
             const float sprintMultiplier = inputs.ctrl ? SPRINT_MULTIPLIER : 1.0f;
@@ -515,6 +522,47 @@ void Scene_Play::sAttack(){
         CInput& inputs = inputPool.getComponent(id);
         CWeapon& weapon = weaponPool.getComponent(id);
 
+        if (m_ECS.hasComponent<CAttackState>(id)) {
+            CAttackState& attack = m_ECS.getComponent<CAttackState>(id);
+            inputs.direction = {0, 0};
+            inputs.attack = false;
+
+            if (!attack.hasFired) {
+                attack.windupRemaining--;
+                if (attack.windupRemaining <= 0) {
+                    switch (weapon.weaponType)
+                    {
+                    case WeaponType::Melee:
+                        spawnHitbox(id, attack.direction, weapon);
+                        break;
+                    case WeaponType::Projectile:
+                        spawnProjectile(id, attack.direction, weapon);
+                        break;
+                    case WeaponType::AoE:
+                        spawnHitbox(id, attack.direction, weapon);
+                        break;
+                    }
+                    attack.hasFired = true;
+                }
+            }
+            else {
+                attack.recoveryRemaining--;
+                if (attack.recoveryRemaining <= 0) {
+                    if (attack.hasAnimationOverride && m_ECS.hasComponent<CSprite>(id)) {
+                        m_ECS.getComponent<CSprite>(id) = attack.previousSprite;
+                        if (attack.hadAnimation) {
+                            m_ECS.getComponent<CAnimation>(id) = attack.previousAnimation;
+                        }
+                        else if (m_ECS.hasComponent<CAnimation>(id)) {
+                            m_ECS.removeComponent<CAnimation>(id);
+                        }
+                    }
+                    m_ECS.queueRemoveComponent<CAttackState>(id);
+                }
+            }
+            continue;
+        }
+
         weapon.delay--;
         if (!inputs.attack){
             continue;
@@ -537,17 +585,37 @@ void Scene_Play::sAttack(){
             direction = Vec2{1, 0};
         }
 
-        switch (weapon.weaponType)
-        {
-        case WeaponType::Melee:
-            spawnHitbox(id, direction, weapon);
-            break;
-        case WeaponType::Projectile:
-            spawnProjectile(position, direction);
-            break;
-        case WeaponType::AoE:
-            spawnHitbox(id, direction, weapon);
-            break;
+        if (id == m_player) {
+            switch (weapon.weaponType)
+            {
+            case WeaponType::Melee:
+                spawnHitbox(id, direction, weapon);
+                break;
+            case WeaponType::Projectile:
+                spawnProjectile(id, direction, weapon);
+                break;
+            case WeaponType::AoE:
+                spawnHitbox(id, direction, weapon);
+                break;
+            }
+            inputs.attack = false;
+            continue;
+        }
+
+        CAttackState& attackState = m_ECS.addComponent<CAttackState>(
+            id,
+            direction,
+            std::max(1, weapon.windupFrames),
+            std::max(0, weapon.recoveryFrames)
+        );
+        if (!weapon.attackAnimation.empty() && m_ECS.hasComponent<CSprite>(id)) {
+            attackState.hasAnimationOverride = true;
+            attackState.previousSprite = m_ECS.getComponent<CSprite>(id);
+            attackState.hadAnimation = m_ECS.hasComponent<CAnimation>(id);
+            if (attackState.hadAnimation) {
+                attackState.previousAnimation = m_ECS.getComponent<CAnimation>(id);
+            }
+            setAnimation(id, weapon.attackAnimation, true);
         }
         inputs.attack = false;
     }
@@ -624,7 +692,20 @@ void Scene_Play::sAnimation() {
         auto& velocity = velocityPool.getComponent(e);
         auto& state = statePool.getComponent(e);
         auto& animation = animationPool.getComponent(e);
-        if( velocity.vel.isNull() ) {
+        if (m_ECS.hasComponent<CAttackState>(e)) {
+            Vec2 attackDirection = m_ECS.getComponent<CAttackState>(e).direction;
+            if (attackDirection.mainDir().x > 0) {
+                changePlayerState(e, PlayerState::RUN_RIGHT);
+            } else if (attackDirection.mainDir().x < 0) {
+                changePlayerState(e, PlayerState::RUN_LEFT);
+            } else if (attackDirection.mainDir().y > 0) {
+                changePlayerState(e, PlayerState::RUN_DOWN);
+            } else if (attackDirection.mainDir().y < 0) {
+                changePlayerState(e, PlayerState::RUN_UP);
+            } else {
+                changePlayerState(e, PlayerState::STAND);
+            }
+        } else if( velocity.vel.isNull() ) {
             changePlayerState(e, PlayerState::STAND);
         } else if( velocity.vel.mainDir().x > 0 ) {
             changePlayerState(e, PlayerState::RUN_RIGHT);
@@ -1136,13 +1217,14 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
     return entity;
 }
 
-EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
+EntityID Scene_Play::spawnProjectile(EntityID attackerID, Vec2 vel, const CWeapon& weapon)
 {
     auto id = m_ECS.addEntity();
     const int layer = 8;
     const float speed = 200.0f;
     const int flightLifetime = 60;
     const float createOffset = 12.0f;
+    const Vec2 startPos = m_ECS.getComponent<CTransform>(attackerID).pos;
 
     Vec2 direction = vel.norm();
     if (direction.isNull()) {
@@ -1151,10 +1233,18 @@ EntityID Scene_Play::spawnProjectile(Vec2 startPos, Vec2 vel)
 
     addVisual(id, "fireball_create", layer, false);
     m_ECS.addComponent<CTransform>(id, startPos + direction * createOffset, direction.angle());
-    m_ECS.attachChild(m_player, id, direction * createOffset);
-    m_ECS.addComponent<CProjectile>(id, m_player, direction, speed, flightLifetime, createOffset);
+    m_ECS.attachChild(attackerID, id, direction * createOffset);
+    m_ECS.addComponent<CProjectile>(
+        id,
+        attackerID,
+        direction,
+        speed,
+        flightLifetime,
+        createOffset,
+        weapon.targetMask
+    );
     m_ECS.addComponent<CProjectileState>(id, ProjectilePhase::Creating);
-    m_ECS.addComponent<CDamage>(id, 1);
+    m_ECS.addComponent<CDamage>(id, weapon.damage);
     m_ECS.getComponent<CDamage>(id).damageType = {"Fire", "Explosive"};
     return id;
 }
@@ -1196,7 +1286,7 @@ void Scene_Play::beginProjectileFlight(EntityID projectileID)
         m_ECS.addComponent<CVelocity>(projectileID, direction.norm(projectile.speed));
     }
 
-    const CollisionMask collisionMask = ENEMY_LAYER | OBSTACLE_LAYER;
+    const CollisionMask collisionMask = projectile.targetMask | OBSTACLE_LAYER;
     m_ECS.addComponent<CCollisionBox>(projectileID, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
     m_ECS.addComponent<CAudio>(projectileID, "fireball_shot");
     m_camera.startShake(2, 60);
@@ -1236,27 +1326,14 @@ EntityID Scene_Play::spawnHitbox(EntityID attackerID, Vec2 direction, const CWea
         direction = Vec2{1, 0};
     }
 
-    CollisionMask targetMask = ENEMY_LAYER;
-    if (m_ECS.hasComponent<CCollisionBox>(attackerID)) {
-        const CollisionMask attackerLayer = m_ECS.getComponent<CCollisionBox>(attackerID).layer;
-        if ((attackerLayer & ENEMY_LAYER) == ENEMY_LAYER) {
-            targetMask = PLAYER_LAYER;
-        }
-        else if ((attackerLayer & PLAYER_LAYER) == PLAYER_LAYER ||
-                 (attackerLayer & FRIENDLY_LAYER) == FRIENDLY_LAYER) {
-            targetMask = ENEMY_LAYER;
-        }
-    }
-
     const Vec2 attackerPosition = m_ECS.getComponent<CTransform>(attackerID).pos;
-    const float range = std::max(16.0f, static_cast<float>(weapon.range));
-    const Vec2 hitboxSize = Vec2{range, range};
+    const Vec2 hitboxSize = Vec2{weapon.range, weapon.range};
 
     addSprite(id, "sword", render_layer);
-    m_ECS.addComponent<CTransform>(id, attackerPosition + direction.norm(range / 2.0f), direction.angle());
+    m_ECS.addComponent<CTransform>(id, attackerPosition + direction.norm((float)weapon.range / 2.0f), direction.angle());
     m_ECS.addComponent<CDamage>(id, weapon.damage);
     m_ECS.addComponent<CAttackHitbox>(id, attackerID);
-    m_ECS.addComponent<CInteractionBox>(id, hitboxSize, DAMAGE_LAYER, targetMask);
+    m_ECS.addComponent<CInteractionBox>(id, hitboxSize, DAMAGE_LAYER, weapon.targetMask);
     m_ECS.addComponent<CLifespan>(id, 15);
     return id;
 }

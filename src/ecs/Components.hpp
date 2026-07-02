@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <vector>
+#include <string>
 
 using json = nlohmann::json;
 
@@ -69,6 +70,7 @@ struct CProjectile
     float speed = 200.0f;
     int flightLifetime = 60;
     float createOffset = 12.0f;
+    CollisionMask targetMask = ENEMY_LAYER;
     CProjectile() {}
     CProjectile(EntityID projectileOwner, Vec2 projectileDirection)
         : owner(projectileOwner), direction(projectileDirection) {}
@@ -77,13 +79,15 @@ struct CProjectile
         Vec2 projectileDirection,
         float projectileSpeed,
         int lifetime,
-        float offset
+        float offset,
+        CollisionMask targets = ENEMY_LAYER
     )
         : owner(projectileOwner),
           direction(projectileDirection),
           speed(projectileSpeed),
           flightLifetime(lifetime),
-          createOffset(offset) {}
+          createOffset(offset),
+          targetMask(targets) {}
 };
 
 struct CInput
@@ -386,6 +390,24 @@ struct CAttackHitbox
         : owner(ownerID) {}
 };
 
+struct CAttackState
+{
+    Vec2 direction = {1, 0};
+    int windupRemaining = 12;
+    int recoveryRemaining = 8;
+    bool hasFired = false;
+    bool hasAnimationOverride = false;
+    bool hadAnimation = false;
+    CSprite previousSprite;
+    CAnimation previousAnimation;
+
+    CAttackState() {}
+    CAttackState(Vec2 attackDirection, int windupFrames, int recoveryFrames)
+        : direction(attackDirection),
+          windupRemaining(windupFrames),
+          recoveryRemaining(recoveryFrames) {}
+};
+
 struct CText
 {    
     Vec2 size;
@@ -497,20 +519,27 @@ struct CWeapon
     int speed = 600;
     int delay = 0;
     int range = 180;
+    int windupFrames = 12;
+    int recoveryFrames = 8;
+    std::string attackAnimation;
     WeaponType weaponType = WeaponType::Projectile;
+    CollisionMask targetMask = ENEMY_LAYER;
 
     CWeapon() {}
     CWeapon(int damage, int speed, int range)
                 : damage(damage), speed(speed), range(range){}
     
-    CWeapon(int damage, int speed, int range, WeaponType type)
-                : damage(damage), speed(speed), range(range), weaponType(type){}
+    CWeapon(int damage, int speed, int range, WeaponType type, CollisionMask mask = ENEMY_LAYER)
+                : damage(damage), speed(speed), range(range), weaponType(type), targetMask(mask){}
 
     CWeapon(const json& j) {
         damage = j["damage"];
         speed  = j["speed"];
         delay  = j["speed"]; // intentional
         range  = j["range"];
+        windupFrames = j.value("windupFrames", windupFrames);
+        recoveryFrames = j.value("recoveryFrames", recoveryFrames);
+        attackAnimation = j.value("attackAnimation", "");
         static const std::unordered_map<
             std::string, WeaponType> wMap = {
             {"Melee",      WeaponType::Melee},
@@ -518,6 +547,12 @@ struct CWeapon
             {"AoE",        WeaponType::AoE}
         };
         weaponType = wMap.at(j["type"]);
+        if (j.contains("mask")) {
+            targetMask = EMPTY_MASK;
+            for (const auto& maskStr : j["mask"]) {
+                targetMask = targetMask | componentMaskMap.at(maskStr.get<std::string>());
+            }
+        }
     }
 };
 

@@ -28,7 +28,10 @@
                 "damage": 1,
                 "speed": 120,
                 "range": 48,
-                "type": "Melee"
+                "windupFrames": 18,
+                "recoveryFrames": 8,
+                "type": "Melee",
+                "mask": ["PLAYER_LAYER"]
             },
             "CInput": "Nan"
         }
