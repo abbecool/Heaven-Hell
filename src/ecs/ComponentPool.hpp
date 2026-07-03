@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Components.h"
+#include "Components.hpp"
 
 #include <iostream>
 #include <unordered_map>
@@ -21,12 +21,12 @@ static constexpr EntityID tombstone = std::numeric_limits<EntityID>::max();
 class BaseComponentPool {
     public:
     std::vector<EntityID> entitiesToRemove;
-    std::vector<EntityID> entities;  // Dense vector of IDs
+    std::vector<EntityID> denseEntities;  // Dense vector of IDs
     virtual ~BaseComponentPool() = default;  // Virtual destructor to allow proper deletion
     virtual void removeComponent(EntityID entityId){};
     virtual bool hasComponent(EntityID id) const = 0;
     virtual std::string getTypeName() const = 0;
-    const std::vector<EntityID>& getEntities() const {return entities;};
+    const std::vector<EntityID>& getEntities() const {return denseEntities;};
     virtual EntityID getLength() = 0;
 };
 
@@ -57,7 +57,7 @@ public:
         const size_t index = dense.size();
         sparse[id] = index;
         dense.emplace_back(std::forward<Args>(args)...);
-        entities.push_back(id);
+        denseEntities.push_back(id);
         return dense.back();  // Return a reference to the added component
     }
     
@@ -77,11 +77,22 @@ public:
     }
 
     T& moveComponent(EntityID dst, EntityID src) {
-        assert((sparse[dst] != tombstone) && "src already has a component!");
-        sparse[dst] = sparse[src];
-        sparse[src] = tombstone;
+        if (dst == src) {
+            return getComponent(src);
+        }
+        if (!hasComponent(src)) {
+            throw std::out_of_range("Source component not found.");
+        }
+        if (hasComponent(dst)) {
+            removeComponent(dst);
+        }
 
-        return dense[sparse[dst]];  // Return a reference to the moved component
+        const EntityID index = sparse[src];
+        sparse[dst] = index;
+        sparse[src] = tombstone;
+        denseEntities[index] = dst;
+
+        return dense[index];
     }
     
     void queueRemoveEntity(EntityID id) {
@@ -101,16 +112,16 @@ public:
         if (index == tombstone) {
             return;
         }
-        EntityID lastId = entities.back();
+        EntityID lastId = denseEntities.back();
 
         std::swap(dense[index], dense.back());  // Swap with the last element
-        std::swap(entities[index], entities.back());  // Swap with the last element
+        std::swap(denseEntities[index], denseEntities.back());  // Swap with the last element
 
         sparse[lastId] = index;  // Update the sparse index for the moved element
         sparse[id] = tombstone;
 
         dense.pop_back();  // Remove the last element
-        entities.pop_back();  // Remove the last ID
+        denseEntities.pop_back();  // Remove the last ID
     }
 
     std::vector<T>& getDense() {

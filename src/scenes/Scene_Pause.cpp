@@ -1,17 +1,13 @@
-#include "scenes/Scene_Pause.h"
-#include "scenes/Scene_Play.h"
-#include "scenes/Scene_Menu.h"
-#include "assets/Sprite.h"
-#include "assets/Assets.h"
-#include "core/Game.h"
-#include "ecs/Components.h"
-#include "core/Action.h"
-#include "physics/RandomArray.h"
+#include "scenes/Scene_Pause.hpp"
+#include "scenes/Scene_Play.hpp"
+#include "scenes/Scene_Menu.hpp"
+#include "assets/Assets.hpp"
+#include "core/Game.hpp"
+#include "ecs/Components.hpp"
+#include "core/Action.hpp"
+#include "physics/RandomArray.hpp"
 #include "external/json.hpp"
 using json = nlohmann::json;
-
-#include <SDL_image.h>
-#include <SDL_ttf.h>
 
 #include <iostream>
 #include <string>
@@ -24,12 +20,12 @@ using json = nlohmann::json;
 Scene_Pause::Scene_Pause(Game* game)
     : Scene(game)
 {
-    registerAction(SDLK_ESCAPE, "ESC");
-    registerAction(SDL_BUTTON_LEFT , "CLICK");
-    registerAction(SDLK_t, "TOGGLE_TEXTURES");
-    registerAction(SDLK_c, "TOGGLE_COLLISION");
-    registerAction(SDLK_s, "SAVE_LAYOUT");
-    registerAction(SDLK_LCTRL, "CTRL");
+    registerAction(InputCode::Escape, "ESC");
+    registerAction(InputCode::MouseLeft, "CLICK");
+    registerAction(InputCode::T, "TOGGLE_TEXTURES");
+    registerAction(InputCode::C, "TOGGLE_COLLISION");
+    registerAction(InputCode::S, "SAVE_LAYOUT");
+    registerAction(InputCode::LeftCtrl, "CTRL");
     loadLayout("config_files/pause_menu/button_placement.json");
 }
 
@@ -48,8 +44,7 @@ void Scene_Pause::saveLayout(const std::string& filename) {
         }
     std::ofstream file(filename);
     if (!file) {
-        std::cerr << "Could not load button_placement.json file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not open button placement file: " + filename);
     }
     file << j.dump(4);
     file.close();
@@ -58,8 +53,7 @@ void Scene_Pause::saveLayout(const std::string& filename) {
 void Scene_Pause::loadLayout(const std::string& filename) {
     std::ifstream file(filename);
     if (!file) {
-        std::cerr << "Could not load button_placement.json file!\n";
-        exit(-1);
+        throw std::runtime_error("Could not open button placement file: " + filename);
     }
     json j;
     file >> j;
@@ -79,13 +73,13 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
-            auto view = m_ECS.View<CCollisionBox, CTransform, CAnimation, CText>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CSprite, CText>();
             for (auto e : view)
             {
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
-                    m_ECS.getComponent<CAnimation>(e).animation = getAnimation("button_pressed");
+                    setSprite(e, "button_pressed");
                 }
             }
         }
@@ -161,15 +155,11 @@ void Scene_Pause::update() {
 }
 
 void Scene_Pause::sAnimation() {
-    auto view = m_ECS.View<CAnimation>();
-    for ( auto e : view){
-        m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
-    }
+    updateAnimations();
 }
 
 void Scene_Pause::sRender() {
-    SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 175); // 50% transparent black
-    SDL_RenderFillRect(m_game->renderer(), nullptr);
+    m_game->render().fillRect({0.0f, 0.0f, 0.0f, 0.0f}, {0, 0, 0, 175});
     sRenderBasic();
 }
 

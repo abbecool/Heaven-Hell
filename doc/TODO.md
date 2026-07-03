@@ -1,80 +1,91 @@
 # TODO: Next Steps for Game Development
 
-## :rocket: High Priority
+This file tracks broad game and code-health work. For backend/setup priorities,
+see [BackendSetupRoadmap.md](BackendSetupRoadmap.md).
 
-### Player swimming animations
-- **Draw new swimming animations for the player**
+## Code Quality And Backend Status
 
-### Manage child entities using masks similarly to collision layers
-- **Each entity has a childMask that stores which childern the entitie has.**
-- **Access the childern using a vector storing the childIDs in the same order as the mask bitset. Thus the correct child can always be found**
-- **Update the child mask and ID vector dynamically to stay up-to-date**
+### Still Worth Doing Before Big Feature Pushes
 
-### More attacks
-- **Different attacks for the rooter and goblin**
-  - Goblin uses normal melee attacks
-  - Rooter throws sticks until they run out. When empty the stick regenerate
-- **Player can pick up a sword that can be swinged for melee damage**  
-  - Draw/animate the sword
-  - Add the sword to the game
-  - Implement the swinging mechanincs using rendering angle
+- [ ] Make render driver selection configurable instead of hard-coding OpenGL
+  in `Game.hpp`.
+- [ ] Split reusable engine code from Heaven-Hell-specific game code.
+- [ ] Add compile warnings to CMake.
+- [ ] Improve release packaging so source art files and unused/old assets are
+  not copied into player builds unless intentionally wanted.
+- [ ] Move audio resource ownership out of `SDLPlatform` into a small audio
+  layer or resource system.
+- [ ] Move level loading out of `src/physics` into a world/level module.
+- [ ] Replace config text parsing in `Scene_Play::loadConfig` with JSON.
+- [ ] Cache or throttle SDL text texture creation in `SDLRenderBackend`.
 
-## 🎯 Medium Priority
+## Gameplay Priorities
 
-### Start developing story/progression manager
-- **Story manager**
-- **Progression manager**
+### High Priority
 
-### :heart: Remove HP heart system and use a health bar instead
+#### Player Swimming Animations
 
-# :robot: AI suggested improvements
+- Draw new swimming animations for the player.
+- Wire the animation into the movement/state system.
 
-### 1. Improve Player Mechanics
-- **Swimming Enhancements**
-  - Add buoyancy effect (smooth movement in water)
-  - Add water surface movement animation
+#### Child Entity Ownership
 
-### 2. Advanced Combat System
-- **Melee Attacks**
-  - Create attack animation
-  - Add enemy hit reactions
-- **Ranged Attacks**
-  - Implement projectile movement & collision detection
-  - Add different weapon types (bow, magic, etc.)
-- **Enemy AI**
-  - Implement patrolling behavior
-  - Add attack logic based on distance
-  - Create dodge & retreat behavior
-  - A* pathing
+- Track child entities using a child mask or clearer child collection.
+- Keep child IDs synchronized when children are created or removed.
+- Use the system for shadows, dialogs, projectiles, hitboxes, and other
+  parented entities.
 
+#### More Attacks
 
-### 3. Dynamic World System
-- **Chunk Loading System**
-  - Implement procedural generation for new areas
-  - Improve saving/loading of world state
-- **Weather System**
-  - Add rain, snow, and fog effects
-  - Implement time-based weather changes
-  - Adjust player/enemy movement in different weather
-- **Day/Night Cycle**
-  - Modify lighting based on time
-  - Adjust enemy behavior at night
-  - Add time-sensitive events (shops close at night, etc.)
+- Give rooters and goblins different attacks.
+- Let goblins use normal melee attacks.
+- Let rooters throw sticks that regenerate after they run out.
+- Use transform angle/render angle for sword swing placement.
 
-### 4. Inventory & UI System
-- **Inventory Management**
-  - Implement drag-and-drop system
-  - Add stackable items (e.g., potions)
-  - Display detailed item descriptions
-- **Quest System**
-  - Implement quest tracking UI
-  - Add main and side quests
-  - Create a dialog system for NPCs
+### Medium Priority
 
-### 5. Improved Rendering & Visual Effects
-- **Layered Rendering System**
-  - Optimize sprite batching for performance
-- **Special Effects**
-  - Implement light sources & shadows
-  - Create particle effects for magic & attacks
+#### Story And Progression
 
+- Continue developing the story manager.
+- Add a clearer progression manager.
+- Add quest tracking UI.
+
+#### Health UI
+
+- Replace the heart HUD with a health bar if that still matches the game
+  direction.
+
+## AI Suggested Improvements To Revisit Later
+
+### Player Mechanics
+
+- Improve swimming movement.
+- Add water surface movement animation.
+
+### Combat
+
+- Add attack animations.
+- Add enemy hit reactions.
+- Add more weapon types.
+- Expand projectile behavior and collision handling.
+- Improve enemy AI with patrol, chase, dodge, retreat, and pathfinding.
+
+### World Systems
+
+- Continue chunk loading improvements.
+- Consider procedural generation later.
+- Improve saving/loading of world state.
+- Consider weather and day/night systems only after the core loop is stable.
+
+### Inventory And UI
+
+- Add drag-and-drop inventory behavior.
+- Add stackable items.
+- Display detailed item descriptions.
+- Improve dialog UI and quest UI.
+
+### Rendering And Effects
+
+- Add light sources and shadows once OpenGL world projection is stable.
+- Add particles for magic, attacks, pickups, and damage feedback.
+- Consider camera culling before submitting world draw commands.

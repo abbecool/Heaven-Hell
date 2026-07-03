@@ -1,40 +1,38 @@
 {
     "goblin": {
-        "dialog": [
-            {"quest":0, "text":"Go and look for the staff!"},
-            {"quest":1, "text":"Have you found the staff yet?"},
-            {"quest":2, "text":"Have you found you're home?"},
-            {"quest":3, "text":"I am a wizard, what are you?"}
-        ],
         "components": {
-            "CTransform": "Nan",
-            "CVelocity": {"speed": 50},
+            "CTransform": {"pos": "Nan"},
+            "CPhysicsBody": {"mass": 1, "moveForce": 1200, "maxSpeed": 50, "linearDamping": 24},
             "CAnimation": {
                 "animation": "goblin-sheet",
-                "layer": 10
+                "layer": 9
             },
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
                 "layer": "ENEMY_LAYER", 
                 "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
             },
-            "CState": "Nan",
-            "CScript": "RooterController",
-
-            "CPathfind": "Nan",
+            "CInteractionBox": {
+                "size": {"x": 32, "y":32}, 
+                "layer": "ENEMY_LAYER", 
+                "mask": ["PLAYER_LAYER"]
+            },
+            "CState": {"state": "Nan"},
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,
                 "i_frames": 30,
                 "type": ["Grass", "Organic"]
             },
-            "CAttack": {
-                "damage": 1, 
-                "speed": 120, 
-                "duration": 30, 
-                "range": 48, 
-                "area": {"x": 16, "y": 16}
-            }
+            "CWeapon": {
+                "damage": 1,
+                "speed": 120,
+                "range": 48,
+                "attackHitFrame": 1,
+                "type": "Melee",
+                "mask": ["PLAYER_LAYER"]
+            },
+            "CInput": "Nan"
         }
     }
 }

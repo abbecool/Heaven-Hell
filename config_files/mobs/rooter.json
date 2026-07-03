@@ -1,17 +1,11 @@
 {
     "rooter": {
-        "dialog": [
-            {"quest":0, "text":"Go and look for the staff!"},
-            {"quest":1, "text":"Have you found the staff yet?"},
-            {"quest":2, "text":"Have you found you're home?"},
-            {"quest":3, "text":"I am a wizard, what are you?"}
-        ],
         "components": {
-            "CTransform": "Nan",
-            "CVelocity": {"speed": 50},
+            "CTransform": {"pos": "Nan"},
+            "CPhysicsBody": {"mass": 1, "moveForce": 1200, "maxSpeed": 50, "linearDamping": 24},
             "CAnimation": {
                 "animation": "rooter-sheet",
-                "layer": 10
+                "layer": 9
             },
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
@@ -23,22 +17,31 @@
                 "layer": "ENEMY_LAYER", 
                 "mask": ["PLAYER_LAYER"]
             },
-            "CState": "Nan",
-            "CScript": "RooterController",
-
-            "CPathfind": "Nan",
+            "CState": {"state": "Nan"},
+            "CInput": 0,
+            "CAIAgent": {
+                "sightRange":        128,
+                "patrolRadius":      32,
+                "memoryDuration":    240,
+                "patrolWaitDuration": 90
+            },
+            "CPossesLevel": {"level": 10},
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,
                 "i_frames": 30,
                 "type": ["Grass", "Organic"]
             },
-            "CAttack": {
-                "damage": 1, 
-                "speed": 120, 
-                "duration": 30, 
-                "range": 48, 
-                "area": {"x": 16, "y": 16}
+            "CWeapon": {
+                "damage": 1,
+                "speed": 60,
+                "range": 16,
+                "attackAnimationRow": 5,
+                "attackHitFrame": 2,
+                "hitboxAnimation": "rooter-attack",
+                "hitboxActiveFrames": 15,
+                "type": "Melee",
+                "mask": ["PLAYER_LAYER"]
             }
         }
     }

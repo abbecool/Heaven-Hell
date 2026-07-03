@@ -11,32 +11,46 @@ public:
     using EntityID = uint32_t;
 
     // Adds an entity ID to the specified layer
-    void addEntityToLayer(EntityID entityID, uint8_t layer) {
-        if (layer >= layers.size()) {
-            layers.resize(layer + 1);
+    void addEntityToLayer(EntityID entityID, uint8_t layerIndex) {
+        if (layerIndex >= layers.size()) {
+            layers.resize(layerIndex + 1);
         }
-        layers[layer].push_back(entityID);
+        layers[layerIndex].push_back(entityID);
     }
 
-    // Removes an entity ID from the specified layer
-    void removeEntityFromLayer(EntityID id, uint8_t layer) {
-        if (layer >= layers.size()) {
-            return; // layer does not exist
+    void removeEntityFromLayer(EntityID id, uint8_t layerIndex) {
+        if (layerIndex >= layers.size()) {
+            std::cout << "ERROR: Layer " << static_cast<int>(layerIndex) << " doesn't exist! (max: "
+                      << layers.size() << ")" << std::endl;
+            return;
         }
-        auto& l = layers[layer];
-        l.erase(std::remove(l.begin(), l.end(), id), l.end());
+        auto& layer = layers[layerIndex];
+        size_t before = layer.size();
+        layer.erase(std::remove(layer.begin(), layer.end(), id), layer.end());
+        if (before == layer.size()) {
+            std::cout << "WARNING: Entity " << id << " not found in Layer " << static_cast<int>(layerIndex) << std::endl;
+            // Check if it exists in any other layer
+            for (size_t i = 0; i < layers.size(); ++i) {
+                if (i == layerIndex) continue;
+                auto it = std::find(layers[i].begin(), layers[i].end(), id);
+                if (it != layers[i].end()) {
+                    std::cout << "  -> Entity " << id << " found in Layer " << i << std::endl;
+                }
+            }
+        }
     }
 
-    void queueRemoveEntityFromLayer(EntityID entityID, uint8_t layer) {
+    void queueRemoveEntityFromLayer(EntityID entityID, uint8_t layerIndex) {
         entitiesToRemove.resize(layers.size());
-        entitiesToRemove[layer].push_back(entityID);
+        entitiesToRemove[layerIndex].push_back(entityID);
     }
 
     void update() {
-        for (int layer = 0; layer < entitiesToRemove.size(); layer++) {
-        // for (auto& layer : entitiesToRemove) {
-            for (auto entityID : entitiesToRemove[layer]) {
-                removeEntityFromLayer(entityID, layer);
+        entitiesToRemove.resize(layers.size());
+        
+        for (size_t layerIndex = 0; layerIndex < entitiesToRemove.size(); layerIndex++) {
+            for (auto entityID : entitiesToRemove[layerIndex]) {
+                removeEntityFromLayer(entityID, static_cast<uint8_t>(layerIndex));
             }
         }
         entitiesToRemove.clear();
@@ -53,15 +67,14 @@ public:
     }
 
     // Gets the entities in the specified layer
-    const std::vector<EntityID>* getEntitiesInLayer(uint8_t layer) const {
-        if (layer < layers.size()) {
-            return &layers[layer];
+    const std::vector<EntityID>* getEntitiesInLayer(uint8_t layerIndex) const {
+        if (layerIndex < layers.size()) {
+            return &layers[layerIndex];
         }
         return nullptr;
     }
     
-    // Returns a pointer to the layers so they can be for-looped through in another class
-    const std::vector<std::vector<EntityID>> getLayers() const {
+    const std::vector<std::vector<EntityID>>& getLayers() const {
         return layers;
     }
 

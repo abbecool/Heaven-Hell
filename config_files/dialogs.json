@@ -14,6 +14,11 @@
       {"Talk to the wizard.": "I must protect the city1"},
       {"Find the staff.": "I must protect the city2"},
       {"Go to the house.": "I must protect the city3"}
+    ],
+    "dwarf": [
+      {"Talk to the wizard.": "I must dig a hole1"},
+      {"Find the staff.": "I must dig a hole2"},
+      {"Go to the house.": "I must dig a hole3"}
     ]
   }
 }

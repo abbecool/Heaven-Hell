@@ -1,5 +1,5 @@
-#include "Camera.h"
-#include "Vec2.h"
+#include "Camera.hpp"
+#include "Vec2.hpp"
 
 #include <iostream>
 #include <random>
@@ -45,8 +45,10 @@ void Camera::movement(Vec2 playerPos){
             originalPosition.y = 0;
         }
     } else{
-        originalPosition = Vec2{gridX*32*(int)((int)(playerPos.x)/(32*gridX)),
-                                gridY*32*(int)((int)(playerPos.y)/(32*gridY))};
+        originalPosition = Vec2{
+            gridX * 32.0f * static_cast<int>(static_cast<int>(playerPos.x) / (32.0f * gridX)),
+            gridY * 32.0f * static_cast<int>(static_cast<int>(playerPos.y) / (32.0f * gridY))
+        };
     }
     position = originalPosition;
 }
@@ -113,7 +115,7 @@ bool Camera::startPan(float speed, int duration, Vec2 pos, bool pause) {
 }
 
 void Camera::panCamera(){
-    Vec2 panVelocity = (panPos - panStartPos).norm()*(float)i* panSpeed / 60;
+    Vec2 panVelocity = (panPos - panStartPos).norm() * static_cast<float>(i) * panSpeed / 60.0f;
     if (panDuration <= 0) {
         return;
     }
@@ -150,7 +152,11 @@ bool Camera::update(Vec2 playerPos, bool pause) {
     return m_cameraPause;
 }
 
-#include "ecs/ScriptableEntity.h"
+Vec2 Camera::getScreenSize() {
+    return m_screenSize;
+}
+
+#include "ecs/ScriptableEntity.hpp"
 #include <iostream>
 
 class CameraController : public ScriptableEntity 

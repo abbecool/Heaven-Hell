@@ -1,27 +1,19 @@
 {
     "player": {
+        "definition": "player",
+        "hp": 10,
+        "inventory": {
+            "activeSlot": 0,
+            "items": [
+                1,
+                2,
+                null
+            ]
+        },
         "position": {
-            "x": 349,
-            "y": 63
+            "x": 344,
+            "y": 88
         },
-        "health": 2
-    },
-    "enemies": [
-        {
-        "type": "rooter",
-        "position": {
-            "x": 405.25,
-            "y": 234.25
-        },
-        "health": 4
-        },
-        {
-        "type": "rooter",
-        "position": {
-            "x": 328.0,
-            "y": 282.0
-        },
-        "health": 6
-        }
-    ]
+        "progression": {}
+    }
 }

@@ -1,14 +1,11 @@
-#include "scenes/Scene_Menu.h"
-#include "scenes/Scene_Play.h"
-#include "assets/Sprite.h"
-#include "assets/Assets.h"
-#include "core/Game.h"
-#include "ecs/Components.h"
-#include "core/Action.h"
-#include "physics/RandomArray.h"
+#include "scenes/Scene_Menu.hpp"
+#include "scenes/Scene_Play.hpp"
+#include "assets/Assets.hpp"
+#include "core/Game.hpp"
+#include "ecs/Components.hpp"
+#include "core/Action.hpp"
+#include "physics/RandomArray.hpp"
 
-#include <SDL_image.h>
-#include <SDL_ttf.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -18,11 +15,11 @@
 Scene_Menu::Scene_Menu(Game* game)
     : Scene(game)
 {
-    registerAction(SDLK_ESCAPE, "QUIT");
-    registerAction(SDLK_t, "TOGGLE_TEXTURE");
-    registerAction(SDLK_c, "TOGGLE_COLLISION");
-    registerAction(SDLK_f, "FULLSCREEN");
-    registerAction(SDL_BUTTON_LEFT , "MOUSE LEFT CLICK");
+    registerAction(InputCode::Escape, "QUIT");
+    registerAction(InputCode::T, "TOGGLE_TEXTURE");
+    registerAction(InputCode::C, "TOGGLE_COLLISION");
+    registerAction(InputCode::F, "FULLSCREEN");
+    registerAction(InputCode::MouseLeft, "MOUSE LEFT CLICK");
     loadMenu();
 }
 
@@ -30,16 +27,14 @@ void Scene_Menu::loadMenu()
 {
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    entity.addComponent<CAnimation> (getAnimation("level0_screenshot"), true, 9);
-    m_rendererManager.addEntityToLayer(entityId, 1);
+    addSprite(entityId, "level0_screenshot", 1);
     Vec2 midPixel = gridToMidPixel(Vec2{0, 0}, entityId);
     entity.addComponent<CTransform>(midPixel);
     entity.addComponent<CName>("title_screen");
 
     EntityID entityId1 = m_ECS.addEntity();
     Entity entity1 = {entityId1, &m_ECS};
-    entity1.addComponent<CAnimation> (getAnimation("game_title"), true, 7);
-    m_rendererManager.addEntityToLayer(entityId1, 2);
+    addSprite(entityId1, "game_title", 2);
     entity1.addComponent<CTransform>(Vec2 {300, 45});
     entity1.addComponent<CName>("game_title");
 
@@ -55,7 +50,7 @@ void Scene_Menu::loadMenu()
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
 {   
     EntityID id = m_ECS.addEntity();
-    m_ECS.addComponent<CAnimation>(id, getAnimation(level), 9);
+    addSprite(id, level, 9);
     m_ECS.addComponent<CTransform>(id, pos);
     m_ECS.addComponent<CName>(id, level);
 }
@@ -79,14 +74,14 @@ void Scene_Menu::sDoAction(const Action& action)
             m_game->ToggleFullscreen();
         }
         else if (action.name() == "MOUSE LEFT CLICK") {
-            auto view = m_ECS.View<CCollisionBox, CTransform, CText, CAnimation>();
+            auto view = m_ECS.View<CCollisionBox, CTransform, CText, CSprite>();
             for (auto e : view){
                 auto &transform = m_ECS.getComponent<CTransform>(e);
                 auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
                     continue;
                 }
-                m_ECS.getComponent<CAnimation>(e).animation = getAnimation("button_pressed");
+                setSprite(e, "button_pressed");
             }
         }   
     }
@@ -94,7 +89,7 @@ void Scene_Menu::sDoAction(const Action& action)
         if (!(action.name() == "MOUSE LEFT CLICK")){
             return;
         }   
-        auto view = m_ECS.View<CCollisionBox, CTransform, CText, CAnimation, CName>();
+        auto view = m_ECS.View<CCollisionBox, CTransform, CText, CSprite, CName>();
         for (auto e : view){
             auto &transform = m_ECS.getComponent<CTransform>(e);
             auto &collision = m_ECS.getComponent<CCollisionBox>(e);
@@ -102,7 +97,7 @@ void Scene_Menu::sDoAction(const Action& action)
                 continue;
             }
             auto &name = m_ECS.getComponent<CName>(e).name;
-            m_ECS.getComponent<CAnimation>(e).animation = getAnimation("button_unpressed");
+            setSprite(e, "button_unpressed");
             std::string levelPath = "assets/images/levels/levelWorld.png";
             if ( name == "new" ){
                 m_game->changeScene(
@@ -143,16 +138,11 @@ void Scene_Menu::update()
 
 void Scene_Menu::sAnimation() 
 {
-    auto view = m_ECS.View<CAnimation>();
-    for ( auto e : view){
-        m_ECS.getComponent<CAnimation>(e).animation.update(m_currentFrame);
-    }
+    updateAnimations();
 }
 
 void Scene_Menu::sRender()
 {
-    // Clear the screen with black
-    SDL_SetRenderDrawColor(m_game->renderer(), 0, 0, 0, 255);
     sRenderBasic();
 }
 

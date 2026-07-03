@@ -11,15 +11,12 @@
         "individual_paths": [
             "campfire.png",
             "heart_full.png",
+            "hearts.png",
             "heart_half.png",
             "heart_empty.png",
             "fireball.png",
             "fireball_explode.png",
             "fireball_create.png",
-            "dual_sheets/grass_dual_sheet.png",
-            "dual_sheets/water_dual_sheet.png",
-            "dual_sheets/mountain_dual_sheet.png",
-            "dual_sheets/dirt_dual_sheet.png",
             "levels/levelWorld.png",
             "shadow.png",
             "level0_screenshot.png",
@@ -27,6 +24,7 @@
             "buttons/button_pressed.png",
             "game_title.png",
             "coin.png",
+            "emblem.png",
             "tree.png",
             "house.png",
             "staff.png",
@@ -38,12 +36,26 @@
             "knight-sheet.png",
             "goblin-sheet.png",
             "rooter-sheet.png",
+            "rooter-attack.png",
             "golem-sheet.png",
             "inventory.png",
-            "inventory_open.png"
+            "inventory_open.png",
+            "activeItemInventory.png"
         ]
     },
+    "atlas_manifests": [
+        "config_files/dual_sheets_atlas.json"
+    ],
     "animations": [
+        {
+            "name": "hearts",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 20,
+            "rows": 2,
+            "width": 320,
+            "height": 32
+        },
         {
             "name": "heart_full",
             "frames": 1,
@@ -180,6 +192,15 @@
             "height": 160
         },
         {
+            "name": "activeItemInventory",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 1,
+            "rows": 1,
+            "width": 160,
+            "height": 160
+        },
+        {
             "name": "fireball",
             "frames": 4,
             "frametime": 15,
@@ -205,6 +226,15 @@
             "rows": 1,
             "width": 16,
             "height": 16
+        },
+        {
+            "name": "emblem",
+            "frames": 4,
+            "frametime": 15,
+            "cols": 4,
+            "rows": 1,
+            "width": 32,
+            "height": 32
         },
         {
             "name": "coin",
@@ -274,7 +304,7 @@
             "frames": 4,
             "frametime": 20,
             "cols": 4,
-            "rows": 5,
+            "rows": 6,
             "width": 48,
             "height": 48
         },
@@ -297,46 +327,31 @@
             "height": 32
         },
         {
-            "name": "grass_dual_sheet",
-            "frames": 1,
-            "frametime": 100,
-            "cols": 4,
-            "rows": 7,
-            "width": 16,
-            "height": 16
-        },
-        {
-            "name": "water_dual_sheet",
-            "frames": 2,
-            "frametime": 100,
-            "cols": 8,
-            "rows": 7,
-            "width": 16,
-            "height": 16
-        },
-        {
-            "name": "mountain_dual_sheet",
-            "frames": 1,
-            "frametime": 100,
-            "cols": 4,
-            "rows": 4,
-            "width": 16,
-            "height": 16
-        },
-        {
-            "name": "dirt_dual_sheet",
-            "frames": 1,
-            "frametime": 100,
-            "cols": 4,
-            "rows": 4,
-            "width": 16,
-            "height": 16
+            "name": "rooter-attack",
+            "frames": 12,
+            "frametime": 2,
+            "cols": 12,
+            "rows": 1,
+            "width": 48,
+            "height": 48
         }
     ],
     "audio": [
         {
             "name": "loot_pickup",
             "path": "loot_pickup.wav"
+        },
+        {
+            "name": "fireball_shot",
+            "path": "fireball_shot.wav"
+        },
+        {
+            "name": "fireball_destroy",
+            "path": "fireball_destroy.wav"
+        },
+        {
+            "name": "enemy_death_ida",
+            "path": "enemy_death_ida.wav"
         },
         {
             "name": "enemy_death",

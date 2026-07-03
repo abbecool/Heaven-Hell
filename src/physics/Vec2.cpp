@@ -1,4 +1,4 @@
-#include "Vec2.h"
+#include "Vec2.hpp"
 #include <cmath>
 
 Vec2::Vec2(){}
@@ -49,6 +49,17 @@ Vec2 Vec2::operator/ (const Vec2 & rhs) const
     return Vec2 {x/rhs.x, y/rhs.y};
 }
 
+Vec2 Vec2::operator% (const Vec2 & rhs) const
+{
+    return Vec2 {std::fmod(x, rhs.x), std::fmod(y, rhs.y)};
+}
+
+Vec2 Vec2::operator% (const int val) const
+{
+    const float divisor = static_cast<float>(val);
+    return Vec2 {std::fmod(x, divisor), std::fmod(y, divisor)};
+}
+
 Vec2 Vec2::operator- (const Vec2 & rhs) const
 {
     return Vec2 {x - rhs.x, y - rhs.y};
@@ -88,6 +99,11 @@ void Vec2::operator-- (){
     y--;
 }
 
+float Vec2::dist(const Vec2 & rhs) const
+{
+    return (*this - rhs).length();
+}
+
 bool Vec2::isNull () const
 {
     return (std::fabs(x)+std::fabs(y) == 0);
@@ -101,6 +117,9 @@ float Vec2::length () const
 Vec2 Vec2::norm () const
 {
     float len = length();
+    if (len == 0.0f) {
+        return Vec2{};
+    }
     return Vec2 {x/len, y/len};
 }
 

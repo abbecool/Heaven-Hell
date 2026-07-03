@@ -1,14 +1,8 @@
 {
     "knight": {
-        "dialog": [
-            {"quest":0, "text":"Go and look for the staff!"},
-            {"quest":1, "text":"Have you found the staff yet?"},
-            {"quest":2, "text":"Have you found you're home?"},
-            {"quest":3, "text":"I am a knight, what are you?"}
-        ],
         "components": {
-            "CTransform": "Nan",
-            "CVelocity": {"speed": 100},
+            "CTransform": {"pos": "Nan"},
+            "CPhysicsBody": {"mass": 1, "moveForce": 2400, "maxSpeed": 100, "linearDamping": 24},
             "CCollisionBox": {
                 "size": {"x": 8, "y":8}, 
                 "layer": "FRIENDLY_LAYER", 
@@ -21,11 +15,10 @@
             },
             "CAnimation": {
                 "animation": "knight-sheet",
-                "layer": 10
+                "layer": 9
             },
-            "CState": "Nan",
-            "CScript": "NPCController",
-            "CPossesLevel": "Nan",
+            "CState": {"state": "Nan"},
+            "CPossesLevel": {"level": 10},
             "CHealth": {
                 "HP": 6,
                 "HP_max": 6,

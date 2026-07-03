@@ -1,174 +1,160 @@
-#include "Assets.h"
+#include "Assets.hpp"
+#include "core/SDLPlatform.hpp"
+#include "render/RenderBackend.hpp"
+
 #include <fstream>
 #include <string>
 #include <iostream>
-#include <limits>
+#include <stdexcept>
+#include <vector>
 
-
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
-#include <SDL_mixer.h>
 #include "external/json.hpp"
 using json = nlohmann::json;
 
-Assets::Assets(){}
-
-
-void Assets::addTexture(const std::string & path, SDL_Renderer * ren)
+namespace {
+std::string assetNameFromPath(const std::string& path)
 {
-    const char *path_char = path.c_str(); 
-    std::string name = path.substr(0, path.find_last_of('.')).substr(path.find_last_of('/') + 1);
-    SDL_Surface* tempSurface = IMG_Load(path_char);
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(ren, tempSurface);
-    SDL_FreeSurface(tempSurface);
-    if (texture == nullptr) {
-        std::cerr   << "Failed to load texture: " 
-                    << name 
-                    << ", from path: " 
-                    << path_char 
-                    << ", IMG_Error: " 
-                    << IMG_GetError() 
-                    << std::endl;
+    const size_t slash = path.find_last_of("/\\");
+    const size_t start = slash == std::string::npos ? 0 : slash + 1;
+    const size_t dot = path.find_last_of('.');
+    const size_t count = dot == std::string::npos || dot < start ? std::string::npos : dot - start;
+    return path.substr(start, count);
+}
+
+json loadJsonFile(const std::string& path)
+{
+    std::ifstream file(path);
+    if (!file) {
+        throw std::runtime_error("Could not load json file: " + path);
+    }
+
+    json data;
+    file >> data;
+    return data;
+}
+
+void loadTextures(const json& data, RenderBackend& renderBackend)
+{
+    if (!data.contains("textures")) {
         return;
     }
-    m_textures[name] = texture;
+
+    const std::string pathTextures = data["textures"]["master_path"];
+    for (const std::string path : data["textures"]["individual_paths"]) {
+        const std::string texturePath = pathTextures + path;
+        renderBackend.loadTexture(assetNameFromPath(texturePath), texturePath);
+    }
 }
 
-SDL_Texture * Assets::getTexture(std::string name) const
+SpriteDefinition spriteDefinitionFromJson(
+    const json& spriteJSON,
+    RenderBackend& renderBackend
+)
 {
+    const std::string name = spriteJSON["name"];
+    const int frames = spriteJSON["frames"];
+    const int frametime = spriteJSON["frametime"];
+    const int rows = spriteJSON["rows"];
+    const int cols = spriteJSON["cols"];
+    const TextureHandle texture{
+        spriteJSON.value("texture", name)
+    };
+
+    if (spriteJSON.contains("atlas")) {
+        const auto& atlas = spriteJSON["atlas"];
+        return SpriteDefinition(
+            name,
+            texture,
+            frames,
+            frametime,
+            rows,
+            cols,
+            RectF{
+                static_cast<float>(atlas["x"].get<int>()),
+                static_cast<float>(atlas["y"].get<int>()),
+                static_cast<float>(atlas["w"].get<int>()),
+                static_cast<float>(atlas["h"].get<int>())
+            }
+        );
+    }
+
+    return SpriteDefinition(
+        name,
+        texture,
+        frames,
+        frametime,
+        rows,
+        cols,
+        renderBackend.textureSize(texture)
+    );
+}
+}
+
+Assets::Assets(){}
+
+Assets::~Assets(){
+    shutdown();
+}
+
+void Assets::shutdown()
+{
+    m_sprites.clear();
+}
+
+void Assets::addSprite(const std::string& name, SpriteDefinition sprite) {
+    m_sprites[name] = sprite;
+}
+
+const SpriteDefinition& Assets::getSprite(const std::string& name) const {
     try {
-        return m_textures.at(name);
+        return m_sprites.at(name);
     } catch (const std::out_of_range& e) {
-        std::cerr << "Texture not found: " << name << std::endl;
-        throw;
-    }
-}
-
-void Assets::addFont(const std::string& name, const std::string& path, const int font_size) {
-    std::string fontPath = "assets/fonts/" + name + ".ttf";
-    TTF_Font* font = TTF_OpenFont(fontPath.c_str(), font_size);
-    if (font == nullptr) {
-        std::cerr << "Failed to load font! TTF_Error: " << TTF_GetError() << std::endl;
-    }
-    m_fonts[name] = font;
-}
-
-TTF_Font* Assets::getFont(const std::string& name) const {
-    try {
-        return m_fonts.at(name);
-    } catch (const std::out_of_range& e) {
-        std::cerr << "Font not found: " << name << std::endl;
-        throw;
-    }
-}
-
-void Assets::addAnimation(const std::string& name, Animation animation) {
-    m_animations[name] = animation;
-}
-
-const Animation& Assets::getAnimation(const std::string& name) const {
-    try {
-        return m_animations.at(name);
-    } catch (const std::out_of_range& e) {
-        std::cerr << "Animation not found: " << name << std::endl;
-        throw;
-    }
-}
-
-void Assets::addAudio(const std::string& name, const std::string& path) {
-    std::string audioPath = ("assets/audio/" + name+".wav"); 
-    Mix_Chunk* audio = Mix_LoadWAV(audioPath.c_str());
-    if (audio == nullptr) {
-        std::cerr << "Failed to load audio! Mix_Error: " << Mix_GetError() << std::endl;
-    }
-    m_audios[name] = audio;
-}
-
-Mix_Chunk* Assets::getAudio(const std::string& name) const {
-    try {
-        return m_audios.at(name);
-    } catch (const std::out_of_range& e) {
-        std::cerr << "Audio not found: " << name << std::endl;
-        throw;
-    }
-}
-
-void Assets::addMusic(const std::string& name, const std::string& path) {
-    std::string pathString = ("assets/music/" + name+".ogg"); 
-    Mix_Music* music = Mix_LoadMUS(pathString.c_str());
-    if (music == nullptr) {
-        std::cerr << "Failed to load music! Mix_Error: " << Mix_GetError() << std::endl;
-    }
-    m_music[name] = music;
-}
-
-Mix_Music* Assets::getMusic(const std::string& name) const {
-    try {
-        return m_music.at(name);
-    } catch (const std::out_of_range& e) {
-        std::cerr << "Music not found: " << name << std::endl;
+        std::cerr << "Sprite not found: " << name << std::endl;
         throw;
     }
 }
 
 void Assets::loadFromFile(
     const std::string & pathAssets, 
-    const std::string & pathText, 
-    SDL_Renderer * ren
+    RenderBackend& renderBackend,
+    SDLPlatform& platform
 ){
-    std::ifstream file_assets(pathAssets);
-    if (!file_assets) {
-        std::cerr << "Could not load assets file!\n";
-        exit(-1);
-    }
-    json j;
-    file_assets >> j;
-    file_assets.close();
+    json j = loadJsonFile(pathAssets);
     for (const auto& font : j["fonts"]) {
         std::string name = font["name"];
         std::string path = font["path"];
         int size = font["size"];
-        addFont(name, path, size);
+        renderBackend.loadFont(name, path, size);
     }
-    const std::string pathTextures = j["textures"]["master_path"];
-    for (const std::string path : j["textures"]["individual_paths"]) {
-        addTexture(pathTextures+path, ren);
+
+    loadTextures(j, renderBackend);
+
+    std::vector<json> atlasManifests;
+    if (j.contains("atlas_manifests")) {
+        for (const std::string path : j["atlas_manifests"]) {
+            atlasManifests.push_back(loadJsonFile(path));
+            loadTextures(atlasManifests.back(), renderBackend);
+        }
     }
-    for (const auto& animationJSON : j["animations"]) {
-        const auto name = animationJSON["name"];
-        int frames = animationJSON["frames"];
-        int frametime = animationJSON["frametime"];
-        int rows = animationJSON["rows"];
-        int cols = animationJSON["cols"];
-        SDL_Texture* tex = getTexture(animationJSON["name"]);
-        Animation animation = Animation( name, tex, frames, frametime, rows, cols);
-        addAnimation(name, animation);
+
+    for (const auto& spriteJSON : j["animations"]) {
+        SpriteDefinition sprite = spriteDefinitionFromJson(spriteJSON, renderBackend);
+        addSprite(sprite.name(), sprite);
+    }
+    for (const auto& atlasManifest : atlasManifests) {
+        for (const auto& spriteJSON : atlasManifest["animations"]) {
+            SpriteDefinition sprite = spriteDefinitionFromJson(spriteJSON, renderBackend);
+            addSprite(sprite.name(), sprite);
+        }
     }
     for (const auto& audio : j["audio"]) {
         std::string name = audio["name"];
         std::string path = audio["path"];
-        addAudio(name, path);
+        platform.loadAudio(name, path);
     }
     for (const auto& music : j["music"]) {
         std::string name = music["name"];
         std::string path = music["path"];
-        addMusic(name, path);
-    }
-    
-    std::ifstream file_text(pathText);
-    if (!file_text) {
-        std::cerr << "Could not load text.txt file!\n";
-        exit(-1);
-    }
-    std::string head;
-    std::string font_name;
-    int r, g, b, a;
-    SDL_Color textColor = {255, 255, 255, 255};
-    while (file_text >> head) {
-        if (head == "Font"){
-            file_text >> font_name >> r >> g >> b >> a;
-            textColor = {(Uint8)r, (Uint8)g, (Uint8)b, (Uint8)a};
-        }
+        platform.loadMusic(name, path);
     }
 }

@@ -1,0 +1,12 @@
+{
+    "campfire": {
+        "components": {
+            "CTransform": {"pos": "spawn_position"},
+            "CName": "campfire",
+            "CAnimation": {
+                "animation": "campfire",
+                "layer": 6
+            }
+        }
+    }
+}

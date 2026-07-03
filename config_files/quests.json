@@ -1,0 +1,52 @@
+{
+  "The knight and his emblem": {
+    "id": 10,
+    "steps": [
+      {
+        "id": 0,
+        "description": "Talk to the farmer.",
+        "trigger": {
+          "event_type": "DialogueFinished",
+          "subject": "knight"
+        }
+      },
+      {
+        "id": 1,
+        "description": "Find the emblem.",
+        "trigger": {
+          "event_type": "ItemPickedUp",
+          "subject": "emblem"
+        }
+      },
+      {
+        "id": 2,
+        "description": "Return the emblem to the knight.",
+        "trigger": {
+          "event_type": "DialogueFinished",
+          "subject": "knight"
+        }
+      }
+    ]
+  },
+  "The elf and dwarf":  {
+    "id": 11,
+    "steps": [
+      {
+        "id": 0,
+        "description": "Talk to the elf.",
+        "trigger": {
+          "event_type": "DialogueFinished",
+          "subject": "elf"
+        }
+      },
+      {
+        "id": 1,
+        "description": "Talk to the dwarf.",
+        "trigger": {
+          "event_type": "DialogueFinished",
+          "subject": "dwarf"
+        }
+      }
+    ]
+  }
+}

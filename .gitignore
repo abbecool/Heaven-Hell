@@ -4,6 +4,9 @@ temp_*
 # Build directories
 build/*
 build-vs/*
+dist/
 
 # Ignore everything in run/
 run/**
+
+.venv

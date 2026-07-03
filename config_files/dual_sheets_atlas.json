@@ -1,0 +1,97 @@
+{
+    "atlas": {
+        "name": "dual_sheets_atlas",
+        "path": "assets/images/dual_sheets_atlas.png",
+        "width": 256,
+        "height": 228,
+        "padding": 1
+    },
+    "textures": {
+        "master_path": "assets/images/",
+        "individual_paths": [
+            "dual_sheets_atlas.png"
+        ]
+    },
+    "animations": [
+        {
+            "name": "dirt_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 4,
+            "width": 16,
+            "height": 16,
+            "texture": "dual_sheets_atlas",
+            "atlas": {
+                "x": 1,
+                "y": 1,
+                "w": 64,
+                "h": 64
+            }
+        },
+        {
+            "name": "grass_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 7,
+            "width": 16,
+            "height": 16,
+            "texture": "dual_sheets_atlas",
+            "atlas": {
+                "x": 67,
+                "y": 1,
+                "w": 64,
+                "h": 112
+            }
+        },
+        {
+            "name": "mountain_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 4,
+            "width": 16,
+            "height": 16,
+            "texture": "dual_sheets_atlas",
+            "atlas": {
+                "x": 133,
+                "y": 1,
+                "w": 64,
+                "h": 64
+            }
+        },
+        {
+            "name": "wall_dual_sheet",
+            "frames": 1,
+            "frametime": 100,
+            "cols": 4,
+            "rows": 4,
+            "width": 16,
+            "height": 16,
+            "texture": "dual_sheets_atlas",
+            "atlas": {
+                "x": 1,
+                "y": 115,
+                "w": 64,
+                "h": 64
+            }
+        },
+        {
+            "name": "water_dual_sheet",
+            "frames": 2,
+            "frametime": 100,
+            "cols": 8,
+            "rows": 7,
+            "width": 16,
+            "height": 16,
+            "texture": "dual_sheets_atlas",
+            "atlas": {
+                "x": 67,
+                "y": 115,
+                "w": 128,
+                "h": 112
+            }
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+{
+    "tree": {
+        "components": {
+            "CTransform": {"pos": "spawn_position"},
+            "CName": "tree",
+            "CAnimation": {
+                "animation": "tree",
+                "layer": 6
+            },
+            "CCollisionBox": {
+                "size": {"x": 6, "y": 8},
+                "layer": "OBSTACLE_LAYER",
+                "mask": ["PLAYER_LAYER", "ENEMY_LAYER", "FRIENDLY_LAYER"]
+            }
+        }
+    }
+}

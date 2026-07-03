@@ -1,15 +1,34 @@
 {
   "configurations": [
     {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/src/external/glad/include",
+        "/usr/include/SDL2",
+        "/usr/include/freetype2",
+        "/usr/include/harfbuzz",
+        "/usr/include/glib-2.0",
+        "/usr/lib/glib-2.0/include",
+        "/usr/include/libpng16",
+        "/usr/include/webp"
+      ],
+      "compilerPath": "/usr/bin/g++",
+      "cppStandard": "c++20",
+      "compileCommands": "${workspaceFolder}/build/Debug/compile_commands.json",
+      "intelliSenseMode": "linux-gcc-x64"
+    },
+    {
       "name": "Win32",
       "includePath": [
         "${workspaceFolder}/src",
-        "${workspaceFolder}/../SDL2/SDL2-2.32.8/include",
-        "${workspaceFolder}/../SDL2/SDL2_image-2.8.8/include",
-        "${workspaceFolder}/../SDL2/SDL2_mixer-2.8.1/include",
-        "${workspaceFolder}/../SDL2/SDL2_ttf-2.24.0/include"
+        "${workspaceFolder}/src/external/glad/include",
+        "C:/msys64/ucrt64/include",
+        "C:/msys64/ucrt64/include/SDL3"
       ],
-      "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
+      "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
+      "cppStandard": "c++20",
+      "compileCommands": "${workspaceFolder}/build/Windows/Ninja/Debug/compile_commands.json",
       "intelliSenseMode": "windows-gcc-x64"
     }
   ],
