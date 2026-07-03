@@ -76,6 +76,7 @@ class Scene_Play : public Scene
     void onEnd();
     void togglePause();
     void changePlayerState(EntityID entity, PlayerState s);
+    void startAttack(EntityID attackerID, Vec2 direction, CWeapon& weapon);
     void beginProjectileFlight(EntityID projectileID);
     bool hasLineOfSight(Vec2 origin, Vec2 target);
     bool rayIntersectsAABB(Vec2 origin, Vec2 dir, float maxDist, 
