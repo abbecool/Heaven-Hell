@@ -12,11 +12,6 @@
                 "layer": "ENEMY_LAYER", 
                 "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
             },
-            "CInteractionBox": {
-                "size": {"x": 32, "y":32}, 
-                "layer": "ENEMY_LAYER", 
-                "mask": ["PLAYER_LAYER"]
-            },
             "CState": {"state": "Nan"},
             "CInput": 0,
             "CAIAgent": {
@@ -35,7 +30,7 @@
             "CWeapon": {
                 "damage": 1,
                 "speed": 60,
-                "range": 16,
+                "range": 48,
                 "attackAnimationRow": 5,
                 "attackHitFrame": 2,
                 "hitboxAnimation": "rooter-attack",

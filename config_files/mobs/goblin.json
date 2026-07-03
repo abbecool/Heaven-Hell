@@ -12,11 +12,6 @@
                 "layer": "ENEMY_LAYER", 
                 "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
             },
-            "CInteractionBox": {
-                "size": {"x": 32, "y":32}, 
-                "layer": "ENEMY_LAYER", 
-                "mask": ["PLAYER_LAYER"]
-            },
             "CState": {"state": "Nan"},
             "CHealth": {
                 "HP": 6,

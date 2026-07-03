@@ -12,11 +12,6 @@
                 "layer": "ENEMY_LAYER", 
                 "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
             },
-            "CInteractionBox": {
-                "size": {"x": 48, "y":48}, 
-                "layer": "ENEMY_LAYER", 
-                "mask": ["PLAYER_LAYER"]
-            },
             "CInput": 0,
             "CAIAgent": {
                 "sightRange":        128,

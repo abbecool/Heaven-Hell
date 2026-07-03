@@ -357,7 +357,6 @@ void Scene_Play::sAI()
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& inputPool = m_ECS.getComponentPool<CInput>();
     auto& agentPool = m_ECS.getComponentPool<CAIAgent>();
-    auto  namePool = m_ECS.getComponentPool<CName>();
 
     Vec2 playerPos = transformPool.getComponent(m_player).pos;
 
@@ -1375,16 +1374,17 @@ EntityID Scene_Play::spawnHitbox(EntityID attackerID, Vec2 direction, const CWea
 
     const Vec2 attackerPosition = m_ECS.getComponent<CTransform>(attackerID).pos;
     const Vec2 hitboxSize = Vec2{weapon.range, weapon.range};
-    const Vec2 hitboxPosition = attackerPosition + direction.norm((float)weapon.range / 2.0f);
+    Vec2 hitboxPosition = attackerPosition;
 
     if (!weapon.hitboxAnimation.empty()) {
         addVisual(id, weapon.hitboxAnimation, render_layer, false);
     }
     else {
         addSprite(id, weapon.hitboxSprite, render_layer);
+        hitboxPosition += direction.norm((float)weapon.range / 2.0f);
     }
 
-    m_ECS.addComponent<CTransform>(id, hitboxPosition, direction.angle());
+    m_ECS.addComponent<CTransform>(id, hitboxPosition);
     m_ECS.addComponent<CDamage>(id, weapon.damage);
     m_ECS.addComponent<CAttackHitbox>(id, attackerID);
     m_ECS.addComponent<CInteractionBox>(id, hitboxSize, DAMAGE_LAYER, weapon.targetMask);

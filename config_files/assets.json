@@ -329,7 +329,7 @@
         {
             "name": "rooter-attack",
             "frames": 12,
-            "frametime": 2,
+            "frametime": 5,
             "cols": 12,
             "rows": 1,
             "width": 48,
