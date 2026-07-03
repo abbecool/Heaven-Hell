@@ -100,8 +100,8 @@ struct CInput
     bool shift      = false;
     bool ctrl       = false;
     bool interact   = false;
-    bool attack     = false;
-    bool attackHeld = false;
+    bool use        = false;
+    bool useHeld    = false;
 
     bool shoot      = false;
     bool canShoot   = false;

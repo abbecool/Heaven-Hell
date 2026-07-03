@@ -75,7 +75,6 @@ class InteractionManager : public BaseCollisionManager
     bool addItemToInventory(Entity player, const Item& item);
     void showLootLabel(Entity loot, const std::string& name);
     void handleDamageHitbox(Entity entityA, Entity entityB, Vec2 overlap);
-    void handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap);
     void handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap);
     void handlePlayerLoot(Entity player, Entity loot, Vec2 overlap);
     void handlePlayerArea(Entity player, Entity area, Vec2 overlap);

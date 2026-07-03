@@ -358,18 +358,6 @@ void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
     }
 }
 
-void InteractionManager::handlePlayerEnemy(Entity player, Entity enemy, Vec2 overlap){
-    if (!enemy.hasComponent<CWeapon>() || !enemy.hasComponent<CInput>()){
-        return;
-    }
-    CInput& input = enemy.getComponent<CInput>();
-    CWeapon& weapon = enemy.getComponent<CWeapon>();
-    if (weapon.delay <= 0){
-        input.attack = true;
-    }
-    return;
-}
-
 void InteractionManager::handleDamageHitbox(Entity entityA, Entity entityB, Vec2 overlap)
 {
     Entity hitbox = entityA;
@@ -616,9 +604,6 @@ void InteractionManager::handlePlayerArea(Entity player, Entity area, Vec2 overl
 InteractionManager::InteractionManager(ECS* ecs, Scene_Play* scene){
     m_ECS = ecs;
     m_scene = scene;
-    registerHandler(PLAYER_LAYER, ENEMY_LAYER, 
-        [this](Entity a, Entity b, Vec2 overlap) {handlePlayerEnemy(a, b, overlap);}
-    );
     registerHandler(PLAYER_LAYER, FRIENDLY_LAYER, 
         [this](Entity a, Entity b, Vec2 overlap) {handlePlayerFriendly(a, b, overlap);}
     );

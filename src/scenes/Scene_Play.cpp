@@ -67,7 +67,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(InputCode::Right, "RIGHT");
     
     registerAction(InputCode::I, "INVENTORY");
-    registerAction(InputCode::MouseLeft, "ATTACK");
+    registerAction(InputCode::MouseLeft, "USE");
     registerAction(InputCode::MouseRight, "WRITE POSITION");
     registerAction(InputCode::MouseWheel, "SCROLL");
     registerAction(InputCode::E, "INTERACT");
@@ -205,10 +205,10 @@ void Scene_Play::sDoAction(const Action& action){
         if ( action.name() == "CTRL"){m_ECS.getComponent<CInput>(m_player).ctrl = true;}
         if ( action.name() == "INTERACT"){m_ECS.getComponent<CInput>(m_player).interact = true;}
         if ( action.name() == "TAKE OVER"){m_ECS.getComponent<CInput>(m_player).posses = true;}
-        if ( action.name() == "ATTACK"){
+        if ( action.name() == "USE"){
             auto& input = m_ECS.getComponent<CInput>(m_player);
-            input.attack = true;
-            input.attackHeld = true;
+            input.use = true;
+            input.useHeld = true;
         }
     }
     else if ( action.type() == "END")
@@ -235,10 +235,10 @@ void Scene_Play::sDoAction(const Action& action){
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInput>(m_player).ctrl = false; }
         if ( action.name() == "INTERACT") { m_ECS.getComponent<CInput>(m_player).interact = false; }
         if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInput>(m_player).posses = false; }
-        if ( action.name() == "ATTACK") {
+        if ( action.name() == "USE") {
             auto& input = m_ECS.getComponent<CInput>(m_player);
-            input.attack = false;
-            input.attackHeld = false;
+            input.use = false;
+            input.useHeld = false;
         }
         if ( action.name() == "WRITE POSITION") { 
             Vec2 cursorPosition = (m_mousePosition+m_camera.position)/m_gridSize;
@@ -296,8 +296,6 @@ void Scene_Play::updateActiveItem(int newIndex){
         break;
     }
     case ItemType::Consumable:
-        std::cout << "Consumable" << std::endl;
-        // useConsumable(activeItem);
         break;
     case ItemType::None:
     case ItemType::Weapon:
@@ -306,6 +304,37 @@ void Scene_Play::updateActiveItem(int newIndex){
     case ItemType::Currency:
         break;
     }
+}
+
+bool Scene_Play::useActiveConsumable()
+{
+    CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
+    const int activeIndex = inventory.activeItem.index;
+    if (activeIndex < 0 || activeIndex >= static_cast<int>(inventory.items.size())) {
+        return false;
+    }
+
+    Item& activeItem = inventory.items[activeIndex];
+    if (activeItem.type != ItemType::Consumable) {
+        return false;
+    }
+
+    if (activeItem.healing <= 0 || !m_ECS.hasComponent<CHealth>(m_player)) {
+        return false;
+    }
+
+    CHealth& health = m_ECS.getComponent<CHealth>(m_player);
+    if (health.HP >= health.HP_max) {
+        return true;
+    }
+
+    health.HP = std::min(health.HP + activeItem.healing, health.HP_max);
+
+    Item emptySlot;
+    emptySlot.index = activeIndex;
+    inventory.items[activeIndex] = emptySlot;
+    updateActiveItem(activeIndex);
+    return true;
 }
 
 bool Scene_Play::addCurrencyToPlayer(int amount)
@@ -426,7 +455,7 @@ void Scene_Play::sAI()
         {
         case AIStateType::Chase:
             input.direction = (playerPos - pos).norm();
-            input.attack = m_ECS.hasComponent<CWeapon>(e) &&
+            input.use = m_ECS.hasComponent<CWeapon>(e) &&
                 distToPlayer < static_cast<float>(m_ECS.getComponent<CWeapon>(e).range);
             break;
 
@@ -568,6 +597,13 @@ void Scene_Play::sAttack(){
     ComponentPool<CInput>& inputPool = m_ECS.getComponentPool<CInput>();
     ComponentPool<CWeapon>& weaponPool = m_ECS.getComponentPool<CWeapon>();
 
+    if (m_ECS.hasComponent<CInput>(m_player)) {
+        CInput& playerInput = m_ECS.getComponent<CInput>(m_player);
+        if (playerInput.use && useActiveConsumable()) {
+            playerInput.use = false;
+        }
+    }
+
     std::vector<EntityID> viewAttack = m_ECS.View<CInput, CWeapon, CVelocity, CTransform>();
     for (EntityID id : viewAttack){
         CTransform& transform = transformPool.getComponent(id);
@@ -580,7 +616,7 @@ void Scene_Play::sAttack(){
             if (id != m_player) {
                 inputs.direction = {0, 0};
             }
-            inputs.attack = false;
+            inputs.use = false;
 
             int attackGameFrame = ++attack.elapsedFrames;
             if (m_ECS.hasComponent<CAnimation>(id)) {
@@ -639,7 +675,7 @@ void Scene_Play::sAttack(){
         }
 
         weapon.delay--;
-        if (!inputs.attack){
+        if (!inputs.use){
             continue;
         }
         if (weapon.delay >= 0){
@@ -673,12 +709,12 @@ void Scene_Play::sAttack(){
                 spawnHitbox(id, direction, weapon);
                 break;
             }
-            inputs.attack = false;
+            inputs.use = false;
             continue;
         }
 
         startAttack(id, direction, weapon);
-        inputs.attack = false;
+        inputs.use = false;
     }
 }
 
@@ -828,7 +864,7 @@ void Scene_Play::sAnimation() {
             if (m_ECS.hasComponent<CProjectile>(e)) {
                 const auto& projectile = projectilePool.getComponent(e);
                 attackReleased = !m_ECS.hasComponent<CInput>(projectile.owner) ||
-                    !m_ECS.getComponent<CInput>(projectile.owner).attackHeld;
+                    !m_ECS.getComponent<CInput>(projectile.owner).useHeld;
             }
 
             if (!projectileState.createComplete && animation.hasEnded()) {
@@ -990,13 +1026,24 @@ void Scene_Play::sRenderInventory() {
         }
         if (item.id==-1){continue;}
         const SpriteDefinition& itemSprite = getSprite(item.iconPath);
+        RectF itemSource = itemSprite.firstFrame();
+        if (itemSprite.isAnimated()) {
+            CAnimation itemAnimation(itemSprite, true);
+            const size_t totalFrames = itemAnimation.frameCount * itemAnimation.frameDuration;
+            itemAnimation.currentFrame = totalFrames > 0 ? m_currentFrame % totalFrames : 0;
+            itemSource = itemAnimation.sourceRect();
+        }
         Vec2 itemSize = itemSprite.frameSize() * windowScale;
-        drawSprite(itemSprite, RectF{
-            (width()/2.0f + slotIndex*32.0f)*windowScale - inventorySize.x/2,
-            0.0f,
-            itemSize.x,
-            itemSize.y
-        });
+        drawSprite(
+            itemSprite,
+            itemSource,
+            RectF{
+                (width()/2.0f + slotIndex*32.0f)*windowScale - inventorySize.x/2,
+                0.0f,
+                itemSize.x,
+                itemSize.y
+            }
+        );
     }
 }
 

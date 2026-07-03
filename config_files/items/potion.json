@@ -1,0 +1,12 @@
+{
+    "potion": {
+        "id": 4,
+        "name": "potion",
+        "description": "A small health potion.",
+        "iconPath": "potion",
+        "pickupMode": "Manual",
+        "maxStack": 1,
+        "type": "Consumable",
+        "healing": 2
+    }
+}

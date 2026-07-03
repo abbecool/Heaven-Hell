@@ -29,6 +29,7 @@
             "house.png",
             "staff.png",
             "sword.png",
+            "potion.png",
             "demon-sheet.png",
             "wiz-sheet.png",
             "elf-sheet.png",
@@ -172,6 +173,15 @@
             "rows": 1,
             "width": 24,
             "height": 24
+        },
+        {
+            "name": "potion",
+            "frames": 2,
+            "frametime": 15,
+            "cols": 2,
+            "rows": 1,
+            "width": 16,
+            "height": 16
         },
         {
             "name": "inventory",
