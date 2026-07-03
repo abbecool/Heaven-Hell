@@ -45,7 +45,7 @@ class Scene
     virtual void onEnd() = 0;
     Vec2 gridToMidPixel(Vec2 grid, EntityID);
     RenderView worldRenderView();
-    void drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f);
+    void drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f, float whiteTint = 0.0f);
     void drawWorldSprite(const SpriteDefinition& sprite, const RectF& dst, float angle = 0.0f);
     void drawWorldSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
     
@@ -73,7 +73,7 @@ class Scene
     void addVisual(EntityID entity, const std::string& spriteName, int layer, bool repeat = true);
     void setSprite(EntityID entity, const std::string& spriteName);
     void setAnimation(EntityID entity, const std::string& spriteName, bool repeat = true);
-    void drawSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f);
+    void drawSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f, float whiteTint = 0.0f);
     void drawSprite(const SpriteDefinition& sprite, const RectF& dst, float angle = 0.0f);
     void drawSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
     void updateAnimations();

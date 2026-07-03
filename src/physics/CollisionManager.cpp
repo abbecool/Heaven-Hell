@@ -67,6 +67,22 @@ bool isFlyingProjectile(Entity projectile)
         projectile.getComponent<CProjectileState>().phase == ProjectilePhase::Flying;
 }
 
+void flashDamage(Entity target)
+{
+    constexpr int DamageFlashFrames = 8;
+    if (target.hasComponent<CDamageFlash>()) {
+        target.getComponent<CDamageFlash>().reset();
+        return;
+    }
+    target.addComponent<CDamageFlash>(DamageFlashFrames);
+}
+
+void applyDamage(Entity target, int damage)
+{
+    target.getComponent<CHealth>().HP -= damage;
+    flashDamage(target);
+}
+
 void handleProjectileHit(Scene_Play* scene, Entity target, Entity projectile)
 {
     if (!isFlyingProjectile(projectile) ||
@@ -80,7 +96,7 @@ void handleProjectileHit(Scene_Play* scene, Entity target, Entity projectile)
         return;
     }
 
-    target.getComponent<CHealth>().HP -= projectile.getComponent<CDamage>().damage;
+    applyDamage(target, projectile.getComponent<CDamage>().damage);
     scene->destroyProjectile(projectile.getID());
 }
 
@@ -376,7 +392,7 @@ void InteractionManager::handleDamageHitbox(Entity entityA, Entity entityB, Vec2
     }
 
     attackHitbox.hitEntities.insert(targetID);
-    target.getComponent<CHealth>().HP -= hitbox.getComponent<CDamage>().damage;
+    applyDamage(target, hitbox.getComponent<CDamage>().damage);
 }
 
 bool InteractionManager::talkToNPC(Entity player, Entity friendly){

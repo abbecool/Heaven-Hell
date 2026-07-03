@@ -269,11 +269,45 @@ struct CHealth
     }
 };
 
+struct CDamageFlash
+{
+    int framesRemaining = 8;
+    int totalFrames = 8;
+
+    CDamageFlash() {}
+    CDamageFlash(int frames)
+        : framesRemaining(frames), totalFrames(frames) {}
+
+    void reset() {
+        framesRemaining = totalFrames;
+    }
+
+    float whiteTint() const {
+        if (totalFrames <= 0 || framesRemaining <= 0) {
+            return 0.0f;
+        }
+        return std::clamp(
+            static_cast<float>(framesRemaining) / static_cast<float>(totalFrames),
+            0.0f,
+            1.0f
+        );
+    }
+};
+
 struct CLifespan
 {
     int lifespan;
     CLifespan() {}
     CLifespan(int lf) : lifespan(lf){}
+};
+
+struct CActiveHitboxLifetime
+{
+    int framesRemaining = 15;
+
+    CActiveHitboxLifetime() {}
+    CActiveHitboxLifetime(int frames)
+        : framesRemaining(frames) {}
 };
 
 struct CSprite
@@ -393,8 +427,10 @@ struct CAttackHitbox
 struct CAttackState
 {
     Vec2 direction = {1, 0};
-    int windupRemaining = 12;
-    int recoveryRemaining = 8;
+    int attackHitFrame = 0;
+    int animationFrameCount = 1;
+    int animationFrameDuration = 1;
+    int elapsedFrames = 0;
     bool hasFired = false;
     bool hasAnimationOverride = false;
     bool hadAnimation = false;
@@ -402,10 +438,20 @@ struct CAttackState
     CAnimation previousAnimation;
 
     CAttackState() {}
-    CAttackState(Vec2 attackDirection, int windupFrames, int recoveryFrames)
-        : direction(attackDirection),
-          windupRemaining(windupFrames),
-          recoveryRemaining(recoveryFrames) {}
+    CAttackState(Vec2 attackDirection)
+        : direction(attackDirection) {}
+
+    int hitGameFrame() const {
+        return std::max(0, attackHitFrame * animationFrameDuration);
+    }
+
+    int totalGameFrames() const {
+        return std::max(1, animationFrameCount * animationFrameDuration);
+    }
+
+    int finishGameFrame() const {
+        return std::max(1, totalGameFrames() - 1);
+    }
 };
 
 struct CText
@@ -519,9 +565,12 @@ struct CWeapon
     int speed = 600;
     int delay = 0;
     int range = 180;
-    int windupFrames = 12;
-    int recoveryFrames = 8;
     std::string attackAnimation;
+    int attackAnimationRow = -1;
+    int attackHitFrame = 0;
+    std::string hitboxSprite = "sword";
+    std::string hitboxAnimation;
+    int hitboxActiveFrames = 15;
     WeaponType weaponType = WeaponType::Projectile;
     CollisionMask targetMask = ENEMY_LAYER;
 
@@ -537,9 +586,12 @@ struct CWeapon
         speed  = j["speed"];
         delay  = j["speed"]; // intentional
         range  = j["range"];
-        windupFrames = j.value("windupFrames", windupFrames);
-        recoveryFrames = j.value("recoveryFrames", recoveryFrames);
         attackAnimation = j.value("attackAnimation", "");
+        attackAnimationRow = j.value("attackAnimationRow", attackAnimationRow);
+        attackHitFrame = j.value("attackHitFrame", attackHitFrame);
+        hitboxSprite = j.value("hitboxSprite", hitboxSprite);
+        hitboxAnimation = j.value("hitboxAnimation", "");
+        hitboxActiveFrames = j.value("hitboxActiveFrames", hitboxActiveFrames);
         static const std::unordered_map<
             std::string, WeaponType> wMap = {
             {"Melee",      WeaponType::Melee},

@@ -36,8 +36,10 @@
                 "damage": 1,
                 "speed": 60,
                 "range": 16,
-                "windupFrames": 20,
-                "recoveryFrames": 8,
+                "attackAnimationRow": 5,
+                "attackHitFrame": 2,
+                "hitboxAnimation": "rooter-attack",
+                "hitboxActiveFrames": 15,
                 "type": "Melee",
                 "mask": ["PLAYER_LAYER"]
             }

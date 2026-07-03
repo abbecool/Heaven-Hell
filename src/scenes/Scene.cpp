@@ -99,7 +99,7 @@ void Scene::setAnimation(EntityID entity, const std::string& spriteName, bool re
     m_ECS.addComponent<CAnimation>(entity, getSprite(spriteName), repeat);
 }
 
-void Scene::drawSprite(const CSprite& sprite, const RectF& dst, float angle)
+void Scene::drawSprite(const CSprite& sprite, const RectF& dst, float angle, float whiteTint)
 {
     if (!sprite.visible) {
         return;
@@ -108,7 +108,8 @@ void Scene::drawSprite(const CSprite& sprite, const RectF& dst, float angle)
         sprite.texture,
         sprite.src,
         dst,
-        angle
+        angle,
+        whiteTint
     });
 }
 
@@ -132,7 +133,7 @@ void Scene::drawSprite(const SpriteDefinition& sprite, const RectF& src, const R
     });
 }
 
-void Scene::drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle)
+void Scene::drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle, float whiteTint)
 {
     if (!sprite.visible) {
         return;
@@ -141,7 +142,8 @@ void Scene::drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle
         sprite.texture,
         sprite.src,
         dst,
-        angle
+        angle,
+        whiteTint
     });
 }
 
@@ -190,11 +192,19 @@ void Scene::updateAnimations()
     auto& spritePool = m_ECS.getComponentPool<CSprite>();
     for (auto e : view) {
         auto& animation = animationPool.getComponent(e);
-        if (animation.hasEnded() && !animation.repeat) {
-            m_ECS.queueRemoveEntity(e);
-            continue;
+        const size_t totalFrames = animation.frameCount * animation.frameDuration;
+        const bool animationFinished = animation.currentFrame + 1 >= totalFrames;
+
+        if (animationFinished) {
+            if (!animation.repeat) {
+                m_ECS.queueRemoveEntity(e);
+                continue;
+            }
+            animation.currentFrame = 0;
         }
-        animation.currentFrame++;
+        else {
+            animation.currentFrame++;
+        }
         spritePool.getComponent(e).src = animation.sourceRect();
     }
 }
@@ -223,7 +233,11 @@ void Scene::sRenderBasic() {
                 destSize.x,
                 destSize.y
             };
-            drawWorldSprite(sprite, dst, transform.angle);
+            float whiteTint = 0.0f;
+            if (m_ECS.hasComponent<CDamageFlash>(e)) {
+                whiteTint = m_ECS.getComponent<CDamageFlash>(e).whiteTint();
+            }
+            drawWorldSprite(sprite, dst, transform.angle, whiteTint);
         }
     }
 

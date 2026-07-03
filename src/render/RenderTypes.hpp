@@ -65,6 +65,7 @@ struct SpriteDrawCommand
     RectF src;
     RectF dst;
     float angle = 0.0f;
+    float whiteTint = 0.0f;
 };
 
 struct WorldSpriteDrawCommand
@@ -73,6 +74,7 @@ struct WorldSpriteDrawCommand
     RectF src;
     RectF dst;
     float angle = 0.0f;
+    float whiteTint = 0.0f;
 };
 
 struct TextDrawCommand

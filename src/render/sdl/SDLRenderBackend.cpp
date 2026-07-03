@@ -4,6 +4,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -126,6 +127,26 @@ void SDLRenderBackend::drawSprite(const SpriteDrawCommand& command)
     SDL_Texture* texture = getTexture(command.texture);
     SDL_FRect src = toSDLRect(command.src);
     SDL_FRect dst = toSDLRect(command.dst);
+    SDL_SetTextureColorMod(texture, 255, 255, 255);
+    SDL_SetTextureAlphaMod(texture, 255);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    SDL_RenderTextureRotated(
+        m_renderer,
+        texture,
+        &src,
+        &dst,
+        command.angle,
+        nullptr,
+        SDL_FLIP_NONE
+    );
+
+    if (command.whiteTint <= 0.0f) {
+        return;
+    }
+
+    const float clampedTint = std::min(std::max(command.whiteTint, 0.0f), 1.0f);
+    SDL_SetTextureAlphaMod(texture, static_cast<Uint8>(255.0f * clampedTint));
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_ADD);
     SDL_RenderTextureRotated(
         m_renderer,
         texture,
@@ -143,7 +164,8 @@ void SDLRenderBackend::drawWorldSprite(const WorldSpriteDrawCommand& command)
         command.texture,
         command.src,
         m_worldView.worldToScreen(command.dst),
-        command.angle
+        command.angle,
+        command.whiteTint
     });
 }
 

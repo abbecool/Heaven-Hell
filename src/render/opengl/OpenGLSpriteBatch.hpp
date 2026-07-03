@@ -25,6 +25,7 @@ class OpenGLSpriteBatch
         float srcU0, srcV0, srcU1, srcV1;
         float angle;
         float r, g, b, a;
+        float whiteTint;
     };
 
     unsigned int m_program = 0;
@@ -65,5 +66,6 @@ public:
         const RectF& dst,
         float angle,
         Color color,
-        OpenGLRenderSpace renderSpace);
+        OpenGLRenderSpace renderSpace,
+        float whiteTint = 0.0f);
 };

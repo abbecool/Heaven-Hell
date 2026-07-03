@@ -60,14 +60,12 @@ add_custom_target(sync_assets ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/assets"
         "$<TARGET_FILE_DIR:heavenhell>/assets"
-    COMMENT "Syncing assets to the run directory")
-
-add_dependencies(sync_assets heavenhell)
-
-add_custom_command(TARGET heavenhell POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/config_files"
-        "$<TARGET_FILE_DIR:heavenhell>/config_files")
+        "$<TARGET_FILE_DIR:heavenhell>/config_files"
+    COMMENT "Syncing assets and config files to the run directory")
+
+add_dependencies(sync_assets heavenhell)
 
 if (BUILD_TESTING)
     function(add_named_tests target prefix)

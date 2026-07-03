@@ -91,9 +91,11 @@ void OpenGLSpriteBatch::create()
         layout (location = 2) in vec4 srcUv;
         layout (location = 3) in float angle;
         layout (location = 4) in vec4 color;
+        layout (location = 5) in float whiteTint;
 
         out vec2 vertexTexCoord;
         out vec4 vertexColor;
+        out float vertexWhiteTint;
 
         uniform mat4 projection;
 
@@ -112,6 +114,7 @@ void OpenGLSpriteBatch::create()
 
             vertexTexCoord = mix(srcUv.xy, srcUv.zw, quadPosition + vec2(0.5));
             vertexColor = color;
+            vertexWhiteTint = whiteTint;
             gl_Position = projection * vec4(pixelPosition, 0.0, 1.0);
         }
     )";
@@ -120,13 +123,17 @@ void OpenGLSpriteBatch::create()
         #version 330 core
         in vec2 vertexTexCoord;
         in vec4 vertexColor;
+        in float vertexWhiteTint;
         out vec4 fragColor;
 
         uniform sampler2D spriteTexture;
 
         void main()
         {
-            fragColor = texture(spriteTexture, vertexTexCoord) * vertexColor;
+            vec4 texel = texture(spriteTexture, vertexTexCoord);
+            vec4 tinted = texel * vertexColor;
+            float flash = clamp(vertexWhiteTint, 0.0, 1.0);
+            fragColor = vec4(mix(tinted.rgb, vec3(1.0), flash), tinted.a);
         }
     )";
 
@@ -229,6 +236,17 @@ void OpenGLSpriteBatch::create()
     );
     glEnableVertexAttribArray(4);
     glVertexAttribDivisor(4, 1);
+
+    glVertexAttribPointer(
+        5,
+        1,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(SpriteInstance),
+        reinterpret_cast<void*>(offsetof(SpriteInstance, whiteTint))
+    );
+    glEnableVertexAttribArray(5);
+    glVertexAttribDivisor(5, 1);
 
     m_instances.reserve(MaxSpritesPerBatch);
 
@@ -348,7 +366,8 @@ void OpenGLSpriteBatch::drawTexturedQuad(
     const RectF& dst,
     float angle,
     Color color,
-    OpenGLRenderSpace renderSpace)
+    OpenGLRenderSpace renderSpace,
+    float whiteTint)
 {
     if (m_batchCount > 0 &&
         (m_currentTexture != textureId || m_currentSpace != renderSpace)) {
@@ -376,7 +395,8 @@ void OpenGLSpriteBatch::drawTexturedQuad(
         dst.x, dst.y, dst.w, dst.h,
         u0, v0, u1, v1,
         angle,
-        r, g, b, a
+        r, g, b, a,
+        whiteTint
     });
 
     m_batchCount++;

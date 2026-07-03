@@ -214,7 +214,8 @@ void OpenGLRenderBackend::drawSprite(const SpriteDrawCommand& command)
         command.dst,
         command.angle,
         {255, 255, 255, 255},
-        OpenGLRenderSpace::Screen
+        OpenGLRenderSpace::Screen,
+        command.whiteTint
     );
 }
 
@@ -228,7 +229,8 @@ void OpenGLRenderBackend::drawWorldSprite(const WorldSpriteDrawCommand& command)
         command.dst,
         command.angle,
         {255, 255, 255, 255},
-        OpenGLRenderSpace::World
+        OpenGLRenderSpace::World,
+        command.whiteTint
     );
 }
 

@@ -34,8 +34,7 @@
                 "damage": 1,
                 "speed": 120,
                 "range": 48,
-                "windupFrames": 30,
-                "recoveryFrames": 12,
+                "attackHitFrame": 0,
                 "type": "Melee",
                 "mask": ["PLAYER_LAYER"]
             }

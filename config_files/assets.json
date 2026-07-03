@@ -36,6 +36,7 @@
             "knight-sheet.png",
             "goblin-sheet.png",
             "rooter-sheet.png",
+            "rooter-attack.png",
             "golem-sheet.png",
             "inventory.png",
             "inventory_open.png",
@@ -303,7 +304,7 @@
             "frames": 4,
             "frametime": 20,
             "cols": 4,
-            "rows": 5,
+            "rows": 6,
             "width": 48,
             "height": 48
         },
@@ -324,6 +325,15 @@
             "rows": 1,
             "width": 32,
             "height": 32
+        },
+        {
+            "name": "rooter-attack",
+            "frames": 12,
+            "frametime": 2,
+            "cols": 12,
+            "rows": 1,
+            "width": 48,
+            "height": 48
         }
     ],
     "audio": [
