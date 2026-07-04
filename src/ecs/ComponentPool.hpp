@@ -96,18 +96,10 @@ public:
     }
     
     void queueRemoveEntity(EntityID id) {
-        if (id == 0)
-        {
-            std::cerr << "Warning: Attempting to remove player entity." << std::endl;
-            return;
-        }
         entitiesToRemove.push_back(id);
     }
 
     void removeComponent(EntityID id) {
-        if (id == 0) {
-            return;
-        }
         EntityID index = sparse[id];
         if (index == tombstone) {
             return;

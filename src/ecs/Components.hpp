@@ -385,15 +385,13 @@ struct CState
 }; 
 
 enum class ProjectilePhase {
-    Creating,
     Flying,
     Destroying
 };
 
 struct CProjectileState
 {
-    ProjectilePhase phase = ProjectilePhase::Creating;
-    bool createComplete = false;
+    ProjectilePhase phase = ProjectilePhase::Flying;
     CProjectileState() {}
     CProjectileState(ProjectilePhase projectilePhase) : phase(projectilePhase) {}
 }; 

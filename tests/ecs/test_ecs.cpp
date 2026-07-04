@@ -37,6 +37,22 @@ void testPoolReplaceExisting()
     require(pool.getLength() == 1, "replacement created a duplicate component");
 }
 
+void testPoolEntityZeroComponentRemoval()
+{
+    ComponentPool<TestComponent> pool;
+    pool.addComponent(0, TestComponent{1});
+    pool.addComponent(0, TestComponent{2});
+
+    require(pool.hasComponent(0), "entity 0 component was not present");
+    require(pool.getComponent(0).value == 2, "entity 0 replacement did not update the component");
+    require(pool.getLength() == 1, "entity 0 replacement created a duplicate component");
+
+    pool.removeComponent(0);
+
+    require(!pool.hasComponent(0), "entity 0 component removal was ignored");
+    require(pool.getLength() == 0, "entity 0 component removal left stale dense data");
+}
+
 void testPoolRemoveCompacts()
 {
     ComponentPool<TestComponent> pool;
@@ -121,14 +137,34 @@ void testEcsQueuedRemoval()
     require(!ecs.hasComponent<TestComponent>(target), "entity removal left its component behind");
 }
 
+void testEcsEntityZeroQueuedComponentRemoval()
+{
+    ECS ecs;
+    const EntityID player = ecs.addEntity();
+    ecs.addComponent<TestComponent>(player, TestComponent{10});
+
+    ecs.queueRemoveComponent<TestComponent>(player);
+    ecs.update();
+
+    require(ecs.isAlive(player), "queued component removal affected entity 0 lifetime");
+    require(!ecs.hasComponent<TestComponent>(player), "queued component removal ignored entity 0");
+
+    ecs.queueRemoveEntity(player);
+    ecs.update();
+
+    require(ecs.isAlive(player), "queued entity removal should still protect entity 0");
+}
+
 constexpr std::array Tests = {
     TestSupport::TestCase{"pool_add_and_get", testPoolAddAndGet},
     TestSupport::TestCase{"pool_replace_existing", testPoolReplaceExisting},
+    TestSupport::TestCase{"pool_entity_zero_component_removal", testPoolEntityZeroComponentRemoval},
     TestSupport::TestCase{"pool_remove_compacts", testPoolRemoveCompacts},
     TestSupport::TestCase{"pool_move", testPoolMove},
     TestSupport::TestCase{"entity_lifecycle", testEcsEntityLifecycle},
     TestSupport::TestCase{"copy_and_view", testEcsCopyAndView},
-    TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval}
+    TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval},
+    TestSupport::TestCase{"entity_zero_queued_component_removal", testEcsEntityZeroQueuedComponentRemoval}
 };
 
 } // namespace

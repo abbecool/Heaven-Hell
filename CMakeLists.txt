@@ -166,11 +166,13 @@ if (BUILD_TESTING)
     add_named_tests(ecs_tests ecs
         pool_add_and_get
         pool_replace_existing
+        pool_entity_zero_component_removal
         pool_remove_compacts
         pool_move
         entity_lifecycle
         copy_and_view
         queued_removal
+        entity_zero_queued_component_removal
     )
 
     add_executable(render_view_tests

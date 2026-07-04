@@ -549,14 +549,19 @@ void Scene_Play::sAI()
         case AIStateType::Chase:
             input.direction = (playerPos - pos).norm();
             input.use = distToPlayer < activeItemUseRange(e);
+            input.useHeld = input.use;
             break;
 
         case AIStateType::Investigate:
             input.direction = (agent.lastKnownPlayerPos - pos).norm();
+            input.use = false;
+            input.useHeld = false;
             break;
 
         case AIStateType::Patrol:
             tickPatrol(agent, pos, input);
+            input.use = false;
+            input.useHeld = false;
             break;
         }
     }
@@ -683,6 +688,35 @@ void Scene_Play::startAttack(EntityID attackerID, Vec2 direction, CWeapon& weapo
     );
 }
 
+void Scene_Play::finishAttack(EntityID attackerID, CAttackState& attackState, const CWeapon* weapon)
+{
+    if (attackState.hasAnimationOverride && m_ECS.hasComponent<CSprite>(attackerID)) {
+        m_ECS.getComponent<CSprite>(attackerID) = attackState.previousSprite;
+        if (attackState.hadAnimation) {
+            m_ECS.getComponent<CAnimation>(attackerID) = attackState.previousAnimation;
+        }
+        else if (m_ECS.hasComponent<CAnimation>(attackerID)) {
+            m_ECS.removeComponent<CAnimation>(attackerID);
+        }
+    }
+    else if (weapon != nullptr &&
+        weapon->attackAnimationRow >= 0 &&
+        m_ECS.hasComponent<CAnimation>(attackerID)) {
+        CAnimation& animation = m_ECS.getComponent<CAnimation>(attackerID);
+        animation.currentRow = static_cast<int>(PlayerState::STAND);
+        animation.currentFrame = 0;
+        animation.currentCol = 0;
+        if (attackerID == m_player && m_ECS.hasComponent<CState>(attackerID)) {
+            CState& state = m_ECS.getComponent<CState>(attackerID);
+            state.state = PlayerState::STAND;
+            state.preState = PlayerState::STAND;
+            state.changeAnimate = true;
+        }
+    }
+
+    m_ECS.removeComponent<CAttackState>(attackerID);
+}
+
 void Scene_Play::sAttack(){
     ComponentPool<CTransform>& transformPool = m_ECS.getComponentPool<CTransform>();
     ComponentPool<CInput>& inputPool = m_ECS.getComponentPool<CInput>();
@@ -696,14 +730,14 @@ void Scene_Play::sAttack(){
         Item& activeItem = inventory.activeItem;
 
         if (m_ECS.hasComponent<CAttackState>(id)) {
+            CAttackState& attack = m_ECS.getComponent<CAttackState>(id);
             if (!m_ECS.hasComponent<CWeapon>(id)) {
-                m_ECS.removeComponent<CAttackState>(id);
+                finishAttack(id, attack, nullptr);
                 inputs.use = false;
                 continue;
             }
 
             CWeapon& weapon = weaponPool.getComponent(id);
-            CAttackState& attack = m_ECS.getComponent<CAttackState>(id);
             if (id != m_player) {
                 inputs.direction = {0, 0};
             }
@@ -712,6 +746,11 @@ void Scene_Play::sAttack(){
             int attackGameFrame = ++attack.elapsedFrames;
             if (m_ECS.hasComponent<CAnimation>(id)) {
                 attackGameFrame = static_cast<int>(m_ECS.getComponent<CAnimation>(id).currentFrame) + 1;
+            }
+
+            if (!attack.hasFired && !inputs.useHeld) {
+                finishAttack(id, attack, &weapon);
+                continue;
             }
 
             if (!attack.hasFired && attackGameFrame >= attack.hitGameFrame()) {
@@ -739,28 +778,7 @@ void Scene_Play::sAttack(){
             }
 
             if (attackGameFrame >= attack.finishGameFrame()) {
-                if (attack.hasAnimationOverride && m_ECS.hasComponent<CSprite>(id)) {
-                    m_ECS.getComponent<CSprite>(id) = attack.previousSprite;
-                    if (attack.hadAnimation) {
-                        m_ECS.getComponent<CAnimation>(id) = attack.previousAnimation;
-                    }
-                    else if (m_ECS.hasComponent<CAnimation>(id)) {
-                        m_ECS.removeComponent<CAnimation>(id);
-                    }
-                }
-                else if (weapon.attackAnimationRow >= 0 && m_ECS.hasComponent<CAnimation>(id)) {
-                    CAnimation& animation = m_ECS.getComponent<CAnimation>(id);
-                    animation.currentRow = static_cast<int>(PlayerState::STAND);
-                    animation.currentFrame = 0;
-                    animation.currentCol = 0;
-                    if (id == m_player && m_ECS.hasComponent<CState>(id)) {
-                        CState& state = m_ECS.getComponent<CState>(id);
-                        state.state = PlayerState::STAND;
-                        state.preState = PlayerState::STAND;
-                        state.changeAnimate = true;
-                    }
-                }
-                m_ECS.removeComponent<CAttackState>(id);
+                finishAttack(id, attack, &weapon);
             }
             continue;
         }
@@ -819,23 +837,6 @@ void Scene_Play::sAttack(){
         }
         if (direction.isNull()) {
             direction = Vec2{1, 0};
-        }
-
-        if (id == m_player && weapon.weaponType != WeaponType::Projectile) {
-            switch (weapon.weaponType)
-            {
-            case WeaponType::Melee:
-                spawnHitbox(id, direction, weapon);
-                break;
-            case WeaponType::Projectile:
-                spawnProjectile(id, direction, weapon);
-                break;
-            case WeaponType::AoE:
-                spawnHitbox(id, direction, weapon);
-                break;
-            }
-            inputs.use = false;
-            continue;
         }
 
         startAttack(id, direction, weapon);
@@ -979,38 +980,21 @@ void Scene_Play::sAnimation() {
     }
 
     auto viewProjectileState = m_ECS.View<CProjectileState, CAnimation>();
-    auto& projectileStatePool = m_ECS.getComponentPool<CProjectileState>();
     auto& projectilePool = m_ECS.getComponentPool<CProjectile>();
     for ( auto e : viewProjectileState ) {
-        auto& animation = animationPool.getComponent(e);
-        auto& projectileState = projectileStatePool.getComponent(e);
-        if (projectileState.phase == ProjectilePhase::Creating) {
-            bool attackReleased = false;
-            if (m_ECS.hasComponent<CProjectile>(e)) {
-                const auto& projectile = projectilePool.getComponent(e);
-                attackReleased = !m_ECS.hasComponent<CInput>(projectile.owner) ||
-                    !m_ECS.getComponent<CInput>(projectile.owner).useHeld;
-            }
-
-            if (!projectileState.createComplete && animation.hasEnded()) {
-                projectileState.createComplete = true;
-                setAnimation(e, "fireball", true);
-            }
-
-            if (projectileState.createComplete && attackReleased) {
-                beginProjectileFlight(e);
-            }
+        if (!m_ECS.hasComponent<CProjectile>(e)) {
+            continue;
         }
-        else if (projectileState.phase == ProjectilePhase::Flying) {
-            if (!m_ECS.hasComponent<CProjectile>(e)) {
-                continue;
-            }
 
-            auto& projectile = projectilePool.getComponent(e);
-            projectile.flightLifetime--;
-            if (projectile.flightLifetime <= 0) {
-                destroyProjectile(e);
-            }
+        auto& projectileState = m_ECS.getComponent<CProjectileState>(e);
+        if (projectileState.phase != ProjectilePhase::Flying) {
+            continue;
+        }
+
+        auto& projectile = projectilePool.getComponent(e);
+        projectile.flightLifetime--;
+        if (projectile.flightLifetime <= 0) {
+            destroyProjectile(e);
         }
     }
 
@@ -1490,49 +1474,6 @@ EntityID Scene_Play::spawnProjectile(EntityID attackerID, Vec2 vel, const CWeapo
     m_ECS.addComponent<CAudio>(id, "fireball_shot");
     m_camera.startShake(2, 60);
     return id;
-}
-
-void Scene_Play::beginProjectileFlight(EntityID projectileID)
-{
-    if (!m_ECS.hasComponent<CProjectile>(projectileID) ||
-        !m_ECS.hasComponent<CProjectileState>(projectileID) ||
-        !m_ECS.hasComponent<CTransform>(projectileID)) {
-        return;
-    }
-
-    auto& projectileState = m_ECS.getComponent<CProjectileState>(projectileID);
-    if (projectileState.phase != ProjectilePhase::Creating) {
-        return;
-    }
-
-    auto& projectile = m_ECS.getComponent<CProjectile>(projectileID);
-    auto& transform = m_ECS.getComponent<CTransform>(projectileID);
-    Vec2 direction = projectile.direction;
-    if (projectile.owner == m_player) {
-        const Vec2 mouseWorldPosition = getMousePosition() + getCameraPosition();
-        direction = (mouseWorldPosition - transform.pos).norm();
-        if (direction.isNull()) {
-            direction = projectile.direction;
-        }
-        projectile.direction = direction;
-    }
-
-    m_ECS.detachChild(projectileID);
-    transform.angle = direction.angle();
-    projectileState.phase = ProjectilePhase::Flying;
-    setAnimation(projectileID, "fireball", true);
-
-    if (m_ECS.hasComponent<CVelocity>(projectileID)) {
-        m_ECS.getComponent<CVelocity>(projectileID).vel = direction.norm(projectile.speed);
-    }
-    else {
-        m_ECS.addComponent<CVelocity>(projectileID, direction.norm(projectile.speed));
-    }
-
-    const CollisionMask collisionMask = projectile.targetMask | OBSTACLE_LAYER;
-    m_ECS.addComponent<CCollisionBox>(projectileID, Vec2{6, 6}, PROJECTILE_LAYER, collisionMask);
-    m_ECS.addComponent<CAudio>(projectileID, "fireball_shot");
-    m_camera.startShake(2, 60);
 }
 
 void Scene_Play::destroyProjectile(EntityID projectileID)

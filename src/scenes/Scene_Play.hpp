@@ -82,7 +82,7 @@ class Scene_Play : public Scene
     void updateActiveItem(EntityID entity, int newActiveItem);
     void changePlayerState(EntityID entity, PlayerState s);
     void startAttack(EntityID attackerID, Vec2 direction, CWeapon& weapon);
-    void beginProjectileFlight(EntityID projectileID);
+    void finishAttack(EntityID attackerID, CAttackState& attackState, const CWeapon* weapon);
     bool hasLineOfSight(Vec2 origin, Vec2 target);
     bool rayIntersectsAABB(Vec2 origin, Vec2 dir, float maxDist, 
         Vec2 boxMin, Vec2 boxMax);
