@@ -1155,17 +1155,10 @@ void Scene_Play::sRenderInventory() {
         }
         if (item.id==-1){continue;}
         const SpriteDefinition& itemSprite = getSprite(item.iconPath);
-        RectF itemSource = itemSprite.firstFrame();
-        if (itemSprite.isAnimated()) {
-            CAnimation itemAnimation(itemSprite, true);
-            const size_t totalFrames = itemAnimation.frameCount * itemAnimation.frameDuration;
-            itemAnimation.currentFrame = totalFrames > 0 ? m_currentFrame % totalFrames : 0;
-            itemSource = itemAnimation.sourceRect();
-        }
         Vec2 itemSize = itemSprite.frameSize() * windowScale;
         drawSprite(
             itemSprite,
-            itemSource,
+            itemSprite.firstFrame(),
             RectF{
                 (width()/2.0f + slotIndex*32.0f)*windowScale - inventorySize.x/2,
                 0.0f,
