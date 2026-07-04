@@ -125,15 +125,11 @@ void BaseCollisionManager::registerHandler(
 
 template <typename T>
 void BaseCollisionManager::newQuadtree(Vec2 pos, Vec2 size){
-    auto view = m_ECS->View<T, CTransform>();
-    auto& transformPool = m_ECS->getComponentPool<CTransform>();
-    auto& TPool = m_ECS->getComponentPool<T>();
-
     m_quadRoot = std::make_unique<Quadtree>(pos, size);
-    for ( auto e : view ){
+    for (auto [e, box, transform] : m_ECS->View<T, CTransform>()){
         Entity entity = {e, m_ECS};
-        auto entityPos = transformPool.getComponent(e).pos;
-        auto entitySize = TPool.getComponent(e).size;
+        auto entityPos = transform.pos;
+        auto entitySize = box.size;
         m_quadRoot->insert1<T>(entity, entityPos, entitySize);
     }
 }

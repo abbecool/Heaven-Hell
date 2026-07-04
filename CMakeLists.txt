@@ -171,6 +171,9 @@ if (BUILD_TESTING)
         pool_move
         entity_lifecycle
         copy_and_view
+        view_mutates_components
+        view_missing_pool_is_empty
+        view_entities_legacy
         queued_removal
         entity_zero_queued_component_removal
     )

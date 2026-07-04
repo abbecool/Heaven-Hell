@@ -74,10 +74,7 @@ void Scene_Menu::sDoAction(const Action& action)
             m_game->ToggleFullscreen();
         }
         else if (action.name() == "MOUSE LEFT CLICK") {
-            auto view = m_ECS.View<CCollisionBox, CTransform, CText, CSprite>();
-            for (auto e : view){
-                auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
+            for (auto [e, collision, transform, text, sprite] : m_ECS.View<CCollisionBox, CTransform, CText, CSprite>()){
                 if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
                     continue;
                 }
@@ -89,14 +86,11 @@ void Scene_Menu::sDoAction(const Action& action)
         if (!(action.name() == "MOUSE LEFT CLICK")){
             return;
         }   
-        auto view = m_ECS.View<CCollisionBox, CTransform, CText, CSprite, CName>();
-        for (auto e : view){
-            auto &transform = m_ECS.getComponent<CTransform>(e);
-            auto &collision = m_ECS.getComponent<CCollisionBox>(e);
+        for (auto [e, collision, transform, text, sprite, nameComponent] : m_ECS.View<CCollisionBox, CTransform, CText, CSprite, CName>()){
             if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
                 continue;
             }
-            auto &name = m_ECS.getComponent<CName>(e).name;
+            auto &name = nameComponent.name;
             setSprite(e, "button_unpressed");
             std::string levelPath = "assets/images/levels/levelWorld.png";
             if ( name == "new" ){

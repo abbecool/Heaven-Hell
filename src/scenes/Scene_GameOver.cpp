@@ -75,11 +75,8 @@ void Scene_GameOver::sDoAction(const Action& action)
         }
         else if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.View<CCollisionBox, CTransform, CSprite, CText>();
-            for (auto e : view)
+            for (auto [e, collision, transform, sprite, text] : m_ECS.View<CCollisionBox, CTransform, CSprite, CText>())
             {
-                auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
                 {
                     setSprite(e, "button_pressed");
@@ -91,16 +88,13 @@ void Scene_GameOver::sDoAction(const Action& action)
     {
         if (action.name() == "MOUSE LEFT CLICK")
         {
-            auto view = m_ECS.View<CCollisionBox, CTransform, CName>();
-            for (auto e : view)
+            for (auto [e, collision, transform, nameComponent] : m_ECS.View<CCollisionBox, CTransform, CName>())
             {
-                auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
                 {
                     continue;
                 }
-                auto &name = m_ECS.getComponent<CName>(e).name;
+                auto &name = nameComponent.name;
                 setSprite(e, "button_unpressed");
                 if ( name == "restart" )
                 {

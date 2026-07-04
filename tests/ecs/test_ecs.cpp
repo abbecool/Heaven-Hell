@@ -112,9 +112,61 @@ void testEcsCopyAndView()
 
     require(ecs.getComponent<TestComponent>(copied).value == 30, "copied component had the wrong value");
 
-    const std::vector<EntityID>& view = ecs.View<TestComponent, SecondaryComponent>();
-    require(view.size() == 1, "view returned the wrong number of entities");
-    require(view.front() == first, "view returned the wrong entity");
+    size_t matches = 0;
+    for (auto [entity, test, secondary] : ecs.View<TestComponent, SecondaryComponent>()) {
+        require(entity == first, "view returned the wrong entity");
+        require(test.value == 10, "view returned the wrong primary component");
+        require(secondary.value == 20, "view returned the wrong secondary component");
+        matches++;
+    }
+    require(matches == 1, "view returned the wrong number of entities");
+}
+
+void testEcsViewMutatesComponents()
+{
+    ECS ecs;
+    const EntityID entity = ecs.addEntity();
+    ecs.addComponent<TestComponent>(entity, TestComponent{10});
+
+    for (auto [id, test] : ecs.View<TestComponent>()) {
+        require(id == entity, "view returned the wrong entity for mutation");
+        test.value = 42;
+    }
+
+    require(ecs.getComponent<TestComponent>(entity).value == 42, "view component reference did not mutate ECS storage");
+}
+
+void testEcsViewMissingPoolIsEmpty()
+{
+    ECS ecs;
+    const EntityID entity = ecs.addEntity();
+    ecs.addComponent<TestComponent>(entity, TestComponent{10});
+
+    size_t matches = 0;
+    for (auto [id, secondary] : ecs.View<SecondaryComponent>()) {
+        matches++;
+    }
+    require(matches == 0, "single-component view with a missing pool was not empty");
+
+    for (auto [id, test, secondary] : ecs.View<TestComponent, SecondaryComponent>()) {
+        matches++;
+    }
+    require(matches == 0, "multi-component view with a missing pool was not empty");
+}
+
+void testEcsViewEntitiesLegacy()
+{
+    ECS ecs;
+    const EntityID first = ecs.addEntity();
+    const EntityID second = ecs.addEntity();
+
+    ecs.addComponent<TestComponent>(first, TestComponent{10});
+    ecs.addComponent<SecondaryComponent>(first, SecondaryComponent{20});
+    ecs.addComponent<TestComponent>(second, TestComponent{30});
+
+    const std::vector<EntityID>& view = ecs.ViewEntities<TestComponent, SecondaryComponent>();
+    require(view.size() == 1, "legacy view returned the wrong number of entities");
+    require(view.front() == first, "legacy view returned the wrong entity");
 }
 
 void testEcsQueuedRemoval()
@@ -163,6 +215,9 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"pool_move", testPoolMove},
     TestSupport::TestCase{"entity_lifecycle", testEcsEntityLifecycle},
     TestSupport::TestCase{"copy_and_view", testEcsCopyAndView},
+    TestSupport::TestCase{"view_mutates_components", testEcsViewMutatesComponents},
+    TestSupport::TestCase{"view_missing_pool_is_empty", testEcsViewMissingPoolIsEmpty},
+    TestSupport::TestCase{"view_entities_legacy", testEcsViewEntitiesLegacy},
     TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval},
     TestSupport::TestCase{"entity_zero_queued_component_removal", testEcsEntityZeroQueuedComponentRemoval}
 };

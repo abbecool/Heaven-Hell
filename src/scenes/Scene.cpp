@@ -187,11 +187,7 @@ RenderView Scene::worldRenderView()
 
 void Scene::updateAnimations()
 {
-    auto view = m_ECS.View<CAnimation, CSprite>();
-    auto& animationPool = m_ECS.getComponentPool<CAnimation>();
-    auto& spritePool = m_ECS.getComponentPool<CSprite>();
-    for (auto e : view) {
-        auto& animation = animationPool.getComponent(e);
+    for (auto [e, animation, sprite] : m_ECS.View<CAnimation, CSprite>()) {
         const size_t totalFrames = animation.frameCount * animation.frameDuration;
         const bool animationFinished = animation.currentFrame + 1 >= totalFrames;
 
@@ -205,7 +201,7 @@ void Scene::updateAnimations()
         else {
             animation.currentFrame++;
         }
-        spritePool.getComponent(e).src = animation.sourceRect();
+        sprite.src = animation.sourceRect();
     }
 }
 
@@ -241,12 +237,7 @@ void Scene::sRenderBasic() {
         }
     }
 
-    auto& dialogPool = m_ECS.getComponentPool<CText>();
-    auto dialogView = m_ECS.View<CText, CTransform>();
-    for (const auto& e : dialogView){
-        CText& dialog = dialogPool.getComponent(e);
-        CTransform& transform = transformPool.getComponent(e);
-                    
+    for (auto [e, dialog, transform] : m_ECS.View<CText, CTransform>()){
         m_game->render().drawWorldText(WorldTextDrawCommand{
             dialog.text,
             dialog.font_name,
@@ -262,28 +253,18 @@ void Scene::sRenderBasic() {
 
     if (m_drawCollision)
     {
-        auto viewCollisions = m_ECS.View<CCollisionBox, CTransform>();
-        auto& collisionPool = m_ECS.getComponentPool<CCollisionBox>();
-        renderBox<CCollisionBox>(viewCollisions, transformPool, collisionPool);
+        renderBox<CCollisionBox>();
     }
     if (m_drawInteraction)
     {
-        auto viewInteractions = m_ECS.View<CInteractionBox, CTransform>();
-        auto& interactionPool = m_ECS.getComponentPool<CInteractionBox>();
-        renderBox<CInteractionBox>(viewInteractions, transformPool, interactionPool);
+        renderBox<CInteractionBox>();
     }
 }
 
 template<typename BoxType>
-void Scene::renderBox(
-    const std::vector<EntityID>& view,
-    ComponentPool<CTransform>& transformPool,
-    ComponentPool<BoxType>& boxPool
-) {
-    for (auto e : view)
-    {   
-        auto& transform = transformPool.getComponent(e);
-        auto& box = boxPool.getComponent(e);
+void Scene::renderBox() {
+    for (auto [e, box, transform] : m_ECS.View<BoxType, CTransform>())
+    {
         RectF boxRect{
             transform.pos.x - box.halfSize.x,
             transform.pos.y - box.halfSize.y,

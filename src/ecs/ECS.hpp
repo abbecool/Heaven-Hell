@@ -18,12 +18,102 @@
 #include <tuple>
 #include <algorithm>
 #include <limits>
+#include <utility>
 
 using EntityID = uint32_t;
 
 static bool comp(int a, int b) {
     return a > b;
 }
+
+template<typename... Components>
+class ECSView {
+    static_assert(sizeof...(Components) > 0, "View requires at least one component type.");
+
+    using PoolTuple = std::tuple<ComponentPool<Components>*...>;
+
+public:
+    explicit ECSView(ComponentPool<Components>*... pools)
+        : m_pools(pools...)
+    {
+        if ((pools && ...)) {
+            (selectDriverPool(pools), ...);
+        }
+    }
+
+    class Iterator {
+    public:
+        Iterator(const ECSView* view, size_t index)
+            : m_view(view), m_index(index)
+        {
+            advanceToMatch();
+        }
+
+        auto operator*() const {
+            const EntityID entity = m_view->entityAt(m_index);
+            return std::tuple<EntityID, Components&...>{
+                entity,
+                std::get<ComponentPool<Components>*>(m_view->m_pools)->getComponent(entity)...
+            };
+        }
+
+        Iterator& operator++() {
+            ++m_index;
+            advanceToMatch();
+            return *this;
+        }
+
+        bool operator==(const Iterator& other) const {
+            return m_view == other.m_view && m_index == other.m_index;
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return !(*this == other);
+        }
+
+    private:
+        void advanceToMatch() {
+            while (m_view && m_index < m_view->driverSize() && !m_view->hasAllComponents(m_view->entityAt(m_index))) {
+                ++m_index;
+            }
+        }
+
+        const ECSView* m_view = nullptr;
+        size_t m_index = 0;
+    };
+
+    Iterator begin() const {
+        return Iterator(this, 0);
+    }
+
+    Iterator end() const {
+        return Iterator(this, driverSize());
+    }
+
+private:
+    void selectDriverPool(BaseComponentPool* pool) {
+        const auto& entities = pool->getEntities();
+        if (!m_driverEntities || entities.size() < m_driverEntities->size()) {
+            m_driverEntities = &entities;
+        }
+    }
+
+    size_t driverSize() const {
+        return m_driverEntities ? m_driverEntities->size() : 0;
+    }
+
+    EntityID entityAt(size_t index) const {
+        return (*m_driverEntities)[index];
+    }
+
+    bool hasAllComponents(EntityID entity) const {
+        return (std::get<ComponentPool<Components>*>(m_pools)->hasComponent(entity) && ...);
+    }
+
+    PoolTuple m_pools;
+    const std::vector<EntityID>* m_driverEntities = nullptr;
+};
+
 class ECS
 {
 private:
@@ -38,6 +128,16 @@ private:
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> m_componentPools;
     std::vector<EntityID> m_entitiesToRemove;
     std::vector<EntityID> matchingEntities;
+
+    template <typename T>
+    ComponentPool<T>* findComponentPool() {
+        std::type_index typeIdx(typeid(T));
+        auto it = m_componentPools.find(typeIdx);
+        if (it == m_componentPools.end()) {
+            return nullptr;
+        }
+        return reinterpret_cast<ComponentPool<T>*>(it->second.get());
+    }
 public:
 
     ECS() {
@@ -262,7 +362,13 @@ public:
     }
     
     template<typename... Components>
-    const std::vector<EntityID>& View()
+    ECSView<Components...> View()
+    {
+        return ECSView<Components...>(findComponentPool<Components>()...);
+    }
+
+    template<typename... Components>
+    const std::vector<EntityID>& ViewEntities()
     {
         BaseComponentPool* smallestPoolBase = nullptr;
         size_t minSize = std::numeric_limits<size_t>::max();

@@ -486,18 +486,11 @@ void Scene_Play::sLoader()
 
 void Scene_Play::sAI()
 {
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& inputPool = m_ECS.getComponentPool<CInput>();
-    auto& agentPool = m_ECS.getComponentPool<CAIAgent>();
+    Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos;
 
-    Vec2 playerPos = transformPool.getComponent(m_player).pos;
-
-    auto viewAgents = m_ECS.View<CAIAgent, CInput, CTransform>();
-    for (EntityID e : viewAgents)
+    for (auto [e, agent, input, transform] : m_ECS.View<CAIAgent, CInput, CTransform>())
     {
-        auto& agent = agentPool.getComponent(e);
-        auto& input = inputPool.getComponent(e);
-        Vec2  pos = transformPool.getComponent(e).pos;
+        Vec2 pos = transform.pos;
 
         // ── Sight check ────────────────────────────────────────────────
         float distToPlayer = (playerPos - pos).length();
@@ -568,18 +561,8 @@ void Scene_Play::sAI()
 }
 
 void Scene_Play::sMovement() {
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& velocityPool = m_ECS.getComponentPool<CVelocity>();
-    auto& inputPool = m_ECS.getComponentPool<CInput>();
-    auto& bodyPool = m_ECS.getComponentPool<CPhysicsBody>();
-
     // Convert movement intent into a force. Input itself remains an intent-only component.
-    const auto viewInputs = m_ECS.View<CInput, CVelocity, CPhysicsBody>();
-    for (auto e : viewInputs){
-        auto& inputs = inputPool.getComponent(e);
-        auto& body = bodyPool.getComponent(e);
-        auto& velocity = velocityPool.getComponent(e);
-
+    for (auto [e, inputs, velocity, body] : m_ECS.View<CInput, CVelocity, CPhysicsBody>()){
         if (e != m_player && m_ECS.hasComponent<CAttackState>(e)) {
             velocity.vel = {0, 0};
             inputs = CInput();
@@ -597,10 +580,7 @@ void Scene_Play::sMovement() {
 
     // Integrate force and exponential linear damping. This produces a stable terminal speed
     // of moveForce / (mass * linearDamping) while movement input is held.
-    const auto viewBodies = m_ECS.View<CVelocity, CPhysicsBody>();
-    for (auto e : viewBodies) {
-        auto& velocity = velocityPool.getComponent(e);
-        auto& body = bodyPool.getComponent(e);
+    for (auto [e, velocity, body] : m_ECS.View<CVelocity, CPhysicsBody>()) {
         const Vec2 acceleration = body.accumulatedForce / body.mass;
 
         if (body.linearDamping > 0.0f) {
@@ -612,7 +592,7 @@ void Scene_Play::sMovement() {
         }
 
         float maxSpeed = body.maxSpeed;
-        if (m_ECS.hasComponent<CInput>(e) && inputPool.getComponent(e).ctrl) {
+        if (m_ECS.hasComponent<CInput>(e) && m_ECS.getComponent<CInput>(e).ctrl) {
             maxSpeed *= SPRINT_MULTIPLIER;
         }
         if (velocity.vel.length() > maxSpeed) {
@@ -626,22 +606,14 @@ void Scene_Play::sMovement() {
     }
 
     // Bodies and kinematic projectiles both move from their real world-space velocity.
-    const auto viewTransform = m_ECS.View<CTransform, CVelocity>();
-    for (auto e : viewTransform){
-        auto &transform = transformPool.getComponent(e);
-        auto &velocity = velocityPool.getComponent(e);
-
+    for (auto [e, transform, velocity] : m_ECS.View<CTransform, CVelocity>()){
         transform.prevPos = transform.pos;
         transform.pos += velocity.vel * PHYSICS_DT;
     }
 
-    auto viewParent = m_ECS.View<CParent, CTransform>();
-    auto& parentPool = m_ECS.getOrCreateComponentPool<CParent>();
-    for (auto e : viewParent)
+    for (auto [e, parent, transform] : m_ECS.View<CParent, CTransform>())
     {
-        auto& transform = transformPool.getComponent(e);
-        auto& parent = parentPool.getComponent(e);
-        transform.pos = transformPool.getComponent(parent.parent).pos + parent.relativePos;
+        transform.pos = m_ECS.getComponent<CTransform>(parent.parent).pos + parent.relativePos;
     }
 }
 
@@ -718,15 +690,9 @@ void Scene_Play::finishAttack(EntityID attackerID, CAttackState& attackState, co
 }
 
 void Scene_Play::sAttack(){
-    ComponentPool<CTransform>& transformPool = m_ECS.getComponentPool<CTransform>();
-    ComponentPool<CInput>& inputPool = m_ECS.getComponentPool<CInput>();
     ComponentPool<CWeapon>& weaponPool = m_ECS.getOrCreateComponentPool<CWeapon>();
 
-    std::vector<EntityID> viewAttack = m_ECS.View<CInput, CInventory, CTransform>();
-    for (EntityID id : viewAttack){
-        CTransform& transform = transformPool.getComponent(id);
-        CInput& inputs = inputPool.getComponent(id);
-        CInventory& inventory = m_ECS.getComponent<CInventory>(id);
+    for (auto [id, inputs, inventory, transform] : m_ECS.View<CInput, CInventory, CTransform>()){
         Item& activeItem = inventory.activeItem;
 
         if (m_ECS.hasComponent<CAttackState>(id)) {
@@ -864,24 +830,16 @@ void Scene_Play::sCollision()
 }
 
 void Scene_Play::sStatus() {
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
-  
-    auto& lifespanPool = m_ECS.getComponentPool<CLifespan>();
-    auto viewLifespan = m_ECS.View<CLifespan>();
-    for ( auto entityID : viewLifespan)
+    for (auto [entityID, lifespan] : m_ECS.View<CLifespan>())
     {   
-        auto& lifespan = lifespanPool.getComponent(entityID).lifespan;
-        lifespan--;
-        if (lifespan <= 0) {
+        lifespan.lifespan--;
+        if (lifespan.lifespan <= 0) {
             m_ECS.queueRemoveEntity(entityID);
         }
     }
 
-    auto& activeHitboxPool = m_ECS.getComponentPool<CActiveHitboxLifetime>();
-    auto viewActiveHitbox = m_ECS.View<CActiveHitboxLifetime>();
-    for (auto entityID : viewActiveHitbox)
+    for (auto [entityID, lifetime] : m_ECS.View<CActiveHitboxLifetime>())
     {
-        auto& lifetime = activeHitboxPool.getComponent(entityID);
         lifetime.framesRemaining--;
         if (lifetime.framesRemaining <= 0) {
             m_ECS.queueRemoveComponent<CInteractionBox>(entityID);
@@ -891,26 +849,20 @@ void Scene_Play::sStatus() {
         }
     }
 
-    auto& damageFlashPool = m_ECS.getComponentPool<CDamageFlash>();
-    auto viewDamageFlash = m_ECS.View<CDamageFlash>();
-    for (auto entityID : viewDamageFlash)
+    for (auto [entityID, flash] : m_ECS.View<CDamageFlash>())
     {
-        auto& flash = damageFlashPool.getComponent(entityID);
         if (flash.framesRemaining > 0) {
             flash.framesRemaining--;
         }
     }
 
-    auto viewHealth = m_ECS.View<CHealth>();
-    auto& healthPool = m_ECS.getComponentPool<CHealth>();
-    for ( auto entityID : viewHealth)
+    for (auto [entityID, health] : m_ECS.View<CHealth>())
     {
-        auto& health = healthPool.getComponent(entityID);
         if (health.HP > 0)
         {
             continue;
         }
-        auto& transform = transformPool.getComponent(entityID);
+        auto& transform = m_ECS.getComponent<CTransform>(entityID);
         if ( m_player == entityID ){
             std::cout << "Player has died!" << std::endl;
             m_restart = true;
@@ -929,16 +881,7 @@ void Scene_Play::sStatus() {
 }
 
 void Scene_Play::sAnimation() {
-
-    auto view = m_ECS.View<CState, CAnimation, CVelocity>();
-
-    auto& velocityPool = m_ECS.getComponentPool<CVelocity>();
-    auto& statePool = m_ECS.getComponentPool<CState>();
-    auto& animationPool = m_ECS.getComponentPool<CAnimation>();
-    for ( auto e : view ){
-        auto& velocity = velocityPool.getComponent(e);
-        auto& state = statePool.getComponent(e);
-        auto& animation = animationPool.getComponent(e);
+    for (auto [e, state, animation, velocity] : m_ECS.View<CState, CAnimation, CVelocity>()){
         bool useStateAnimation = true;
         if (m_ECS.hasComponent<CAttackState>(e)) {
             CAttackState& attackState = m_ECS.getComponent<CAttackState>(e);
@@ -979,14 +922,12 @@ void Scene_Play::sAnimation() {
         }
     }
 
-    auto viewProjectileState = m_ECS.View<CProjectileState, CAnimation>();
     auto& projectilePool = m_ECS.getComponentPool<CProjectile>();
-    for ( auto e : viewProjectileState ) {
+    for (auto [e, projectileState, animation] : m_ECS.View<CProjectileState, CAnimation>()) {
         if (!m_ECS.hasComponent<CProjectile>(e)) {
             continue;
         }
 
-        auto& projectileState = m_ECS.getComponent<CProjectileState>(e);
         if (projectileState.phase != ProjectilePhase::Flying) {
             continue;
         }
@@ -1030,18 +971,13 @@ void Scene_Play::sRenderHealth() {
 
     const RenderView view = worldRenderView();
     const float viewScale = view.scale > 0.0f ? view.scale : 1.0f;
-    auto& transformPool = m_ECS.getComponentPool<CTransform>();
-    auto& healthPool = m_ECS.getComponentPool<CHealth>();
-    auto viewHealth = m_ECS.View<CHealth, CTransform>();
-    for (auto entityID : viewHealth)
+    for (auto [entityID, health, transform] : m_ECS.View<CHealth, CTransform>())
     {
         if (entityID == m_player) { continue; }
-        auto& health = healthPool.getComponent(entityID);
         // if (static_cast<int>(m_currentFrame - health.damage_frame) >= health.i_frames)
         // {
         //     continue;
         // }
-        auto& transform = transformPool.getComponent(entityID);
 
         const float hearts = static_cast<float>(health.HP) / 2.0f;
         const float maxHearts = static_cast<float>(health.HP_max) / 2.0f;
@@ -1177,12 +1113,9 @@ void Scene_Play::sRender() {
 
 void Scene_Play::sAudio()
 {
-    auto& audioPool = m_ECS.getComponentPool<CAudio>();
-    auto audioView = m_ECS.View<CAudio>();
-    for (EntityID id : audioView){
-        CAudio& audio = audioPool.getComponent(id);
+    for (auto [id, audio] : m_ECS.View<CAudio>()){
         m_game->playAudio(audio.audioName);
-        m_ECS.removeComponent<CAudio>(id);
+        m_ECS.queueRemoveComponent<CAudio>(id);
     }
 }
 
@@ -1666,14 +1599,10 @@ bool Scene_Play::hasLineOfSight(Vec2 origin, Vec2 target)
     float dist    = delta.length();
     Vec2  dir     = delta / dist;          // normalized
 
-    auto& transformPool  = m_ECS.getComponentPool<CTransform>();
-    auto& collisionPool  = m_ECS.getComponentPool<CCollisionBox>();
-
-    for (EntityID obstacle : m_ECS.View<CCollisionBox, CTransform>()) {
-        auto& box = collisionPool.getComponent(obstacle);
+    for (auto [obstacle, box, transform] : m_ECS.View<CCollisionBox, CTransform>()) {
         if ((box.layer & OBSTACLE_LAYER) == 0) continue;   // only solid obstacles
 
-        Vec2 pos    = transformPool.getComponent(obstacle).pos;
+        Vec2 pos    = transform.pos;
         Vec2 boxMin = pos - box.halfSize;
         Vec2 boxMax = pos + box.halfSize;
 

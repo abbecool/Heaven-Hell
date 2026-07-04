@@ -30,16 +30,12 @@ Scene_Pause::Scene_Pause(Game* game)
 }
 
 void Scene_Pause::saveLayout(const std::string& filename) {
-    
-    auto dialogPool = m_ECS.getComponentPool<CText>();    
-    auto transformPool = m_ECS.getComponentPool<CTransform>();
-    auto view = m_ECS.View<CText, CCollisionBox, CTransform>();
     json j;
-    for (auto e : view) {
+    for (auto [e, dialog, collision, transform] : m_ECS.View<CText, CCollisionBox, CTransform>()) {
         json button;
-        button["label"] = dialogPool.getComponent(e).text;
-        button["position"]["x"] = transformPool.getComponent(e).pos.x;
-        button["position"]["y"] = transformPool.getComponent(e).pos.y;
+        button["label"] = dialog.text;
+        button["position"]["x"] = transform.pos.x;
+        button["position"]["y"] = transform.pos.y;
         j["buttons"].push_back(button);
         }
     std::ofstream file(filename);
@@ -73,11 +69,8 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
-            auto view = m_ECS.View<CCollisionBox, CTransform, CSprite, CText>();
-            for (auto e : view)
+            for (auto [e, collision, transform, sprite, text] : m_ECS.View<CCollisionBox, CTransform, CSprite, CText>())
             {
-                auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
                 if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
                     setSprite(e, "button_pressed");
                 }
@@ -87,11 +80,8 @@ void Scene_Pause::sDoAction(const Action& action) {
     if (action.type() == "END") {
         if (action.name() == "CLICK") {
             m_hold_CLICK = false;
-            auto view = m_ECS.View<CCollisionBox>();
-            for (auto e : view){
-                auto &transform = m_ECS.getComponent<CTransform>(e);
-                auto &collision = m_ECS.getComponent<CCollisionBox>(e);
-                auto &name = m_ECS.getComponent<CName>(e).name;
+            for (auto [e, collision, transform, nameComponent] : m_ECS.View<CCollisionBox, CTransform, CName>()){
+                auto &name = nameComponent.name;
                 if (m_hold_CTRL) {
                     continue;
                 }
@@ -134,11 +124,7 @@ void Scene_Pause::sDoAction(const Action& action) {
 
 void Scene_Pause::sDragButton() {
     if (m_hold_CTRL && m_hold_CLICK) {
-        auto view = m_ECS.View<CCollisionBox, CTransform, CName>();
-        for (auto e : view) {
-            auto& transform = m_ECS.getComponent<CTransform>(e);
-            auto& collision = m_ECS.getComponent<CCollisionBox>(e);
-
+        for (auto [e, collision, transform, name] : m_ECS.View<CCollisionBox, CTransform, CName>()) {
             if (m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x - collision.halfSize.x) {
                 if (m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y - collision.halfSize.y) {
                     transform.pos = m_mousePosition;

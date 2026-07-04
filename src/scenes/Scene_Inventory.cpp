@@ -60,15 +60,7 @@ void Scene_Inventory::sRender() {
     Vec2 hotbarPos = Vec2{m_game->getWidth()-hotbar.src.w, 0.0f} + Vec2{-4, 4};
     drawSprite(hotbar, RectF{hotbarPos.x, hotbarPos.y, hotbar.src.w, hotbar.src.h});
 
-    auto view = m_ECS.View<CTransform, CSprite>();
-    auto& transformPool2 = m_ECS.getComponentPool<CTransform>();
-    auto& spritePool = m_ECS.getComponentPool<CSprite>();
-
-    for (auto eID : view){
-            
-        auto& transform = transformPool2.getComponent(eID);
-        auto& sprite = spritePool.getComponent(eID);
-
+    for (auto [eID, transform, sprite] : m_ECS.View<CTransform, CSprite>()){
         Vec2 adjustedPos = Vec2{m_game->getWidth()-hotbar.src.w, 0.0f} + 
                             Vec2{16, 16} + transform.pos*32 + Vec2{-4, 4};
 

@@ -38,8 +38,13 @@ public:
     }
 
     template<typename... T>
-    std::vector<EntityID> view() {
+    auto view() {
         return m_ECS->View<T...>();
+    }
+
+    template<typename... T>
+    const std::vector<EntityID>& viewEntities() {
+        return m_ECS->ViewEntities<T...>();
     }
 
     void removeEntity() {

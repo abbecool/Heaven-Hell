@@ -79,10 +79,7 @@ class Scene
     void updateAnimations();
     void sRenderBasic();
     template<typename T>
-    void renderBox(
-        const std::vector<EntityID>& view,
-        ComponentPool<CTransform>& transformPool,
-        ComponentPool<T>& boxPool);
+    void renderBox();
 
     virtual void doAction(const Action& action);
     void registerAction(InputCode inputKey, const std::string& actionName);
