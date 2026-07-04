@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <array>
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
@@ -151,7 +152,8 @@ void Scene_Play::saveGame()
     const CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
 
     json inventoryItems = json::array();
-    for (const Item& item : inventory.items) {
+    for (int i = 0; i < inventory.size(); ++i) {
+        const Item& item = inventory.items[i];
         if (item.id == -1) {
             inventoryItems.push_back(nullptr);
             continue;
@@ -173,6 +175,7 @@ void Scene_Play::saveGame()
             {"hp", hp},
             {"currency", currency},
             {"inventory", {
+                {"slots", inventory.size()},
                 {"items", inventoryItems},
                 {"activeSlot", inventory.activeItem.index}
             }},
@@ -252,7 +255,7 @@ void Scene_Play::sDoAction(const Action& action){
     }
     else if ( action.name() == "SCROLL"){
         const CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
-        int size = inventory.items.size();
+        int size = inventory.size();
         const int index = inventory.activeItem.index; 
         int newIndex = (index-getMouseState().scroll+size*10) % size;
         updateActiveItem(newIndex);
@@ -270,47 +273,137 @@ void Scene_Play::sDoAction(const Action& action){
     } 
 }
 
-void Scene_Play::updateActiveItem(int newIndex){
-    CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
-    inventory.activeItem = inventory.items[newIndex];
-    Item& activeItem = inventory.activeItem;
-
-    m_ECS.removeComponent<CWeapon>(m_player);
-
-    switch (activeItem.type)
-    {
-    case ItemType::WeaponMelee:
-        m_ECS.addComponent<CWeapon>(m_player, activeItem.damage, 60, 32, WeaponType::Melee);
-        break;
-    case ItemType::WeaponRanged:
-    {
-        CWeapon& weapon = m_ECS.addComponent<CWeapon>(
-            m_player,
-            activeItem.damage,
-            60,
-            180,
-            WeaponType::Projectile
-        );
-        weapon.attackAnimationRow = 5;
-        weapon.attackHitFrame = 2;
-        break;
+const Item* Scene_Play::findItemFromJson(const json& itemRef) const
+{
+    try {
+        if (itemRef.is_number_integer()) {
+            return &m_inventoryManager.getItem(itemRef.get<int>());
+        }
+        if (itemRef.is_string()) {
+            return m_inventoryManager.findItem(itemRef.get<std::string>());
+        }
     }
-    case ItemType::Consumable:
-        break;
-    case ItemType::None:
-    case ItemType::Weapon:
-    case ItemType::WeaponAoE:
-    case ItemType::Quest:
-    case ItemType::Currency:
-        break;
+    catch (const std::exception& exception) {
+        std::cerr << "Invalid inventory item reference: " << exception.what() << std::endl;
+    }
+    return nullptr;
+}
+
+void Scene_Play::loadInventoryFromJson(EntityID entity, const json& inventoryJson)
+{
+    const json itemRefs = inventoryJson.is_object()
+        ? inventoryJson.value("items", json::array())
+        : inventoryJson;
+
+    int requestedSlotCount = CInventory::DefaultSlotCount;
+    if (inventoryJson.is_object()) {
+        requestedSlotCount = inventoryJson.value(
+            "slots",
+            itemRefs.is_array() && !itemRefs.empty()
+                ? static_cast<int>(itemRefs.size())
+                : CInventory::DefaultSlotCount
+        );
+    }
+    else if (itemRefs.is_array() && !itemRefs.empty()) {
+        requestedSlotCount = static_cast<int>(itemRefs.size());
+    }
+
+    if (!m_ECS.hasComponent<CInventory>(entity)) {
+        m_ECS.addComponent<CInventory>(entity, requestedSlotCount);
+    }
+
+    CInventory& inventory = m_ECS.getComponent<CInventory>(entity);
+    inventory.items.assign(std::max(1, requestedSlotCount), Item{});
+    for (int i = 0; i < inventory.size(); ++i) {
+        inventory.items[i].index = i;
+    }
+
+    int activeSlot = inventoryJson.is_object()
+        ? inventoryJson.value("activeSlot", inventory.activeItem.index)
+        : 0;
+    activeSlot = std::clamp(activeSlot, 0, inventory.size() - 1);
+
+    if (itemRefs.is_array()) {
+        const int count = std::min(
+            inventory.size(),
+            static_cast<int>(itemRefs.size())
+        );
+        for (int i = 0; i < count; ++i) {
+            if (itemRefs[i].is_null()) {
+                continue;
+            }
+
+            const Item* item = findItemFromJson(itemRefs[i]);
+            if (!item) {
+                std::cerr << "Unknown inventory item: " << itemRefs[i].dump() << std::endl;
+                continue;
+            }
+
+            inventory.items[i] = *item;
+            inventory.items[i].index = i;
+        }
+    }
+
+    updateActiveItem(entity, activeSlot);
+}
+
+void Scene_Play::updateActiveItem(EntityID entity, int newIndex)
+{
+    if (!m_ECS.hasComponent<CInventory>(entity)) {
+        return;
+    }
+
+    CInventory& inventory = m_ECS.getComponent<CInventory>(entity);
+    if (newIndex < 0 || newIndex >= inventory.size()) {
+        return;
+    }
+
+    inventory.activeItem = inventory.items[newIndex];
+    inventory.activeItem.index = newIndex;
+
+    if (m_ECS.hasComponent<CWeapon>(entity)) {
+        m_ECS.removeComponent<CWeapon>(entity);
+    }
+
+    if (inventory.activeItem.hasWeaponConfig) {
+        m_ECS.addComponent<CWeapon>(entity, inventory.activeItem.weaponConfig);
     }
 }
 
-bool Scene_Play::useActiveConsumable()
+void Scene_Play::updateActiveItem(int newIndex)
 {
-    CInventory& inventory = m_ECS.getComponent<CInventory>(m_player);
+    updateActiveItem(m_player, newIndex);
+}
+
+float Scene_Play::activeItemUseRange(EntityID entity)
+{
+    constexpr float DefaultItemUseRange = 48.0f;
+    if (!m_ECS.hasComponent<CInventory>(entity)) {
+        return 0.0f;
+    }
+
+    const Item& activeItem = m_ECS.getComponent<CInventory>(entity).activeItem;
+    if (activeItem.id == -1) {
+        return 0.0f;
+    }
+    if (m_ECS.hasComponent<CWeapon>(entity)) {
+        return static_cast<float>(m_ECS.getComponent<CWeapon>(entity).range);
+    }
+    if (activeItem.type == ItemType::Consumable) {
+        return DefaultItemUseRange;
+    }
+    return 0.0f;
+}
+
+bool Scene_Play::useActiveConsumable(EntityID entity)
+{
+    if (!m_ECS.hasComponent<CInventory>(entity)) {
+        return false;
+    }
+
+    CInventory& inventory = m_ECS.getComponent<CInventory>(entity);
     const int activeIndex = inventory.activeItem.index;
-    if (activeIndex < 0 || activeIndex >= static_cast<int>(inventory.items.size())) {
+    if (activeIndex < 0 || activeIndex >= inventory.size()) {
         return false;
     }
 
@@ -319,11 +412,11 @@ bool Scene_Play::useActiveConsumable()
         return false;
     }
 
-    if (activeItem.healing <= 0 || !m_ECS.hasComponent<CHealth>(m_player)) {
+    if (activeItem.healing <= 0 || !m_ECS.hasComponent<CHealth>(entity)) {
         return false;
     }
 
-    CHealth& health = m_ECS.getComponent<CHealth>(m_player);
+    CHealth& health = m_ECS.getComponent<CHealth>(entity);
     if (health.HP >= health.HP_max) {
         return true;
     }
@@ -333,7 +426,7 @@ bool Scene_Play::useActiveConsumable()
     Item emptySlot;
     emptySlot.index = activeIndex;
     inventory.items[activeIndex] = emptySlot;
-    updateActiveItem(activeIndex);
+    updateActiveItem(entity, activeIndex);
     return true;
 }
 
@@ -455,8 +548,7 @@ void Scene_Play::sAI()
         {
         case AIStateType::Chase:
             input.direction = (playerPos - pos).norm();
-            input.use = m_ECS.hasComponent<CWeapon>(e) &&
-                distToPlayer < static_cast<float>(m_ECS.getComponent<CWeapon>(e).range);
+            input.use = distToPlayer < activeItemUseRange(e);
             break;
 
         case AIStateType::Investigate:
@@ -593,25 +685,24 @@ void Scene_Play::startAttack(EntityID attackerID, Vec2 direction, CWeapon& weapo
 
 void Scene_Play::sAttack(){
     ComponentPool<CTransform>& transformPool = m_ECS.getComponentPool<CTransform>();
-    ComponentPool<CVelocity>& velocityPool = m_ECS.getComponentPool<CVelocity>();
     ComponentPool<CInput>& inputPool = m_ECS.getComponentPool<CInput>();
-    ComponentPool<CWeapon>& weaponPool = m_ECS.getComponentPool<CWeapon>();
+    ComponentPool<CWeapon>& weaponPool = m_ECS.getOrCreateComponentPool<CWeapon>();
 
-    if (m_ECS.hasComponent<CInput>(m_player)) {
-        CInput& playerInput = m_ECS.getComponent<CInput>(m_player);
-        if (playerInput.use && useActiveConsumable()) {
-            playerInput.use = false;
-        }
-    }
-
-    std::vector<EntityID> viewAttack = m_ECS.View<CInput, CWeapon, CVelocity, CTransform>();
+    std::vector<EntityID> viewAttack = m_ECS.View<CInput, CInventory, CTransform>();
     for (EntityID id : viewAttack){
         CTransform& transform = transformPool.getComponent(id);
-        CVelocity& velocity = velocityPool.getComponent(id);
         CInput& inputs = inputPool.getComponent(id);
-        CWeapon& weapon = weaponPool.getComponent(id);
+        CInventory& inventory = m_ECS.getComponent<CInventory>(id);
+        Item& activeItem = inventory.activeItem;
 
         if (m_ECS.hasComponent<CAttackState>(id)) {
+            if (!m_ECS.hasComponent<CWeapon>(id)) {
+                m_ECS.removeComponent<CAttackState>(id);
+                inputs.use = false;
+                continue;
+            }
+
+            CWeapon& weapon = weaponPool.getComponent(id);
             CAttackState& attack = m_ECS.getComponent<CAttackState>(id);
             if (id != m_player) {
                 inputs.direction = {0, 0};
@@ -674,10 +765,41 @@ void Scene_Play::sAttack(){
             continue;
         }
 
-        weapon.delay--;
+        if (m_ECS.hasComponent<CWeapon>(id)) {
+            weaponPool.getComponent(id).delay--;
+        }
+
         if (!inputs.use){
             continue;
         }
+
+        switch (activeItem.type)
+        {
+        case ItemType::Consumable:
+            useActiveConsumable(id);
+            inputs.use = false;
+            continue;
+        case ItemType::WeaponMelee:
+        case ItemType::WeaponRanged:
+        case ItemType::WeaponAoE:
+            break;
+        case ItemType::None:
+        case ItemType::Weapon:
+        case ItemType::Quest:
+        case ItemType::Currency:
+            inputs.use = false;
+            continue;
+        }
+
+        if (!m_ECS.hasComponent<CWeapon>(id)) {
+            updateActiveItem(id, activeItem.index);
+        }
+        if (!m_ECS.hasComponent<CWeapon>(id)) {
+            inputs.use = false;
+            continue;
+        }
+
+        CWeapon& weapon = weaponPool.getComponent(id);
         if (weapon.delay >= 0){
             continue;
         }
@@ -685,7 +807,10 @@ void Scene_Play::sAttack(){
             weapon.delay = weapon.speed;
         }
         Vec2 position = transform.pos;
-        Vec2 direction = velocity.vel;
+        Vec2 direction = {0, 0};
+        if (m_ECS.hasComponent<CVelocity>(id)) {
+            direction = m_ECS.getComponent<CVelocity>(id).vel;
+        }
         if (id == m_player){
             direction = (getMousePosition()-position+getCameraPosition()).norm();
         }
@@ -1009,11 +1134,15 @@ void Scene_Play::sRenderInventory() {
         inventorySize.x,
         inventorySize.y
     });
-    auto& items = m_ECS.getComponent<CInventory>(m_player).items;
-    auto activeItemIndex = m_ECS.getComponent<CInventory>(m_player).activeItem.index;
+    auto& inventory = m_ECS.getComponent<CInventory>(m_player);
+    auto& items = inventory.items;
+    auto activeItemIndex = inventory.activeItem.index;
     int slotIndex = -1;
     for (Item& item: items){
         slotIndex++;
+        if (slotIndex >= inventory.size()) {
+            break;
+        }
         if (item.index==activeItemIndex){
             const SpriteDefinition& activeItemSprite = getSprite("activeItemInventory");
             Vec2 activeSize = activeItemSprite.frameSize() * windowScale;
@@ -1180,14 +1309,11 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     if (c.contains("CPossesLevel")){
         m_ECS.addComponent<CPossesLevel>(id, c["CPossesLevel"]);
     }
-    if (c.contains("CWeapon")){
-        m_ECS.addComponent<CWeapon>(id, c["CWeapon"]);
-    }
     if (c.contains("CInput")){
         m_ECS.addComponent<CInput>(id);
     }
     if (c.contains("CInventory")) {
-        m_ECS.addComponent<CInventory>(id);
+        loadInventoryFromJson(id, c["CInventory"]);
     }
     if (c.contains("CCurrency")) {
         m_ECS.addComponent<CCurrency>(id, c["CCurrency"]);
@@ -1278,44 +1404,18 @@ EntityID Scene_Play::spawnPlayer()
         m_ECS.addComponent<CInventory>(entityID);
     }
 
-    auto loadInventoryItems = [this, entityID](const json& itemIDs, int activeSlot) {
-        auto& inventory = m_ECS.getComponent<CInventory>(entityID);
-        const int slotCount = static_cast<int>(inventory.items.size());
-        const int count = std::min(slotCount, static_cast<int>(itemIDs.size()));
-
-        for (int i = 0; i < count; ++i) {
-            if (itemIDs[i].is_null()) {
-                continue;
-            }
-            inventory.items[i] = m_inventoryManager.getItem(itemIDs[i].get<int>());
-            inventory.items[i].index = i;
-        }
-
-        if (activeSlot >= 0 && activeSlot < slotCount) {
-            inventory.activeItem = inventory.items[activeSlot];
-        }
-    };
-
     if (playerSave.contains("inventory")) {
         const json& inventorySave = playerSave.at("inventory");
-        if (inventorySave.is_object()) {
-            loadInventoryItems(
-                inventorySave.value("items", json::array()),
-                inventorySave.value("activeSlot", 0)
-            );
-        }
-        else if (inventorySave.is_array()) {
-            loadInventoryItems(inventorySave, 0);
-        }
+        loadInventoryFromJson(entityID, inventorySave);
     }
     else if (save.contains("inventory")) {
-        loadInventoryItems(save.at("inventory"), 0);
+        loadInventoryFromJson(entityID, save.at("inventory"));
     }
 
     const auto& inventory = m_ECS.getComponent<CInventory>(entityID);
     if (inventory.activeItem.index >= 0 &&
-        inventory.activeItem.index < static_cast<int>(inventory.items.size())) {
-        updateActiveItem(inventory.activeItem.index);
+        inventory.activeItem.index < inventory.size()) {
+        updateActiveItem(entityID, inventory.activeItem.index);
     }
 
     return entityID;

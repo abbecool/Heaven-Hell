@@ -45,6 +45,8 @@ struct Item {
     ItemType type = ItemType::None;
     int damage = 0;
     int healing = 0;
+    bool hasWeaponConfig = false;
+    nlohmann::json weaponConfig = nlohmann::json::object();
     
     Item() = default;
     ItemType getItemTypeFromString(const std::string& typeStr) {
@@ -73,6 +75,10 @@ struct Item {
         }
         if (j.contains("healing")) {
             healing = j["healing"].get<int>();
+        }
+        if (j.contains("weapon") && j["weapon"].is_object()) {
+            hasWeaponConfig = true;
+            weaponConfig = j["weapon"];
         }
     };
 };

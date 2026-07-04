@@ -470,7 +470,8 @@ bool InteractionManager::addItemToInventory(Entity player, const Item& item)
 
     auto& inventory = player.getComponent<CInventory>();
     auto& activeItem = inventory.activeItem;
-    for (auto& slot : inventory.items) {
+    for (int i = 0; i < inventory.size(); ++i) {
+        auto& slot = inventory.items[i];
         if (slot.id != -1) {
             continue;
         }
@@ -489,7 +490,7 @@ bool InteractionManager::addItemToInventory(Entity player, const Item& item)
     }
 
     const int activeIndex = activeItem.index;
-    if (activeIndex < 0 || activeIndex >= static_cast<int>(inventory.items.size())) {
+    if (activeIndex < 0 || activeIndex >= inventory.size()) {
         return false;
     }
 

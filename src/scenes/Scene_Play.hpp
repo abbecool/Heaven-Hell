@@ -75,7 +75,11 @@ class Scene_Play : public Scene
     void sDoAction(const Action&);
     void onEnd();
     void togglePause();
-    bool useActiveConsumable();
+    const Item* findItemFromJson(const json& itemRef) const;
+    void loadInventoryFromJson(EntityID entity, const json& inventoryJson);
+    float activeItemUseRange(EntityID entity);
+    bool useActiveConsumable(EntityID entity);
+    void updateActiveItem(EntityID entity, int newActiveItem);
     void changePlayerState(EntityID entity, PlayerState s);
     void startAttack(EntityID attackerID, Vec2 direction, CWeapon& weapon);
     void beginProjectileFlight(EntityID projectileID);

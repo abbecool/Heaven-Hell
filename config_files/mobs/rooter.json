@@ -27,16 +27,10 @@
                 "i_frames": 30,
                 "type": ["Grass", "Organic"]
             },
-            "CWeapon": {
-                "damage": 1,
-                "speed": 60,
-                "range": 48,
-                "attackAnimationRow": 5,
-                "attackHitFrame": 2,
-                "hitboxAnimation": "rooter-attack",
-                "hitboxActiveFrames": 15,
-                "type": "Melee",
-                "mask": ["PLAYER_LAYER"]
+            "CInventory": {
+                "slots": 1,
+                "activeSlot": 0,
+                "items": ["rooter_claws"]
             }
         }
     }

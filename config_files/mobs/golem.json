@@ -25,13 +25,10 @@
                 "i_frames": 30,
                 "type": ["Rock"]
             },
-            "CWeapon": {
-                "damage": 1,
-                "speed": 120,
-                "range": 48,
-                "attackHitFrame": 0,
-                "type": "Melee",
-                "mask": ["PLAYER_LAYER"]
+            "CInventory": {
+                "slots": 1,
+                "activeSlot": 0,
+                "items": ["golem_fist"]
             }
         }
     }

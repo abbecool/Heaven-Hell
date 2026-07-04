@@ -1,0 +1,23 @@
+{
+    "rooter_claws": {
+        "id": 5,
+        "name": "rooter_claws",
+        "description": "The rooter's natural attack.",
+        "iconPath": "sword",
+        "pickupMode": "Manual",
+        "maxStack": 1,
+        "type": "WeaponMelee",
+        "damage": 1,
+        "weapon": {
+            "damage": 1,
+            "speed": 60,
+            "range": 48,
+            "attackAnimationRow": 5,
+            "attackHitFrame": 2,
+            "hitboxAnimation": "rooter-attack",
+            "hitboxActiveFrames": 15,
+            "type": "Melee",
+            "mask": ["PLAYER_LAYER"]
+        }
+    }
+}

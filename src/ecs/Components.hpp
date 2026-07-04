@@ -529,9 +529,17 @@ struct CItem{
 };
 
 struct CInventory{
+    static constexpr int DefaultSlotCount = 3;
+
     Item activeItem;
-    std::array<Item, 3> items;
-    CInventory() {
+    std::vector<Item> items;
+
+    int size() const {
+        return static_cast<int>(items.size());
+    }
+
+    CInventory(int slotCount = DefaultSlotCount)
+        : items(std::max(1, slotCount)) {
         activeItem.index = 0;
         int index = 0;
         for (Item& item: items){
