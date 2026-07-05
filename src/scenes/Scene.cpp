@@ -237,7 +237,7 @@ void Scene::sRenderBasic() {
         }
     }
 
-    for (auto [e, dialog, transform] : m_ECS.View<CText, CTransform>()){
+    for (auto [e, dialog, transform] : m_ECS.constView<CText, CTransform>()){
         m_game->render().drawWorldText(WorldTextDrawCommand{
             dialog.text,
             dialog.font_name,
@@ -263,7 +263,7 @@ void Scene::sRenderBasic() {
 
 template<typename BoxType>
 void Scene::renderBox() {
-    for (auto [e, box, transform] : m_ECS.View<BoxType, CTransform>())
+    for (auto [e, box, transform] : m_ECS.constView<BoxType, CTransform>())
     {
         RectF boxRect{
             transform.pos.x - box.halfSize.x,

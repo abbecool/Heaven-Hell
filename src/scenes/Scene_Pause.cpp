@@ -31,7 +31,7 @@ Scene_Pause::Scene_Pause(Game* game)
 
 void Scene_Pause::saveLayout(const std::string& filename) {
     json j;
-    for (auto [e, dialog, collision, transform] : m_ECS.View<CText, CCollisionBox, CTransform>()) {
+    for (auto [e, dialog, collision, transform] : m_ECS.constView<CText, CCollisionBox, CTransform>()) {
         json button;
         button["label"] = dialog.text;
         button["position"]["x"] = transform.pos.x;
@@ -80,7 +80,7 @@ void Scene_Pause::sDoAction(const Action& action) {
     if (action.type() == "END") {
         if (action.name() == "CLICK") {
             m_hold_CLICK = false;
-            for (auto [e, collision, transform, nameComponent] : m_ECS.View<CCollisionBox, CTransform, CName>()){
+            for (auto [e, collision, transform, nameComponent] : m_ECS.constView<CCollisionBox, CTransform, CName>()){
                 auto &name = nameComponent.name;
                 if (m_hold_CTRL) {
                     continue;

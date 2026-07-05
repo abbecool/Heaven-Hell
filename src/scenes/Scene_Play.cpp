@@ -971,7 +971,7 @@ void Scene_Play::sRenderHealth() {
 
     const RenderView view = worldRenderView();
     const float viewScale = view.scale > 0.0f ? view.scale : 1.0f;
-    for (auto [entityID, health, transform] : m_ECS.View<CHealth, CTransform>())
+    for (auto [entityID, health, transform] : m_ECS.constView<CHealth, CTransform>())
     {
         if (entityID == m_player) { continue; }
         // if (static_cast<int>(m_currentFrame - health.damage_frame) >= health.i_frames)
@@ -1113,7 +1113,7 @@ void Scene_Play::sRender() {
 
 void Scene_Play::sAudio()
 {
-    for (auto [id, audio] : m_ECS.View<CAudio>()){
+    for (auto [id, audio] : m_ECS.constView<CAudio>()){
         m_game->playAudio(audio.audioName);
         m_ECS.queueRemoveComponent<CAudio>(id);
     }
@@ -1599,7 +1599,7 @@ bool Scene_Play::hasLineOfSight(Vec2 origin, Vec2 target)
     float dist    = delta.length();
     Vec2  dir     = delta / dist;          // normalized
 
-    for (auto [obstacle, box, transform] : m_ECS.View<CCollisionBox, CTransform>()) {
+    for (auto [obstacle, box, transform] : m_ECS.constView<CCollisionBox, CTransform>()) {
         if ((box.layer & OBSTACLE_LAYER) == 0) continue;   // only solid obstacles
 
         Vec2 pos    = transform.pos;

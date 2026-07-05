@@ -174,6 +174,7 @@ if (BUILD_TESTING)
         view_mutates_components
         view_missing_pool_is_empty
         view_entities_legacy
+        const_view
         queued_removal
         entity_zero_queued_component_removal
     )

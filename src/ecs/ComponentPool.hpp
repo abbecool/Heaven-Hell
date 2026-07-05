@@ -76,6 +76,17 @@ public:
         return component;
     }
 
+    inline const T& getComponent(EntityID e) const {
+
+        EntityID index = sparse[e];
+        if (index == tombstone) {
+            std::cout << "component type: " << typeid(T).name() << " entity id: " << e << std::endl;
+            throw std::out_of_range("Component not found.");
+        }
+        const T& component = dense[index];
+        return component;
+    }
+
     T& moveComponent(EntityID dst, EntityID src) {
         if (dst == src) {
             return getComponent(src);
@@ -117,6 +128,10 @@ public:
     }
 
     std::vector<T>& getDense() {
+        return dense;
+    }
+
+    const std::vector<T>& getDense() const {
         return dense;
     }
 

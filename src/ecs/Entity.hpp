@@ -43,6 +43,11 @@ public:
     }
 
     template<typename... T>
+    auto constView() const {
+        return m_ECS->constView<T...>();
+    }
+
+    template<typename... T>
     const std::vector<EntityID>& viewEntities() {
         return m_ECS->ViewEntities<T...>();
     }

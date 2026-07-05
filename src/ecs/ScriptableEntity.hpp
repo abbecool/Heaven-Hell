@@ -33,6 +33,10 @@ class ScriptableEntity{
             return m_entity.view<T...>();
         }
         template<typename... T>
+        auto constView() const{
+            return m_entity.constView<T...>();
+        }
+        template<typename... T>
         const std::vector<EntityID>& viewEntities(){
             return m_entity.viewEntities<T...>();
         }

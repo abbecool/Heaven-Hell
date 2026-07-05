@@ -17,6 +17,15 @@ for (auto [id, input] : ecs.View<CInput>()) {
 }
 ```
 
+`ECS::constView<Components...>()` works the same way, but yields `const` component references. Use it when a system only reads components.
+
+```cpp
+for (auto [id, transform, sprite] : ecs.constView<CTransform, CSprite>()) {
+    drawSprite(sprite, transform.pos);
+    // transform.pos.x += 1; // compile error
+}
+```
+
 ## Under The Hood
 
 `ECS::View<Components...>()` creates an `ECSView<Components...>` object:
@@ -31,6 +40,8 @@ ECSView<Components...> View()
 
 `findComponentPool<T>()` looks up each requested component pool without creating missing pools.
 If any requested pool does not exist, `ECSView` has no driver pool and iterates as empty.
+
+`ECS::constView<Components...>()` creates an `ECSConstView<Components...>` instead. Its internals mirror `ECSView`, but it stores `const ComponentPool<Components>*` pointers and dereferences to `const Components&...`.
 
 Inside `ECSView`, the component pool pointers are stored in a tuple:
 
@@ -65,6 +76,15 @@ auto operator*() const {
         std::get<ComponentPool<Components>*>(m_view->m_pools)->getComponent(entity)...
     };
 }
+```
+
+The const view dereference is the same shape with const references:
+
+```cpp
+return std::tuple<EntityID, const Components&...>{
+    entity,
+    std::get<const ComponentPool<Components>*>(m_view->m_pools)->getComponent(entity)...
+};
 ```
 
 That `Components&...` part is what makes this mutate the real ECS storage:

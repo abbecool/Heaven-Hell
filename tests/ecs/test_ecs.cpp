@@ -3,6 +3,7 @@
 
 #include <array>
 #include <algorithm>
+#include <type_traits>
 
 namespace {
 
@@ -169,6 +170,28 @@ void testEcsViewEntitiesLegacy()
     require(view.front() == first, "legacy view returned the wrong entity");
 }
 
+void testEcsConstView()
+{
+    ECS ecs;
+    const EntityID entity = ecs.addEntity();
+    ecs.addComponent<TestComponent>(entity, TestComponent{10});
+    ecs.addComponent<SecondaryComponent>(entity, SecondaryComponent{20});
+
+    auto view = ecs.constView<TestComponent, SecondaryComponent>();
+    auto row = *view.begin();
+    static_assert(std::is_same_v<decltype(std::get<1>(row)), const TestComponent&>);
+    static_assert(std::is_same_v<decltype(std::get<2>(row)), const SecondaryComponent&>);
+
+    size_t matches = 0;
+    for (auto [id, test, secondary] : view) {
+        require(id == entity, "const view returned the wrong entity");
+        require(test.value == 10, "const view returned the wrong primary component");
+        require(secondary.value == 20, "const view returned the wrong secondary component");
+        matches++;
+    }
+    require(matches == 1, "const view returned the wrong number of entities");
+}
+
 void testEcsQueuedRemoval()
 {
     ECS ecs;
@@ -218,6 +241,7 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"view_mutates_components", testEcsViewMutatesComponents},
     TestSupport::TestCase{"view_missing_pool_is_empty", testEcsViewMissingPoolIsEmpty},
     TestSupport::TestCase{"view_entities_legacy", testEcsViewEntitiesLegacy},
+    TestSupport::TestCase{"const_view", testEcsConstView},
     TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval},
     TestSupport::TestCase{"entity_zero_queued_component_removal", testEcsEntityZeroQueuedComponentRemoval}
 };
