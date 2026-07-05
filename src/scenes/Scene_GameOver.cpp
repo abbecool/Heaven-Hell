@@ -75,9 +75,9 @@ void Scene_GameOver::sDoAction(const Action& action)
         }
         else if (action.name() == "MOUSE LEFT CLICK")
         {
-            for (auto [e, collision, transform, sprite, text] : m_ECS.View<CCollisionBox, CTransform, CSprite, CText>())
+            for (auto [e, collider, transform, sprite, text] : m_ECS.View<CCollider, CTransform, CSprite, CText>())
             {
-                if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
+                if (m_physics.PointInCollider(m_mousePosition, transform, collider))
                 {
                     setSprite(e, "button_pressed");
                 }
@@ -88,9 +88,9 @@ void Scene_GameOver::sDoAction(const Action& action)
     {
         if (action.name() == "MOUSE LEFT CLICK")
         {
-            for (auto [e, collision, transform, nameComponent] : m_ECS.View<CCollisionBox, CTransform, CName>())
+            for (auto [e, collider, transform, nameComponent] : m_ECS.View<CCollider, CTransform, CName>())
             {
-                if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size))
+                if (!m_physics.PointInCollider(m_mousePosition, transform, collider))
                 {
                     continue;
                 }

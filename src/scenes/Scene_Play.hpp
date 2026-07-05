@@ -25,7 +25,6 @@ class Scene_Play : public Scene
     std::string m_levelPath;
     
     CollisionManager m_collisionManager;
-    InteractionManager m_interactionManager;
     InventoryManager m_inventoryManager;
     StoryManager m_storyManager;
     LevelLoader m_levelLoader;
@@ -61,7 +60,6 @@ class Scene_Play : public Scene
     void sAttack();
     void sAI();
     void sMovement();
-    void sInteraction();
     void sCollision();
     void sStatus();
     void sAnimation();

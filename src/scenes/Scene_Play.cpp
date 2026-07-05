@@ -52,7 +52,6 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), 
     m_levelPath(levelPath), 
     m_collisionManager(&m_ECS, this), 
-    m_interactionManager(&m_ECS, this), 
     m_storyManager(this, "config_files/story.json", "config_files/quests.json"),
     m_levelLoader(this, m_gridSize, game->loadImagePixels(levelPath)),
     m_newGame(newGame),
@@ -456,7 +455,6 @@ void Scene_Play::update()
         sMovement();
         sStatus();
         sCollision();
-        sInteraction();
         sAnimation();
         sAudio();
         m_currentFrame++;
@@ -810,15 +808,6 @@ void Scene_Play::sAttack(){
     }
 }
 
-void Scene_Play::sInteraction()
-{
-    auto screenSize = Vec2{static_cast<float>(width()), static_cast<float>(height())};
-    Vec2 treePos = m_camera.position + screenSize/2 - Vec2{32, 32};
-    Vec2 treeSize = Vec2{1048, 1048};
-
-    m_interactionManager.doInteractions(treePos, treeSize);
-}
-
 void Scene_Play::sCollision() 
 {
     auto screenSize = Vec2{static_cast<float>(width()), static_cast<float>(height())};
@@ -842,7 +831,7 @@ void Scene_Play::sStatus() {
     {
         lifetime.framesRemaining--;
         if (lifetime.framesRemaining <= 0) {
-            m_ECS.queueRemoveComponent<CInteractionBox>(entityID);
+            m_ECS.queueRemoveComponent<CCollider>(entityID);
             m_ECS.queueRemoveComponent<CDamage>(entityID);
             m_ECS.queueRemoveComponent<CAttackHitbox>(entityID);
             m_ECS.queueRemoveComponent<CActiveHitboxLifetime>(entityID);
@@ -1106,7 +1095,7 @@ void Scene_Play::sRender() {
 
     if (m_drawInteraction)
     {
-        m_interactionManager.renderQuadtree(m_game->render());
+        m_collisionManager.renderQuadtree(m_game->render());
     }
     
 }
@@ -1201,14 +1190,11 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         m_ECS.addComponent<CPhysicsBody>(id, c["CPhysicsBody"]);
         m_ECS.addComponent<CVelocity>(id);
     }
-    if (c.contains("CInteractionBox")){
-        m_ECS.addComponent<CInteractionBox>(id, c["CInteractionBox"]);
-    }
     if (c.contains("CItem")) {
         m_ECS.addComponent<CItem>(id, c["CItem"].at("itemID").get<int>());
     }
-    if (c.contains("CCollisionBox")){
-        m_ECS.addComponent<CCollisionBox>(id, c["CCollisionBox"]);
+    if (c.contains("CCollider")){
+        m_ECS.addComponent<CCollider>(id, c["CCollider"]);
     }
     if (c.contains("CState")){
         m_ECS.addComponent<CState>(id);
@@ -1355,7 +1341,7 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0.5f,0.5f});
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
-    m_ECS.addComponent<CCollisionBox>(entity, Vec2 {16, 16}, OBSTACLE_LAYER, collisionMask);
+    m_ECS.addComponent<CCollider>(entity, Vec2 {16, 16}, OBSTACLE_LAYER, collisionMask);
     return entity;
 }
 
@@ -1365,7 +1351,7 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid);
     m_ECS.addComponent<CWater>(entity, CWater{false});
-    m_ECS.addComponent<CCollisionBox>(entity, Vec2{16, 16});
+    m_ECS.addComponent<CCollider>(entity, Vec2{16, 16});
     return entity;
 }
 
@@ -1398,7 +1384,7 @@ EntityID Scene_Play::spawnProjectile(EntityID attackerID, Vec2 vel, const CWeapo
     m_ECS.addComponent<CDamage>(id, weapon.damage);
     m_ECS.getComponent<CDamage>(id).damageType = {"Fire", "Explosive"};
     m_ECS.addComponent<CVelocity>(id, direction.norm(speed));
-    m_ECS.addComponent<CCollisionBox>(
+    m_ECS.addComponent<CCollider>(
         id,
         Vec2{6, 6},
         PROJECTILE_LAYER,
@@ -1427,8 +1413,8 @@ void Scene_Play::destroyProjectile(EntityID projectileID)
     if (m_ECS.hasComponent<CVelocity>(projectileID)) {
         m_ECS.getComponent<CVelocity>(projectileID).vel = Vec2{0, 0};
     }
-    if (m_ECS.hasComponent<CCollisionBox>(projectileID)) {
-        m_ECS.queueRemoveComponent<CCollisionBox>(projectileID);
+    if (m_ECS.hasComponent<CCollider>(projectileID)) {
+        m_ECS.queueRemoveComponent<CCollider>(projectileID);
     }
 
     setAnimation(projectileID, "fireball_explode", false);
@@ -1458,7 +1444,14 @@ EntityID Scene_Play::spawnHitbox(EntityID attackerID, Vec2 direction, const CWea
     m_ECS.addComponent<CTransform>(id, hitboxPosition);
     m_ECS.addComponent<CDamage>(id, weapon.damage);
     m_ECS.addComponent<CAttackHitbox>(id, attackerID);
-    m_ECS.addComponent<CInteractionBox>(id, hitboxSize, DAMAGE_LAYER, weapon.targetMask);
+    m_ECS.addComponent<CCollider>(
+        id,
+        hitboxSize,
+        DAMAGE_LAYER,
+        weapon.targetMask,
+        Color{0, 0, 255, 255},
+        true
+    );
 
     if (weapon.hitboxAnimation.empty()) {
         m_ECS.addComponent<CLifespan>(id, std::max(1, weapon.hitboxActiveFrames));
@@ -1599,15 +1592,19 @@ bool Scene_Play::hasLineOfSight(Vec2 origin, Vec2 target)
     float dist    = delta.length();
     Vec2  dir     = delta / dist;          // normalized
 
-    for (auto [obstacle, box, transform] : m_ECS.constView<CCollisionBox, CTransform>()) {
-        if ((box.layer & OBSTACLE_LAYER) == 0) continue;   // only solid obstacles
+    for (auto [obstacle, collider, transform] : m_ECS.constView<CCollider, CTransform>()) {
+        for (const auto& shape : collider.shapes) {
+            if (shape.isTrigger || (shape.layer & OBSTACLE_LAYER) == 0) {
+                continue;
+            }
 
-        Vec2 pos    = transform.pos;
-        Vec2 boxMin = pos - box.halfSize;
-        Vec2 boxMax = pos + box.halfSize;
+            Vec2 pos = transform.pos + shape.offset;
+            Vec2 boxMin = pos - shape.halfSize;
+            Vec2 boxMax = pos + shape.halfSize;
 
-        if (rayIntersectsAABB(origin, dir, dist, boxMin, boxMax)) {
-            return false;   // something is in the way
+            if (rayIntersectsAABB(origin, dir, dist, boxMin, boxMax)) {
+                return false;
+            }
         }
     }
     return true;

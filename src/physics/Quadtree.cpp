@@ -30,8 +30,8 @@ void Quadtree::printTree(const std::string& prefix, const std::string& branch)
     std::cout << std::endl;
 
     // Print entities in this node
-    for (auto& entity : m_objects) {
-        std::cout << prefix << "  --entity" << entity.getID() << std::endl;
+    for (auto& object : m_objects) {
+        std::cout << prefix << "  --object" << object.index << std::endl;
     }
 
     // Print children recursively
@@ -88,9 +88,14 @@ int Quadtree::countLeafs(int count)
     return count;
 }
 
-std::vector<Entity> Quadtree::getObjects() const
+std::vector<size_t> Quadtree::getObjects() const
 { 
-    return m_objects;
+    std::vector<size_t> objects;
+    objects.reserve(m_objects.size());
+    for (const auto& object : m_objects) {
+        objects.push_back(object.index);
+    }
+    return objects;
 }
 
 std::vector<std::shared_ptr<Quadtree>> Quadtree::createQuadtreeVector()

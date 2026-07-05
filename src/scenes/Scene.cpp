@@ -253,25 +253,30 @@ void Scene::sRenderBasic() {
 
     if (m_drawCollision)
     {
-        renderBox<CCollisionBox>();
+        renderColliderShapes(false);
     }
     if (m_drawInteraction)
     {
-        renderBox<CInteractionBox>();
+        renderColliderShapes(true);
     }
 }
 
-template<typename BoxType>
-void Scene::renderBox() {
-    for (auto [e, box, transform] : m_ECS.constView<BoxType, CTransform>())
+void Scene::renderColliderShapes(bool triggers) {
+    for (auto [e, collider, transform] : m_ECS.constView<CCollider, CTransform>())
     {
-        RectF boxRect{
-            transform.pos.x - box.halfSize.x,
-            transform.pos.y - box.halfSize.y,
-            box.size.x,
-            box.size.y
-        };
-        m_game->render().drawWorldRect(boxRect, box.color);
+        for (const auto& shape : collider.shapes) {
+            if (shape.isTrigger != triggers) {
+                continue;
+            }
+            const Vec2 center = transform.pos + shape.offset;
+            RectF boxRect{
+                center.x - shape.halfSize.x,
+                center.y - shape.halfSize.y,
+                shape.size.x,
+                shape.size.y
+            };
+            m_game->render().drawWorldRect(boxRect, shape.debugColor);
+        }
     }
 }
 
@@ -345,7 +350,7 @@ void Scene::spawnButton(
     CSprite& sprite = addSprite(id, unpressed, 3);
     Vec2 spriteSize = sprite.size();
     m_ECS.addComponent<CTransform>(id, pos);
-    m_ECS.addComponent<CCollisionBox>(id, spriteSize);
+    m_ECS.addComponent<CCollider>(id, spriteSize);
     m_ECS.addComponent<CName>(id, name);
     m_ECS.addComponent<CText>(id, dialog, spriteSize.y*0.9f, "Minecraft");
 }

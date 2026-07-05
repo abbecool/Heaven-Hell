@@ -85,7 +85,7 @@ void Scene_Inventory::spawnItem(std::string sprite)
         static_cast<float>(itemIndex / columnCount)
     };
     m_ECS.addComponent<CTransform>(entityID, pos);
-    m_ECS.addComponent<CCollisionBox>(entityID, Vec2 {8, 8});
+    m_ECS.addComponent<CCollider>(entityID, Vec2 {8, 8});
 
     addVisual(entityID, sprite, 3);
 }

@@ -1,6 +1,10 @@
-#include <cmath>
-
 #include "physics/CollisionManager.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <string>
+
 #include "ecs/ScriptableEntity.hpp"
 #include "scenes/Scene_Play.hpp"
 
@@ -100,261 +104,378 @@ void handleProjectileHit(Scene_Play* scene, Entity target, Entity projectile)
     scene->destroyProjectile(projectile.getID());
 }
 
-bool checkCollisionLayerMask(const CCollisionBox& boxA, const CCollisionBox& boxB)
+uint64_t hashCombine(uint64_t seed, uint64_t value)
 {
-    const bool aTargetsB = (boxB.layer & boxA.mask) == boxB.layer;
-    const bool bTargetsA = (boxA.layer & boxB.mask) == boxA.layer;
-    return aTargetsB || bTargetsA;
+    return seed ^ (value + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2));
 }
 
 } // namespace
 
-void BaseCollisionManager::registerHandler(     
-    CollisionMask layerA, 
-    CollisionMask layerB, 
-    Handler handler
-){
-    uint8_t indexA = static_cast<uint8_t>(std::log2(static_cast<uint8_t>(layerA.to_ulong())));
-    uint8_t indexB = static_cast<uint8_t>(std::log2(static_cast<uint8_t>(layerB.to_ulong())));
-    
-    if (indexA > indexB) {
-        std::swap(indexA, indexB);
-    }
-    m_handlerMatrix[indexA][indexB] = handler;
-}
-
-template <typename T>
-void BaseCollisionManager::newQuadtree(Vec2 pos, Vec2 size){
-    m_quadRoot = std::make_unique<Quadtree>(pos, size);
-    for (auto [e, box, transform] : m_ECS->constView<T, CTransform>()){
-        Entity entity = {e, m_ECS};
-        auto entityPos = transform.pos;
-        auto entitySize = box.size;
-        m_quadRoot->insert1<T>(entity, entityPos, entitySize);
-    }
-}
-
-void BaseCollisionManager::handleCollision(
-    EntityID entityIDA, CollisionMask layerA, 
-    EntityID entityIDB, CollisionMask layerB, Vec2 overlap){
-    uint8_t indexA = static_cast<uint8_t>(std::log2(static_cast<uint8_t>(layerA.to_ulong())));
-    uint8_t indexB = static_cast<uint8_t>(std::log2(static_cast<uint8_t>(layerB.to_ulong())));
-    
-    // Ensure entityA always corresponds to the smaller index for handler signature consistency
-    if (indexA > indexB) {
-        std::swap(entityIDA, entityIDB);
-        std::swap(indexA, indexB);
-        overlap*=-1;
-    }
-    
-    Entity entityA = {entityIDA, m_ECS};
-    Entity entityB = {entityIDB, m_ECS};
-    
-    if (m_handlerMatrix[indexA][indexB])
-    {
-        m_handlerMatrix[indexA][indexB](entityA, entityB, overlap);
-    }
-}
-
-Vec2 BaseCollisionManager::calculateDelta(Vec2 aPos, Vec2 aSize, Vec2 bPos, Vec2 bSize) const {
-    return ( (aPos + aSize) - (bPos + bSize) ).abs_elem();
-}
-
-Vec2 BaseCollisionManager::calculateHorizontalMovement(
-    const Vec2& aPos, const Vec2& aSize, 
-    const Vec2& bPos, const Vec2& bSize, 
-    const Vec2& overlap, const Vec2& prevOverlap) const 
+uint8_t CollisionManager::layerIndex(CollisionMask layer)
 {
-    Vec2 move = { 0, 0 };
+    const auto value = layer.to_ulong();
+    if (value == 0) {
+        return 0;
+    }
+    return static_cast<uint8_t>(std::log2(static_cast<double>(value)));
+}
+
+uint64_t CollisionManager::pairKey(size_t first, size_t second)
+{
+    if (first > second) {
+        std::swap(first, second);
+    }
+    return (static_cast<uint64_t>(first) << 32) | static_cast<uint64_t>(second);
+}
+
+uint64_t CollisionManager::triggerPairKey(const ColliderProxy& first, const ColliderProxy& second)
+{
+    EntityID entityA = first.entity;
+    EntityID entityB = second.entity;
+    uint8_t layerA = layerIndex(first.layer);
+    uint8_t layerB = layerIndex(second.layer);
+
+    if (entityA > entityB || (entityA == entityB && layerA > layerB)) {
+        std::swap(entityA, entityB);
+        std::swap(layerA, layerB);
+    }
+
+    uint64_t key = 1469598103934665603ULL;
+    key = hashCombine(key, entityA);
+    key = hashCombine(key, entityB);
+    key = hashCombine(key, layerA);
+    key = hashCombine(key, layerB);
+    return key;
+}
+
+bool CollisionManager::layersMatch(const ColliderProxy& first, const ColliderProxy& second)
+{
+    const bool firstTargetsSecond = (second.layer & first.targetMask) == second.layer;
+    const bool secondTargetsFirst = (first.layer & second.targetMask) == first.layer;
+    return firstTargetsSecond || secondTargetsFirst;
+}
+
+bool CollisionManager::aabbIntersects(const ColliderProxy& first, const ColliderProxy& second)
+{
+    const Vec2 firstMin = first.center - first.halfSize;
+    const Vec2 secondMin = second.center - second.halfSize;
+
+    const bool xOverlap = (firstMin.x + first.size.x > secondMin.x) &&
+        (secondMin.x + second.size.x > firstMin.x);
+    const bool yOverlap = (firstMin.y + first.size.y > secondMin.y) &&
+        (secondMin.y + second.size.y > firstMin.y);
+
+    return xOverlap && yOverlap;
+}
+
+Vec2 CollisionManager::calculateDelta(Vec2 aPos, Vec2 aSize, Vec2 bPos, Vec2 bSize) const
+{
+    return ((aPos + aSize) - (bPos + bSize)).abs_elem();
+}
+
+Vec2 CollisionManager::calculateHorizontalMovement(
+    const Vec2& aPos,
+    const Vec2& aSize,
+    const Vec2& bPos,
+    const Vec2& bSize,
+    const Vec2& overlap,
+    const Vec2& prevOverlap
+) const
+{
+    Vec2 move = {0, 0};
     if (prevOverlap.y <= 0) {
         return move;
     }
-    
+
     if ((aPos.x + aSize.x) > (bPos.x + bSize.x)) {
-        move += Vec2 { overlap.x, 0.0f };
+        move += Vec2{overlap.x, 0.0f};
     }
     if ((aPos.x + aSize.x) < (bPos.x + bSize.x)) {
-        move -= Vec2 { overlap.x, 0.0f };
+        move -= Vec2{overlap.x, 0.0f};
     }
     return move;
 }
 
-Vec2 BaseCollisionManager::calculateVerticalMovement(
-    const Vec2& aPos, const Vec2& aSize, 
-    const Vec2& bPos, const Vec2& bSize, 
-    const Vec2& overlap, const Vec2& prevOverlap) const 
+Vec2 CollisionManager::calculateVerticalMovement(
+    const Vec2& aPos,
+    const Vec2& aSize,
+    const Vec2& bPos,
+    const Vec2& bSize,
+    const Vec2& overlap,
+    const Vec2& prevOverlap
+) const
 {
-    Vec2 move = { 0, 0 };
+    Vec2 move = {0, 0};
     if (prevOverlap.x <= 0) {
         return move;
     }
-    
-    if ((aPos.y + aSize.y/2) > (bPos.y + bSize.y/2)) {
-        move += Vec2 { 0.0f, overlap.y };
+
+    if ((aPos.y + aSize.y / 2) > (bPos.y + bSize.y / 2)) {
+        move += Vec2{0.0f, overlap.y};
     }
-    if ((aPos.y + aSize.y/2) < (bPos.y + bSize.y/2)) {
-        move -= Vec2 { 0.0f, overlap.y };
+    if ((aPos.y + aSize.y / 2) < (bPos.y + bSize.y / 2)) {
+        move -= Vec2{0.0f, overlap.y};
     }
     return move;
 }
 
-Vec2 BaseCollisionManager::collisionOverlap(CTransform t1, CTransform t2, Vec2 b1, Vec2 b2){    
-    Vec2 aSize = b1/2;
-    Vec2 bSize = b2/2;
-    Vec2 aPos = t1.pos - b1/2;
-    Vec2 bPos = t2.pos - b2/2;
-    Vec2 aPrevPos = t1.prevPos - b1/2;
-    Vec2 bPrevPos = t2.prevPos - b2/2;
-    
-    Vec2 delta = calculateDelta(aPos, aSize, bPos, bSize);
-    Vec2 prevDelta = calculateDelta(aPrevPos, aSize, bPrevPos, bSize);
-    Vec2 overlap = aSize + bSize - delta;
-    Vec2 prevOverlap = aSize + bSize - prevDelta;
-    
-    Vec2 horizontalMove = calculateHorizontalMovement(aPos, aSize, bPos, bSize, overlap, prevOverlap);
-    Vec2 verticalMove = calculateVerticalMovement(aPos, aSize, bPos, bSize, overlap, prevOverlap);
-    
+Vec2 CollisionManager::collisionOverlap(const ColliderProxy& first, const ColliderProxy& second) const
+{
+    const Vec2 firstTopLeft = first.center - first.halfSize;
+    const Vec2 secondTopLeft = second.center - second.halfSize;
+    const Vec2 firstPrevTopLeft = first.prevCenter - first.halfSize;
+    const Vec2 secondPrevTopLeft = second.prevCenter - second.halfSize;
+
+    const Vec2 delta = calculateDelta(firstTopLeft, first.halfSize, secondTopLeft, second.halfSize);
+    const Vec2 prevDelta = calculateDelta(firstPrevTopLeft, first.halfSize, secondPrevTopLeft, second.halfSize);
+    const Vec2 overlap = first.halfSize + second.halfSize - delta;
+    const Vec2 prevOverlap = first.halfSize + second.halfSize - prevDelta;
+
+    const Vec2 horizontalMove = calculateHorizontalMovement(
+        firstTopLeft,
+        first.halfSize,
+        secondTopLeft,
+        second.halfSize,
+        overlap,
+        prevOverlap
+    );
+    const Vec2 verticalMove = calculateVerticalMovement(
+        firstTopLeft,
+        first.halfSize,
+        secondTopLeft,
+        second.halfSize,
+        overlap,
+        prevOverlap
+    );
+
     return horizontalMove + verticalMove;
 }
 
-bool BaseCollisionManager::isCollided(
-    CTransform t1, 
-    CTransform t2, 
-    CCollisionBox b1, 
-    CCollisionBox b2
-){
-    Vec2 aSize = b1.size;
-    Vec2 bSize = b2.size;
-    Vec2 aPos = t1.pos - b1.halfSize;
-    Vec2 bPos = t2.pos - b2.halfSize;
+void CollisionManager::registerSolidHandler(CollisionMask layerA, CollisionMask layerB, Handler handler)
+{
+    uint8_t indexA = layerIndex(layerA);
+    uint8_t indexB = layerIndex(layerB);
 
-    bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
-    bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
-
-    return (x_overlap && y_overlap);
+    if (indexA > indexB) {
+        std::swap(indexA, indexB);
+    }
+    m_solidHandlers[indexA][indexB] = handler;
 }
 
-bool BaseCollisionManager::isCollided(
-    CTransform t1, 
-    CTransform t2, 
-    CInteractionBox b1, 
-    CInteractionBox b2){
-    Vec2 aSize = b1.size;
-    Vec2 bSize = b2.size;
-    Vec2 aPos = t1.pos - b1.halfSize;
-    Vec2 bPos = t2.pos - b2.halfSize;
+void CollisionManager::registerTriggerHandler(CollisionMask layerA, CollisionMask layerB, Handler handler)
+{
+    uint8_t indexA = layerIndex(layerA);
+    uint8_t indexB = layerIndex(layerB);
 
-    bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
-    bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
-
-    return (x_overlap && y_overlap);
+    if (indexA > indexB) {
+        std::swap(indexA, indexB);
+    }
+    m_triggerHandlers[indexA][indexB] = handler;
 }
 
-bool BaseCollisionManager::isCollided(CTransform t1, CTransform t2, CBox b1, CBox b2){
-    Vec2 aSize = b1.size;
-    Vec2 bSize = b2.size;
-    Vec2 aPos = t1.pos - b1.halfSize;
-    Vec2 bPos = t2.pos - b2.halfSize;
+void CollisionManager::dispatch(
+    CollisionMatrix& matrix,
+    EntityID entityIDA,
+    CollisionMask layerA,
+    EntityID entityIDB,
+    CollisionMask layerB,
+    Vec2 overlap
+)
+{
+    uint8_t indexA = layerIndex(layerA);
+    uint8_t indexB = layerIndex(layerB);
 
-    bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
-    bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
+    if (indexA > indexB) {
+        std::swap(entityIDA, entityIDB);
+        std::swap(indexA, indexB);
+        overlap *= -1.0f;
+    }
 
-    return (x_overlap && y_overlap);
+    Entity entityA = {entityIDA, m_ECS};
+    Entity entityB = {entityIDB, m_ECS};
+
+    if (matrix[indexA][indexB]) {
+        matrix[indexA][indexB](entityA, entityB, overlap);
+    }
 }
 
-void BaseCollisionManager::renderQuadtree(RenderBackend& renderer){
-    Color color = {255, 0, 0, 255};
-    m_quadRoot->renderBoundary(renderer, color);
+void CollisionManager::buildQuadtree(Vec2 pos, Vec2 size)
+{
+    m_quadRoot = std::make_unique<Quadtree>(pos, size);
+    m_proxies.clear();
+    m_processedShapePairs.clear();
+    m_processedTriggerPairs.clear();
+
+    for (auto [entityID, collider, transform] : m_ECS->constView<CCollider, CTransform>()) {
+        for (size_t shapeIndex = 0; shapeIndex < collider.shapes.size(); ++shapeIndex) {
+            const ColliderShape& shape = collider.shapes[shapeIndex];
+            if (shape.size.x <= 0.0f || shape.size.y <= 0.0f || shape.layer == EMPTY_MASK) {
+                continue;
+            }
+
+            ColliderProxy proxy;
+            proxy.entity = entityID;
+            proxy.shapeIndex = shapeIndex;
+            proxy.center = transform.pos + shape.offset;
+            proxy.prevCenter = transform.prevPos + shape.offset;
+            proxy.size = shape.size;
+            proxy.halfSize = shape.halfSize;
+            proxy.layer = shape.layer;
+            proxy.targetMask = shape.targetMask;
+            proxy.isTrigger = shape.isTrigger;
+
+            const size_t proxyIndex = m_proxies.size();
+            m_proxies.push_back(proxy);
+            m_quadRoot->insert(proxyIndex, proxy.center, proxy.size);
+        }
+    }
 }
 
-CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene){
-    m_ECS = ecs;
-    m_scene = scene;
-    registerHandler(PLAYER_LAYER, OBSTACLE_LAYER, handleBodyCollision);
-    registerHandler(PLAYER_LAYER, ENEMY_LAYER, handleBodyCollision);
-    registerHandler(PLAYER_LAYER, FRIENDLY_LAYER, handleBodyCollision);
-    registerHandler(FRIENDLY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
-    registerHandler(FRIENDLY_LAYER, FRIENDLY_LAYER, handleBodyCollision);
-    registerHandler(FRIENDLY_LAYER, ENEMY_LAYER, handleBodyCollision);
-    registerHandler(
+void CollisionManager::processQuadtreeLeaf(const std::vector<size_t>& proxyIndices)
+{
+    for (size_t a = 0; a < proxyIndices.size(); ++a) {
+        const size_t proxyIndexA = proxyIndices[a];
+        const ColliderProxy& proxyA = m_proxies[proxyIndexA];
+
+        for (size_t b = a + 1; b < proxyIndices.size(); ++b) {
+            const size_t proxyIndexB = proxyIndices[b];
+            const ColliderProxy& proxyB = m_proxies[proxyIndexB];
+
+            if (proxyA.entity == proxyB.entity) {
+                continue;
+            }
+
+            const uint64_t shapePair = pairKey(proxyIndexA, proxyIndexB);
+            if (!m_processedShapePairs.insert(shapePair).second) {
+                continue;
+            }
+
+            if (!layersMatch(proxyA, proxyB) || !aabbIntersects(proxyA, proxyB)) {
+                continue;
+            }
+
+            if (proxyA.isTrigger || proxyB.isTrigger) {
+                const uint64_t triggerPair = triggerPairKey(proxyA, proxyB);
+                if (m_processedTriggerPairs.insert(triggerPair).second) {
+                    dispatch(
+                        m_triggerHandlers,
+                        proxyA.entity,
+                        proxyA.layer,
+                        proxyB.entity,
+                        proxyB.layer,
+                        {0, 0}
+                    );
+                }
+                continue;
+            }
+
+            const Vec2 overlap = collisionOverlap(proxyA, proxyB);
+            dispatch(
+                m_solidHandlers,
+                proxyA.entity,
+                proxyA.layer,
+                proxyB.entity,
+                proxyB.layer,
+                overlap
+            );
+        }
+    }
+}
+
+CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene)
+    : m_ECS(ecs), m_scene(scene)
+{
+    registerSolidHandler(PLAYER_LAYER, OBSTACLE_LAYER, handleBodyCollision);
+    registerSolidHandler(PLAYER_LAYER, ENEMY_LAYER, handleBodyCollision);
+    registerSolidHandler(PLAYER_LAYER, FRIENDLY_LAYER, handleBodyCollision);
+    registerSolidHandler(FRIENDLY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
+    registerSolidHandler(FRIENDLY_LAYER, FRIENDLY_LAYER, handleBodyCollision);
+    registerSolidHandler(FRIENDLY_LAYER, ENEMY_LAYER, handleBodyCollision);
+    registerSolidHandler(
         ENEMY_LAYER,
         PROJECTILE_LAYER,
         [this](Entity enemy, Entity projectile, Vec2 overlap) {
             handleProjectileHit(m_scene, enemy, projectile);
         }
     );
-    registerHandler(
+    registerSolidHandler(
         PLAYER_LAYER,
         PROJECTILE_LAYER,
         [this](Entity player, Entity projectile, Vec2 overlap) {
             handleProjectileHit(m_scene, player, projectile);
         }
     );
-    registerHandler(
+    registerSolidHandler(
         FRIENDLY_LAYER,
         PROJECTILE_LAYER,
         [this](Entity friendly, Entity projectile, Vec2 overlap) {
             handleProjectileHit(m_scene, friendly, projectile);
         }
     );
-    registerHandler(ENEMY_LAYER, ENEMY_LAYER, handleBodyCollision);
-    registerHandler(ENEMY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
-    registerHandler(
+    registerSolidHandler(ENEMY_LAYER, ENEMY_LAYER, handleBodyCollision);
+    registerSolidHandler(ENEMY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
+    registerSolidHandler(
         PROJECTILE_LAYER,
         OBSTACLE_LAYER,
         [this](Entity projectile, Entity obstacle, Vec2 overlap) {
-            if (!projectile.hasComponent<CProjectileState>() ||
-                projectile.getComponent<CProjectileState>().phase != ProjectilePhase::Flying) {
+            if (!isFlyingProjectile(projectile)) {
                 return;
             }
-
             m_scene->destroyProjectile(projectile.getID());
         }
     );
+
+    registerTriggerHandler(
+        PLAYER_LAYER,
+        FRIENDLY_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { handlePlayerFriendly(a, b, overlap); }
+    );
+    registerTriggerHandler(
+        PLAYER_LAYER,
+        LOOT_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { handlePlayerLoot(a, b, overlap); }
+    );
+    registerTriggerHandler(
+        PLAYER_LAYER,
+        AREA_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { handlePlayerArea(a, b, overlap); }
+    );
+    registerTriggerHandler(
+        DAMAGE_LAYER,
+        ENEMY_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { handleDamageHitbox(a, b, overlap); }
+    );
+    registerTriggerHandler(
+        DAMAGE_LAYER,
+        PLAYER_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { handleDamageHitbox(a, b, overlap); }
+    );
+    registerTriggerHandler(
+        DAMAGE_LAYER,
+        FRIENDLY_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { handleDamageHitbox(a, b, overlap); }
+    );
 }
 
-void CollisionManager::processQuadtreeLeaf(std::vector<Entity>& entityVector) {
-    auto& collisionPool = m_ECS->getComponentPool<CCollisionBox>();
-    auto& transformPool = m_ECS->getComponentPool<CTransform>();
-    
-    // Double loop over all entities inside this quadtree leaf
-    for (size_t a = 0; a < entityVector.size(); ++a) {
-        EntityID entityIDA = entityVector[a].getID();
-        auto& collisionA = collisionPool.getComponent(entityIDA);
-        auto& transformA = transformPool.getComponent(entityIDA);
-        
-        for (size_t b = a + 1; b < entityVector.size(); ++b) {
-            EntityID entityIDB = entityVector[b].getID();
-            auto& collisionB = collisionPool.getComponent(entityIDB);
-            auto& transformB = transformPool.getComponent(entityIDB);
-            
-            // Check if entities actually collide
-            if (!isCollided(transformA, transformB, collisionA, collisionB)) {
-                continue;
-            }
-            if (!checkCollisionLayerMask(collisionA, collisionB)) {
-                continue;
-            }
-            
-            // Calculate overlap and handle collision
-            auto overlap = collisionOverlap(transformA, transformB, collisionA.size, collisionB.size);
-            handleCollision(entityIDA, collisionA.layer, entityIDB, collisionB.layer, overlap);
-        }
-    }
-}
-
-void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize){
-    newQuadtree<CCollisionBox>(treePos, treeSize);
+void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize)
+{
+    buildQuadtree(treePos, treeSize);
     auto quadVector = m_quadRoot->createQuadtreeVector();
-    
-    // Process all quadtree leaves
-    for (auto quadleaf : quadVector) {
-        std::vector<Entity> entityVector = quadleaf->getObjects();
-        processQuadtreeLeaf(entityVector);
+
+    for (const auto& quadleaf : quadVector) {
+        processQuadtreeLeaf(quadleaf->getObjects());
     }
 }
 
-void InteractionManager::handleDamageHitbox(Entity entityA, Entity entityB, Vec2 overlap)
+void CollisionManager::renderQuadtree(RenderBackend& renderer)
+{
+    if (!m_quadRoot) {
+        return;
+    }
+    m_quadRoot->renderBoundary(renderer, {255, 0, 0, 255});
+}
+
+void CollisionManager::handleDamageHitbox(Entity entityA, Entity entityB, Vec2 overlap)
 {
     Entity hitbox = entityA;
     Entity target = entityB;
@@ -379,18 +500,15 @@ void InteractionManager::handleDamageHitbox(Entity entityA, Entity entityB, Vec2
     applyDamage(target, hitbox.getComponent<CDamage>().damage);
 }
 
-bool InteractionManager::talkToNPC(Entity player, Entity friendly){
+bool CollisionManager::talkToNPC(Entity player, Entity friendly)
+{
+    if (!player.hasComponent<CInput>()) {
+        return false;
+    }
+    if (!player.getComponent<CInput>().interact) {
+        return false;
+    }
 
-    if (!player.hasComponent<CInput>())
-    {
-        return false;
-    }
-    if (!player.getComponent<CInput>().interact)
-    {
-        return false;
-    }
-    
-    int currentQuestID = m_scene->getStoryManager().getCurrentQuestID();
     std::string name = friendly.getComponent<CName>().name;
     std::string currentDialog = m_scene->getStoryManager().getDialog(name);
 
@@ -409,20 +527,25 @@ bool InteractionManager::talkToNPC(Entity player, Entity friendly){
     }
     m_scene->Emit(Event{EventType::DialogueFinished, name});
     return true;
-} 
+}
 
-bool InteractionManager::possesNPC(Entity player, Entity friendly){
-    if (!player.hasComponent<CInput>())          { return false; }
-    if (!player.getComponent<CInput>().posses)   { return false; }
-    if (!friendly.hasComponent<CPossesLevel>())  { return false; }
+bool CollisionManager::possesNPC(Entity player, Entity friendly)
+{
+    if (!player.hasComponent<CInput>()) {
+        return false;
+    }
+    if (!player.getComponent<CInput>().posses) {
+        return false;
+    }
+    if (!friendly.hasComponent<CPossesLevel>()) {
+        return false;
+    }
 
     friendly.removeComponent<CPossesLevel>();
     EntityID oldID = player.getID();
     EntityID newID = friendly.getID();
 
-    // 1. Transfer all components the systems depend on BEFORE changing m_player
-    m_ECS->copyComponent<CCollisionBox>(newID, oldID);
-    m_ECS->copyComponent<CInteractionBox>(newID, oldID);
+    m_ECS->copyComponent<CCollider>(newID, oldID);
     m_ECS->copyComponent<CInventory>(newID, oldID);
     m_ECS->copyComponent<CHealth>(newID, oldID);
     if (player.hasComponent<CCurrency>()) {
@@ -430,35 +553,29 @@ bool InteractionManager::possesNPC(Entity player, Entity friendly){
     }
     m_ECS->copyComponent<CState>(newID, oldID);
 
-    // Copy weapon only if old player had one
     if (player.hasComponent<CWeapon>()) {
         m_ECS->copyComponent<CWeapon>(newID, oldID);
     }
 
-    // 2. Give the new player an input component
     if (!friendly.hasComponent<CInput>()) {
         friendly.addComponent<CInput>();
     }
 
-    // 3. Queue the old player for removal BEFORE updating m_player
-    //    so no system tries to read m_player = newID while oldID still exists
     m_ECS->queueRemoveEntity(oldID);
-
-    // 4. Update m_player last, after everything is set up
     m_scene->changePlayerID(newID);
 
     return true;
 }
 
-void InteractionManager::handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap){
-    if (talkToNPC(player, friendly)){
+void CollisionManager::handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap)
+{
+    if (talkToNPC(player, friendly)) {
         return;
     }
     possesNPC(player, friendly);
-    return;
 }
 
-bool InteractionManager::addItemToInventory(Entity player, const Item& item)
+bool CollisionManager::addItemToInventory(Entity player, const Item& item)
 {
     if (!player.hasComponent<CInventory>()) {
         return false;
@@ -475,7 +592,7 @@ bool InteractionManager::addItemToInventory(Entity player, const Item& item)
         int index = slot.index;
         slot = item;
         slot.index = index;
-        if (index == activeItem.index){
+        if (index == activeItem.index) {
             m_scene->updateActiveItem(index);
         }
         return true;
@@ -509,7 +626,7 @@ bool InteractionManager::addItemToInventory(Entity player, const Item& item)
     return true;
 }
 
-void InteractionManager::showLootLabel(Entity loot, const std::string& name)
+void CollisionManager::showLootLabel(Entity loot, const std::string& name)
 {
     constexpr int LabelLifespan = 16;
 
@@ -541,8 +658,9 @@ void InteractionManager::showLootLabel(Entity loot, const std::string& name)
     );
 }
 
-void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overlap){
-    if (!loot.hasComponent<CName>() || !loot.hasComponent<CItem>()){
+void CollisionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overlap)
+{
+    if (!loot.hasComponent<CName>() || !loot.hasComponent<CItem>()) {
         return;
     }
 
@@ -586,102 +704,13 @@ void InteractionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overl
         player.getComponent<CInput>().interact = false;
     }
     m_scene->Emit(Event{EventType::ItemPickedUp, name});
-    return;
 }
 
-void InteractionManager::handlePlayerArea(Entity player, Entity area, Vec2 overlap){
-    if (!area.hasComponent<CEvent>()){
+void CollisionManager::handlePlayerArea(Entity player, Entity area, Vec2 overlap)
+{
+    if (!area.hasComponent<CEvent>()) {
         return;
     }
     Event event = area.getComponent<CEvent>().event;
     m_scene->Emit(event);
-    return;
-}
-
-InteractionManager::InteractionManager(ECS* ecs, Scene_Play* scene){
-    m_ECS = ecs;
-    m_scene = scene;
-    registerHandler(PLAYER_LAYER, FRIENDLY_LAYER, 
-        [this](Entity a, Entity b, Vec2 overlap) {handlePlayerFriendly(a, b, overlap);}
-    );
-    registerHandler(PLAYER_LAYER, LOOT_LAYER, 
-        [this](Entity a, Entity b, Vec2 overlap) {handlePlayerLoot(a, b, overlap);}
-    );
-    registerHandler(PLAYER_LAYER, AREA_LAYER, 
-        [this](Entity a, Entity b, Vec2 overlap) {handlePlayerArea(a, b, overlap);}
-    );
-    registerHandler(DAMAGE_LAYER, ENEMY_LAYER,
-        [this](Entity a, Entity b, Vec2 overlap) {handleDamageHitbox(a, b, overlap);}
-    );
-    registerHandler(DAMAGE_LAYER, PLAYER_LAYER,
-        [this](Entity a, Entity b, Vec2 overlap) {handleDamageHitbox(a, b, overlap);}
-    );
-    registerHandler(DAMAGE_LAYER, FRIENDLY_LAYER,
-        [this](Entity a, Entity b, Vec2 overlap) {handleDamageHitbox(a, b, overlap);}
-    );
-    // registerHandler(PLAYER_LAYER, AREA_LAYER, 
-    //     [this](Entity a, Entity b, Vec2 overlap) {handlePlayerArea(a, b, overlap);}
-    // );
-}
-
-bool InteractionManager::checkInteractionLayerMask(const CInteractionBox& boxA, const CInteractionBox& boxB) const {
-    const bool aIsDamage = (boxA.layer & DAMAGE_LAYER) == DAMAGE_LAYER;
-    const bool bIsDamage = (boxB.layer & DAMAGE_LAYER) == DAMAGE_LAYER;
-
-    if (aIsDamage && !bIsDamage) {
-        return (boxB.layer & boxA.mask) != boxB.layer;
-    }
-    if (bIsDamage && !aIsDamage) {
-        return (boxA.layer & boxB.mask) != boxA.layer;
-    }
-
-    bool BLayer = (boxB.layer & boxA.mask) != boxB.layer;
-    bool ALayer = (boxA.layer & boxB.mask) != boxA.layer;
-    return BLayer || ALayer;
-}
-
-void InteractionManager::processInteractionLeaf(std::vector<Entity>& entityVector) {
-    auto& interactionPool = m_ECS->getComponentPool<CInteractionBox>();
-    auto& transformPool = m_ECS->getComponentPool<CTransform>();
-    
-    for (size_t a = 0; a < entityVector.size(); ++a) {
-        EntityID idA = entityVector[a].getID();
-        auto& interactionA = interactionPool.getComponent(idA);
-        auto& transformA = transformPool.getComponent(idA);
-        
-        for (size_t b = a + 1; b < entityVector.size(); ++b) {
-            EntityID idB = entityVector[b].getID();
-            
-            // Skip self-collision
-            if (idA == idB) {
-                continue;
-            }
-            
-            auto& interactionB = interactionPool.getComponent(idB);
-            auto& transformB = transformPool.getComponent(idB);
-            
-            // Check if interaction boxes collide
-            if (!isCollided(transformA, transformB, interactionA, interactionB)) {
-                continue;
-            }
-            
-            // Check layer mask compatibility
-            if (checkInteractionLayerMask(interactionA, interactionB)) {
-                continue;
-            }
-            
-            // Handle the interaction
-            handleCollision(idA, interactionA.layer, idB, interactionB.layer, {0, 0});
-        }
-    }
-}
-
-void InteractionManager::doInteractions(Vec2 treePos, Vec2 treeSize){
-    newQuadtree<CInteractionBox>(treePos, treeSize);
-    auto quadVector = m_quadRoot->createQuadtreeVector();
-
-    for (auto quadleaf : quadVector) {
-        std::vector<Entity> entityVector = quadleaf->getObjects();
-        processInteractionLeaf(entityVector);
-    }
 }

@@ -1,5 +1,6 @@
 #include "TestSupport.hpp"
 #include "ecs/ECS.hpp"
+#include "physics/Quadtree.hpp"
 
 #include <array>
 #include <algorithm>
@@ -192,6 +193,87 @@ void testEcsConstView()
     require(matches == 1, "const view returned the wrong number of entities");
 }
 
+void testColliderJsonParsesMultipleShapes()
+{
+    json colliderJson = {
+        {"shapes", {
+            {
+                {"offset", {{"x", 2}, {"y", -1}}},
+                {"size", {{"x", 8}, {"y", 10}}},
+                {"layer", "PLAYER_LAYER"},
+                {"targetMask", {"ENEMY_LAYER", "OBSTACLE_LAYER"}},
+                {"debugColor", {{"r", 1}, {"g", 2}, {"b", 3}, {"a", 4}}},
+                {"isTrigger", false}
+            },
+            {
+                {"offset", {{"x", 0}, {"y", 0}}},
+                {"size", {{"x", 4}, {"y", 6}}},
+                {"layer", "LOOT_LAYER"},
+                {"targetMask", {"PLAYER_LAYER"}},
+                {"debugColor", {{"r", 0}, {"g", 0}, {"b", 255}, {"a", 255}}},
+                {"isTrigger", true}
+            }
+        }}
+    };
+
+    CCollider collider(colliderJson);
+
+    require(collider.shapes.size() == 2, "collider json did not create both shapes");
+    require(collider.shapes[0].offset == Vec2{2, -1}, "collider shape offset parsed incorrectly");
+    require(collider.shapes[0].halfSize == Vec2{4, 5}, "collider shape half size was not calculated");
+    require((collider.shapes[0].targetMask & ENEMY_LAYER) == ENEMY_LAYER, "collider target mask missed enemy layer");
+    require((collider.shapes[0].targetMask & OBSTACLE_LAYER) == OBSTACLE_LAYER, "collider target mask missed obstacle layer");
+    require(collider.shapes[0].debugColor.r == 1, "collider debug color parsed incorrectly");
+    require(collider.shapes[1].isTrigger, "trigger shape did not parse isTrigger");
+}
+
+void testColliderConstructorsCalculateHalfSize()
+{
+    CCollider collider(Vec2{10, 20}, PLAYER_LAYER, ENEMY_LAYER);
+
+    require(collider.shapes.size() == 1, "single-shape collider constructor created the wrong shape count");
+    require(collider.shapes[0].size == Vec2{10, 20}, "single-shape collider constructor stored the wrong size");
+    require(collider.shapes[0].halfSize == Vec2{5, 10}, "single-shape collider constructor did not calculate half size");
+    require(collider.shapes[0].layer == PLAYER_LAYER, "single-shape collider constructor stored the wrong layer");
+    require(collider.shapes[0].targetMask == ENEMY_LAYER, "single-shape collider constructor stored the wrong target mask");
+    require(!collider.shapes[0].isTrigger, "single-shape collider constructor should default to solid");
+}
+
+void testQuadtreeStoresColliderProxyIndices()
+{
+    Quadtree tree({0, 0}, {256, 256});
+    tree.insert(0, {0, 0}, {16, 16});
+    tree.insert(1, {24, 0}, {16, 16});
+
+    const auto objects = tree.getObjects();
+    require(objects.size() == 2, "quadtree did not store both proxy indices");
+    require(std::find(objects.begin(), objects.end(), 0) != objects.end(), "quadtree missed proxy index 0");
+    require(std::find(objects.begin(), objects.end(), 1) != objects.end(), "quadtree missed proxy index 1");
+}
+
+void testQuadtreeCanReturnDuplicateProxyLeafAppearances()
+{
+    Quadtree tree({0, 0}, {256, 256});
+    tree.insert(0, {0, 0}, {160, 160});
+    tree.insert(1, {-72, -72}, {16, 16});
+    tree.insert(2, {-48, -72}, {16, 16});
+    tree.insert(3, {48, -72}, {16, 16});
+    tree.insert(4, {72, -72}, {16, 16});
+    tree.insert(5, {-72, 72}, {16, 16});
+    tree.insert(6, {-48, 72}, {16, 16});
+    tree.insert(7, {48, 72}, {16, 16});
+    tree.insert(8, {72, 72}, {16, 16});
+
+    auto leaves = tree.createQuadtreeVector();
+    size_t occurrences = 0;
+    for (const auto& leaf : leaves) {
+        const auto objects = leaf->getObjects();
+        occurrences += static_cast<size_t>(std::count(objects.begin(), objects.end(), 0));
+    }
+
+    require(occurrences > 1, "quadtree test setup did not produce duplicate proxy leaf appearances");
+}
+
 void testEcsQueuedRemoval()
 {
     ECS ecs;
@@ -242,6 +324,10 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"view_missing_pool_is_empty", testEcsViewMissingPoolIsEmpty},
     TestSupport::TestCase{"view_entities_legacy", testEcsViewEntitiesLegacy},
     TestSupport::TestCase{"const_view", testEcsConstView},
+    TestSupport::TestCase{"collider_json_parses_multiple_shapes", testColliderJsonParsesMultipleShapes},
+    TestSupport::TestCase{"collider_constructors_calculate_half_size", testColliderConstructorsCalculateHalfSize},
+    TestSupport::TestCase{"quadtree_stores_collider_proxy_indices", testQuadtreeStoresColliderProxyIndices},
+    TestSupport::TestCase{"quadtree_can_return_duplicate_proxy_leaf_appearances", testQuadtreeCanReturnDuplicateProxyLeafAppearances},
     TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval},
     TestSupport::TestCase{"entity_zero_queued_component_removal", testEcsEntityZeroQueuedComponentRemoval}
 };

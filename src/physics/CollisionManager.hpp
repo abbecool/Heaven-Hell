@@ -1,75 +1,85 @@
 #pragma once
-#include <functional>
+
 #include <array>
+#include <functional>
+#include <memory>
+#include <unordered_set>
+#include <vector>
 
 #include "ecs/Components.hpp"
 #include "ecs/ECS.hpp"
+#include "ecs/Entity.hpp"
 #include "physics/Quadtree.hpp"
 #include "render/RenderBackend.hpp"
-// #include "scenes/Scene_Play.hpp"
+
 class Scene_Play;
 
 using Handler = std::function<void(Entity, Entity, Vec2)>;
 using CollisionMatrix = std::array<std::array<Handler, MAX_LAYERS>, MAX_LAYERS>;
 
-class BaseCollisionManager
+struct ColliderProxy
 {
-    private:
-    // Helper functions for collision calculation
-    Vec2 calculateDelta(Vec2 aPos, Vec2 aSize, Vec2 bPos, Vec2 bSize) const;
-    Vec2 calculateHorizontalMovement(const Vec2& aPos, const Vec2& aSize, const Vec2& bPos, const Vec2& bSize, const Vec2& overlap, const Vec2& prevOverlap) const;
-    Vec2 calculateVerticalMovement(const Vec2& aPos, const Vec2& aSize, const Vec2& bPos, const Vec2& bSize, const Vec2& overlap, const Vec2& prevOverlap) const;
-    
-    public:
-    CollisionMatrix m_handlerMatrix;
-    ECS* m_ECS;
-    Scene_Play* m_scene;
-    
-    std::unique_ptr<Quadtree> m_quadRoot;
-    
-    BaseCollisionManager(){};
+    EntityID entity = 0;
+    size_t shapeIndex = 0;
+    Vec2 center = {0, 0};
+    Vec2 prevCenter = {0, 0};
+    Vec2 size = {0, 0};
+    Vec2 halfSize = {0, 0};
+    CollisionMask layer = EMPTY_MASK;
+    CollisionMask targetMask = EMPTY_MASK;
+    bool isTrigger = false;
+};
 
-    void registerHandler(
+class CollisionManager
+{
+private:
+    ECS* m_ECS = nullptr;
+    Scene_Play* m_scene = nullptr;
+    CollisionMatrix m_solidHandlers{};
+    CollisionMatrix m_triggerHandlers{};
+    std::unique_ptr<Quadtree> m_quadRoot;
+    std::vector<ColliderProxy> m_proxies;
+    std::unordered_set<uint64_t> m_processedShapePairs;
+    std::unordered_set<uint64_t> m_processedTriggerPairs;
+
+    static uint8_t layerIndex(CollisionMask layer);
+    static uint64_t pairKey(size_t first, size_t second);
+    static uint64_t triggerPairKey(const ColliderProxy& first, const ColliderProxy& second);
+    static bool layersMatch(const ColliderProxy& first, const ColliderProxy& second);
+    static bool aabbIntersects(const ColliderProxy& first, const ColliderProxy& second);
+
+    Vec2 calculateDelta(Vec2 aPos, Vec2 aSize, Vec2 bPos, Vec2 bSize) const;
+    Vec2 calculateHorizontalMovement(
+        const Vec2& aPos,
+        const Vec2& aSize,
+        const Vec2& bPos,
+        const Vec2& bSize,
+        const Vec2& overlap,
+        const Vec2& prevOverlap
+    ) const;
+    Vec2 calculateVerticalMovement(
+        const Vec2& aPos,
+        const Vec2& aSize,
+        const Vec2& bPos,
+        const Vec2& bSize,
+        const Vec2& overlap,
+        const Vec2& prevOverlap
+    ) const;
+    Vec2 collisionOverlap(const ColliderProxy& first, const ColliderProxy& second) const;
+
+    void registerSolidHandler(CollisionMask layerA, CollisionMask layerB, Handler handler);
+    void registerTriggerHandler(CollisionMask layerA, CollisionMask layerB, Handler handler);
+    void dispatch(
+        CollisionMatrix& matrix,
+        EntityID entityA,
         CollisionMask layerA,
-        CollisionMask layerB, 
-        Handler handler
-    );
-    void handleCollision(
-        EntityID entityA, 
-        CollisionMask layerA, 
-        EntityID entityB, 
-        CollisionMask layerB, 
+        EntityID entityB,
+        CollisionMask layerB,
         Vec2 overlap
     );
-    Vec2 collisionOverlap(CTransform t1, CTransform t2, Vec2 box1, Vec2 box2);
-    bool isCollided(CTransform t1, CTransform t2, CCollisionBox b1, CCollisionBox b2);
-    bool isCollided(CTransform t1, CTransform t2, CInteractionBox b1, CInteractionBox b2);
-    bool isCollided(CTransform t1, CTransform t2, CBox b1, CBox b2);
-    
-    template <typename T>
-    void newQuadtree(Vec2 pos, Vec2 size);
-    void renderQuadtree(RenderBackend& renderer);
-};
+    void buildQuadtree(Vec2 pos, Vec2 size);
+    void processQuadtreeLeaf(const std::vector<size_t>& proxyIndices);
 
-class CollisionManager : public BaseCollisionManager
-{    
-    private:
-    // Helper functions for collision processing
-    void processQuadtreeLeaf(std::vector<Entity>& entities);
-    
-    public:
-    CollisionManager(ECS* ecs, Scene_Play* scene);
-    void doCollisions(Vec2 pos, Vec2 size);
-    
-};
-
-class InteractionManager : public BaseCollisionManager
-{
-    private:
-    // Helper functions for interaction processing
-    bool checkInteractionLayerMask(const CInteractionBox& boxA, const CInteractionBox& boxB) const;
-    void processInteractionLeaf(std::vector<Entity>& entities);
-    
     bool talkToNPC(Entity player, Entity friendly);
     bool possesNPC(Entity player, Entity friendly);
     bool addItemToInventory(Entity player, const Item& item);
@@ -78,9 +88,12 @@ class InteractionManager : public BaseCollisionManager
     void handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap);
     void handlePlayerLoot(Entity player, Entity loot, Vec2 overlap);
     void handlePlayerArea(Entity player, Entity area, Vec2 overlap);
-    
-    public:
-    InteractionManager(ECS* ecs, Scene_Play* scene);
-    void doInteractions(Vec2 pos, Vec2 size);
-};
 
+public:
+    CollisionManager() = default;
+    CollisionManager(ECS* ecs, Scene_Play* scene);
+
+    void doCollisions(Vec2 pos, Vec2 size);
+    void renderQuadtree(RenderBackend& renderer);
+    const std::vector<ColliderProxy>& proxies() const { return m_proxies; }
+};

@@ -158,6 +158,8 @@ if (BUILD_TESTING)
 
     add_executable(ecs_tests
         tests/ecs/test_ecs.cpp
+        src/physics/Vec2.cpp
+        src/physics/Quadtree.cpp
     )
     target_include_directories(ecs_tests PRIVATE
         ${CMAKE_SOURCE_DIR}/src
@@ -175,6 +177,10 @@ if (BUILD_TESTING)
         view_missing_pool_is_empty
         view_entities_legacy
         const_view
+        collider_json_parses_multiple_shapes
+        collider_constructors_calculate_half_size
+        quadtree_stores_collider_proxy_indices
+        quadtree_can_return_duplicate_proxy_leaf_appearances
         queued_removal
         entity_zero_queued_component_removal
     )

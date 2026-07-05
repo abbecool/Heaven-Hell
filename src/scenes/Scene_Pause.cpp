@@ -31,7 +31,7 @@ Scene_Pause::Scene_Pause(Game* game)
 
 void Scene_Pause::saveLayout(const std::string& filename) {
     json j;
-    for (auto [e, dialog, collision, transform] : m_ECS.constView<CText, CCollisionBox, CTransform>()) {
+    for (auto [e, dialog, collider, transform] : m_ECS.constView<CText, CCollider, CTransform>()) {
         json button;
         button["label"] = dialog.text;
         button["position"]["x"] = transform.pos.x;
@@ -69,9 +69,9 @@ void Scene_Pause::sDoAction(const Action& action) {
         }
         if (action.name() == "CLICK") {
             m_hold_CLICK = true;
-            for (auto [e, collision, transform, sprite, text] : m_ECS.View<CCollisionBox, CTransform, CSprite, CText>())
+            for (auto [e, collider, transform, sprite, text] : m_ECS.View<CCollider, CTransform, CSprite, CText>())
             {
-                if (m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
+                if (m_physics.PointInCollider(m_mousePosition, transform, collider)){
                     setSprite(e, "button_pressed");
                 }
             }
@@ -80,12 +80,12 @@ void Scene_Pause::sDoAction(const Action& action) {
     if (action.type() == "END") {
         if (action.name() == "CLICK") {
             m_hold_CLICK = false;
-            for (auto [e, collision, transform, nameComponent] : m_ECS.constView<CCollisionBox, CTransform, CName>()){
+            for (auto [e, collider, transform, nameComponent] : m_ECS.constView<CCollider, CTransform, CName>()){
                 auto &name = nameComponent.name;
                 if (m_hold_CTRL) {
                     continue;
                 }
-                if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
+                if (!m_physics.PointInCollider(m_mousePosition, transform, collider)){
                     continue;
                 }
                 if ( name == "CONTINUE" ){
@@ -124,11 +124,9 @@ void Scene_Pause::sDoAction(const Action& action) {
 
 void Scene_Pause::sDragButton() {
     if (m_hold_CTRL && m_hold_CLICK) {
-        for (auto [e, collision, transform, name] : m_ECS.View<CCollisionBox, CTransform, CName>()) {
-            if (m_mousePosition.x < transform.pos.x + collision.halfSize.x && m_mousePosition.x >= transform.pos.x - collision.halfSize.x) {
-                if (m_mousePosition.y < transform.pos.y + collision.halfSize.y && m_mousePosition.y >= transform.pos.y - collision.halfSize.y) {
-                    transform.pos = m_mousePosition;
-                }
+        for (auto [e, collider, transform, name] : m_ECS.View<CCollider, CTransform, CName>()) {
+            if (m_physics.PointInCollider(m_mousePosition, transform, collider)) {
+                transform.pos = m_mousePosition;
             }
         }
     }

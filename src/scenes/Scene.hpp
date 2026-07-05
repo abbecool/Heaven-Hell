@@ -78,8 +78,7 @@ class Scene
     void drawSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
     void updateAnimations();
     void sRenderBasic();
-    template<typename T>
-    void renderBox();
+    void renderColliderShapes(bool triggers);
 
     virtual void doAction(const Action& action);
     void registerAction(InputCode inputKey, const std::string& actionName);

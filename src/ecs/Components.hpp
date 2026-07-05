@@ -171,67 +171,99 @@ private:
     }
 };
 
-struct CBox 
+inline CollisionMask collisionMaskFromJson(const json& value)
 {
-    Vec2 size;
-    Vec2 halfSize;
-    Vec2 offset;
-    CollisionMask layer = EMPTY_MASK;
-    CollisionMask mask = EMPTY_MASK; // bitmask of layers this entity should collide with
-    Color color = {255, 255, 255, 255};
+    if (value.is_string()) {
+        return componentMaskMap.at(value.get<std::string>());
+    }
 
-    CBox() {}
-    CBox(const Vec2& s) 
-        : size(s), halfSize(s/2.0), color({255, 255, 255, 255}) {}
-    CBox(const Vec2& s, CollisionMask l, CollisionMask m, Color c) // only use this after the new collision system is implemented
-        : size(s), halfSize(s/2.0), layer(l), mask(m), color(c) {}
-    CBox(const Vec2& s, Color c) // only use this after the new collision system is implemented
-        : size(s), halfSize(s/2.0), color(c) {}
-    CBox(json j, Color c){
-        color = c;
-        size = j["size"];
-        halfSize = size/2;
-        if (j.contains("color")){
-            color = Color{
-                static_cast<uint8_t>(j["color"]["r"].get<int>()),
-                static_cast<uint8_t>(j["color"]["g"].get<int>()),
-                static_cast<uint8_t>(j["color"]["b"].get<int>()),
-                static_cast<uint8_t>(j["color"]["a"].get<int>())
-            };
+    CollisionMask mask = EMPTY_MASK;
+    for (const auto& maskStr : value) {
+        mask |= componentMaskMap.at(maskStr.get<std::string>());
+    }
+    return mask;
+}
+
+inline Color colorFromJson(const json& value)
+{
+    return Color{
+        static_cast<uint8_t>(value.at("r").get<int>()),
+        static_cast<uint8_t>(value.at("g").get<int>()),
+        static_cast<uint8_t>(value.at("b").get<int>()),
+        static_cast<uint8_t>(value.at("a").get<int>())
+    };
+}
+
+struct ColliderShape
+{
+    Vec2 offset = {0, 0};
+    Vec2 size = {0, 0};
+    Vec2 halfSize = {0, 0};
+    CollisionMask layer = EMPTY_MASK;
+    CollisionMask targetMask = EMPTY_MASK;
+    Color debugColor = {255, 255, 255, 255};
+    bool isTrigger = false;
+
+    ColliderShape() = default;
+    ColliderShape(const Vec2& s)
+        : size(s), halfSize(s / 2.0f) {}
+    ColliderShape(const Vec2& s, CollisionMask l, CollisionMask targets, bool trigger = false)
+        : size(s), halfSize(s / 2.0f), layer(l), targetMask(targets), isTrigger(trigger) {}
+    ColliderShape(
+        const Vec2& shapeOffset,
+        const Vec2& shapeSize,
+        CollisionMask shapeLayer,
+        CollisionMask shapeTargets,
+        Color shapeDebugColor,
+        bool trigger
+    )
+        : offset(shapeOffset),
+          size(shapeSize),
+          halfSize(shapeSize / 2.0f),
+          layer(shapeLayer),
+          targetMask(shapeTargets),
+          debugColor(shapeDebugColor),
+          isTrigger(trigger) {}
+    ColliderShape(const json& j, Color defaultColor = {255, 255, 255, 255}, bool defaultTrigger = false)
+    {
+        offset = j.value("offset", Vec2{0, 0});
+        size = j.at("size").get<Vec2>();
+        halfSize = size / 2.0f;
+        debugColor = j.contains("debugColor") ? colorFromJson(j.at("debugColor")) : defaultColor;
+        isTrigger = j.value("isTrigger", defaultTrigger);
+        if (j.contains("layer")) {
+            layer = collisionMaskFromJson(j.at("layer"));
         }
-        if (j.contains("layer")){
-            layer = componentMaskMap[j["layer"]];
-        }
-        if (j.contains("mask")){
-            mask = EMPTY_MASK;
-            for (const auto& maskStr : j["mask"]) {
-                mask = mask | componentMaskMap.at(maskStr.get<std::string>());
-            }
+        if (j.contains("targetMask")) {
+            targetMask = collisionMaskFromJson(j.at("targetMask"));
         }
     }
 };
 
-struct CCollisionBox : public CBox
+struct CCollider
 {
-    CCollisionBox() {}
-    CCollisionBox(const Vec2& s) 
-        : CBox(s) {}
-    CCollisionBox(const Vec2& s, const Color color) 
-        : CBox(s, color) {}
+    std::vector<ColliderShape> shapes;
 
-    CCollisionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
-        : CBox(size, layer, mask, {255, 255, 255, 255}) {}
-    CCollisionBox(json j) 
-        : CBox(j, {255, 255, 255, 255}) {}    
-};
+    CCollider() = default;
+    CCollider(const Vec2& size)
+        : shapes{ColliderShape(size)} {}
+    CCollider(const Vec2& size, CollisionMask layer, CollisionMask targetMask, bool isTrigger = false)
+        : shapes{ColliderShape(size, layer, targetMask, isTrigger)} {}
+    CCollider(const Vec2& size, CollisionMask layer, CollisionMask targetMask, Color debugColor, bool isTrigger = false)
+        : shapes{ColliderShape(Vec2{0, 0}, size, layer, targetMask, debugColor, isTrigger)} {}
+    CCollider(std::vector<ColliderShape> colliderShapes)
+        : shapes(std::move(colliderShapes)) {}
+    CCollider(const json& j)
+    {
+        for (const auto& shapeJson : j.at("shapes")) {
+            shapes.emplace_back(shapeJson);
+        }
+    }
 
-struct CInteractionBox : public CBox
-{
-    CInteractionBox(){}    
-    CInteractionBox(const Vec2& size, CollisionMask layer, CollisionMask mask) // only use this after the new collision system is implemented
-        : CBox(size, layer, mask, {0, 0, 255, 255}) {}
-    CInteractionBox(json j) 
-        : CBox(j, {0, 0, 255, 255}) {} 
+    void addShape(const ColliderShape& shape)
+    {
+        shapes.push_back(shape);
+    }
 };
 
 struct CWater {

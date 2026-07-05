@@ -14,6 +14,7 @@ class Physics
         std::shared_ptr<Quadtree> m_interactionQuadRoot;
         Vec2 knockback(CKnockback& knockback);
         bool PointInRect(const Vec2& point, const Vec2& rectPos, const Vec2& rectSize);
+        bool PointInCollider(const Vec2& point, const CTransform& transform, const CCollider& collider, bool includeTriggers = true);
 
         void clearQuadtree();
         void createQuadtree(Vec2 pos, Vec2 size);

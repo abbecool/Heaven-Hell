@@ -1,37 +1,75 @@
 {
-    "rooter": {
-        "components": {
-            "CTransform": {"pos": "Nan"},
-            "CPhysicsBody": {"mass": 1, "moveForce": 1200, "maxSpeed": 50, "linearDamping": 24},
-            "CAnimation": {
-                "animation": "rooter-sheet",
-                "layer": 9
-            },
-            "CCollisionBox": {
-                "size": {"x": 8, "y":8}, 
-                "layer": "ENEMY_LAYER", 
-                "mask": ["FRIENDLY_LAYER", "OBSTACLE_LAYER", "ENEMY_LAYER"]
-            },
-            "CState": {"state": "Nan"},
-            "CInput": 0,
-            "CAIAgent": {
-                "sightRange":        128,
-                "patrolRadius":      32,
-                "memoryDuration":    240,
-                "patrolWaitDuration": 90
-            },
-            "CPossesLevel": {"level": 10},
-            "CHealth": {
-                "HP": 6,
-                "HP_max": 6,
-                "i_frames": 30,
-                "type": ["Grass", "Organic"]
-            },
-            "CInventory": {
-                "slots": 1,
-                "activeSlot": 0,
-                "items": ["rooter_claws"]
-            }
-        }
-    }
+    "rooter":  {
+                   "components":  {
+                                      "CTransform":  {
+                                                         "pos":  "Nan"
+                                                     },
+                                      "CPhysicsBody":  {
+                                                           "mass":  1,
+                                                           "moveForce":  1200,
+                                                           "maxSpeed":  50,
+                                                           "linearDamping":  24
+                                                       },
+                                      "CAnimation":  {
+                                                         "animation":  "rooter-sheet",
+                                                         "layer":  9
+                                                     },
+                                      "CState":  {
+                                                     "state":  "Nan"
+                                                 },
+                                      "CInput":  0,
+                                      "CAIAgent":  {
+                                                       "sightRange":  128,
+                                                       "patrolRadius":  32,
+                                                       "memoryDuration":  240,
+                                                       "patrolWaitDuration":  90
+                                                   },
+                                      "CPossesLevel":  {
+                                                           "level":  10
+                                                       },
+                                      "CHealth":  {
+                                                      "HP":  6,
+                                                      "HP_max":  6,
+                                                      "i_frames":  30,
+                                                      "type":  [
+                                                                   "Grass",
+                                                                   "Organic"
+                                                               ]
+                                                  },
+                                      "CInventory":  {
+                                                         "slots":  1,
+                                                         "activeSlot":  0,
+                                                         "items":  [
+                                                                       "rooter_claws"
+                                                                   ]
+                                                     },
+                                      "CCollider":  {
+                                                        "shapes":  [
+                                                                       {
+                                                                           "offset":  {
+                                                                                          "x":  0,
+                                                                                          "y":  0
+                                                                                      },
+                                                                           "size":  {
+                                                                                        "x":  8,
+                                                                                        "y":  8
+                                                                                    },
+                                                                           "layer":  "ENEMY_LAYER",
+                                                                           "targetMask":  [
+                                                                                              "FRIENDLY_LAYER",
+                                                                                              "OBSTACLE_LAYER",
+                                                                                              "ENEMY_LAYER"
+                                                                                          ],
+                                                                           "debugColor":  {
+                                                                                              "r":  255,
+                                                                                              "g":  255,
+                                                                                              "b":  255,
+                                                                                              "a":  255
+                                                                                          },
+                                                                           "isTrigger":  false
+                                                                       }
+                                                                   ]
+                                                    }
+                                  }
+               }
 }

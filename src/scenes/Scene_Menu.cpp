@@ -74,8 +74,8 @@ void Scene_Menu::sDoAction(const Action& action)
             m_game->ToggleFullscreen();
         }
         else if (action.name() == "MOUSE LEFT CLICK") {
-            for (auto [e, collision, transform, text, sprite] : m_ECS.View<CCollisionBox, CTransform, CText, CSprite>()){
-                if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
+            for (auto [e, collider, transform, text, sprite] : m_ECS.View<CCollider, CTransform, CText, CSprite>()){
+                if (!m_physics.PointInCollider(m_mousePosition, transform, collider)){
                     continue;
                 }
                 setSprite(e, "button_pressed");
@@ -86,8 +86,8 @@ void Scene_Menu::sDoAction(const Action& action)
         if (!(action.name() == "MOUSE LEFT CLICK")){
             return;
         }   
-        for (auto [e, collision, transform, text, sprite, nameComponent] : m_ECS.View<CCollisionBox, CTransform, CText, CSprite, CName>()){
-            if (!m_physics.PointInRect(m_mousePosition, transform.pos, collision.size)){
+        for (auto [e, collider, transform, text, sprite, nameComponent] : m_ECS.View<CCollider, CTransform, CText, CSprite, CName>()){
+            if (!m_physics.PointInCollider(m_mousePosition, transform, collider)){
                 continue;
             }
             auto &name = nameComponent.name;

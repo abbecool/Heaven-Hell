@@ -1,13 +1,21 @@
 #pragma once
 
+#include <cstddef>
 #include <memory>
+#include <vector>
 
-#include "ecs/Entity.hpp"
 #include "physics/Vec2.hpp"
 #include "render/RenderBackend.hpp"
 
 class Quadtree
 {
+    struct ObjectBounds
+    {
+        size_t index = 0;
+        Vec2 center = {0, 0};
+        Vec2 size = {0, 0};
+    };
+
     size_t m_capacity = 8;
     
     Vec2 m_position;
@@ -20,7 +28,7 @@ class Quadtree
     std::shared_ptr<Quadtree> m_southEast;
     
     // Objects
-    std::vector<Entity> m_objects;
+    std::vector<ObjectBounds> m_objects;
     
     // Divided
     bool m_divided = false;
@@ -28,109 +36,50 @@ public:
     Quadtree(Vec2 pos, Vec2 size);
     void subdivide();
     
-    template<typename T>
-    void insert(Entity entity)
+    void insert(size_t objectIndex, Vec2 objectCenter, Vec2 objectSize)
     {
         if (m_size.x < 32){
             return;
-        } // Quad has reached minimum size, will not add more entities
-
-        Vec2 entityPos = entity.getComponent<CTransform>().pos;
-        Vec2 entitySize = entity.getComponent<T>().size;
-
-        if (!Collision1(entityPos, entitySize, m_position, m_size)) { return; } // If the entity does not collide with this quadtree, do not insert it
-        if (m_divided){
-            m_northWest->insert<T>(entity);
-            m_northEast->insert<T>(entity);
-            m_southWest->insert<T>(entity);
-            m_southEast->insert<T>(entity);
-            return;
         }
-
-        m_objects.push_back(entity);
-        if (m_objects.size() >= m_capacity){
-            if (!m_divided)
-            {
-                subdivide();
-            }
-            for (auto entity1 : m_objects)
-            {
-                m_northWest->insert<T>(entity1);
-                m_northEast->insert<T>(entity1);
-                m_southWest->insert<T>(entity1);
-                m_southEast->insert<T>(entity1);
-            }
-            m_objects.clear();
-        }
-    }
-
-    template<typename T>
-    void insert1(Entity entity, Vec2 entityPos, Vec2 entitySize)
-    {
-        if (m_size.x < 32){
-            return;
-        } // Quad has reached minimum size, will not add more entities
-        if (!Collision1(entityPos, entitySize, m_position, m_size)) { return; } // If the entity does not collide with this quadtree, do not insert it
+        if (!intersects(objectCenter, objectSize, m_position, m_size)) { return; }
         if (m_divided) {
-            m_northWest->insert1<T>(entity, entityPos, entitySize);
-            m_northEast->insert1<T>(entity, entityPos, entitySize);
-            m_southWest->insert1<T>(entity, entityPos, entitySize);
-            m_southEast->insert1<T>(entity, entityPos, entitySize);
+            m_northWest->insert(objectIndex, objectCenter, objectSize);
+            m_northEast->insert(objectIndex, objectCenter, objectSize);
+            m_southWest->insert(objectIndex, objectCenter, objectSize);
+            m_southEast->insert(objectIndex, objectCenter, objectSize);
             return;
         }
-        m_objects.push_back(entity);
+        m_objects.push_back(ObjectBounds{objectIndex, objectCenter, objectSize});
         if (m_objects.size() > m_capacity)
         {
             if (!m_divided)
             {
                 subdivide();
             }
-            for (auto entity1 : m_objects)
-            {
-                m_northWest->insert<T>(entity1);
-                m_northEast->insert<T>(entity1);
-                m_southWest->insert<T>(entity1);
-                m_southEast->insert<T>(entity1);
-            }
+            auto objects = m_objects;
             m_objects.clear();
+            for (auto object : objects)
+            {
+                m_northWest->insert(object.index, object.center, object.size);
+                m_northEast->insert(object.index, object.center, object.size);
+                m_southWest->insert(object.index, object.center, object.size);
+                m_southEast->insert(object.index, object.center, object.size);
+            }
         }
     }
 
     Vec2 getPos() const { return m_position; }
     Vec2 getSize() const { return m_size; }
 
-    template<typename T>
-    bool Collision(Entity entity, Quadtree& quadtree)
+    static bool intersects(Vec2 objectCenter, Vec2 objectSize, Vec2 treeCenter, Vec2 treeSize)
     {
-        Vec2 entityPos = entity.getComponent<CTransform>().pos;
-        Vec2 entityHalfSize = entity.getComponent<T>().halfSize;
-        Vec2 entitySize = entity.getComponent<T>().size;
-
-        Vec2 treePos = quadtree.getPos();
-        Vec2 treeSize = quadtree.getSize();
-        Vec2 treeHalfSize = treeSize/2;
-
-        Vec2 aPos = entityPos - entityHalfSize;
-        Vec2 aSize = entitySize;
-
-        Vec2 bPos = treePos - treeHalfSize;
-        Vec2 bSize = treeSize;
-
-        bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
-        bool y_overlap = (aPos.y + aSize.y > bPos.y) && (bPos.y + bSize.y > aPos.y);
-
-        return (x_overlap && y_overlap);
-    }
-
-    bool Collision1(Vec2 entityPos, Vec2 entitySize, Vec2 treePos, Vec2 treeSize)
-    {
-        Vec2 entityHalfSize = entitySize / 2;
+        Vec2 objectHalfSize = objectSize / 2;
         Vec2 treeHalfSize = treeSize / 2;
 
-        Vec2 aPos = entityPos - entityHalfSize;
-        Vec2 aSize = entitySize;
+        Vec2 aPos = objectCenter - objectHalfSize;
+        Vec2 aSize = objectSize;
 
-        Vec2 bPos = treePos - treeHalfSize;
+        Vec2 bPos = treeCenter - treeHalfSize;
         Vec2 bSize = treeSize;
 
         bool x_overlap = (aPos.x + aSize.x > bPos.x) && (bPos.x + bSize.x > aPos.x);
@@ -141,7 +90,7 @@ public:
 
     void renderBoundary(RenderBackend& renderer, Color color);
     int countLeafs(int count );
-    std::vector<Entity> getObjects() const;
+    std::vector<size_t> getObjects() const;
     std::vector<std::shared_ptr<Quadtree>> createQuadtreeVector();
     void printTree(const std::string& prefix, const std::string& branch);
     bool Divided() const { return m_divided; }
