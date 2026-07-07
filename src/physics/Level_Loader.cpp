@@ -7,6 +7,7 @@
 #include "core/Action.hpp"
 #include "physics/RandomArray.hpp"
 #include "ecs/ECS.hpp"
+#include "render/RenderBackend.hpp"
 
 #include <iostream>
 #include <string>
@@ -15,8 +16,93 @@
 #include <array>
 #include <deque>
 #include <algorithm>
+#include <utility>
 
 // TODO: rework Level_Loader
+
+namespace {
+
+struct TileRect
+{
+    int x = 0;
+    int y = 0;
+    int width = 0;
+    int height = 0;
+};
+
+std::vector<TileRect> mergeTileRects(const std::vector<bool>& occupied, int width, int height)
+{
+    std::vector<bool> visited(occupied.size(), false);
+    std::vector<TileRect> rects;
+
+    auto isOpen = [&](int x, int y) {
+        const int index = y * width + x;
+        return occupied[index] && !visited[index];
+    };
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            if (!isOpen(x, y)) {
+                continue;
+            }
+
+            int rectWidth = 1;
+            while (x + rectWidth < width && isOpen(x + rectWidth, y)) {
+                ++rectWidth;
+            }
+
+            int rectHeight = 1;
+            bool canGrow = true;
+            while (y + rectHeight < height && canGrow) {
+                for (int dx = 0; dx < rectWidth; ++dx) {
+                    if (!isOpen(x + dx, y + rectHeight)) {
+                        canGrow = false;
+                        break;
+                    }
+                }
+                if (canGrow) {
+                    ++rectHeight;
+                }
+            }
+
+            for (int dy = 0; dy < rectHeight; ++dy) {
+                for (int dx = 0; dx < rectWidth; ++dx) {
+                    visited[(y + dy) * width + (x + dx)] = true;
+                }
+            }
+
+            rects.push_back(TileRect{x, y, rectWidth, rectHeight});
+        }
+    }
+
+    return rects;
+}
+
+void appendMergedColliderShapes(
+    std::vector<ColliderShape>& shapes,
+    const std::vector<bool>& occupied,
+    int width,
+    int height,
+    const Vec2& tileSize,
+    CollisionMask layer,
+    CollisionMask targetMask,
+    Color debugColor,
+    bool isTrigger
+) {
+    for (const TileRect& rect : mergeTileRects(occupied, width, height)) {
+        const Vec2 size{
+            static_cast<float>(rect.width) * tileSize.x,
+            static_cast<float>(rect.height) * tileSize.y
+        };
+        const Vec2 offset{
+            (static_cast<float>(rect.x) + static_cast<float>(rect.width) / 2.0f) * tileSize.x,
+            (static_cast<float>(rect.y) + static_cast<float>(rect.height) / 2.0f) * tileSize.y
+        };
+        shapes.emplace_back(offset, size, layer, targetMask, debugColor, isTrigger);
+    }
+}
+
+} // namespace
 
 LevelLoader::LevelLoader(
     Scene_Play* scene, 
@@ -196,26 +282,22 @@ std::array<int, 5> LevelLoader::createDualGrid(int x, int y)
 EntityID LevelLoader::loadChunk(Vec2 chunk)
 {
     std::vector<EntityID> chunkChildren;
+    const int chunkStartX = static_cast<int>(chunk.x * m_chunkSize.x);
+    const int chunkStartY = static_cast<int>(chunk.y * m_chunkSize.y);
+    const int chunkEndX = std::min(chunkStartX + static_cast<int>(m_chunkSize.x), m_width);
+    const int chunkEndY = std::min(chunkStartY + static_cast<int>(m_chunkSize.y), m_height);
+    const int chunkWidth = std::max(0, chunkEndX - chunkStartX);
+    const int chunkHeight = std::max(0, chunkEndY - chunkStartY);
+    std::vector<bool> obstacleTiles(static_cast<size_t>(chunkWidth * chunkHeight), false);
+    std::vector<bool> waterTiles(static_cast<size_t>(chunkWidth * chunkHeight), false);
 
     // Process the pixels
-    for (int y = chunk.y*m_chunkSize.y; y < (chunk.y+1)*m_chunkSize.y; ++y) 
+    for (int y = chunkStartY; y < chunkEndY; ++y) 
     {
-        if (y >= m_height) {
-            continue; // Skip if out of bounds
-        }
-        for (int x = chunk.x*m_chunkSize.x; x < (chunk.x+1)*m_chunkSize.x; ++x) 
+        for (int x = chunkStartX; x < chunkEndX; ++x) 
         {
-            if (x >= m_width) {
-                continue; // Skip if out of bounds
-            }
             const TileType& pixel = m_pixelMatrix[y * m_width + x];
             std::array<bool, 4> neighbors = neighborCheck(x, y, m_width, m_height);
-            std::array<TileType, 4> neighborsTags = neighborTag(
-                x, 
-                y, 
-                m_width, 
-                m_height
-            );
             int textureIndex = getObstacleTextureIndex(neighbors);
             std::array<int, 5> tileIndex = createDualGrid(x, y);
             std::vector<EntityID> ids = m_scene->spawnDualTiles(
@@ -226,30 +308,85 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             for (EntityID id : ids) {
                 chunkChildren.push_back(id);
             }
-            // Spawn obsticle if it is an edge or corner tile
-            if (pixel == TileType::OBSTACLE && textureIndex != 10) 
+
+            const int localX = x - chunkStartX;
+            const int localY = y - chunkStartY;
+            const size_t localIndex = static_cast<size_t>(localY * chunkWidth + localX);
+
+            if (pixel == TileType::OBSTACLE) 
             {
-                EntityID id = m_scene->spawnObstacle(
-                    Vec2 {16.0f * static_cast<float>(x), 16.0f * static_cast<float>(y)},
-                    false, textureIndex
-                );
-                chunkChildren.push_back(id);
+                obstacleTiles[localIndex] = true;
             }
-            else if (pixel == TileType::WATER && textureIndex != 10) 
+            else if (pixel == TileType::WATER) 
             {
-                EntityID id = m_scene->spawnWater(
-                    Vec2 {16.0f * static_cast<float>(x), 16.0f * static_cast<float>(y)},
-                    "Water", 
-                    textureIndex
-                );
-                chunkChildren.push_back(id);
+                waterTiles[localIndex] = true;
             }
         }
     }
     EntityID chunkID = m_scene->m_ECS.addEntity();
     m_scene->m_ECS.addComponent<CChunk>(chunkID, chunk);
+    const Vec2 chunkOrigin{
+        static_cast<float>(chunkStartX) * m_gridSize.x,
+        static_cast<float>(chunkStartY) * m_gridSize.y
+    };
+    m_scene->m_ECS.addComponent<CTransform>(chunkID, chunkOrigin);
+
+    std::vector<ColliderShape> colliderShapes;
+    const CollisionMask obstacleMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
+    appendMergedColliderShapes(
+        colliderShapes,
+        obstacleTiles,
+        chunkWidth,
+        chunkHeight,
+        m_gridSize,
+        OBSTACLE_LAYER,
+        obstacleMask,
+        Color{255, 255, 255, 255},
+        false
+    );
+    const CollisionMask waterMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
+    appendMergedColliderShapes(
+        colliderShapes,
+        waterTiles,
+        chunkWidth,
+        chunkHeight,
+        m_gridSize,
+        WATER_LAYER,
+        waterMask,
+        Color{0, 0, 255, 255},
+        true
+    );
+    if (!colliderShapes.empty()) {
+        m_scene->m_ECS.addComponent<CCollider>(chunkID, std::move(colliderShapes));
+    }
+
     m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern = chunkChildren;
     return chunkID;
+}
+
+void LevelLoader::renderChunkGrid(RenderBackend& renderer) const
+{
+    constexpr Color chunkGridColor{0, 255, 0, 255};
+
+    for (auto [id, chunk] : m_scene->m_ECS.constView<CChunk>()) {
+        const int chunkStartX = static_cast<int>(chunk.chunkPos.x * m_chunkSize.x);
+        const int chunkStartY = static_cast<int>(chunk.chunkPos.y * m_chunkSize.y);
+        const int chunkEndX = std::min(chunkStartX + static_cast<int>(m_chunkSize.x), m_width);
+        const int chunkEndY = std::min(chunkStartY + static_cast<int>(m_chunkSize.y), m_height);
+        const int chunkWidth = std::max(0, chunkEndX - chunkStartX);
+        const int chunkHeight = std::max(0, chunkEndY - chunkStartY);
+
+        if (chunkWidth == 0 || chunkHeight == 0) {
+            continue;
+        }
+
+        renderer.drawWorldRect(RectF{
+            static_cast<float>(chunkStartX) * m_gridSize.x,
+            static_cast<float>(chunkStartY) * m_gridSize.y,
+            static_cast<float>(chunkWidth) * m_gridSize.x,
+            static_cast<float>(chunkHeight) * m_gridSize.y
+        }, chunkGridColor);
+    }
 }
 
 void LevelLoader::update(Vec2 playerPosition)

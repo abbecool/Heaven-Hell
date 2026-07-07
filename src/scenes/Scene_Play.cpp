@@ -87,7 +87,6 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(InputCode::O, "FPS COUNTER");
     registerAction(InputCode::K, "KILL_PLAYER");
     registerAction(InputCode::F3, "TOGGLE_COLLISION");
-    registerAction(InputCode::F4, "TOGGLE_INTERACTION");
     registerAction(InputCode::F5, "TOGGLE_TEXTURE");
     registerAction(InputCode::Num1, "Slot1");
     registerAction(InputCode::Num2, "Slot2");
@@ -217,7 +216,6 @@ void Scene_Play::sDoAction(const Action& action){
     {
         if ( action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
         if ( action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
-        if ( action.name() == "TOGGLE_INTERACTION") { m_drawInteraction = !m_drawInteraction; }
         if ( action.name() == "PAUSE") { togglePause(); }
         if ( action.name() == "FPS COUNTER") { m_game->toggleRenderFPS(); }
         if ( action.name() == "INVENTORY") { std::cout << "toggle inventory" << std::endl; }
@@ -1090,14 +1088,10 @@ void Scene_Play::sRender() {
     
     if (m_drawCollision)
     {
+        m_levelLoader.renderChunkGrid(m_game->render());
         m_collisionManager.renderQuadtree(m_game->render());
     }
 
-    if (m_drawInteraction)
-    {
-        m_collisionManager.renderQuadtree(m_game->render());
-    }
-    
 }
 
 void Scene_Play::sAudio()

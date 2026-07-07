@@ -253,21 +253,14 @@ void Scene::sRenderBasic() {
 
     if (m_drawCollision)
     {
-        renderColliderShapes(false);
-    }
-    if (m_drawInteraction)
-    {
-        renderColliderShapes(true);
+        renderColliderShapes();
     }
 }
 
-void Scene::renderColliderShapes(bool triggers) {
+void Scene::renderColliderShapes() {
     for (auto [e, collider, transform] : m_ECS.constView<CCollider, CTransform>())
     {
         for (const auto& shape : collider.shapes) {
-            if (shape.isTrigger != triggers) {
-                continue;
-            }
             const Vec2 center = transform.pos + shape.offset;
             RectF boxRect{
                 center.x - shape.halfSize.x,

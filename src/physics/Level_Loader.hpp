@@ -22,6 +22,7 @@ enum struct TileType {
 using PixelMatrix = std::vector<TileType>;
 
 class Scene_Play;
+class RenderBackend;
 class LevelLoader
 {
 private:
@@ -48,6 +49,7 @@ public:
     void createPixelMatrix(const PixelImage& levelImage);
     std::array<int, 5> createDualGrid(int x, int y);
     EntityID loadChunk(Vec2 chunk);
+    void renderChunkGrid(RenderBackend& renderer) const;
     void removeChunk(Vec2 chunk);
     void update(Vec2);
     Vec2 getLevelSize();

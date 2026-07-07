@@ -39,7 +39,6 @@ class Scene
     MouseState m_mouseState;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
-    bool m_drawInteraction = false;
     bool m_drawDrawGrid = true;
     Vec2 m_gridSize = {16, 16};    
     virtual void onEnd() = 0;
@@ -78,7 +77,7 @@ class Scene
     void drawSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
     void updateAnimations();
     void sRenderBasic();
-    void renderColliderShapes(bool triggers);
+    void renderColliderShapes();
 
     virtual void doAction(const Action& action);
     void registerAction(InputCode inputKey, const std::string& actionName);
