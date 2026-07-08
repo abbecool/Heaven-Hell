@@ -1,21 +1,23 @@
 {
-    "staff": {
-        "id": 1,
-        "name": "staff",
-        "description": "A simple magic staff that can cast simple magic spells.",
-        "iconPath": "staff",
-        "pickupMode": "Manual",
-        "maxStack": 1,
-        "type": "WeaponRanged",
-        "damage": 1,
-        "weapon": {
-            "damage": 1,
-            "speed": 60,
-            "range": 180,
-            "attackAnimationRow": 5,
-            "attackHitFrame": 2,
-            "type": "Projectile",
-            "mask": ["ENEMY_LAYER"]
-        }
+  "staff": {
+    "id": 1,
+    "name": "staff",
+    "description": "A simple magic staff that can cast simple magic spells.",
+    "iconPath": "staff",
+    "pickupMode": "Manual",
+    "maxStack": 1,
+    "type": "WeaponRanged",
+    "damage": 1,
+    "weapon": {
+      "damage": 1,
+      "speed": 60,
+      "range": 180,
+      "attackAnimationRow": 5,
+      "attackHitFrame": 2,
+      "type": "Projectile",
+      "mask": [
+        "ENEMY_LAYER"
+      ]
     }
+  }
 }

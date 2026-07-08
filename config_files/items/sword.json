@@ -1,19 +1,21 @@
 {
-    "sword": {
-        "id": 2,
-        "name": "sword",
-        "description": "A weak sword.",
-        "iconPath": "sword",
-        "pickupMode": "Manual",
-        "maxStack": 1,
-        "type": "WeaponMelee",
-        "damage": 2,
-        "weapon": {
-            "damage": 2,
-            "speed": 60,
-            "range": 32,
-            "type": "Melee",
-            "mask": ["ENEMY_LAYER"]
-        }
+  "sword": {
+    "id": 2,
+    "name": "sword",
+    "description": "A weak sword.",
+    "iconPath": "sword",
+    "pickupMode": "Manual",
+    "maxStack": 1,
+    "type": "WeaponMelee",
+    "damage": 2,
+    "weapon": {
+      "damage": 2,
+      "speed": 60,
+      "range": 32,
+      "type": "Melee",
+      "mask": [
+        "ENEMY_LAYER"
+      ]
     }
+  }
 }

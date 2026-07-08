@@ -1,91 +1,91 @@
 {
-    "player":  {
-                   "spawn":  {
-                                 "x":  349,
-                                 "y":  63
-                             },
-                   "components":  {
-                                      "CTransform":  {
-                                                         "pos":  "spawn_position"
-                                                     },
-                                      "CName":  "demon",
-                                      "CAnimation":  {
-                                                         "animation":  "demon-sheet",
-                                                         "layer":  9
-                                                     },
-                                      "CPhysicsBody":  {
-                                                           "mass":  1,
-                                                           "moveForce":  2400,
-                                                           "maxSpeed":  100,
-                                                           "linearDamping":  24
-                                                       },
-                                      "CInput":  0,
-                                      "CState":  {
-                                                     "state":  "STAND"
-                                                 },
-                                      "CHealth":  {
-                                                      "HP":  10,
-                                                      "HP_max":  10,
-                                                      "i_frames":  60
-                                                  },
-                                      "CInventory":  {
-                                                         "slots":  3,
-                                                         "activeSlot":  0
-                                                     },
-                                      "CCollider":  {
-                                                        "shapes":  [
-                                                                       {
-                                                                           "offset":  {
-                                                                                          "x":  0,
-                                                                                          "y":  0
-                                                                                      },
-                                                                           "size":  {
-                                                                                        "x":  8,
-                                                                                        "y":  8
-                                                                                    },
-                                                                           "layer":  "PLAYER_LAYER",
-                                                                           "targetMask":  [
-                                                                                              "ENEMY_LAYER",
-                                                                                              "OBSTACLE_LAYER",
-                                                                                              "FRIENDLY_LAYER"
-                                                                                          ],
-                                                                           "debugColor":  {
-                                                                                              "r":  255,
-                                                                                              "g":  255,
-                                                                                              "b":  255,
-                                                                                              "a":  255
-                                                                                          },
-                                                                           "isTrigger":  false
-                                                                       },
-                                                                       {
-                                                                           "offset":  {
-                                                                                          "x":  0,
-                                                                                          "y":  0
-                                                                                      },
-                                                                           "size":  {
-                                                                                        "x":  4,
-                                                                                        "y":  4
-                                                                                    },
-                                                                           "layer":  "PLAYER_LAYER",
-                                                                           "targetMask":  [
-                                                                                              "ENEMY_LAYER",
-                                                                                              "FRIENDLY_LAYER",
-                                                                                              "LOOT_LAYER",
-                                                                                              "AREA_LAYER"
-                                                                                          ],
-                                                                           "debugColor":  {
-                                                                                              "r":  0,
-                                                                                              "g":  0,
-                                                                                              "b":  255,
-                                                                                              "a":  255
-                                                                                          },
-                                                                           "isTrigger":  true
-                                                                       }
-                                                                   ]
-                                                    }
-                                  },
-                   "progressionDefaults":  {
-                                               "damage":  1
-                                           }
-               }
+  "player": {
+    "spawn": {
+      "x": 349,
+      "y": 63
+    },
+    "components": {
+      "CTransform": {
+        "pos": "spawn_position"
+      },
+      "CName": "demon",
+      "CAnimation": {
+        "animation": "demon-sheet",
+        "layer": "CHARACTER_RENDER_LAYER"
+      },
+      "CPhysicsBody": {
+        "mass": 1,
+        "moveForce": 2400,
+        "maxSpeed": 100,
+        "linearDamping": 24
+      },
+      "CInput": 0,
+      "CState": {
+        "state": "STAND"
+      },
+      "CHealth": {
+        "HP": 10,
+        "HP_max": 10,
+        "i_frames": 60
+      },
+      "CInventory": {
+        "slots": 3,
+        "activeSlot": 0
+      },
+      "CCollider": {
+        "shapes": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 8,
+              "y": 8
+            },
+            "layer": "PLAYER_LAYER",
+            "targetMask": [
+              "ENEMY_LAYER",
+              "OBSTACLE_LAYER",
+              "FRIENDLY_LAYER"
+            ],
+            "debugColor": {
+              "r": 255,
+              "g": 255,
+              "b": 255,
+              "a": 255
+            },
+            "isTrigger": false
+          },
+          {
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 4,
+              "y": 4
+            },
+            "layer": "PLAYER_LAYER",
+            "targetMask": [
+              "ENEMY_LAYER",
+              "FRIENDLY_LAYER",
+              "LOOT_LAYER",
+              "AREA_LAYER"
+            ],
+            "debugColor": {
+              "r": 0,
+              "g": 0,
+              "b": 255,
+              "a": 255
+            },
+            "isTrigger": true
+          }
+        ]
+      }
+    },
+    "progressionDefaults": {
+      "damage": 1
+    }
+  }
 }

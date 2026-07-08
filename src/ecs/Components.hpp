@@ -18,6 +18,62 @@ using json = nlohmann::json;
 
 constexpr uint8_t MAX_LAYERS = 16;
 
+namespace RenderLayer {
+constexpr int ReservedBelowTerrain = 1;
+constexpr int TerrainTilesLow = 2;
+constexpr int TerrainTilesHigh = 3;
+constexpr int GroundShadow = 4;
+constexpr int CharacterShadow = 5;
+constexpr int PropShadow = 6;
+constexpr int Character = 7;
+constexpr int GroundItem = 8;
+constexpr int WorldProp = 9;
+constexpr int Projectile = 10;
+constexpr int AttackEffect = 11;
+constexpr int Dialog = 12;
+
+constexpr int MenuBackground = 1;
+constexpr int MenuTitle = 2;
+constexpr int MenuControl = 3;
+}
+
+inline const std::unordered_map<std::string, int> renderLayerMap =
+{
+    {"RESERVED_BELOW_TERRAIN_RENDER_LAYER", RenderLayer::ReservedBelowTerrain},
+    {"TERRAIN_TILE_LOW_RENDER_LAYER", RenderLayer::TerrainTilesLow},
+    {"TERRAIN_TILE_HIGH_RENDER_LAYER", RenderLayer::TerrainTilesHigh},
+    {"GROUND_SHADOW_RENDER_LAYER", RenderLayer::GroundShadow},
+    {"GROUND_ITEM_RENDER_LAYER", RenderLayer::GroundItem},
+    {"PROP_SHADOW_RENDER_LAYER", RenderLayer::PropShadow},
+    {"WORLD_PROP_RENDER_LAYER", RenderLayer::WorldProp},
+    {"CHARACTER_SHADOW_RENDER_LAYER", RenderLayer::CharacterShadow},
+    {"CHARACTER_RENDER_LAYER", RenderLayer::Character},
+    {"PROJECTILE_RENDER_LAYER", RenderLayer::Projectile},
+    {"ATTACK_EFFECT_RENDER_LAYER", RenderLayer::AttackEffect},
+    {"DIALOG_RENDER_LAYER", RenderLayer::Dialog},
+    {"MENU_BACKGROUND_RENDER_LAYER", RenderLayer::MenuBackground},
+    {"MENU_TITLE_RENDER_LAYER", RenderLayer::MenuTitle},
+    {"MENU_CONTROL_RENDER_LAYER", RenderLayer::MenuControl},
+};
+
+inline int renderLayerFromJson(const json& value)
+{
+    if (value.is_number_integer()) {
+        return value.get<int>();
+    }
+
+    if (value.is_string()) {
+        const std::string layerName = value.get<std::string>();
+        const auto it = renderLayerMap.find(layerName);
+        if (it != renderLayerMap.end()) {
+            return it->second;
+        }
+        throw std::out_of_range("Unknown render layer: " + layerName);
+    }
+
+    throw std::invalid_argument("Render layer must be an integer or render layer name");
+}
+
 using CollisionMask = std::bitset<MAX_LAYERS>;
 constexpr CollisionMask EMPTY_MASK              = 0;        // 00000000, No bits set
 constexpr CollisionMask PLAYER_LAYER            = 1 << 0;   // 00000001, Bit 1

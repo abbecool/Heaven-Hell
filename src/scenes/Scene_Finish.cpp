@@ -24,7 +24,7 @@ Scene_Finish::Scene_Finish(Game* game)
 
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    m_rendererManager.addEntityToLayer(entityId, 3);
+    m_rendererManager.addEntityToLayer(entityId, RenderLayer::MenuControl);
     Vec2 pos = Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()/2}/2;
     entity.addComponent<CTransform>(pos);
     Vec2 size = Vec2{512, 128};

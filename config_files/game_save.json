@@ -1,19 +1,19 @@
 {
-    "player": {
-        "definition": "player",
-        "hp": 10,
-        "inventory": {
-            "activeSlot": 0,
-            "items": [
-                1,
-                2,
-                4
-            ]
-        },
-        "position": {
-            "x": 344,
-            "y": 88
-        },
-        "progression": {}
-    }
+  "player": {
+    "definition": "player",
+    "hp": 10,
+    "inventory": {
+      "activeSlot": 0,
+      "items": [
+        1,
+        2,
+        4
+      ]
+    },
+    "position": {
+      "x": 344,
+      "y": 88
+    },
+    "progression": {}
+  }
 }

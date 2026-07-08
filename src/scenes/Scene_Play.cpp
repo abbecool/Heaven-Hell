@@ -1171,7 +1171,7 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         addVisual(
             id,
             c["CAnimation"]["animation"].get<std::string>(),
-            c["CAnimation"]["layer"]
+            renderLayerFromJson(c["CAnimation"]["layer"])
         );
     }
     if (c.contains("CTransform")){
@@ -1352,7 +1352,7 @@ EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int
 EntityID Scene_Play::spawnProjectile(EntityID attackerID, Vec2 vel, const CWeapon& weapon)
 {
     auto id = m_ECS.addEntity();
-    const int layer = 8;
+    const int layer = RenderLayer::Projectile;
     const float speed = 200.0f;
     const int flightLifetime = 60;
     const float createOffset = 12.0f;
@@ -1418,7 +1418,7 @@ void Scene_Play::destroyProjectile(EntityID projectileID)
 EntityID Scene_Play::spawnHitbox(EntityID attackerID, Vec2 direction, const CWeapon& weapon)
 {
     auto id = m_ECS.addEntity();
-    int render_layer = 9;
+    const int renderLayer = RenderLayer::AttackEffect;
     if (direction.isNull()) {
         direction = Vec2{1, 0};
     }
@@ -1428,10 +1428,10 @@ EntityID Scene_Play::spawnHitbox(EntityID attackerID, Vec2 direction, const CWea
     Vec2 hitboxPosition = attackerPosition;
 
     if (!weapon.hitboxAnimation.empty()) {
-        addVisual(id, weapon.hitboxAnimation, render_layer, false);
+        addVisual(id, weapon.hitboxAnimation, renderLayer, false);
     }
     else {
-        addSprite(id, weapon.hitboxSprite, render_layer);
+        addSprite(id, weapon.hitboxSprite, renderLayer);
         hitboxPosition += direction.norm((float)weapon.range / 2.0f);
     }
 
@@ -1466,17 +1466,16 @@ std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::array<int,
         if (textureIndex == 0) {
             continue;
         }
-        uint8_t layer = 3;
+        int layer = RenderLayer::TerrainTilesLow;
         std::string tile_name = "grass";
         
         if (tileKey == TileType::WATER) {
-            layer = layer + 1;
             tile_name = "water";
         } else if (tileKey == TileType::DIRT) {
-            layer = layer + 1;
+            layer = RenderLayer::TerrainTilesHigh;
             tile_name = "dirt";
         } else if (tileKey == TileType::OBSTACLE) {
-            layer = layer + 1;
+            layer = RenderLayer::TerrainTilesHigh;
             tile_name = "mountain";
         }
 

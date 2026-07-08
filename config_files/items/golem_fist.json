@@ -1,20 +1,22 @@
 {
-    "golem_fist": {
-        "id": 7,
-        "name": "golem_fist",
-        "description": "The golem's heavy fist.",
-        "iconPath": "sword",
-        "pickupMode": "Manual",
-        "maxStack": 1,
-        "type": "WeaponMelee",
-        "damage": 1,
-        "weapon": {
-            "damage": 1,
-            "speed": 120,
-            "range": 48,
-            "attackHitFrame": 0,
-            "type": "Melee",
-            "mask": ["PLAYER_LAYER"]
-        }
+  "golem_fist": {
+    "id": 7,
+    "name": "golem_fist",
+    "description": "The golem's heavy fist.",
+    "iconPath": "sword",
+    "pickupMode": "Manual",
+    "maxStack": 1,
+    "type": "WeaponMelee",
+    "damage": 1,
+    "weapon": {
+      "damage": 1,
+      "speed": 120,
+      "range": 48,
+      "attackHitFrame": 0,
+      "type": "Melee",
+      "mask": [
+        "PLAYER_LAYER"
+      ]
     }
+  }
 }

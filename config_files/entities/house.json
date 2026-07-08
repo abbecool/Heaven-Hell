@@ -1,66 +1,66 @@
 {
-    "house":  {
-                  "components":  {
-                                     "CTransform":  {
-                                                        "pos":  "spawn_position"
-                                                    },
-                                     "CName":  "house",
-                                     "CAnimation":  {
-                                                        "animation":  "house",
-                                                        "layer":  6
-                                                    },
-                                     "CCollider":  {
-                                                       "shapes":  [
-                                                                      {
-                                                                          "offset":  {
-                                                                                         "x":  0,
-                                                                                         "y":  0
-                                                                                     },
-                                                                          "size":  {
-                                                                                       "x":  56,
-                                                                                       "y":  44
-                                                                                   },
-                                                                          "layer":  "OBSTACLE_LAYER",
-                                                                          "targetMask":  [
-                                                                                             "PLAYER_LAYER",
-                                                                                             "ENEMY_LAYER",
-                                                                                             "FRIENDLY_LAYER"
-                                                                                         ],
-                                                                          "debugColor":  {
-                                                                                             "r":  255,
-                                                                                             "g":  255,
-                                                                                             "b":  255,
-                                                                                             "a":  255
-                                                                                         },
-                                                                          "isTrigger":  false
-                                                                      },
-                                                                      {
-                                                                          "offset":  {
-                                                                                         "x":  0,
-                                                                                         "y":  0
-                                                                                     },
-                                                                          "size":  {
-                                                                                       "x":  16,
-                                                                                       "y":  64
-                                                                                   },
-                                                                          "layer":  "AREA_LAYER",
-                                                                          "targetMask":  [
-                                                                                             "PLAYER_LAYER"
-                                                                                         ],
-                                                                          "debugColor":  {
-                                                                                             "r":  0,
-                                                                                             "g":  0,
-                                                                                             "b":  255,
-                                                                                             "a":  255
-                                                                                         },
-                                                                          "isTrigger":  true
-                                                                      }
-                                                                  ]
-                                                   }
-                                 },
-                  "event":  {
-                                "type":  "EnteredArea",
-                                "subject":  "house"
-                            }
-              }
+  "house": {
+    "components": {
+      "CTransform": {
+        "pos": "spawn_position"
+      },
+      "CName": "house",
+      "CAnimation": {
+        "animation": "house",
+        "layer": "WORLD_PROP_RENDER_LAYER"
+      },
+      "CCollider": {
+        "shapes": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 56,
+              "y": 44
+            },
+            "layer": "OBSTACLE_LAYER",
+            "targetMask": [
+              "PLAYER_LAYER",
+              "ENEMY_LAYER",
+              "FRIENDLY_LAYER"
+            ],
+            "debugColor": {
+              "r": 255,
+              "g": 255,
+              "b": 255,
+              "a": 255
+            },
+            "isTrigger": false
+          },
+          {
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 16,
+              "y": 64
+            },
+            "layer": "AREA_LAYER",
+            "targetMask": [
+              "PLAYER_LAYER"
+            ],
+            "debugColor": {
+              "r": 0,
+              "g": 0,
+              "b": 255,
+              "a": 255
+            },
+            "isTrigger": true
+          }
+        ]
+      }
+    },
+    "event": {
+      "type": "EnteredArea",
+      "subject": "house"
+    }
+  }
 }

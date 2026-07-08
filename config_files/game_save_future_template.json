@@ -1,28 +1,30 @@
 {
-    "player": {
-        "position": {
-            "x": 349,
-            "y": 63
-        },
-        "health": 2,
-        "inventory": ["staff"]
+  "player": {
+    "position": {
+      "x": 349,
+      "y": 63
     },
-    "enemies": [
-        {
-        "type": "rooter",
-        "position": {
-            "x": 405.25,
-            "y": 234.25
-        },
-        "health": 4
-        },
-        {
-        "type": "rooter",
-        "position": {
-            "x": 328.0,
-            "y": 282.0
-        },
-        "health": 6
-        }
+    "health": 2,
+    "inventory": [
+      "staff"
     ]
+  },
+  "enemies": [
+    {
+      "type": "rooter",
+      "position": {
+        "x": 405.25,
+        "y": 234.25
+      },
+      "health": 4
+    },
+    {
+      "type": "rooter",
+      "position": {
+        "x": 328.0,
+        "y": 282.0
+      },
+      "health": 6
+    }
+  ]
 }

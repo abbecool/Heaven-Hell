@@ -87,7 +87,7 @@ void Scene_Inventory::spawnItem(std::string sprite)
     m_ECS.addComponent<CTransform>(entityID, pos);
     m_ECS.addComponent<CCollider>(entityID, Vec2 {8, 8});
 
-    addVisual(entityID, sprite, 3);
+    addVisual(entityID, sprite, RenderLayer::MenuControl);
 }
 
 void Scene_Inventory::Scroll(int scroll)

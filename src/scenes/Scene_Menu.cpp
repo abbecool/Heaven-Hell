@@ -27,14 +27,14 @@ void Scene_Menu::loadMenu()
 {
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    addSprite(entityId, "level0_screenshot", 1);
+    addSprite(entityId, "level0_screenshot", RenderLayer::MenuBackground);
     Vec2 midPixel = gridToMidPixel(Vec2{0, 0}, entityId);
     entity.addComponent<CTransform>(midPixel);
     entity.addComponent<CName>("title_screen");
 
     EntityID entityId1 = m_ECS.addEntity();
     Entity entity1 = {entityId1, &m_ECS};
-    addSprite(entityId1, "game_title", 2);
+    addSprite(entityId1, "game_title", RenderLayer::MenuTitle);
     entity1.addComponent<CTransform>(Vec2 {300, 45});
     entity1.addComponent<CName>("game_title");
 
@@ -50,7 +50,7 @@ void Scene_Menu::loadMenu()
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
 {   
     EntityID id = m_ECS.addEntity();
-    addSprite(id, level, 9);
+    addSprite(id, level, RenderLayer::MenuBackground);
     m_ECS.addComponent<CTransform>(id, pos);
     m_ECS.addComponent<CName>(id, level);
 }

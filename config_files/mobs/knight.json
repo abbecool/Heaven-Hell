@@ -1,82 +1,82 @@
 {
-    "knight":  {
-                   "components":  {
-                                      "CTransform":  {
-                                                         "pos":  "Nan"
-                                                     },
-                                      "CPhysicsBody":  {
-                                                           "mass":  1,
-                                                           "moveForce":  2400,
-                                                           "maxSpeed":  100,
-                                                           "linearDamping":  24
-                                                       },
-                                      "CAnimation":  {
-                                                         "animation":  "knight-sheet",
-                                                         "layer":  9
-                                                     },
-                                      "CState":  {
-                                                     "state":  "Nan"
-                                                 },
-                                      "CPossesLevel":  {
-                                                           "level":  10
-                                                       },
-                                      "CHealth":  {
-                                                      "HP":  6,
-                                                      "HP_max":  6,
-                                                      "i_frames":  30,
-                                                      "type":  [
-                                                                   "Organic"
-                                                               ]
-                                                  },
-                                      "CCollider":  {
-                                                        "shapes":  [
-                                                                       {
-                                                                           "offset":  {
-                                                                                          "x":  0,
-                                                                                          "y":  0
-                                                                                      },
-                                                                           "size":  {
-                                                                                        "x":  8,
-                                                                                        "y":  8
-                                                                                    },
-                                                                           "layer":  "FRIENDLY_LAYER",
-                                                                           "targetMask":  [
-                                                                                              "FRIENDLY_LAYER",
-                                                                                              "OBSTACLE_LAYER",
-                                                                                              "ENEMY_LAYER"
-                                                                                          ],
-                                                                           "debugColor":  {
-                                                                                              "r":  255,
-                                                                                              "g":  255,
-                                                                                              "b":  255,
-                                                                                              "a":  255
-                                                                                          },
-                                                                           "isTrigger":  false
-                                                                       },
-                                                                       {
-                                                                           "offset":  {
-                                                                                          "x":  0,
-                                                                                          "y":  0
-                                                                                      },
-                                                                           "size":  {
-                                                                                        "x":  48,
-                                                                                        "y":  32
-                                                                                    },
-                                                                           "layer":  "FRIENDLY_LAYER",
-                                                                           "targetMask":  [
-                                                                                              "PLAYER_LAYER",
-                                                                                              "FRIENDLY_LAYER"
-                                                                                          ],
-                                                                           "debugColor":  {
-                                                                                              "r":  0,
-                                                                                              "g":  0,
-                                                                                              "b":  255,
-                                                                                              "a":  255
-                                                                                          },
-                                                                           "isTrigger":  true
-                                                                       }
-                                                                   ]
-                                                    }
-                                  }
-               }
+  "knight": {
+    "components": {
+      "CTransform": {
+        "pos": "Nan"
+      },
+      "CPhysicsBody": {
+        "mass": 1,
+        "moveForce": 2400,
+        "maxSpeed": 100,
+        "linearDamping": 24
+      },
+      "CAnimation": {
+        "animation": "knight-sheet",
+        "layer": "CHARACTER_RENDER_LAYER"
+      },
+      "CState": {
+        "state": "Nan"
+      },
+      "CPossesLevel": {
+        "level": 10
+      },
+      "CHealth": {
+        "HP": 6,
+        "HP_max": 6,
+        "i_frames": 30,
+        "type": [
+          "Organic"
+        ]
+      },
+      "CCollider": {
+        "shapes": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 8,
+              "y": 8
+            },
+            "layer": "FRIENDLY_LAYER",
+            "targetMask": [
+              "FRIENDLY_LAYER",
+              "OBSTACLE_LAYER",
+              "ENEMY_LAYER"
+            ],
+            "debugColor": {
+              "r": 255,
+              "g": 255,
+              "b": 255,
+              "a": 255
+            },
+            "isTrigger": false
+          },
+          {
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 48,
+              "y": 32
+            },
+            "layer": "FRIENDLY_LAYER",
+            "targetMask": [
+              "PLAYER_LAYER",
+              "FRIENDLY_LAYER"
+            ],
+            "debugColor": {
+              "r": 0,
+              "g": 0,
+              "b": 255,
+              "a": 255
+            },
+            "isTrigger": true
+          }
+        ]
+      }
+    }
+  }
 }

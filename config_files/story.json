@@ -10,7 +10,10 @@
       "reaction": {
         "event_type": "EntitySpawned",
         "subject": "staff",
-        "position": {"x": 353, "y": 61}
+        "position": {
+          "x": 353,
+          "y": 61
+        }
       }
     },
     {
@@ -19,7 +22,10 @@
       "trigger": {
         "event_type": "ItemPickedUp",
         "subject": "staff",
-        "position": {"x": 0, "y": 0}
+        "position": {
+          "x": 0,
+          "y": 0
+        }
       }
     },
     {

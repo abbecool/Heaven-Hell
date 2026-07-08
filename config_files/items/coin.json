@@ -1,12 +1,12 @@
 {
-    "coin": {
-        "id": 0,
-        "name": "coin",
-        "description": "The currency in this game, can be used to purchase items.",
-        "iconPath": "coin",
-        "type": "Currency",
-        "value": 10,
-        "pickupMode": "Automatic",
-        "maxStack": 10
-    }
+  "coin": {
+    "id": 0,
+    "name": "coin",
+    "description": "The currency in this game, can be used to purchase items.",
+    "iconPath": "coin",
+    "type": "Currency",
+    "value": 10,
+    "pickupMode": "Automatic",
+    "maxStack": 10
+  }
 }

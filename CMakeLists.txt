@@ -179,6 +179,7 @@ if (BUILD_TESTING)
         const_view
         collider_json_parses_multiple_shapes
         collider_constructors_calculate_half_size
+        render_layer_json_parsing
         quadtree_stores_collider_proxy_indices
         quadtree_can_return_duplicate_proxy_leaf_appearances
         queued_removal

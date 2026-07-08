@@ -1,41 +1,41 @@
 {
-    "tree":  {
-                 "components":  {
-                                    "CTransform":  {
-                                                       "pos":  "spawn_position"
-                                                   },
-                                    "CName":  "tree",
-                                    "CAnimation":  {
-                                                       "animation":  "tree",
-                                                       "layer":  6
-                                                   },
-                                    "CCollider":  {
-                                                      "shapes":  [
-                                                                     {
-                                                                         "offset":  {
-                                                                                        "x":  0,
-                                                                                        "y":  0
-                                                                                    },
-                                                                         "size":  {
-                                                                                      "x":  6,
-                                                                                      "y":  8
-                                                                                  },
-                                                                         "layer":  "OBSTACLE_LAYER",
-                                                                         "targetMask":  [
-                                                                                            "PLAYER_LAYER",
-                                                                                            "ENEMY_LAYER",
-                                                                                            "FRIENDLY_LAYER"
-                                                                                        ],
-                                                                         "debugColor":  {
-                                                                                            "r":  255,
-                                                                                            "g":  255,
-                                                                                            "b":  255,
-                                                                                            "a":  255
-                                                                                        },
-                                                                         "isTrigger":  false
-                                                                     }
-                                                                 ]
-                                                  }
-                                }
-             }
+  "tree": {
+    "components": {
+      "CTransform": {
+        "pos": "spawn_position"
+      },
+      "CName": "tree",
+      "CAnimation": {
+        "animation": "tree",
+        "layer": "WORLD_PROP_RENDER_LAYER"
+      },
+      "CCollider": {
+        "shapes": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 6,
+              "y": 8
+            },
+            "layer": "OBSTACLE_LAYER",
+            "targetMask": [
+              "PLAYER_LAYER",
+              "ENEMY_LAYER",
+              "FRIENDLY_LAYER"
+            ],
+            "debugColor": {
+              "r": 255,
+              "g": 255,
+              "b": 255,
+              "a": 255
+            },
+            "isTrigger": false
+          }
+        ]
+      }
+    }
+  }
 }

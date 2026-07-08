@@ -43,7 +43,7 @@ EntityID Scene::SpawnTextBox(
     const Vec2& relativePosition,
     int lifespan
 ) {
-    int layer = 8;
+    const int layer = RenderLayer::Dialog;
     auto id = m_ECS.addEntity();
     Vec2 position = relativePosition;
     if (m_ECS.hasComponent<CTransform>(parentID)) {
@@ -340,7 +340,7 @@ void Scene::spawnButton(
     const std::string& dialog)
 {   
     EntityID id = m_ECS.addEntity();
-    CSprite& sprite = addSprite(id, unpressed, 3);
+    CSprite& sprite = addSprite(id, unpressed, RenderLayer::MenuControl);
     Vec2 spriteSize = sprite.size();
     m_ECS.addComponent<CTransform>(id, pos);
     m_ECS.addComponent<CCollider>(id, spriteSize);

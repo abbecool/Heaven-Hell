@@ -28,7 +28,7 @@ void Scene_GameOver::loadGameOver()
 {
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    m_rendererManager.addEntityToLayer(entityId, 3);
+    m_rendererManager.addEntityToLayer(entityId, RenderLayer::MenuControl);
     Vec2 pos = Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()/2}/2;
     entity.addComponent<CTransform>(pos);
     Vec2 size = Vec2{512, 128};
@@ -48,7 +48,7 @@ void Scene_GameOver::spawnLevel(const Vec2 pos, std::string level)
 {   
     EntityID entityId = m_ECS.addEntity();
     Entity entity = {entityId, &m_ECS};
-    addSprite(entityId, level, 9);
+    addSprite(entityId, level, RenderLayer::MenuBackground);
     entity.addComponent<CTransform>(pos);
     entity.addComponent<CName>(level);
 }

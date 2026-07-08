@@ -1,42 +1,42 @@
 {
-    "item":  {
-                 "components":  {
-                                    "CTransform":  {
-                                                       "pos":  "spawn_position"
-                                                   },
-                                    "CName":  "$item.name",
-                                    "CItem":  {
-                                                  "itemID":  "$item.id"
-                                              },
-                                    "CAnimation":  {
-                                                       "animation":  "$item.iconPath",
-                                                       "layer":  6
-                                                   },
-                                    "CCollider":  {
-                                                      "shapes":  [
-                                                                     {
-                                                                         "offset":  {
-                                                                                        "x":  0,
-                                                                                        "y":  0
-                                                                                    },
-                                                                         "size":  {
-                                                                                      "x":  8,
-                                                                                      "y":  8
-                                                                                  },
-                                                                         "layer":  "LOOT_LAYER",
-                                                                         "targetMask":  [
-                                                                                            "PLAYER_LAYER"
-                                                                                        ],
-                                                                         "debugColor":  {
-                                                                                            "r":  0,
-                                                                                            "g":  0,
-                                                                                            "b":  255,
-                                                                                            "a":  255
-                                                                                        },
-                                                                         "isTrigger":  true
-                                                                     }
-                                                                 ]
-                                                  }
-                                }
-             }
+  "item": {
+    "components": {
+      "CTransform": {
+        "pos": "spawn_position"
+      },
+      "CName": "$item.name",
+      "CItem": {
+        "itemID": "$item.id"
+      },
+      "CAnimation": {
+        "animation": "$item.iconPath",
+        "layer": "GROUND_ITEM_RENDER_LAYER"
+      },
+      "CCollider": {
+        "shapes": [
+          {
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 8,
+              "y": 8
+            },
+            "layer": "LOOT_LAYER",
+            "targetMask": [
+              "PLAYER_LAYER"
+            ],
+            "debugColor": {
+              "r": 0,
+              "g": 0,
+              "b": 255,
+              "a": 255
+            },
+            "isTrigger": true
+          }
+        ]
+      }
+    }
+  }
 }

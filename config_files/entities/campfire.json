@@ -1,12 +1,14 @@
 {
-    "campfire": {
-        "components": {
-            "CTransform": {"pos": "spawn_position"},
-            "CName": "campfire",
-            "CAnimation": {
-                "animation": "campfire",
-                "layer": 6
-            }
-        }
+  "campfire": {
+    "components": {
+      "CTransform": {
+        "pos": "spawn_position"
+      },
+      "CName": "campfire",
+      "CAnimation": {
+        "animation": "campfire",
+        "layer": "WORLD_PROP_RENDER_LAYER"
+      }
     }
+  }
 }

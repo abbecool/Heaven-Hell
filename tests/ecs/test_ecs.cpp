@@ -239,6 +239,31 @@ void testColliderConstructorsCalculateHalfSize()
     require(!collider.shapes[0].isTrigger, "single-shape collider constructor should default to solid");
 }
 
+void testRenderLayerJsonParsing()
+{
+    require(
+        renderLayerFromJson("TERRAIN_TILE_LOW_RENDER_LAYER") == RenderLayer::TerrainTilesLow,
+        "named low terrain render layer parsed incorrectly"
+    );
+    require(
+        renderLayerFromJson("TERRAIN_TILE_HIGH_RENDER_LAYER") == RenderLayer::TerrainTilesHigh,
+        "named high terrain render layer parsed incorrectly"
+    );
+    require(
+        renderLayerFromJson(7) == 7,
+        "numeric render layer parsed incorrectly"
+    );
+
+    bool threw = false;
+    try {
+        renderLayerFromJson("UNKNOWN_RENDER_LAYER");
+    }
+    catch (const std::out_of_range&) {
+        threw = true;
+    }
+    require(threw, "unknown render layer name should throw");
+}
+
 void testQuadtreeStoresColliderProxyIndices()
 {
     Quadtree tree({0, 0}, {256, 256});
@@ -326,6 +351,7 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"const_view", testEcsConstView},
     TestSupport::TestCase{"collider_json_parses_multiple_shapes", testColliderJsonParsesMultipleShapes},
     TestSupport::TestCase{"collider_constructors_calculate_half_size", testColliderConstructorsCalculateHalfSize},
+    TestSupport::TestCase{"render_layer_json_parsing", testRenderLayerJsonParsing},
     TestSupport::TestCase{"quadtree_stores_collider_proxy_indices", testQuadtreeStoresColliderProxyIndices},
     TestSupport::TestCase{"quadtree_can_return_duplicate_proxy_leaf_appearances", testQuadtreeCanReturnDuplicateProxyLeafAppearances},
     TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval},
