@@ -485,6 +485,11 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene)
         [this](Entity a, Entity b, Vec2 overlap) { handlePlayerArea(a, b, overlap); }
     );
     registerTriggerHandler(
+        PLAYER_LAYER,
+        WATER_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { handleMobWater(a, b, overlap); }
+    );
+    registerTriggerHandler(
         DAMAGE_LAYER,
         ENEMY_LAYER,
         [this](Entity a, Entity b, Vec2 overlap) { handleDamageHitbox(a, b, overlap); }
@@ -796,6 +801,7 @@ void CollisionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overlap
         player.getComponent<CInput>().interact = false;
     }
     m_scene->Emit(Event{EventType::ItemPickedUp, name});
+    return;
 }
 
 void CollisionManager::handlePlayerArea(Entity player, Entity area, Vec2 overlap)
@@ -805,4 +811,11 @@ void CollisionManager::handlePlayerArea(Entity player, Entity area, Vec2 overlap
     }
     Event event = area.getComponent<CEvent>().event;
     m_scene->Emit(event);
+    return;
+}
+
+void CollisionManager::handleMobWater(Entity mob, Entity water, Vec2 overlap)
+{
+    mob.getComponent<CVelocity>().vel /= 2;
+    return;
 }

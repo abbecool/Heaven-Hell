@@ -1329,7 +1329,8 @@ EntityID Scene_Play::spawnShadow(EntityID parentID){
     return shadowID;
 }
 
-EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame){
+EntityID Scene_Play::spawnObstacle(const Vec2 pos)
+{
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid, Vec2 {0.5f,0.5f});
@@ -1337,14 +1338,15 @@ EntityID Scene_Play::spawnObstacle(const Vec2 pos, bool movable, const int frame
     m_ECS.addComponent<CCollider>(entity, Vec2 {16, 16}, OBSTACLE_LAYER, collisionMask);
     return entity;
 }
-
-EntityID Scene_Play::spawnWater(const Vec2 pos, const std::string tag, const int frame)
+  
+EntityID Scene_Play::spawnWater(const Vec2 pos)
 {
     auto entity = m_ECS.addEntity();
     Vec2 midGrid = gridToMidPixel(pos, entity);
     m_ECS.addComponent<CTransform>(entity, midGrid);
-    m_ECS.addComponent<CWater>(entity, CWater{false});
-    m_ECS.addComponent<CCollider>(entity, Vec2{16, 16});
+    m_ECS.addComponent<CWater>(entity, false);
+    CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
+    m_ECS.addComponent<CCollider>(entity, Vec2 {16, 16}, WATER_LAYER, collisionMask);
     return entity;
 }
 
@@ -1458,7 +1460,6 @@ EntityID Scene_Play::spawnHitbox(EntityID attackerID, Vec2 direction, const CWea
 std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::array<int, 5> tileTextures)
 {   
     std::vector<EntityID> entityIDs;
-    // for (const auto& [tileKey, textureIndex] : tileTextures) {
     for (int i = 0; i < tileTextures.size(); ++i) {
         TileType tileKey = static_cast<TileType>(i);
         int textureIndex = tileTextures[i];
@@ -1584,7 +1585,7 @@ bool Scene_Play::hasLineOfSight(Vec2 origin, Vec2 target)
     float dist    = delta.length();
     Vec2  dir     = delta / dist;          // normalized
 
-    for (auto [obstacle, collider, transform] : m_ECS.constView<CCollider, CTransform>()) {
+    for (auto [obstacle, collider, transform, _] : m_ECS.constView<CCollider, CTransform, CStatic>()) {
         for (const auto& shape : collider.shapes) {
             if (shape.isTrigger || (shape.layer & OBSTACLE_LAYER) == 0) {
                 continue;

@@ -49,8 +49,8 @@ class Scene_Play : public Scene
     EntityID spawnPlayer();
     EntityID spawnShadow(EntityID parentID);
     
-    EntityID spawnObstacle  (const Vec2 pos, bool movable, const int frame );
-    EntityID spawnWater     (const Vec2 pos, const std::string tag, const int frame );
+    EntityID spawnObstacle(const Vec2 pos);
+    EntityID spawnWater(const Vec2 pos);
     std::vector<EntityID> spawnDualTiles(
         const Vec2 pos, 
         std::array<int, 5> tileIndex

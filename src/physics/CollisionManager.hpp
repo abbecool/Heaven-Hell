@@ -103,6 +103,7 @@ private:
     void handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap);
     void handlePlayerLoot(Entity player, Entity loot, Vec2 overlap);
     void handlePlayerArea(Entity player, Entity area, Vec2 overlap);
+    void handleMobWater(Entity mob, Entity water, Vec2 overlap);
 
 public:
     CollisionManager() = default;
