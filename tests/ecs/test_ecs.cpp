@@ -4,6 +4,7 @@
 
 #include <array>
 #include <algorithm>
+#include <string>
 #include <type_traits>
 
 namespace {
@@ -15,6 +16,10 @@ struct TestComponent {
 };
 
 struct SecondaryComponent {
+    int value = 0;
+};
+
+struct MissingExcludedComponent {
     int value = 0;
 };
 
@@ -202,6 +207,93 @@ void testEcsConstView()
         matches++;
     }
     require(matches == 1, "const view returned the wrong number of entities");
+}
+
+void testEcsViewExcludesComponents()
+{
+    ECS ecs;
+    const EntityID included = ecs.addEntity();
+    const EntityID excluded = ecs.addEntity();
+    const EntityID missingIncludedComponent = ecs.addEntity();
+
+    ecs.addComponent<TestComponent>(included, TestComponent{10});
+    ecs.addComponent<TestComponent>(excluded, TestComponent{20});
+    ecs.addComponent<SecondaryComponent>(excluded, SecondaryComponent{30});
+    ecs.addComponent<SecondaryComponent>(missingIncludedComponent, SecondaryComponent{40});
+
+    size_t matches = 0;
+    for (auto [id, test] : ecs.View<TestComponent>(ecs::Exclude<SecondaryComponent>{})) {
+        require(id == included, "excluded view returned an entity with the excluded component");
+        require(test.value == 10, "excluded view returned the wrong included component");
+        matches++;
+    }
+
+    require(matches == 1, "excluded view returned the wrong number of entities");
+}
+
+void testEcsViewExcludeMutatesComponents()
+{
+    ECS ecs;
+    const EntityID mutableEntity = ecs.addEntity();
+    const EntityID filteredEntity = ecs.addEntity();
+
+    ecs.addComponent<TestComponent>(mutableEntity, TestComponent{10});
+    ecs.addComponent<TestComponent>(filteredEntity, TestComponent{20});
+    ecs.addComponent<SecondaryComponent>(filteredEntity, SecondaryComponent{30});
+
+    for (auto [id, test] : ecs.View<TestComponent>(ecs::Exclude<SecondaryComponent>{})) {
+        require(id == mutableEntity, "excluded mutable view returned the wrong entity");
+        test.value = 42;
+    }
+
+    require(ecs.getComponent<TestComponent>(mutableEntity).value == 42,
+        "excluded view component reference did not mutate ECS storage");
+    require(ecs.getComponent<TestComponent>(filteredEntity).value == 20,
+        "excluded view mutated a filtered entity");
+}
+
+void testEcsViewMissingExcludedPoolIsIgnored()
+{
+    ECS ecs;
+    const EntityID entity = ecs.addEntity();
+    ecs.addComponent<TestComponent>(entity, TestComponent{10});
+
+    const std::string beforeView = ecs.numberOfEntities();
+
+    size_t matches = 0;
+    for (auto [id, test] : ecs.View<TestComponent>(ecs::Exclude<MissingExcludedComponent>{})) {
+        require(id == entity, "view with missing excluded pool returned the wrong entity");
+        require(test.value == 10, "view with missing excluded pool returned the wrong component");
+        matches++;
+    }
+
+    require(matches == 1, "missing excluded pool should not make the view empty");
+    require(ecs.numberOfEntities() == beforeView, "missing excluded pool was created by View");
+}
+
+void testEcsConstViewExcludesComponents()
+{
+    ECS ecs;
+    const EntityID included = ecs.addEntity();
+    const EntityID excluded = ecs.addEntity();
+
+    ecs.addComponent<TestComponent>(included, TestComponent{10});
+    ecs.addComponent<TestComponent>(excluded, TestComponent{20});
+    ecs.addComponent<SecondaryComponent>(excluded, SecondaryComponent{30});
+
+    const ECS& constEcs = ecs;
+    auto view = constEcs.constView<TestComponent>(ecs::Exclude<SecondaryComponent>{});
+    auto row = *view.begin();
+    static_assert(std::is_same_v<decltype(std::get<1>(row)), const TestComponent&>);
+
+    size_t matches = 0;
+    for (auto [id, test] : view) {
+        require(id == included, "excluded const view returned an entity with the excluded component");
+        require(test.value == 10, "excluded const view returned the wrong component");
+        matches++;
+    }
+
+    require(matches == 1, "excluded const view returned the wrong number of entities");
 }
 
 void testColliderJsonParsesMultipleShapes()
@@ -441,6 +533,10 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"view_missing_pool_is_empty", testEcsViewMissingPoolIsEmpty},
     TestSupport::TestCase{"view_entities_legacy", testEcsViewEntitiesLegacy},
     TestSupport::TestCase{"const_view", testEcsConstView},
+    TestSupport::TestCase{"view_excludes_components", testEcsViewExcludesComponents},
+    TestSupport::TestCase{"view_exclude_mutates_components", testEcsViewExcludeMutatesComponents},
+    TestSupport::TestCase{"view_missing_excluded_pool_is_ignored", testEcsViewMissingExcludedPoolIsIgnored},
+    TestSupport::TestCase{"const_view_excludes_components", testEcsConstViewExcludesComponents},
     TestSupport::TestCase{"collider_json_parses_multiple_shapes", testColliderJsonParsesMultipleShapes},
     TestSupport::TestCase{"collider_constructors_calculate_half_size", testColliderConstructorsCalculateHalfSize},
     TestSupport::TestCase{"static_marker_participates_in_collider_transform_view", testStaticMarkerParticipatesInColliderTransformView},

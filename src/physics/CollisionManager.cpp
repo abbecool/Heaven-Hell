@@ -354,11 +354,8 @@ void CollisionManager::buildQuadtree()
         m_quadRoot = std::make_unique<Quadtree>(m_worldCenter, m_worldSize);
     }
 
-    for (auto [entityID, collider, transform] : m_ECS->constView<CCollider, CTransform>()) {
-        if (m_ECS->hasComponent<CStatic>(entityID)) {
-            continue;
-        }
-
+    for (auto [entityID, collider, transform] :
+        m_ECS->constView<CCollider, CTransform>(ecs::Exclude<CStatic>{})) {
         for (size_t shapeIndex = 0; shapeIndex < collider.shapes.size(); ++shapeIndex) {
             const ColliderShape& shape = collider.shapes[shapeIndex];
             insertColliderProxy(

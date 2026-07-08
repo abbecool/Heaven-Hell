@@ -26,6 +26,19 @@ for (auto [id, transform, sprite] : ecs.constView<CTransform, CSprite>()) {
 }
 ```
 
+Pass `ecs::Exclude<Components...>{}` to skip entities that have any of those components.
+Excluded components are filters only. They are not returned in the structured binding.
+
+```cpp
+for (auto [id, transform] : ecs.View<CTransform>(ecs::Exclude<CStatic>{})) {
+    transform.pos.x += 1;
+}
+
+for (auto [id, collider, transform] : ecs.constView<CCollider, CTransform>(ecs::Exclude<CStatic>{})) {
+    drawCollider(collider, transform);
+}
+```
+
 ## Under The Hood
 
 `ECS::View<Components...>()` creates an `ECSView<Components...>` object:
@@ -40,6 +53,7 @@ ECSView<Components...> View()
 
 `findComponentPool<T>()` looks up each requested component pool without creating missing pools.
 If any requested pool does not exist, `ECSView` has no driver pool and iterates as empty.
+The exclusion overload also uses `findComponentPool<T>()`, so excluding a component type with no pool is a no-op and does not create an empty pool.
 
 `ECS::constView<Components...>()` creates an `ECSConstView<Components...>` instead. Its internals mirror `ECSView`, but it stores `const ComponentPool<Components>*` pointers and dereferences to `const Components&...`.
 
@@ -61,8 +75,8 @@ if ((pools && ...)) {
 The driver only provides entity IDs. The iterator then checks each candidate entity against all requested pools:
 
 ```cpp
-bool hasAllComponents(EntityID entity) const {
-    return (std::get<ComponentPool<Components>*>(m_pools)->hasComponent(entity) && ...);
+bool matches(EntityID entity) const {
+    return hasAllComponents(entity) && hasNoExcludedComponents(entity);
 }
 ```
 

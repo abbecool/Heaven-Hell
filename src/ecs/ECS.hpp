@@ -22,6 +22,11 @@
 
 using EntityID = uint32_t;
 
+namespace ecs {
+    template<typename... Components>
+    struct Exclude {};
+}
+
 static bool comp(int a, int b) {
     return a > b;
 }
@@ -34,7 +39,13 @@ class ECSView {
 
 public:
     explicit ECSView(ComponentPool<Components>*... pools)
+        : ECSView(std::vector<const BaseComponentPool*>{}, pools...)
+    {
+    }
+
+    explicit ECSView(std::vector<const BaseComponentPool*> excludedPools, ComponentPool<Components>*... pools)
         : m_pools(pools...)
+        , m_excludedPools(std::move(excludedPools))
     {
         if ((pools && ...)) {
             (selectDriverPool(pools), ...);
@@ -73,7 +84,7 @@ public:
 
     private:
         void advanceToMatch() {
-            while (m_view && m_index < m_view->driverSize() && !m_view->hasAllComponents(m_view->entityAt(m_index))) {
+            while (m_view && m_index < m_view->driverSize() && !m_view->matches(m_view->entityAt(m_index))) {
                 ++m_index;
             }
         }
@@ -110,7 +121,21 @@ private:
         return (std::get<ComponentPool<Components>*>(m_pools)->hasComponent(entity) && ...);
     }
 
+    bool hasNoExcludedComponents(EntityID entity) const {
+        for (const BaseComponentPool* pool : m_excludedPools) {
+            if (pool && pool->hasComponent(entity)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool matches(EntityID entity) const {
+        return hasAllComponents(entity) && hasNoExcludedComponents(entity);
+    }
+
     PoolTuple m_pools;
+    std::vector<const BaseComponentPool*> m_excludedPools;
     const std::vector<EntityID>* m_driverEntities = nullptr;
 };
 
@@ -122,7 +147,13 @@ class ECSConstView {
 
 public:
     explicit ECSConstView(const ComponentPool<Components>*... pools)
+        : ECSConstView(std::vector<const BaseComponentPool*>{}, pools...)
+    {
+    }
+
+    explicit ECSConstView(std::vector<const BaseComponentPool*> excludedPools, const ComponentPool<Components>*... pools)
         : m_pools(pools...)
+        , m_excludedPools(std::move(excludedPools))
     {
         if ((pools && ...)) {
             (selectDriverPool(pools), ...);
@@ -161,7 +192,7 @@ public:
 
     private:
         void advanceToMatch() {
-            while (m_view && m_index < m_view->driverSize() && !m_view->hasAllComponents(m_view->entityAt(m_index))) {
+            while (m_view && m_index < m_view->driverSize() && !m_view->matches(m_view->entityAt(m_index))) {
                 ++m_index;
             }
         }
@@ -198,7 +229,21 @@ private:
         return (std::get<const ComponentPool<Components>*>(m_pools)->hasComponent(entity) && ...);
     }
 
+    bool hasNoExcludedComponents(EntityID entity) const {
+        for (const BaseComponentPool* pool : m_excludedPools) {
+            if (pool && pool->hasComponent(entity)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool matches(EntityID entity) const {
+        return hasAllComponents(entity) && hasNoExcludedComponents(entity);
+    }
+
     PoolTuple m_pools;
+    std::vector<const BaseComponentPool*> m_excludedPools;
     const std::vector<EntityID>* m_driverEntities = nullptr;
 };
 
@@ -465,10 +510,28 @@ public:
         return ECSView<Components...>(findComponentPool<Components>()...);
     }
 
+    template<typename... Components, typename... Excluded>
+    ECSView<Components...> View(ecs::Exclude<Excluded...>)
+    {
+        return ECSView<Components...>(
+            std::vector<const BaseComponentPool*>{findComponentPool<Excluded>()...},
+            findComponentPool<Components>()...
+        );
+    }
+
     template<typename... Components>
     ECSConstView<Components...> constView() const
     {
         return ECSConstView<Components...>(findComponentPool<Components>()...);
+    }
+
+    template<typename... Components, typename... Excluded>
+    ECSConstView<Components...> constView(ecs::Exclude<Excluded...>) const
+    {
+        return ECSConstView<Components...>(
+            std::vector<const BaseComponentPool*>{findComponentPool<Excluded>()...},
+            findComponentPool<Components>()...
+        );
     }
 
     template<typename... Components>

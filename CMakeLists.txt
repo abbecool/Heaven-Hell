@@ -177,6 +177,10 @@ if (BUILD_TESTING)
         view_missing_pool_is_empty
         view_entities_legacy
         const_view
+        view_excludes_components
+        view_exclude_mutates_components
+        view_missing_excluded_pool_is_ignored
+        const_view_excludes_components
         collider_json_parses_multiple_shapes
         collider_constructors_calculate_half_size
         static_marker_participates_in_collider_transform_view
