@@ -37,6 +37,7 @@
       "knight-sheet.png",
       "goblin-sheet.png",
       "rooter-sheet.png",
+      "chicken-sheet.png",
       "rooter-attack.png",
       "golem-sheet.png",
       "inventory.png",
@@ -326,6 +327,15 @@
       "rows": 5,
       "width": 32,
       "height": 32
+    },
+    {
+      "name": "chicken-sheet",
+      "frames": 4,
+      "frametime": 20,
+      "cols": 4,
+      "rows": 5,
+      "width": 16,
+      "height": 16
     },
     {
       "name": "golem-sheet",

@@ -490,11 +490,15 @@ void Scene_Play::sAI()
 
     for (auto [e, agent, input, transform] : m_ECS.View<CAIAgent, CInput, CTransform>())
     {
+        if (e == m_player) {
+            continue;
+        }
+
         Vec2 pos = transform.pos;
 
         // ── Sight check ────────────────────────────────────────────────
         float distToPlayer = (playerPos - pos).length();
-        bool  inRange      = distToPlayer <= agent.sightRange;
+        bool  inRange      = agent.sightRange > 0.0f && distToPlayer <= agent.sightRange;
         agent.canSeePlayer = inRange && hasLineOfSight(pos, playerPos);
 
         if (agent.canSeePlayer) {
@@ -1208,6 +1212,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         m_ECS.addComponent<CCurrency>(id, c["CCurrency"]);
     }
     if (c.contains("CAIAgent")) {
+        if (!m_ECS.hasComponent<CInput>(id)) {
+            m_ECS.addComponent<CInput>(id);
+        }
         m_ECS.addComponent<CAIAgent>(id, c["CAIAgent"]);
         // Record spawn position for patrol anchor
         m_ECS.getComponent<CAIAgent>(id).spawnPos = pos;
@@ -1583,6 +1590,9 @@ bool Scene_Play::hasLineOfSight(Vec2 origin, Vec2 target)
 {
     Vec2  delta   = target - origin;
     float dist    = delta.length();
+    if (dist <= 0.0001f) {
+        return true;
+    }
     Vec2  dir     = delta / dist;          // normalized
 
     for (auto [obstacle, collider, transform, _] : m_ECS.constView<CCollider, CTransform, CStatic>()) {

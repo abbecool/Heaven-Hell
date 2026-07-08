@@ -657,6 +657,9 @@ bool CollisionManager::possesNPC(Entity player, Entity friendly)
     if (!friendly.hasComponent<CInput>()) {
         friendly.addComponent<CInput>();
     }
+    if (friendly.hasComponent<CAIAgent>()) {
+        friendly.removeComponent<CAIAgent>();
+    }
 
     m_ECS->queueRemoveEntity(oldID);
     m_scene->changePlayerID(newID);

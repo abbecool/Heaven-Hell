@@ -20,6 +20,12 @@
       "CPossesLevel": {
         "level": 10
       },
+      "CAIAgent": {
+        "sightRange": 0,
+        "patrolRadius": 16,
+        "memoryDuration": 180,
+        "patrolWaitDuration": 180
+      },
       "CHealth": {
         "HP": 6,
         "HP_max": 6,

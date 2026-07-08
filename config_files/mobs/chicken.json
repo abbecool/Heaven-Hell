@@ -1,34 +1,32 @@
 {
-  "knight": {
+  "chicken": {
     "components": {
       "CTransform": {
         "pos": "Nan"
       },
       "CPhysicsBody": {
         "mass": 1,
-        "moveForce": 2400,
-        "maxSpeed": 100,
+        "moveForce": 900,
+        "maxSpeed": 40,
         "linearDamping": 24
       },
       "CAnimation": {
-        "animation": "knight-sheet",
+        "animation": "chicken-sheet",
         "layer": "CHARACTER_RENDER_LAYER"
       },
       "CState": {
         "state": "Nan"
       },
-      "CPossesLevel": {
-        "level": 10
-      },
+      "CInput": 0,
       "CAIAgent": {
-        "sightRange": 0,
+        "sightRange": 32,
         "patrolRadius": 16,
         "memoryDuration": 180,
-        "patrolWaitDuration": 190
+        "patrolWaitDuration": 60
       },
       "CHealth": {
-        "HP": 6,
-        "HP_max": 6,
+        "HP": 2,
+        "HP_max": 2,
         "i_frames": 30,
         "type": [
           "Organic"
@@ -45,7 +43,7 @@
               "x": 8,
               "y": 8
             },
-            "layer": "FRIENDLY_LAYER",
+            "layer": "ENEMY_LAYER",
             "targetMask": [
               "FRIENDLY_LAYER",
               "OBSTACLE_LAYER",
@@ -58,28 +56,6 @@
               "a": 255
             },
             "isTrigger": false
-          },
-          {
-            "offset": {
-              "x": 0,
-              "y": 0
-            },
-            "size": {
-              "x": 48,
-              "y": 32
-            },
-            "layer": "FRIENDLY_LAYER",
-            "targetMask": [
-              "PLAYER_LAYER",
-              "FRIENDLY_LAYER"
-            ],
-            "debugColor": {
-              "r": 0,
-              "g": 0,
-              "b": 255,
-              "a": 255
-            },
-            "isTrigger": true
           }
         ]
       }
