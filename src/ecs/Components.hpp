@@ -733,6 +733,10 @@ struct CChild
         : children{{cID, remove}} {}
 };
 
+struct CStatic
+{
+};
+
 struct CChunk
 {
     Vec2 chunkPos;

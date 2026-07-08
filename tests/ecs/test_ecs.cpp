@@ -18,6 +18,17 @@ struct SecondaryComponent {
     int value = 0;
 };
 
+size_t countQuadtreeObjectOccurrences(Quadtree& tree, size_t objectIndex)
+{
+    size_t occurrences = 0;
+    auto leaves = tree.createQuadtreeVector();
+    for (const auto& leaf : leaves) {
+        const auto objects = leaf->getObjects();
+        occurrences += static_cast<size_t>(std::count(objects.begin(), objects.end(), objectIndex));
+    }
+    return occurrences;
+}
+
 void testPoolAddAndGet()
 {
     ComponentPool<TestComponent> pool;
@@ -239,6 +250,30 @@ void testColliderConstructorsCalculateHalfSize()
     require(!collider.shapes[0].isTrigger, "single-shape collider constructor should default to solid");
 }
 
+void testStaticMarkerParticipatesInColliderTransformView()
+{
+    ECS ecs;
+    const EntityID staticEntity = ecs.addEntity();
+    const EntityID dynamicEntity = ecs.addEntity();
+
+    ecs.addComponent<CTransform>(staticEntity, Vec2{8, 8});
+    ecs.addComponent<CCollider>(staticEntity, Vec2{16, 16}, OBSTACLE_LAYER, PLAYER_LAYER);
+    ecs.addComponent<CStatic>(staticEntity);
+
+    ecs.addComponent<CTransform>(dynamicEntity, Vec2{24, 8});
+    ecs.addComponent<CCollider>(dynamicEntity, Vec2{16, 16}, PLAYER_LAYER, OBSTACLE_LAYER);
+
+    size_t matches = 0;
+    for (auto [entity, collider, transform, staticMarker] : ecs.constView<CCollider, CTransform, CStatic>()) {
+        require(entity == staticEntity, "static view returned a non-static entity");
+        require(transform.pos == Vec2{8, 8}, "static view returned the wrong transform");
+        require(collider.shapes.size() == 1, "static view returned the wrong collider");
+        matches++;
+    }
+
+    require(matches == 1, "static collider transform view returned the wrong number of entities");
+}
+
 void testRenderLayerJsonParsing()
 {
     require(
@@ -299,6 +334,63 @@ void testQuadtreeCanReturnDuplicateProxyLeafAppearances()
     require(occurrences > 1, "quadtree test setup did not produce duplicate proxy leaf appearances");
 }
 
+void testQuadtreeClonePreservesBaseAndAllowsIndependentInserts()
+{
+    Quadtree base({0, 0}, {256, 256});
+    base.insert(0, {0, 0}, {160, 160});
+    base.insert(1, {-72, -72}, {16, 16});
+    base.insert(2, {-48, -72}, {16, 16});
+    base.insert(3, {48, -72}, {16, 16});
+    base.insert(4, {72, -72}, {16, 16});
+    base.insert(5, {-72, 72}, {16, 16});
+    base.insert(6, {-48, 72}, {16, 16});
+    base.insert(7, {48, 72}, {16, 16});
+    base.insert(8, {72, 72}, {16, 16});
+
+    auto cloned = base.clone();
+
+    require(cloned->Divided(), "cloned quadtree did not preserve child subdivision");
+    require(
+        countQuadtreeObjectOccurrences(*cloned, 0) == countQuadtreeObjectOccurrences(base, 0),
+        "cloned quadtree did not preserve existing proxy appearances"
+    );
+
+    cloned->insert(99, {96, 96}, {16, 16});
+
+    require(
+        countQuadtreeObjectOccurrences(*cloned, 99) > 0,
+        "cloned quadtree did not accept a dynamic insert"
+    );
+    require(
+        countQuadtreeObjectOccurrences(base, 99) == 0,
+        "dynamic insert into cloned quadtree mutated the static base"
+    );
+}
+
+void testWorldCenteredQuadtreeCoversLevelEdges()
+{
+    const Vec2 worldSize{16000.0f, 8000.0f};
+    Quadtree tree(worldSize / 2.0f, worldSize);
+
+    tree.insert(0, {8.0f, 8.0f}, {16.0f, 16.0f});
+    tree.insert(1, {worldSize.x - 8.0f, worldSize.y - 8.0f}, {16.0f, 16.0f});
+
+    auto objects = tree.getObjects();
+    require(std::find(objects.begin(), objects.end(), 0) != objects.end(),
+        "world-centered quadtree missed collider at the origin edge");
+    require(std::find(objects.begin(), objects.end(), 1) != objects.end(),
+        "world-centered quadtree missed collider at the far world edge");
+
+    tree.clear();
+    tree.insert(2, {worldSize.x - 8.0f, 8.0f}, {16.0f, 16.0f});
+
+    objects = tree.getObjects();
+    require(std::find(objects.begin(), objects.end(), 0) == objects.end(),
+        "quadtree clear left an old collider proxy behind");
+    require(std::find(objects.begin(), objects.end(), 2) != objects.end(),
+        "cleared world-centered quadtree did not accept a new edge collider");
+}
+
 void testEcsQueuedRemoval()
 {
     ECS ecs;
@@ -351,9 +443,12 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"const_view", testEcsConstView},
     TestSupport::TestCase{"collider_json_parses_multiple_shapes", testColliderJsonParsesMultipleShapes},
     TestSupport::TestCase{"collider_constructors_calculate_half_size", testColliderConstructorsCalculateHalfSize},
+    TestSupport::TestCase{"static_marker_participates_in_collider_transform_view", testStaticMarkerParticipatesInColliderTransformView},
     TestSupport::TestCase{"render_layer_json_parsing", testRenderLayerJsonParsing},
     TestSupport::TestCase{"quadtree_stores_collider_proxy_indices", testQuadtreeStoresColliderProxyIndices},
     TestSupport::TestCase{"quadtree_can_return_duplicate_proxy_leaf_appearances", testQuadtreeCanReturnDuplicateProxyLeafAppearances},
+    TestSupport::TestCase{"quadtree_clone_preserves_base_and_allows_independent_inserts", testQuadtreeClonePreservesBaseAndAllowsIndependentInserts},
+    TestSupport::TestCase{"world_centered_quadtree_covers_level_edges", testWorldCenteredQuadtreeCoversLevelEdges},
     TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval},
     TestSupport::TestCase{"entity_zero_queued_component_removal", testEcsEntityZeroQueuedComponentRemoval}
 };

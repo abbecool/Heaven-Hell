@@ -28,6 +28,7 @@ struct ColliderProxy
     CollisionMask layer = EMPTY_MASK;
     CollisionMask targetMask = EMPTY_MASK;
     bool isTrigger = false;
+    bool isStatic = false;
 };
 
 class CollisionManager
@@ -38,7 +39,11 @@ private:
     CollisionMatrix m_solidHandlers{};
     CollisionMatrix m_triggerHandlers{};
     std::unique_ptr<Quadtree> m_quadRoot;
+    std::unique_ptr<Quadtree> m_staticQuadRoot;
+    Vec2 m_worldCenter = {0, 0};
+    Vec2 m_worldSize = {0, 0};
     std::vector<ColliderProxy> m_proxies;
+    std::vector<ColliderProxy> m_staticProxies;
     std::unordered_set<uint64_t> m_processedShapePairs;
     std::unordered_set<uint64_t> m_processedTriggerPairs;
 
@@ -48,6 +53,16 @@ private:
     static bool layersMatch(const ColliderProxy& first, const ColliderProxy& second);
     static bool aabbIntersects(const ColliderProxy& first, const ColliderProxy& second);
 
+    bool hasValidWorldBounds() const;
+    void insertColliderProxy(
+        EntityID entityID,
+        size_t shapeIndex,
+        const ColliderShape& shape,
+        const CTransform& transform,
+        bool isStatic,
+        std::vector<ColliderProxy>& proxies,
+        Quadtree& tree
+    );
     Vec2 calculateDelta(Vec2 aPos, Vec2 aSize, Vec2 bPos, Vec2 bSize) const;
     Vec2 calculateHorizontalMovement(
         const Vec2& aPos,
@@ -77,7 +92,7 @@ private:
         CollisionMask layerB,
         Vec2 overlap
     );
-    void buildQuadtree(Vec2 pos, Vec2 size);
+    void buildQuadtree();
     void processQuadtreeLeaf(const std::vector<size_t>& proxyIndices);
 
     bool talkToNPC(Entity player, Entity friendly);
@@ -93,7 +108,9 @@ public:
     CollisionManager() = default;
     CollisionManager(ECS* ecs, Scene_Play* scene);
 
-    void doCollisions(Vec2 pos, Vec2 size);
+    void setWorldBounds(Vec2 center, Vec2 size);
+    void rebuildStaticQuadtree();
+    void doCollisions();
     void renderQuadtree(RenderBackend& renderer);
     const std::vector<ColliderProxy>& proxies() const { return m_proxies; }
 };

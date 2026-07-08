@@ -306,6 +306,7 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             );
             chunkChildren.reserve(chunkChildren.size() + ids.size());
             for (EntityID id : ids) {
+                m_scene->m_ECS.addComponent<CStatic>(id);
                 chunkChildren.push_back(id);
             }
 
@@ -325,6 +326,7 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
     }
     EntityID chunkID = m_scene->m_ECS.addEntity();
     m_scene->m_ECS.addComponent<CChunk>(chunkID, chunk);
+    m_scene->m_ECS.addComponent<CStatic>(chunkID);
     const Vec2 chunkOrigin{
         static_cast<float>(chunkStartX) * m_gridSize.x,
         static_cast<float>(chunkStartY) * m_gridSize.y
@@ -391,6 +393,7 @@ void LevelLoader::renderChunkGrid(RenderBackend& renderer) const
 
 void LevelLoader::update(Vec2 playerPosition)
 {
+    bool chunksChanged = false;
     m_currentChunk = ( ( (playerPosition / m_gridSize).toInt() ) / m_chunkSize ).toInt();
     m_neighboringChunks.clear();
     for (int dx = -2; dx <= 2; ++dx) 
@@ -418,6 +421,7 @@ void LevelLoader::update(Vec2 playerPosition)
     EntityID chunkID = loadChunk(chunk);
     m_loadedChunkIDs.push_back(chunkID);
     m_loadedChunks.push_back(chunk);
+    chunksChanged = true;
 
     // std::cout << "Chunk Queue Size: " << m_chunkQueue.size() << " | Loaded Chunks: " << m_loadedChunks.size() << std::endl;
 
@@ -429,6 +433,11 @@ void LevelLoader::update(Vec2 playerPosition)
     }
     for (Vec2 chunk : chunksToRemove){
         removeChunk(chunk);
+        chunksChanged = true;
+    }
+
+    if (chunksChanged) {
+        m_scene->m_collisionManager.rebuildStaticQuadtree();
     }
  }
 
@@ -439,6 +448,12 @@ void LevelLoader::removeChunk(Vec2 chunk){
     const std::vector<EntityID>& chunkChildren =  m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern;
     for ( EntityID id : chunkChildren )
     {
+        if (m_scene->m_ECS.hasComponent<CStatic>(id)) {
+            m_scene->m_ECS.removeComponent<CStatic>(id);
+        }
+        if (m_scene->m_ECS.hasComponent<CCollider>(id)) {
+            m_scene->m_ECS.removeComponent<CCollider>(id);
+        }
         m_scene->m_ECS.queueRemoveEntity(id);
         if ( m_scene->m_ECS.hasComponent<CSprite>(id) )
         {
@@ -448,9 +463,19 @@ void LevelLoader::removeChunk(Vec2 chunk){
     }
     m_loadedChunks.erase(m_loadedChunks.begin() + index);
     m_loadedChunkIDs.erase(m_loadedChunkIDs.begin()+ index);
+    if (m_scene->m_ECS.hasComponent<CStatic>(chunkID)) {
+        m_scene->m_ECS.removeComponent<CStatic>(chunkID);
+    }
+    if (m_scene->m_ECS.hasComponent<CCollider>(chunkID)) {
+        m_scene->m_ECS.removeComponent<CCollider>(chunkID);
+    }
     m_scene->m_ECS.queueRemoveEntity(chunkID);
 }
 
-Vec2 LevelLoader::getLevelSize(){
+Vec2 LevelLoader::getLevelSize() const {
     return m_levelSize;
+}
+
+Vec2 LevelLoader::getWorldSize() const {
+    return m_levelSize * m_gridSize;
 }

@@ -35,6 +35,8 @@ class Quadtree
 public:
     Quadtree(Vec2 pos, Vec2 size);
     void subdivide();
+    void clear();
+    std::unique_ptr<Quadtree> clone() const;
     
     void insert(size_t objectIndex, Vec2 objectCenter, Vec2 objectSize)
     {

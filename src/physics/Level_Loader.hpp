@@ -52,5 +52,6 @@ public:
     void renderChunkGrid(RenderBackend& renderer) const;
     void removeChunk(Vec2 chunk);
     void update(Vec2);
-    Vec2 getLevelSize();
+    Vec2 getLevelSize() const;
+    Vec2 getWorldSize() const;
 };

@@ -179,9 +179,12 @@ if (BUILD_TESTING)
         const_view
         collider_json_parses_multiple_shapes
         collider_constructors_calculate_half_size
+        static_marker_participates_in_collider_transform_view
         render_layer_json_parsing
         quadtree_stores_collider_proxy_indices
         quadtree_can_return_duplicate_proxy_leaf_appearances
+        quadtree_clone_preserves_base_and_allows_independent_inserts
+        world_centered_quadtree_covers_level_edges
         queued_removal
         entity_zero_queued_component_removal
     )

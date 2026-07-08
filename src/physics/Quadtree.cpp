@@ -20,6 +20,39 @@ void Quadtree::subdivide()
     m_divided = true;
 }
 
+void Quadtree::clear()
+{
+    m_objects.clear();
+    m_northWest.reset();
+    m_northEast.reset();
+    m_southWest.reset();
+    m_southEast.reset();
+    m_divided = false;
+}
+
+std::unique_ptr<Quadtree> Quadtree::clone() const
+{
+    auto cloned = std::make_unique<Quadtree>(m_position, m_size);
+    cloned->m_capacity = m_capacity;
+    cloned->m_objects = m_objects;
+    cloned->m_divided = m_divided;
+
+    if (m_northWest) {
+        cloned->m_northWest = m_northWest->clone();
+    }
+    if (m_northEast) {
+        cloned->m_northEast = m_northEast->clone();
+    }
+    if (m_southWest) {
+        cloned->m_southWest = m_southWest->clone();
+    }
+    if (m_southEast) {
+        cloned->m_southEast = m_southEast->clone();
+    }
+
+    return cloned;
+}
+
 void Quadtree::printTree(const std::string& prefix, const std::string& branch)
 {
     std::cout << prefix << branch;

@@ -168,6 +168,42 @@ bool CollisionManager::aabbIntersects(const ColliderProxy& first, const Collider
     return xOverlap && yOverlap;
 }
 
+bool CollisionManager::hasValidWorldBounds() const
+{
+    return m_worldSize.x > 0.0f && m_worldSize.y > 0.0f;
+}
+
+void CollisionManager::insertColliderProxy(
+    EntityID entityID,
+    size_t shapeIndex,
+    const ColliderShape& shape,
+    const CTransform& transform,
+    bool isStatic,
+    std::vector<ColliderProxy>& proxies,
+    Quadtree& tree
+)
+{
+    if (shape.size.x <= 0.0f || shape.size.y <= 0.0f || shape.layer == EMPTY_MASK) {
+        return;
+    }
+
+    ColliderProxy proxy;
+    proxy.entity = entityID;
+    proxy.shapeIndex = shapeIndex;
+    proxy.center = transform.pos + shape.offset;
+    proxy.prevCenter = transform.prevPos + shape.offset;
+    proxy.size = shape.size;
+    proxy.halfSize = shape.halfSize;
+    proxy.layer = shape.layer;
+    proxy.targetMask = shape.targetMask;
+    proxy.isTrigger = shape.isTrigger;
+    proxy.isStatic = isStatic;
+
+    const size_t proxyIndex = proxies.size();
+    proxies.push_back(proxy);
+    tree.insert(proxyIndex, proxy.center, proxy.size);
+}
+
 Vec2 CollisionManager::calculateDelta(Vec2 aPos, Vec2 aSize, Vec2 bPos, Vec2 bSize) const
 {
     return ((aPos + aSize) - (bPos + bSize)).abs_elem();
@@ -299,34 +335,41 @@ void CollisionManager::dispatch(
     }
 }
 
-void CollisionManager::buildQuadtree(Vec2 pos, Vec2 size)
+void CollisionManager::buildQuadtree()
 {
-    m_quadRoot = std::make_unique<Quadtree>(pos, size);
-    m_proxies.clear();
+    m_proxies = m_staticProxies;
     m_processedShapePairs.clear();
     m_processedTriggerPairs.clear();
 
+    if (!hasValidWorldBounds()) {
+        m_quadRoot = nullptr;
+        m_proxies.clear();
+        return;
+    }
+
+    if (m_staticQuadRoot) {
+        m_quadRoot = m_staticQuadRoot->clone();
+    }
+    else {
+        m_quadRoot = std::make_unique<Quadtree>(m_worldCenter, m_worldSize);
+    }
+
     for (auto [entityID, collider, transform] : m_ECS->constView<CCollider, CTransform>()) {
+        if (m_ECS->hasComponent<CStatic>(entityID)) {
+            continue;
+        }
+
         for (size_t shapeIndex = 0; shapeIndex < collider.shapes.size(); ++shapeIndex) {
             const ColliderShape& shape = collider.shapes[shapeIndex];
-            if (shape.size.x <= 0.0f || shape.size.y <= 0.0f || shape.layer == EMPTY_MASK) {
-                continue;
-            }
-
-            ColliderProxy proxy;
-            proxy.entity = entityID;
-            proxy.shapeIndex = shapeIndex;
-            proxy.center = transform.pos + shape.offset;
-            proxy.prevCenter = transform.prevPos + shape.offset;
-            proxy.size = shape.size;
-            proxy.halfSize = shape.halfSize;
-            proxy.layer = shape.layer;
-            proxy.targetMask = shape.targetMask;
-            proxy.isTrigger = shape.isTrigger;
-
-            const size_t proxyIndex = m_proxies.size();
-            m_proxies.push_back(proxy);
-            m_quadRoot->insert(proxyIndex, proxy.center, proxy.size);
+            insertColliderProxy(
+                entityID,
+                shapeIndex,
+                shape,
+                transform,
+                false,
+                m_proxies,
+                *m_quadRoot
+            );
         }
     }
 }
@@ -342,6 +385,10 @@ void CollisionManager::processQuadtreeLeaf(const std::vector<size_t>& proxyIndic
             const ColliderProxy& proxyB = m_proxies[proxyIndexB];
 
             if (proxyA.entity == proxyB.entity) {
+                continue;
+            }
+
+            if (proxyA.isStatic && proxyB.isStatic) {
                 continue;
             }
 
@@ -457,9 +504,57 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene)
     );
 }
 
-void CollisionManager::doCollisions(Vec2 treePos, Vec2 treeSize)
+void CollisionManager::setWorldBounds(Vec2 center, Vec2 size)
 {
-    buildQuadtree(treePos, treeSize);
+    m_worldCenter = center;
+    m_worldSize = size;
+    if (!hasValidWorldBounds()) {
+        m_quadRoot = nullptr;
+        m_staticQuadRoot = nullptr;
+        m_staticProxies.clear();
+        return;
+    }
+    m_staticProxies.clear();
+    m_staticQuadRoot = std::make_unique<Quadtree>(m_worldCenter, m_worldSize);
+    m_quadRoot = m_staticQuadRoot->clone();
+}
+
+void CollisionManager::rebuildStaticQuadtree()
+{
+    m_staticProxies.clear();
+    if (!hasValidWorldBounds()) {
+        m_staticQuadRoot = nullptr;
+        m_quadRoot = nullptr;
+        return;
+    }
+
+    m_staticQuadRoot = std::make_unique<Quadtree>(m_worldCenter, m_worldSize);
+    for (auto [entityID, collider, transform, staticMarker] : m_ECS->constView<CCollider, CTransform, CStatic>()) {
+        for (size_t shapeIndex = 0; shapeIndex < collider.shapes.size(); ++shapeIndex) {
+            const ColliderShape& shape = collider.shapes[shapeIndex];
+            insertColliderProxy(
+                entityID,
+                shapeIndex,
+                shape,
+                transform,
+                true,
+                m_staticProxies,
+                *m_staticQuadRoot
+            );
+        }
+    }
+
+    m_quadRoot = m_staticQuadRoot->clone();
+    m_proxies = m_staticProxies;
+}
+
+void CollisionManager::doCollisions()
+{
+    buildQuadtree();
+    if (!m_quadRoot) {
+        return;
+    }
+
     auto quadVector = m_quadRoot->createQuadtreeVector();
 
     for (const auto& quadleaf : quadVector) {

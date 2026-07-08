@@ -95,6 +95,10 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(InputCode::Num8, "TP2");
     registerAction(InputCode::Num9, "TP3");
 
+    const Vec2 worldSize = m_levelLoader.getWorldSize();
+    m_collisionManager.setWorldBounds(worldSize / 2.0f, worldSize);
+    m_collisionManager.rebuildStaticQuadtree();
+
     spawnPlayer();
     // mobs have to spawn after player, so they can target the player
     loadMobsNItems("config_files/mobs.json");
@@ -808,12 +812,7 @@ void Scene_Play::sAttack(){
 
 void Scene_Play::sCollision() 
 {
-    auto screenSize = Vec2{static_cast<float>(width()), static_cast<float>(height())};
-    Vec2 treePos = m_camera.position + screenSize/2 - Vec2{32, 32};
-    Vec2 treeSize = Vec2{1048, 1048};
-
-    m_collisionManager.doCollisions(treePos, treeSize);
-    
+    m_collisionManager.doCollisions();
 }
 
 void Scene_Play::sStatus() {
