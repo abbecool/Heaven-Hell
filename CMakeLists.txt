@@ -190,6 +190,7 @@ if (BUILD_TESTING)
         quadtree_clone_preserves_base_and_allows_independent_inserts
         world_centered_quadtree_covers_level_edges
         queued_removal
+        removal_observer_sees_cascade
         entity_zero_queued_component_removal
     )
 

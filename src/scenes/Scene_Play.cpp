@@ -611,7 +611,7 @@ void Scene_Play::sMovement() {
         transform.pos += velocity.vel * PHYSICS_DT;
     }
 
-    for (auto [e, parent, transform] : m_ECS.View<CParent, CTransform>())
+    for (auto [e, parent, transform] : m_ECS.View<CParent, CTransform>(ecs::Exclude<CStatic>{}))
     {
         transform.pos = m_ECS.getComponent<CTransform>(parent.parent).pos + parent.relativePos;
     }

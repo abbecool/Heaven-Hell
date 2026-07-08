@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 namespace {
 
@@ -503,6 +504,38 @@ void testEcsQueuedRemoval()
     require(!ecs.hasComponent<TestComponent>(target), "entity removal left its component behind");
 }
 
+void testEcsRemovalObserverSeesCascade()
+{
+    ECS ecs;
+    const EntityID player = ecs.addEntity();
+    const EntityID parent = ecs.addEntity();
+    const EntityID child = ecs.addEntity();
+    std::vector<EntityID> removed;
+
+    ecs.addComponent<TestComponent>(parent, TestComponent{10});
+    ecs.addComponent<TestComponent>(child, TestComponent{20});
+    ecs.attachChild(parent, child, Vec2{4, 8});
+
+    ecs.setEntityRemovalObserver([&](EntityID entity) {
+        removed.push_back(entity);
+        if (entity == parent || entity == child) {
+            require(ecs.hasComponent<TestComponent>(entity),
+                "removal observer ran after components were stripped");
+        }
+    });
+
+    ecs.queueRemoveEntity(parent);
+    ecs.update();
+
+    require(ecs.isAlive(player), "observer cascade removal affected entity 0");
+    require(!ecs.isAlive(parent), "parent was not removed");
+    require(!ecs.isAlive(child), "child was not removed by parent cascade");
+    require(std::find(removed.begin(), removed.end(), parent) != removed.end(),
+        "removal observer did not see parent removal");
+    require(std::find(removed.begin(), removed.end(), child) != removed.end(),
+        "removal observer did not see child cascade removal");
+}
+
 void testEcsEntityZeroQueuedComponentRemoval()
 {
     ECS ecs;
@@ -546,6 +579,7 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"quadtree_clone_preserves_base_and_allows_independent_inserts", testQuadtreeClonePreservesBaseAndAllowsIndependentInserts},
     TestSupport::TestCase{"world_centered_quadtree_covers_level_edges", testWorldCenteredQuadtreeCoversLevelEdges},
     TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval},
+    TestSupport::TestCase{"removal_observer_sees_cascade", testEcsRemovalObserverSeesCascade},
     TestSupport::TestCase{"entity_zero_queued_component_removal", testEcsEntityZeroQueuedComponentRemoval}
 };
 

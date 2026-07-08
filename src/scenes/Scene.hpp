@@ -41,6 +41,7 @@ class Scene
     bool m_drawCollision = false;
     bool m_drawDrawGrid = true;
     Vec2 m_gridSize = {16, 16};    
+    void bindEcsRemovalObserver();
     virtual void onEnd() = 0;
     Vec2 gridToMidPixel(Vec2 grid, EntityID);
     RenderView worldRenderView();

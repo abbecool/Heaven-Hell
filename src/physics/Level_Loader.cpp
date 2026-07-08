@@ -281,13 +281,22 @@ std::array<int, 5> LevelLoader::createDualGrid(int x, int y)
 
 EntityID LevelLoader::loadChunk(Vec2 chunk)
 {
-    std::vector<EntityID> chunkChildren;
     const int chunkStartX = static_cast<int>(chunk.x * m_chunkSize.x);
     const int chunkStartY = static_cast<int>(chunk.y * m_chunkSize.y);
     const int chunkEndX = std::min(chunkStartX + static_cast<int>(m_chunkSize.x), m_width);
     const int chunkEndY = std::min(chunkStartY + static_cast<int>(m_chunkSize.y), m_height);
     const int chunkWidth = std::max(0, chunkEndX - chunkStartX);
     const int chunkHeight = std::max(0, chunkEndY - chunkStartY);
+    const Vec2 chunkOrigin{
+        static_cast<float>(chunkStartX) * m_gridSize.x,
+        static_cast<float>(chunkStartY) * m_gridSize.y
+    };
+
+    EntityID chunkID = m_scene->m_ECS.addEntity();
+    m_scene->m_ECS.addComponent<CChunk>(chunkID);
+    m_scene->m_ECS.addComponent<CStatic>(chunkID);
+    m_scene->m_ECS.addComponent<CTransform>(chunkID, chunkOrigin);
+
     std::vector<bool> obstacleTiles(static_cast<size_t>(chunkWidth * chunkHeight), false);
     std::vector<bool> waterTiles(static_cast<size_t>(chunkWidth * chunkHeight), false);
 
@@ -304,10 +313,10 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
                 Vec2 {16.0f * static_cast<float>(x) - 8.0f, 16.0f * static_cast<float>(y) - 8.0f},
                 tileIndex
             );
-            chunkChildren.reserve(chunkChildren.size() + ids.size());
             for (EntityID id : ids) {
                 m_scene->m_ECS.addComponent<CStatic>(id);
-                chunkChildren.push_back(id);
+                const Vec2 relativePos = m_scene->m_ECS.getComponent<CTransform>(id).pos - chunkOrigin;
+                m_scene->m_ECS.attachChild(chunkID, id, relativePos);
             }
 
             const int localX = x - chunkStartX;
@@ -324,14 +333,6 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
             }
         }
     }
-    EntityID chunkID = m_scene->m_ECS.addEntity();
-    m_scene->m_ECS.addComponent<CChunk>(chunkID, chunk);
-    m_scene->m_ECS.addComponent<CStatic>(chunkID);
-    const Vec2 chunkOrigin{
-        static_cast<float>(chunkStartX) * m_gridSize.x,
-        static_cast<float>(chunkStartY) * m_gridSize.y
-    };
-    m_scene->m_ECS.addComponent<CTransform>(chunkID, chunkOrigin);
 
     std::vector<ColliderShape> colliderShapes;
     const CollisionMask obstacleMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
@@ -362,7 +363,6 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
         m_scene->m_ECS.addComponent<CCollider>(chunkID, std::move(colliderShapes));
     }
 
-    m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern = chunkChildren;
     return chunkID;
 }
 
@@ -370,9 +370,9 @@ void LevelLoader::renderChunkGrid(RenderBackend& renderer) const
 {
     constexpr Color chunkGridColor{0, 255, 0, 255};
 
-    for (auto [id, chunk] : m_scene->m_ECS.constView<CChunk>()) {
-        const int chunkStartX = static_cast<int>(chunk.chunkPos.x * m_chunkSize.x);
-        const int chunkStartY = static_cast<int>(chunk.chunkPos.y * m_chunkSize.y);
+    for (auto [id, chunk, transform] : m_scene->m_ECS.constView<CChunk, CTransform>()) {
+        const int chunkStartX = static_cast<int>(transform.pos.x / m_gridSize.x);
+        const int chunkStartY = static_cast<int>(transform.pos.y / m_gridSize.y);
         const int chunkEndX = std::min(chunkStartX + static_cast<int>(m_chunkSize.x), m_width);
         const int chunkEndY = std::min(chunkStartY + static_cast<int>(m_chunkSize.y), m_height);
         const int chunkWidth = std::max(0, chunkEndX - chunkStartX);
@@ -383,8 +383,8 @@ void LevelLoader::renderChunkGrid(RenderBackend& renderer) const
         }
 
         renderer.drawWorldRect(RectF{
-            static_cast<float>(chunkStartX) * m_gridSize.x,
-            static_cast<float>(chunkStartY) * m_gridSize.y,
+            transform.pos.x,
+            transform.pos.y,
             static_cast<float>(chunkWidth) * m_gridSize.x,
             static_cast<float>(chunkHeight) * m_gridSize.y
         }, chunkGridColor);
@@ -394,6 +394,7 @@ void LevelLoader::renderChunkGrid(RenderBackend& renderer) const
 void LevelLoader::update(Vec2 playerPosition)
 {
     bool chunksChanged = false;
+    bool chunkRemovalsQueued = false;
     m_currentChunk = ( ( (playerPosition / m_gridSize).toInt() ) / m_chunkSize ).toInt();
     m_neighboringChunks.clear();
     for (int dx = -2; dx <= 2; ++dx) 
@@ -413,15 +414,15 @@ void LevelLoader::update(Vec2 playerPosition)
             }
         }
     }
-    if (m_chunkQueue.empty()){
-        return;
+
+    if (!m_chunkQueue.empty()){
+        Vec2 chunk = m_chunkQueue.front();
+        m_chunkQueue.pop_front();
+        EntityID chunkID = loadChunk(chunk);
+        m_loadedChunkIDs.push_back(chunkID);
+        m_loadedChunks.push_back(chunk);
+        chunksChanged = true;
     }
-    Vec2 chunk = m_chunkQueue.front();
-    m_chunkQueue.pop_front();
-    EntityID chunkID = loadChunk(chunk);
-    m_loadedChunkIDs.push_back(chunkID);
-    m_loadedChunks.push_back(chunk);
-    chunksChanged = true;
 
     // std::cout << "Chunk Queue Size: " << m_chunkQueue.size() << " | Loaded Chunks: " << m_loadedChunks.size() << std::endl;
 
@@ -434,41 +435,27 @@ void LevelLoader::update(Vec2 playerPosition)
     for (Vec2 chunk : chunksToRemove){
         removeChunk(chunk);
         chunksChanged = true;
+        chunkRemovalsQueued = true;
     }
 
     if (chunksChanged) {
+        if (chunkRemovalsQueued) {
+            m_scene->m_ECS.update();
+            m_scene->m_rendererManager.update();
+        }
         m_scene->m_collisionManager.rebuildStaticQuadtree();
     }
  }
 
 void LevelLoader::removeChunk(Vec2 chunk){
     auto it = std::find(m_loadedChunks.begin(), m_loadedChunks.end(), chunk);
+    if (it == m_loadedChunks.end()) {
+        return;
+    }
     int index = std::distance(m_loadedChunks.begin(), it);
     EntityID chunkID = m_loadedChunkIDs[index];
-    const std::vector<EntityID>& chunkChildren =  m_scene->m_ECS.getComponent<CChunk>(chunkID).chunkChildern;
-    for ( EntityID id : chunkChildren )
-    {
-        if (m_scene->m_ECS.hasComponent<CStatic>(id)) {
-            m_scene->m_ECS.removeComponent<CStatic>(id);
-        }
-        if (m_scene->m_ECS.hasComponent<CCollider>(id)) {
-            m_scene->m_ECS.removeComponent<CCollider>(id);
-        }
-        m_scene->m_ECS.queueRemoveEntity(id);
-        if ( m_scene->m_ECS.hasComponent<CSprite>(id) )
-        {
-            auto layer = m_scene->m_ECS.getComponent<CSprite>(id).layer;
-            m_scene->m_rendererManager.queueRemoveEntityFromLayer(id, layer);
-        }
-    }
     m_loadedChunks.erase(m_loadedChunks.begin() + index);
     m_loadedChunkIDs.erase(m_loadedChunkIDs.begin()+ index);
-    if (m_scene->m_ECS.hasComponent<CStatic>(chunkID)) {
-        m_scene->m_ECS.removeComponent<CStatic>(chunkID);
-    }
-    if (m_scene->m_ECS.hasComponent<CCollider>(chunkID)) {
-        m_scene->m_ECS.removeComponent<CCollider>(chunkID);
-    }
     m_scene->m_ECS.queueRemoveEntity(chunkID);
 }
 

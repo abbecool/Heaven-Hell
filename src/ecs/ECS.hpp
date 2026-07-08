@@ -249,6 +249,9 @@ private:
 
 class ECS
 {
+public:
+    using EntityRemovalObserver = std::function<void(EntityID)>;
+
 private:
     friend class Entity;
     std::vector<EntityID> m_freeIDs;
@@ -261,6 +264,7 @@ private:
     std::unordered_map<std::type_index, std::unique_ptr<BaseComponentPool>> m_componentPools;
     std::vector<EntityID> m_entitiesToRemove;
     std::vector<EntityID> matchingEntities;
+    EntityRemovalObserver m_entityRemovalObserver;
 
     template <typename T>
     ComponentPool<T>* findComponentPool() {
@@ -285,6 +289,10 @@ public:
 
     ECS() {
         m_sparse.resize(MAX_ENTITIES); // reserve sparse array
+    }
+
+    void setEntityRemovalObserver(EntityRemovalObserver observer) {
+        m_entityRemovalObserver = std::move(observer);
     }
     
     std::string numberOfEntities(){
@@ -318,6 +326,10 @@ public:
     void removeEntity(EntityID entity) {
         assert(entity < m_sparse.size() && "Invalid entity ID!");
         if (!isAlive(entity)){return;}
+
+        if (m_entityRemovalObserver) {
+            m_entityRemovalObserver(entity);
+        }
 
         size_t index = m_sparse[entity];         // where entity lives in dense
         size_t lastIndex = m_dense.size() - 1;   // last element

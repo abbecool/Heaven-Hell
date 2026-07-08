@@ -3,12 +3,25 @@
 
 #include <algorithm>
 
-Scene::Scene() {}
+Scene::Scene()
+{
+    bindEcsRemovalObserver();
+}
 
 Scene::Scene(Game* game)
-: m_game(game) {}
+: m_game(game)
+{
+    bindEcsRemovalObserver();
+}
 
 Scene::~Scene() {}
+
+void Scene::bindEcsRemovalObserver()
+{
+    m_ECS.setEntityRemovalObserver([this](EntityID entity) {
+        m_rendererManager.queueRemoveEntity(entity);
+    });
+}
 
 void Scene::doAction(const Action& action) {
     sDoAction(action);

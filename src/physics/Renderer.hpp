@@ -41,11 +41,23 @@ public:
     }
 
     void queueRemoveEntityFromLayer(EntityID entityID, uint8_t layerIndex) {
+        if (layerIndex >= layers.size()) {
+            return;
+        }
         entitiesToRemove.resize(layers.size());
         entitiesToRemove[layerIndex].push_back(entityID);
     }
 
+    void queueRemoveEntity(EntityID entityID) {
+        entitiesToRemoveFromAllLayers.push_back(entityID);
+    }
+
     void update() {
+        for (auto entityID : entitiesToRemoveFromAllLayers) {
+            removeEntityFromLayers(entityID);
+        }
+        entitiesToRemoveFromAllLayers.clear();
+
         entitiesToRemove.resize(layers.size());
         
         for (size_t layerIndex = 0; layerIndex < entitiesToRemove.size(); layerIndex++) {
@@ -79,8 +91,15 @@ public:
     }
 
 private:
+    void removeEntityFromLayers(EntityID id) {
+        for (auto& layer : layers) {
+            layer.erase(std::remove(layer.begin(), layer.end(), id), layer.end());
+        }
+    }
+
     std::vector<std::vector<EntityID>> layers;
     std::vector<std::vector<EntityID>> entitiesToRemove; // Entities to be removed in the next update
+    std::vector<EntityID> entitiesToRemoveFromAllLayers;
 };
 
 #endif // RENDERER_HPP
