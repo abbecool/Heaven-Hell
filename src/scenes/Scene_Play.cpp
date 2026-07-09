@@ -1353,7 +1353,7 @@ EntityID Scene_Play::spawnWater(const Vec2 pos)
     m_ECS.addComponent<CTransform>(entity, midGrid);
     m_ECS.addComponent<CWater>(entity, false);
     CollisionMask collisionMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
-    m_ECS.addComponent<CCollider>(entity, Vec2 {16, 16}, WATER_LAYER, collisionMask);
+    m_ECS.addComponent<CCollider>(entity, Vec2 {16, 16}, WATER_LAYER, collisionMask, true);
     return entity;
 }
 

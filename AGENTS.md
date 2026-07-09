@@ -105,6 +105,14 @@ register it in `config_files/assets.json`. The build copies assets and
   it still has `CAIAgent` after possession.
 - Possession removes `CAIAgent` from the possessed entity; keep the `sAI()`
   player guard as a safety net for queued removal and future content.
+- Possession can happen through the `PLAYER_LAYER`/`FRIENDLY_LAYER` trigger
+  handler or the `PLAYER_LAYER`/`ENEMY_LAYER` trigger handler, as long as the
+  target has `CPossesLevel`.
+- When possession should keep a mob's attack, copy the possessed mob's active
+  inventory item before overwriting its `CInventory`, then add that copied item
+  back to the new player inventory after `changePlayerID()`. Enemy attacks often
+  target `PLAYER_LAYER`, so retarget copied player-usable mob weapons to
+  `ENEMY_LAYER`.
 - AI movement only affects physics-driven entities when they also have
   `CPhysicsBody`, which creates `CVelocity` during spawn.
 - `sightRange <= 0` means the AI should never see or follow the player.

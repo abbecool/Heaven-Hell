@@ -476,6 +476,11 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene)
     );
     registerTriggerHandler(
         PLAYER_LAYER,
+        ENEMY_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { possesNPC(a, b); }
+    );
+    registerTriggerHandler(
+        PLAYER_LAYER,
         LOOT_LAYER,
         [this](Entity a, Entity b, Vec2 overlap) { handlePlayerLoot(a, b, overlap); }
     );
@@ -641,6 +646,15 @@ bool CollisionManager::possesNPC(Entity player, Entity friendly)
     friendly.removeComponent<CPossesLevel>();
     EntityID oldID = player.getID();
     EntityID newID = friendly.getID();
+    bool hasPossessedActiveItem = false;
+    Item possessedActiveItem;
+    if (friendly.hasComponent<CInventory>()) {
+        possessedActiveItem = friendly.getComponent<CInventory>().activeItem;
+        hasPossessedActiveItem = possessedActiveItem.id != -1;
+        if (possessedActiveItem.hasWeaponConfig) {
+            possessedActiveItem.weaponConfig["mask"] = nlohmann::json::array({"ENEMY_LAYER"});
+        }
+    }
 
     m_ECS->copyComponent<CCollider>(newID, oldID);
     m_ECS->copyComponent<CInventory>(newID, oldID);
@@ -653,6 +667,9 @@ bool CollisionManager::possesNPC(Entity player, Entity friendly)
     if (player.hasComponent<CWeapon>()) {
         m_ECS->copyComponent<CWeapon>(newID, oldID);
     }
+    else if (friendly.hasComponent<CWeapon>()) {
+        m_ECS->removeComponent<CWeapon>(newID);
+    }
 
     if (!friendly.hasComponent<CInput>()) {
         friendly.addComponent<CInput>();
@@ -661,8 +678,11 @@ bool CollisionManager::possesNPC(Entity player, Entity friendly)
         friendly.removeComponent<CAIAgent>();
     }
 
-    m_ECS->queueRemoveEntity(oldID);
     m_scene->changePlayerID(newID);
+    if (hasPossessedActiveItem) {
+        addItemToInventory(friendly, possessedActiveItem);
+    }
+    m_ECS->queueRemoveEntity(oldID);
 
     return true;
 }
