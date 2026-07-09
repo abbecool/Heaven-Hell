@@ -567,8 +567,12 @@ void CollisionManager::rebuildStaticQuadtree()
 
 void CollisionManager::doCollisions()
 {
+    m_entitiesInWater.clear();
     buildQuadtree();
     if (!m_quadRoot) {
+        if (m_scene) {
+            m_scene->updateSwimmingState(m_entitiesInWater);
+        }
         return;
     }
 
@@ -576,6 +580,10 @@ void CollisionManager::doCollisions()
 
     for (const auto& quadleaf : quadVector) {
         processQuadtreeLeaf(quadleaf->getObjects());
+    }
+
+    if (m_scene) {
+        m_scene->updateSwimmingState(m_entitiesInWater);
     }
 }
 
@@ -849,6 +857,13 @@ void CollisionManager::handlePlayerArea(Entity player, Entity area, Vec2 overlap
 
 void CollisionManager::handleMobWater(Entity mob, Entity water, Vec2 overlap)
 {
-    mob.getComponent<CVelocity>().vel /= 2;
+    m_entitiesInWater.insert(mob.getID());
+    if (m_scene) {
+        m_scene->spawnSwimming(mob.getID());
+    }
+
+    if (mob.hasComponent<CVelocity>()) {
+        mob.getComponent<CVelocity>().vel /= 2;
+    }
     return;
 }

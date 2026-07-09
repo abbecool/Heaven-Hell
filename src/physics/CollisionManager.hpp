@@ -46,6 +46,7 @@ private:
     std::vector<ColliderProxy> m_staticProxies;
     std::unordered_set<uint64_t> m_processedShapePairs;
     std::unordered_set<uint64_t> m_processedTriggerPairs;
+    std::unordered_set<EntityID> m_entitiesInWater;
 
     static uint8_t layerIndex(CollisionMask layer);
     static uint64_t pairKey(size_t first, size_t second);

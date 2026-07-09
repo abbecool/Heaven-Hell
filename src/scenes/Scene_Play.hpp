@@ -100,6 +100,8 @@ class Scene_Play : public Scene
     EntityID spawnProjectile(EntityID attackerID, Vec2 direction, const CWeapon& weapon);
     EntityID spawnHitbox(EntityID attackerID, Vec2 direction, const CWeapon& weapon);
     void destroyProjectile(EntityID projectileID);
+    void updateSwimmingState(const std::unordered_set<EntityID>& activeWaterEntities);
+    EntityID spawnSwimming(EntityID entityID);
     bool addCurrencyToPlayer(int amount);
     bool addCurrencyToPlayer(const Item& item);
     void updateActiveItem(int newActiveItem);

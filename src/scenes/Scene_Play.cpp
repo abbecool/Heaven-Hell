@@ -1341,6 +1341,41 @@ EntityID Scene_Play::spawnPlayer()
 
     return entityID;
 }
+// TODO: improve the swimming assignment in the future.
+void Scene_Play::updateSwimmingState(const std::unordered_set<EntityID>& activeWaterEntities)
+{
+    for (auto [entityID, swimming] : m_ECS.View<CSwimming>()) {
+        if (activeWaterEntities.find(entityID) != activeWaterEntities.end()) {
+            continue;
+        }
+
+        if (swimming.childEntity != 0 && m_ECS.isAlive(swimming.childEntity)) {
+            m_ECS.queueRemoveEntity(swimming.childEntity);
+        }
+
+        m_ECS.queueRemoveComponent<CSwimming>(entityID);
+    }
+}
+
+EntityID Scene_Play::spawnSwimming(EntityID entityID)
+{
+    if (!m_ECS.hasComponent<CSwimming>(entityID)) {
+        m_ECS.addComponent<CSwimming>(entityID);
+    }
+
+    auto& swimming = m_ECS.getComponent<CSwimming>(entityID);
+    if (swimming.childEntity != 0 && m_ECS.isAlive(swimming.childEntity)) {
+        return swimming.childEntity;
+    }
+
+    const EntityID swimmingID = m_ECS.addEntity();
+    swimming.childEntity = swimmingID;
+
+    m_ECS.attachChild(entityID, swimmingID, Vec2{0, 0});
+    m_ECS.addComponent<CTransform>(swimmingID);
+    addVisual(swimmingID, "swimming", RenderLayer::WorldProp, true);
+    return swimmingID;
+}
 
 EntityID Scene_Play::spawnShadow(EntityID parentID){
     const CTransform& parentTransform = m_ECS.getComponent<CTransform>(parentID);

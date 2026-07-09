@@ -329,6 +329,15 @@ struct CWater {
         : isDeep(d) {}
 };
 
+struct CSwimming
+{
+    EntityID childEntity = 0;
+
+    CSwimming() = default;
+    explicit CSwimming(EntityID child)
+        : childEntity(child) {}
+};
+
 struct CCurrency
 {
     int value = 0;
