@@ -138,6 +138,16 @@ Potential role:
 - Guardians of forbidden routes.
 - Unlockable race or class through story encounters.
 
+## Orcs
+
+The Orcs live in the northern parts of the map. In the caves (or swamps) between the mountain and the old city. They are nasty creatures that take inspiration from LoR orcs and gollum. They are related to the race of the wizards but where cut of long ago and have been forced into the dark caves after the large conflict. They are fast and use mainly close combat melee weapons but still remember some ancient magic from the wizards, but it is corrupted dirty magic that also corrupts themselfs.
+
+Motivation:
+
+- They hate and hold recentment towards the wizards for abandoning them long ago. Although they almost dont remeber the reason anymore. 
+- They sometimes travel out of the caves to hunt travelers on the pathways outside of the cities.
+- They are fundementally magical creatures like the wizards but have limited intelegence from years living in caves with no outside contact. They have forgotten who they are and are condumed by rage.
+
 ## Knights
 
 Knights protect the city. They are at war with the archers over resources and fertile land.

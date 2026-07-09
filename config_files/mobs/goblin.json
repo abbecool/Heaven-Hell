@@ -33,7 +33,16 @@
           "goblin_claws"
         ]
       },
-      "CInput": "Nan",
+      "CInput": 0,
+      "CAIAgent": {
+        "sightRange": 128,
+        "patrolRadius": 32,
+        "memoryDuration": 240,
+        "patrolWaitDuration": 90
+      },
+      "CPossesLevel": {
+        "level": 10
+      },
       "CCollider": {
         "shapes": [
           {
@@ -58,6 +67,27 @@
               "a": 255
             },
             "isTrigger": false
+          },
+          {
+            "offset": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "x": 16,
+              "y": 16
+            },
+            "layer": "ENEMY_LAYER",
+            "targetMask": [
+              "PLAYER_LAYER"
+            ],
+            "debugColor": {
+              "r": 0,
+              "g": 0,
+              "b": 255,
+              "a": 255
+            },
+            "isTrigger": true
           }
         ]
       }
