@@ -24,4 +24,19 @@ public:
     virtual void fillWorldRect(const RectF& rect, Color color) = 0;
     virtual void drawText(const TextDrawCommand& command) = 0;
     virtual void drawWorldText(const WorldTextDrawCommand& command) = 0;
+    virtual void drawScreenRadialGradient(
+        Color color,
+        float centerAlpha,
+        float edgeAlpha,
+        float pulse,
+        float centerXRatio,
+        float centerYRatio)
+    {
+        (void)color;
+        (void)centerAlpha;
+        (void)edgeAlpha;
+        (void)pulse;
+        (void)centerXRatio;
+        (void)centerYRatio;
+    }
 };

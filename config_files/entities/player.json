@@ -24,8 +24,8 @@
         "state": "STAND"
       },
       "CHealth": {
-        "HP": 10,
-        "HP_max": 10,
+        "HP": 1,
+        "HP_max": 6,
         "i_frames": 60
       },
       "CInventory": {

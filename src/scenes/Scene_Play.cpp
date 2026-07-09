@@ -32,6 +32,8 @@ using json = nlohmann::json;
 namespace {
 constexpr float PHYSICS_DT = 1.0f / 60.0f;
 constexpr float SPRINT_MULTIPLIER = 2.0f;
+constexpr float SNEAK_MULTIPLIER = 0.5f;
+constexpr float WEAK_MULTIPLIER = 0.33f;
 constexpr float STOP_SPEED = 1.0f;
 
 json loadJsonFile(const std::string& path)
@@ -567,17 +569,22 @@ void Scene_Play::sAI()
 void Scene_Play::sMovement() {
     // Convert movement intent into a force. Input itself remains an intent-only component.
     for (auto [e, inputs, velocity, body] : m_ECS.View<CInput, CVelocity, CPhysicsBody>()){
-        if (e != m_player && m_ECS.hasComponent<CAttackState>(e)) {
+        const bool isPlayer = (e == m_player);
+        if (!isPlayer && m_ECS.hasComponent<CAttackState>(e)) {
             velocity.vel = {0, 0};
             inputs = CInput();
             continue;
         }
 
         if (!inputs.direction.isNull()) {
+            const float sneakMultiplier = inputs.shift ? SNEAK_MULTIPLIER : 1.0f;
             const float sprintMultiplier = inputs.ctrl ? SPRINT_MULTIPLIER : 1.0f;
-            body.accumulatedForce += inputs.direction.norm(body.moveForce * sprintMultiplier);
+            const float weakMultiplier = (isPlayer && m_playerHealthCritical) ? WEAK_MULTIPLIER : 1.0f;
+            body.accumulatedForce += inputs.direction.norm(
+                body.moveForce * sprintMultiplier * sneakMultiplier * weakMultiplier 
+            );
         }
-        if (e != m_player) {
+        if (!isPlayer) {
             inputs = CInput(); // reset inputs for NPCs after processing
         }
     }
@@ -820,6 +827,9 @@ void Scene_Play::sCollision()
 }
 
 void Scene_Play::sStatus() {
+    const auto& playerHealth = m_ECS.getComponent<CHealth>(m_player);
+    m_playerHealthCritical = (playerHealth.HP == 1);
+  
     for (auto [entityID, lifespan] : m_ECS.View<CLifespan>())
     {   
         lifespan.lifespan--;
@@ -1088,6 +1098,21 @@ void Scene_Play::sRenderUI() {
 void Scene_Play::sRender() {    
     sRenderBasic();
     sRenderUI();
+
+    if (m_playerHealthCritical) {
+        const float pulse = m_lowHealthOverlayConfig.pulseMin +
+            (m_lowHealthOverlayConfig.pulseMax - m_lowHealthOverlayConfig.pulseMin) *
+            (0.5f + 0.5f * std::sin(static_cast<float>(m_currentFrame) * m_lowHealthOverlayConfig.pulseSpeed));
+
+        m_game->render().drawScreenRadialGradient(
+            m_lowHealthOverlayConfig.color,
+            m_lowHealthOverlayConfig.centerTransparency,
+            m_lowHealthOverlayConfig.edgeTransparency,
+            pulse,
+            0.5f,
+            0.5f
+        );
+    }
     
     if (m_drawCollision)
     {

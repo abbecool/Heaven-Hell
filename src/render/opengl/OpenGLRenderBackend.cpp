@@ -53,6 +53,81 @@ OpenGLRenderBackend::OpenGLRenderBackend(SDL_Window* window)
     }
 
     m_spriteBatch.create();
+
+    const char* overlayVertexSource = R"(
+        #version 330 core
+        layout(location = 0) in vec2 aPosition;
+        void main()
+        {
+            gl_Position = vec4(aPosition, 0.0, 1.0);
+        }
+    )";
+
+    const char* overlayFragmentSource = R"(
+        #version 330 core
+        out vec4 fragColor;
+        uniform vec2 uScreenSize;
+        uniform vec2 uCenter;
+        uniform vec4 uColor;
+        uniform float uCenterAlpha;
+        uniform float uEdgeAlpha;
+        uniform float uPulse;
+
+        void main()
+        {
+            vec2 pixel = gl_FragCoord.xy;
+            vec2 center = uCenter;
+            vec2 halfScreen = uScreenSize * 0.5;
+            vec2 normalized = (pixel - center) / max(halfScreen, vec2(1.0));
+            float aspect = halfScreen.x / max(halfScreen.y, 1.0);
+            float dist = length(vec2(normalized.x * aspect, normalized.y));
+            float t = clamp(dist, 0.0, 1.0);
+            float alpha = mix(uCenterAlpha, uEdgeAlpha, t) * uPulse;
+            fragColor = vec4(uColor.rgb, alpha * uColor.a);
+        }
+    )";
+
+    unsigned int overlayVertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(overlayVertexShader, 1, &overlayVertexSource, nullptr);
+    glCompileShader(overlayVertexShader);
+
+    unsigned int overlayFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(overlayFragmentShader, 1, &overlayFragmentSource, nullptr);
+    glCompileShader(overlayFragmentShader);
+
+    m_overlayProgram = glCreateProgram();
+    glAttachShader(m_overlayProgram, overlayVertexShader);
+    glAttachShader(m_overlayProgram, overlayFragmentShader);
+    glLinkProgram(m_overlayProgram);
+
+    glDeleteShader(overlayVertexShader);
+    glDeleteShader(overlayFragmentShader);
+
+    glGenVertexArrays(1, &m_overlayVertexArray);
+    glGenBuffers(1, &m_overlayVertexBuffer);
+    glBindVertexArray(m_overlayVertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, m_overlayVertexBuffer);
+
+    const float quadVertices[] = {
+        -1.0f, -1.0f,
+        -1.0f,  1.0f,
+         1.0f,  1.0f,
+         1.0f, -1.0f
+    };
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    m_overlayScreenSizeUniform = glGetUniformLocation(m_overlayProgram, "uScreenSize");
+    m_overlayCenterUniform = glGetUniformLocation(m_overlayProgram, "uCenter");
+    m_overlayColorUniform = glGetUniformLocation(m_overlayProgram, "uColor");
+    m_overlayCenterAlphaUniform = glGetUniformLocation(m_overlayProgram, "uCenterAlpha");
+    m_overlayEdgeAlphaUniform = glGetUniformLocation(m_overlayProgram, "uEdgeAlpha");
+    m_overlayPulseUniform = glGetUniformLocation(m_overlayProgram, "uPulse");
 }
 
 OpenGLRenderBackend::~OpenGLRenderBackend()
@@ -63,6 +138,19 @@ OpenGLRenderBackend::~OpenGLRenderBackend()
 
     SDL_GL_MakeCurrent(m_window, m_context);
     m_spriteBatch.destroy();
+
+    if (m_overlayVertexBuffer != 0) {
+        glDeleteBuffers(1, &m_overlayVertexBuffer);
+        m_overlayVertexBuffer = 0;
+    }
+    if (m_overlayVertexArray != 0) {
+        glDeleteVertexArrays(1, &m_overlayVertexArray);
+        m_overlayVertexArray = 0;
+    }
+    if (m_overlayProgram != 0) {
+        glDeleteProgram(m_overlayProgram);
+        m_overlayProgram = 0;
+    }
 
     for (auto& [name, texture] : m_textures) {
         if (texture.id != 0) {
@@ -298,6 +386,41 @@ void OpenGLRenderBackend::fillWorldRect(const RectF& rect, Color color)
         color,
         OpenGLRenderSpace::World
     );
+}
+
+void OpenGLRenderBackend::drawScreenRadialGradient(
+    Color color,
+    float centerAlpha,
+    float edgeAlpha,
+    float pulse,
+    float centerXRatio,
+    float centerYRatio)
+{
+    if (m_overlayProgram == 0) {
+        return;
+    }
+
+    glUseProgram(m_overlayProgram);
+    glBindVertexArray(m_overlayVertexArray);
+
+    glUniform2f(m_overlayScreenSizeUniform, static_cast<float>(m_width), static_cast<float>(m_height));
+    glUniform2f(m_overlayCenterUniform,
+        static_cast<float>(m_width) * centerXRatio,
+        static_cast<float>(m_height) * centerYRatio);
+    glUniform4f(
+        m_overlayColorUniform,
+        static_cast<float>(color.r) / 255.0f,
+        static_cast<float>(color.g) / 255.0f,
+        static_cast<float>(color.b) / 255.0f,
+        static_cast<float>(color.a) / 255.0f);
+    glUniform1f(m_overlayCenterAlphaUniform, centerAlpha);
+    glUniform1f(m_overlayEdgeAlphaUniform, edgeAlpha);
+    glUniform1f(m_overlayPulseUniform, pulse);
+
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 void OpenGLRenderBackend::drawText(const TextDrawCommand& command)

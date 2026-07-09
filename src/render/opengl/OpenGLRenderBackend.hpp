@@ -25,6 +25,15 @@ class OpenGLRenderBackend : public RenderBackend
     int m_height = 1;
     RenderView m_worldView;
     OpenGLSpriteBatch m_spriteBatch;
+    unsigned int m_overlayProgram = 0;
+    unsigned int m_overlayVertexArray = 0;
+    unsigned int m_overlayVertexBuffer = 0;
+    int m_overlayScreenSizeUniform = -1;
+    int m_overlayCenterUniform = -1;
+    int m_overlayColorUniform = -1;
+    int m_overlayCenterAlphaUniform = -1;
+    int m_overlayEdgeAlphaUniform = -1;
+    int m_overlayPulseUniform = -1;
     std::map<std::string, OpenGLTexture> m_textures;
     std::map<std::string, TTF_Font*> m_fonts;
     std::map<std::string, OpenGLGlyphAtlas> m_fontAtlases;
@@ -60,4 +69,11 @@ public:
     void fillWorldRect(const RectF& rect, Color color) override;
     void drawText(const TextDrawCommand& command) override;
     void drawWorldText(const WorldTextDrawCommand& command) override;
+    void drawScreenRadialGradient(
+        Color color,
+        float centerAlpha,
+        float edgeAlpha,
+        float pulse,
+        float centerXRatio,
+        float centerYRatio) override;
 };

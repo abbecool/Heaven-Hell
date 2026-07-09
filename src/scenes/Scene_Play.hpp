@@ -33,6 +33,16 @@ class Scene_Play : public Scene
     float m_zoomStep = 2;
     Vec2 m_levelSize;
     bool m_newGame;
+    bool m_playerHealthCritical = false;
+
+    struct LowHealthOverlayConfig {
+        Color color{100, 0, 0, 255};
+        float centerTransparency = 0.15f;
+        float edgeTransparency = 0.75f;
+        float pulseSpeed = 0.04f;
+        float pulseMin = 0.35f;
+        float pulseMax = 0.95f;
+    } m_lowHealthOverlayConfig;
     
     std::unordered_map<std::string, std::unordered_set<std::string>> m_damageToEnemyMap = {
         {"fire", {"grass"}},
