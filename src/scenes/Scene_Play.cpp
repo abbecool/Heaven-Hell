@@ -78,13 +78,12 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(InputCode::Escape, "ESC");
     registerAction(InputCode::U, "SAVE");
     registerAction(InputCode::R, "RESET");
-    registerAction(InputCode::T, "TAKE OVER");
 
     registerAction(InputCode::X, "CAMERA FOLLOW");
     registerAction(InputCode::Z, "CAMERA PAN");
     registerAction(InputCode::Plus, "ZOOM IN");
     registerAction(InputCode::Minus, "ZOOM OUT");
-    registerAction(InputCode::Q, "WRITE QUADTREE");
+    registerAction(InputCode::Q, "TAKE OVER");
     registerAction(InputCode::P, "PAUSE");
     registerAction(InputCode::O, "FPS COUNTER");
     registerAction(InputCode::K, "KILL_PLAYER");
