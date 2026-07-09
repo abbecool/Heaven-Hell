@@ -278,7 +278,7 @@ PixelImage SDLPlatform::loadImagePixels(const std::string& path) const
         const std::uint8_t* row = pixels + y * convertedSurface->pitch;
         for (int x = 0; x < image.width; ++x) {
             const int offset = x * 4;
-            image.pixels[y * image.width + x] = PixelRGBA{
+            image.pixels[y * image.width + x] = Color{
                 row[offset],
                 row[offset + 1],
                 row[offset + 2],

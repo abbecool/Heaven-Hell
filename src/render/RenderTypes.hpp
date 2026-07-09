@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 struct Color
 {
@@ -9,6 +10,13 @@ struct Color
     uint8_t g = 255;
     uint8_t b = 255;
     uint8_t a = 255;
+};
+
+struct PixelImage
+{
+    int width = 0;
+    int height = 0;
+    std::vector<Color> pixels;
 };
 
 struct RectF

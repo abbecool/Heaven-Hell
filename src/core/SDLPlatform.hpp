@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/PixelImage.hpp"
+#include "render/RenderTypes.hpp"
 #include "render/RenderDriver.hpp"
 
 #include <map>

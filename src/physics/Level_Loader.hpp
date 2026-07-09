@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/PixelImage.hpp"
+#include "render/RenderTypes.hpp"
 #include "physics/Vec2.hpp"
 
 #include <array>

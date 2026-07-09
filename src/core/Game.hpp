@@ -2,7 +2,7 @@
 
 #include "ecs/ECS.hpp"
 #include "assets/Assets.hpp"
-#include "core/PixelImage.hpp"
+#include "render/RenderTypes.hpp"
 #include "render/RenderBackend.hpp"
 #include "render/RenderDriver.hpp"
 

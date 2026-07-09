@@ -185,7 +185,7 @@ void LevelLoader::createPixelMatrix(const PixelImage& levelImage) {
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            const PixelRGBA& pixel = levelImage.pixels[y * width + x];
+            const Color& pixel = levelImage.pixels[y * width + x];
             
             TileType tile = TileType::UNKNOWN;
             if (static_cast<int>(pixel.r) == 192 && static_cast<int>(pixel.g) == 192 && static_cast<int>(pixel.b) == 192) {

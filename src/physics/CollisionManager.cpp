@@ -490,6 +490,16 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene)
         [this](Entity a, Entity b, Vec2 overlap) { handlePlayerArea(a, b, overlap); }
     );
     registerTriggerHandler(
+        FRIENDLY_LAYER,
+        WATER_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { handleMobWater(a, b, overlap); }
+    );
+    registerTriggerHandler(
+        ENEMY_LAYER,
+        WATER_LAYER,
+        [this](Entity a, Entity b, Vec2 overlap) { handleMobWater(a, b, overlap); }
+    );
+    registerTriggerHandler(
         PLAYER_LAYER,
         WATER_LAYER,
         [this](Entity a, Entity b, Vec2 overlap) { handleMobWater(a, b, overlap); }
