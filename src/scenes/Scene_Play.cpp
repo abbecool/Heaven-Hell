@@ -872,6 +872,7 @@ void Scene_Play::sStatus() {
     {
         if (health.HP > 0)
         {
+            health.HP = std::min(health.HP, health.HP_max);
             continue;
         }
         auto& transform = m_ECS.getComponent<CTransform>(entityID);
