@@ -56,15 +56,9 @@ EntityID Scene::SpawnTextBox(
     const Vec2& relativePosition,
     int lifespan
 ) {
-    const int layer = RenderLayer::Dialog;
     auto id = m_ECS.addEntity();
-    Vec2 position = relativePosition;
-    if (m_ECS.hasComponent<CTransform>(parentID)) {
-        position += m_ECS.getComponent<CTransform>(parentID).pos;
-    }
-
-    CTransform& transform = m_ECS.addComponent<CTransform>(id, position);
-    CSprite& sprite = addSprite(id, "button_unpressed", layer);
+    CTransform& transform = m_ECS.addComponent<CTransform>(id);
+    CSprite& sprite = addSprite(id, "button_unpressed", RenderLayer::Dialog);
     CText& textComponent = m_ECS.addComponent<CText>(
         id,
         text,

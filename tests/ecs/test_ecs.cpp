@@ -117,6 +117,23 @@ void testEcsEntityLifecycle()
     require(recycled == removed, "removed entity ID was not recycled");
 }
 
+void testEcsQueueRemoveEntityZeroAndChildren()
+{
+    ECS ecs;
+    const EntityID parent = ecs.addEntity();
+    const EntityID child = ecs.addEntity();
+
+    ecs.addComponent<TestComponent>(parent, TestComponent{1});
+    ecs.addComponent<TestComponent>(child, TestComponent{2});
+    ecs.attachChild(parent, child, Vec2{0, 0});
+
+    ecs.queueRemoveEntity(parent);
+    ecs.update();
+
+    require(!ecs.isAlive(parent), "entity 0 was not queued for removal");
+    require(!ecs.isAlive(child), "child entity was not removed with its parent");
+}
+
 void testEcsCopyAndView()
 {
     ECS ecs;

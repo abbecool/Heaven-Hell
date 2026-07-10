@@ -17,7 +17,7 @@
       "CState": {
         "state": "Nan"
       },
-      "CPossesLevel": {
+      "CPossessable": {
         "level": 10
       },
       "CAIAgent": {

@@ -40,7 +40,7 @@
         "memoryDuration": 240,
         "patrolWaitDuration": 90
       },
-      "CPossesLevel": {
+      "CPossessable": {
         "level": 10
       },
       "CCollider": {

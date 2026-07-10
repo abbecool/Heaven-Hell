@@ -97,7 +97,6 @@ private:
     void processQuadtreeLeaf(const std::vector<size_t>& proxyIndices);
 
     bool talkToNPC(Entity player, Entity friendly);
-    bool possesNPC(Entity player, Entity friendly);
     bool addItemToInventory(Entity player, const Item& item);
     void showLootLabel(Entity loot, const std::string& name);
     void handleDamageHitbox(Entity entityA, Entity entityB, Vec2 overlap);

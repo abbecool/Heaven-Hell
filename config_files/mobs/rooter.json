@@ -19,12 +19,12 @@
       },
       "CInput": 0,
       "CAIAgent": {
-        "sightRange": 128,
+        "sightRange": 64,
         "patrolRadius": 32,
         "memoryDuration": 240,
-        "patrolWaitDuration": 90
+        "patrolWaitDuration": 40
       },
-      "CPossesLevel": {
+      "CPossessable": {
         "level": 10
       },
       "CHealth": {

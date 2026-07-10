@@ -46,7 +46,7 @@ This note separates the two actions for clarity, but the final design may choose
 ## Balance and Conditions
 - The ability may require the demon to have higher possession power than the target.
 - Possible metrics for comparison:
-  - `CPossesLevel` on each mob
+  - `CPossessable` on each mob
   - current HP of the mob vs current HP of the demon
 - Only mobs weaker than the demon should be eligible for possession or drain.
 

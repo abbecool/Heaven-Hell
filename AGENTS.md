@@ -107,7 +107,7 @@ register it in `config_files/assets.json`. The build copies assets and
   player guard as a safety net for queued removal and future content.
 - Possession can happen through the `PLAYER_LAYER`/`FRIENDLY_LAYER` trigger
   handler or the `PLAYER_LAYER`/`ENEMY_LAYER` trigger handler, as long as the
-  target has `CPossesLevel`.
+  target has `CPossessable`.
 - When possession should keep a mob's attack, copy the possessed mob's active
   inventory item before overwriting its `CInventory`, then add that copied item
   back to the new player inventory after `changePlayerID()`. Enemy attacks often

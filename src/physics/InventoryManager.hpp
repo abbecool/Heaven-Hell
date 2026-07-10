@@ -128,7 +128,6 @@ class InventoryManager
         }
         return nullptr;
     }
-    
 
 private:
     std::unordered_map<int, Item> items;

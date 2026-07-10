@@ -162,6 +162,7 @@ struct CInput
     bool shoot      = false;
     bool canShoot   = false;
     bool posses     = false;
+    bool possesHeld     = false;
     CInput() {};
 };
 
@@ -560,13 +561,23 @@ struct CText
         : text(txt), size(Vec2{sz*txt.length()/4, sz}), font_name(fnt){}
 };
 
-struct CPossesLevel
+enum class PossessState {
+    Drain,
+    Possess
+};
+
+struct CPossessable
 {
     int level = 10;
-    CPossesLevel() {}
-    CPossesLevel(int l)
+    int duration = 120;
+    int timeLeft = 120;
+    int lifeForce;
+    PossessState state = PossessState::Drain;
+
+    CPossessable() {}
+    CPossessable(int l)
         : level(l) {}
-    CPossesLevel(const json& j) {
+    CPossessable(const json& j) {
         if (j.is_number()) {
             level = j;
         }

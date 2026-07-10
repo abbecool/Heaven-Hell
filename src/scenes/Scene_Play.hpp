@@ -102,6 +102,9 @@ class Scene_Play : public Scene
     void destroyProjectile(EntityID projectileID);
     void updateSwimmingState(const std::unordered_set<EntityID>& activeWaterEntities);
     EntityID spawnSwimming(EntityID entityID);
+    bool tryPossess(EntityID playerID, EntityID mobID);
+    bool addItemToInventory(EntityID player, const Item& item);
+
     bool addCurrencyToPlayer(int amount);
     bool addCurrencyToPlayer(const Item& item);
     void updateActiveItem(int newActiveItem);

@@ -43,7 +43,8 @@
       "inventory.png",
       "inventory_open.png",
       "activeItemInventory.png",
-      "swimming.png"
+      "swimming.png",
+      "beingPossessed.png"
     ]
   },
   "atlas_manifests": [
@@ -262,6 +263,15 @@
       "frames": 2,
       "frametime": 30,
       "cols": 2,
+      "rows": 1,
+      "width": 32,
+      "height": 32
+    },
+        {
+      "name": "beingPossessed",
+      "frames": 4,
+      "frametime": 15,
+      "cols": 4,
       "rows": 1,
       "width": 32,
       "height": 32

@@ -404,16 +404,19 @@ public:
     }
 
     void queueRemoveEntity(EntityID entity) {
-        if (entity == 0) {
-            std::cerr << "Error: Attempting to remove player entity!" << std::endl;
+        if (!isAlive(entity)) {
             return;
         }
-        if (hasComponent<CParent>(entity))
-        {
+
+        if (std::find(m_entitiesToRemove.begin(), m_entitiesToRemove.end(), entity) != m_entitiesToRemove.end()) {
+            return;
+        }
+
+        if (hasComponent<CParent>(entity)) {
             detachChild(entity);
         }
-        if (hasComponent<CChild>(entity))
-        {
+
+        if (hasComponent<CChild>(entity)) {
             const auto children = getComponent<CChild>(entity).children;
             for (const auto& childLink : children) {
                 if (!isAlive(childLink.child)) {
@@ -428,6 +431,7 @@ public:
             }
             getComponent<CChild>(entity).children.clear();
         }
+
         m_entitiesToRemove.push_back(entity);
     }
 

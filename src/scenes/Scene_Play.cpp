@@ -210,7 +210,13 @@ void Scene_Play::sDoAction(const Action& action){
         if ( action.name() == "SHIFT"){m_ECS.getComponent<CInput>(m_player).shift = true;}
         if ( action.name() == "CTRL"){m_ECS.getComponent<CInput>(m_player).ctrl = true;}
         if ( action.name() == "INTERACT"){m_ECS.getComponent<CInput>(m_player).interact = true;}
-        if ( action.name() == "TAKE OVER"){m_ECS.getComponent<CInput>(m_player).posses = true;}
+        if ( action.name() == "TAKE OVER"){
+            auto& input = m_ECS.getComponent<CInput>(m_player);
+            if (!input.possesHeld) {
+                input.posses = true;
+            }
+            input.possesHeld = true;
+        }
         if ( action.name() == "USE"){
             auto& input = m_ECS.getComponent<CInput>(m_player);
             input.use = true;
@@ -239,7 +245,11 @@ void Scene_Play::sDoAction(const Action& action){
         if ( action.name() == "SHIFT") { m_ECS.getComponent<CInput>(m_player).shift = false; }
         if ( action.name() == "CTRL") { m_ECS.getComponent<CInput>(m_player).ctrl = false; }
         if ( action.name() == "INTERACT") { m_ECS.getComponent<CInput>(m_player).interact = false; }
-        if ( action.name() == "TAKE OVER") { m_ECS.getComponent<CInput>(m_player).posses = false; }
+        if ( action.name() == "TAKE OVER") {
+            auto& input = m_ECS.getComponent<CInput>(m_player);
+            input.posses = false;
+            input.possesHeld = false;
+        }
         if ( action.name() == "USE") {
             auto& input = m_ECS.getComponent<CInput>(m_player);
             input.use = false;
@@ -465,10 +475,7 @@ void Scene_Play::update()
     sRender();
     m_ECS.update();
     m_rendererManager.update();
-    
-    // Debug: Print ECS entity counts
-    // std::cout << "ECS State: " << m_ECS.numberOfEntities() << std::endl;
-    
+        
     if (m_restart){
         m_game->changeScene("GAMEOVER", std::make_shared<Scene_GameOver>(m_game), true);
         return;
@@ -834,6 +841,12 @@ void Scene_Play::sStatus() {
         lifespan.lifespan--;
         if (lifespan.lifespan <= 0) {
             m_ECS.queueRemoveEntity(entityID);
+            if (m_ECS.hasComponent<CCollider>(entityID)) {
+                m_ECS.removeComponent<CCollider>(entityID);
+            }
+            if (m_ECS.hasComponent<CPossessable>(entityID)) {
+                m_ECS.removeComponent<CPossessable>(entityID);
+            }
         }
     }
 
@@ -866,6 +879,14 @@ void Scene_Play::sStatus() {
             std::cout << "Player has died!" << std::endl;
             m_restart = true;
             continue;
+        }
+        if (m_ECS.hasComponent<CLifespan>(entityID))
+        {
+            const int lifespan = m_ECS.getComponent<CLifespan>(entityID).lifespan;
+            if (lifespan > 0)
+            {
+                continue;
+            }
         }
         const Vec2 gridPos{
             std::floor(transform.pos.x / m_gridSize.x),
@@ -1223,8 +1244,8 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     if (c.contains("CHealth")){
         m_ECS.addComponent<CHealth>(id, c["CHealth"]);
     }
-    if (c.contains("CPossesLevel")){
-        m_ECS.addComponent<CPossesLevel>(id, c["CPossesLevel"]);
+    if (c.contains("CPossessable")){
+        m_ECS.addComponent<CPossessable>(id, c["CPossessable"]);
     }
     if (c.contains("CInput")){
         m_ECS.addComponent<CInput>(id);
@@ -1686,4 +1707,193 @@ void Scene_Play::tickPatrol(CAIAgent& agent, Vec2 pos, CInput& input)
     } else {
         input.direction = toTarget.norm();
     }
+}
+
+bool Scene_Play::tryPossess(EntityID player, EntityID mob)
+{
+    if (player != m_player ||
+        !m_ECS.isAlive(player) ||
+        !m_ECS.isAlive(mob) ||
+        !m_ECS.hasComponent<CInput>(m_player) ||
+        !m_ECS.hasComponent<CPossessable>(mob) ||
+        !m_ECS.hasComponent<CHealth>(mob) ||
+        !m_ECS.hasComponent<CHealth>(m_player))
+    {
+        return false;
+    }
+
+    if (m_ECS.hasComponent<CLifespan>(mob) &&
+        m_ECS.getComponent<CLifespan>(mob).lifespan <= 0)
+    {
+        return false;
+    }
+
+    CInput& input = m_ECS.getComponent<CInput>(m_player);
+    CPossessable& mobPosses = m_ECS.getComponent<CPossessable>(mob);
+
+    if (!input.possesHeld)
+    {
+        const std::string text = (mobPosses.state == PossessState::Drain) ? "Drain" : "Possess";
+        SpawnDialog(text, 12, "Minecraft", mob);
+        mobPosses.timeLeft = mobPosses.duration;
+        if ((mobPosses.timeLeft != mobPosses.duration) && (mobPosses.state == PossessState::Drain))
+        {
+            m_ECS.addComponent<CInput>(mob);
+        }
+        return false;
+    }
+
+    CHealth& mobHealth = m_ECS.getComponent<CHealth>(mob);
+    CHealth& playerHealth = m_ECS.getComponent<CHealth>(m_player);
+
+    switch (mobPosses.state)
+    {
+    case PossessState::Drain:
+    {
+        if (input.posses)
+        {
+            input.posses = false;
+            EntityID effect = m_ECS.addEntity();
+            addVisual(effect, "beingPossessed", RenderLayer::GroundItem, false);
+            m_ECS.addComponent<CTransform>(effect);
+            m_ECS.attachChild(mob, effect, Vec2{0, -4});
+            m_ECS.removeComponent<CInput>(mob);
+            mobPosses.lifeForce = mobHealth.HP;
+        }
+
+        mobPosses.timeLeft--;
+        if (mobPosses.duration > 0 && mobPosses.timeLeft != mobPosses.duration &&
+            (mobPosses.timeLeft * mobPosses.lifeForce) % mobPosses.duration == 0)
+        {
+            playerHealth.HP--;
+            mobHealth.HP--;
+        }
+
+        if (mobPosses.timeLeft > 0)
+        {
+            return false;
+        }
+
+        m_ECS.addComponent<CLifespan>(mob, 180);
+        playerHealth.HP += static_cast<int>(1.5 * mobPosses.lifeForce);
+        mobPosses.state = PossessState::Possess;
+
+        return false;
+    }
+    case PossessState::Possess:
+    {
+        if (!input.posses)
+        {
+            return false;
+        }
+        m_ECS.removeComponent<CPossessable>(mob);
+        EntityID oldID = m_player;
+        EntityID newID = mob;
+        bool hasPossessedActiveItem = false;
+        Item possessedActiveItem;
+
+        if (m_ECS.hasComponent<CInventory>(mob))
+        {
+            possessedActiveItem = m_ECS.getComponent<CInventory>(mob).activeItem;
+            hasPossessedActiveItem = possessedActiveItem.id != -1;
+            if (possessedActiveItem.hasWeaponConfig)
+            {
+                possessedActiveItem.weaponConfig["mask"] = nlohmann::json::array({"ENEMY_LAYER"});
+            }
+        }
+
+        m_ECS.copyComponent<CCollider>(newID, oldID);
+        m_ECS.copyComponent<CInventory>(newID, oldID);
+        m_ECS.copyComponent<CHealth>(newID, oldID);
+        if (m_ECS.hasComponent<CCurrency>(m_player))
+        {
+            m_ECS.copyComponent<CCurrency>(newID, oldID);
+        }
+        m_ECS.copyComponent<CState>(newID, oldID);
+
+        if (m_ECS.hasComponent<CWeapon>(m_player))
+        {
+            m_ECS.copyComponent<CWeapon>(newID, oldID);
+        }
+        else if (m_ECS.hasComponent<CWeapon>(mob))
+        {
+            m_ECS.removeComponent<CWeapon>(newID);
+        }
+
+        if (!m_ECS.hasComponent<CInput>(mob))
+        {
+            m_ECS.addComponent<CInput>(mob);
+        }
+        if (m_ECS.hasComponent<CAIAgent>(mob))
+        {
+            m_ECS.removeComponent<CAIAgent>(mob);
+        }
+        if (m_ECS.hasComponent<CLifespan>(mob))
+        {
+            m_ECS.removeComponent<CLifespan>(mob);
+        }
+
+        changePlayerID(newID);
+        if (hasPossessedActiveItem)
+        {
+            addItemToInventory(mob, possessedActiveItem);
+        }
+
+        m_ECS.queueRemoveEntity(oldID);
+        return true;
+    }
+    default:
+        return false;
+    }
+}
+
+bool Scene_Play::addItemToInventory(EntityID character, const Item& item)
+{
+    if (!m_ECS.hasComponent<CInventory>(character)) {
+        return false;
+    }
+
+    auto& inventory = m_ECS.getComponent<CInventory>(character);
+    auto& activeItem = inventory.activeItem;
+    for (int i = 0; i < inventory.size(); ++i) {
+        auto& slot = inventory.items[i];
+        if (slot.id != -1) {
+            continue;
+        }
+
+        int index = slot.index;
+        slot = item;
+        slot.index = index;
+        if (index == activeItem.index) {
+            updateActiveItem(index);
+        }
+        return true;
+    }
+
+    if (!m_ECS.hasComponent<CTransform>(character)) {
+        return false;
+    }
+
+    const int activeIndex = activeItem.index;
+    if (activeIndex < 0 || activeIndex >= inventory.size()) {
+        return false;
+    }
+
+    Item droppedItem = inventory.items[activeIndex];
+    if (droppedItem.id == -1) {
+        return false;
+    }
+
+    EntityID droppedID = DropItem(
+        droppedItem,
+        m_ECS.getComponent<CTransform>(character).pos
+    );
+    if (droppedID == static_cast<EntityID>(-1)) {
+        return false;
+    }
+
+    inventory.items[activeIndex] = item;
+    inventory.items[activeIndex].index = activeIndex;
+    updateActiveItem(activeIndex);
+    return true;
 }
