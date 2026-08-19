@@ -29,12 +29,15 @@ The OpenGL backend can currently:
 - draw filled rectangles through a 1x1 white texture
 - draw rectangle outlines using four filled rectangles
 - draw text using glyph atlas quads
+- accept world-space draw commands through `RenderView`
+- apply camera projection in the OpenGL sprite batch for world sprites, world
+  rectangles, and world text
 - clear and present frames
 - resize the viewport and screen projection
 
-It still does not apply the gameplay camera in OpenGL projection space. World
-entities are transformed to screen-space by scene code before they are submitted
-to the renderer.
+Gameplay camera projection now lives in the renderer path. Scenes build a
+`RenderView` from camera state and submit explicit `drawWorld*` commands for
+world entities, debug geometry, world dialog, and enemy damage hearts.
 
 ## Build Setup
 
@@ -91,7 +94,8 @@ std::unique_ptr<RenderBackend> createRenderBackend(RenderDriver driver, SDLPlatf
 ```
 
 This keeps scenes and gameplay code talking to `RenderBackend&`, not to SDL or
-OpenGL directly.
+OpenGL directly. The selected driver is still hard-coded in `Game.hpp`; there
+is not yet a runtime config or command-line switch.
 
 ## What OpenGLRenderBackend Owns
 
@@ -104,6 +108,7 @@ OpenGL directly.
 - OpenGL texture IDs and texture sizes
 - SDL_ttf font handles
 - OpenGL glyph atlases for text rendering
+- the active `RenderView` used for world-space drawing
 
 Texture and font loading are part of `RenderBackend`, so `Assets` can remain a
 catalog/metadata loader instead of owning renderer-specific objects.
@@ -158,6 +163,8 @@ It owns:
 - a VAO
 - a 1x1 white texture for solid-color rectangles
 - the current screen projection matrix
+- the current world projection matrix
+- the active render space for queued quads
 
 Each sprite instance stores:
 
@@ -165,16 +172,23 @@ Each sprite instance stores:
 - source UVs
 - angle
 - color
+- white-tint amount
 
-The batch flushes when the texture changes or the maximum batch size is reached.
+The batch flushes when the texture changes, the render space changes, or the
+maximum batch size is reached.
 
-Current projection maps screen pixels to OpenGL clip space:
+The screen projection maps screen pixels to OpenGL clip space:
 
 ```text
 screen pixel coordinates -> orthographic clip-space coordinates
 ```
 
-There is not yet a separate world projection.
+The world projection applies the active `RenderView` transform and maps world
+coordinates directly to clip space:
+
+```text
+screen = (world - camera) * scale + origin
+```
 
 ## Texture Loading
 
@@ -215,29 +229,25 @@ Each glyph becomes a textured quad in the sprite batch.
 `drawRect` draws four thin filled rectangles. This is simple and adequate for
 debug/collision drawing right now.
 
+`drawWorldRect` and `fillWorldRect` use the same white-texture path in world
+space. World rectangle outlines scale their thickness by the active
+`RenderView` so debug boxes remain one screen pixel wide.
+
 ## Current Limitations
 
-- World camera projection is still done in scene code, not in the renderer.
-- There is no `RenderView`, `drawWorldSprite`, `drawWorldRect`, or
-  `drawWorldText` API yet.
-- The sprite batch has one screen projection, not separate screen/world
-  projections.
 - Render driver selection is hard-coded in `Game.hpp`.
 - Shaders are embedded C++ strings rather than external assets.
 - Text only supports printable ASCII in the OpenGL glyph atlas.
 - There are no automated renderer smoke tests.
+- There are no built-in OpenGL batch stats yet, so texture-switch and flush
+  behavior is still mostly inspected manually.
 
 ## Recommended Next Step
 
-The next backend milestone should be moving world camera projection into the
-renderer:
-
-```text
-screen = (world - camera) * scale + origin
-```
-
-SDL can still apply that transform on the CPU inside `SDLRenderBackend`, while
-OpenGL should apply it through a world projection matrix in the vertex shader.
+The next backend milestone should be configurable render-driver selection,
+while keeping OpenGL as the default. A command-line option, runtime config, or
+small debug setting would make it easier to compare the OpenGL backend against
+the SDL reference path.
 
 See [WorldSpaceRendering.md](WorldSpaceRendering.md) and
 [BackendSetupRoadmap.md](BackendSetupRoadmap.md).

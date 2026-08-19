@@ -47,13 +47,12 @@ Recommended next step:
 
 The update order is currently important:
 
-`sAI -> sAttack -> sMovement -> sStatus -> sCollision -> sInteraction -> sAnimation -> sAudio`
+`sLoader -> sAI -> sAttack -> sMovement -> sStatus -> sCollision -> sAnimation -> sAudio`
 
 Examples:
 
 - AI writes `use` and `useHeld` before `sAttack`.
 - `sAttack` reads animation frame data before `sAnimation` advances animations.
-- Attack hitboxes are spawned before interaction handling.
 - `sMovement` clears NPC inputs after attack handling.
 
 Recommended next step:
@@ -148,4 +147,3 @@ Recommended next test targets:
 - Switching active items refreshes `CWeapon` without stale data.
 - A potion heals by its configured amount and clears the active slot only when consumed.
 - Enemy active potion behavior matches the intended AI rule.
-
