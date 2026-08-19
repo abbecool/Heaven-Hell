@@ -1,48 +1,87 @@
 {
-  "story_steps": [
+  "quests": [
     {
-      "id": 0,
-      "description": "Talk to the wizard.",
-      "trigger": {
-        "event_type": "DialogueFinished",
-        "subject": "wizard"
-      },
-      "reaction": {
-        "event_type": "EntitySpawned",
-        "subject": "staff",
-        "position": {
-          "x": 353,
-          "y": 61
+      "id": "chapter1.consume_chicken",
+      "title": "Regain Strength",
+      "track": "main",
+      "state": "active",
+      "steps": [
+        {
+          "id": "drain_chicken",
+          "text": "Consume the chicken to regain some strength.",
+          "trigger": {
+            "event_type": "EntityDrained",
+            "subject": "chicken"
+          }
         }
-      }
-    },
-    {
-      "id": 1,
-      "description": "Find the staff.",
-      "trigger": {
-        "event_type": "ItemPickedUp",
-        "subject": "staff",
-        "position": {
-          "x": 0,
-          "y": 0
+      ],
+      "reactions": [
+        {
+          "type": "ActivateQuest",
+          "quest": "chapter1.kill_knight"
+        },
+        {
+          "type": "SetFlag",
+          "flag": "chapter1.chicken_drained"
         }
-      }
+      ]
     },
     {
-      "id": 2,
-      "description": "Kill the golem.",
-      "trigger": {
-        "event_type": "EntityKilled",
-        "subject": "golem"
-      }
+      "id": "chapter1.kill_knight",
+      "title": "Break Through",
+      "track": "main",
+      "state": "locked",
+      "steps": [
+        {
+          "id": "kill_guard",
+          "text": "Kill the knight guarding the passage.",
+          "trigger": {
+            "event_type": "EntityKilled",
+            "subject": "knight"
+          }
+        }
+      ],
+      "reactions": [
+        {
+          "type": "ActivateQuest",
+          "quest": "chapter1.choose_host"
+        },
+        {
+          "type": "SetFlag",
+          "flag": "chapter1.knight_killed"
+        }
+      ]
     },
     {
-      "id": 4,
-      "description": "Go to the house.",
-      "trigger": {
-        "event_type": "EnteredArea",
-        "subject": "house"
-      }
+      "id": "chapter1.choose_host",
+      "title": "Choose A Host",
+      "track": "main",
+      "state": "locked",
+      "steps": [
+        {
+          "id": "possess_road_character",
+          "text": "Possess one of the road characters.",
+          "trigger": {
+            "event_type": "EntityPossessed",
+            "subjects": [
+              "wizard",
+              "elf",
+              "dwarf",
+              "knight"
+            ]
+          }
+        }
+      ],
+      "reactions": [
+        {
+          "type": "ActivateTrack",
+          "track": "faction"
+        },
+        {
+          "type": "SetFlag",
+          "flag": "chapter1.host_chosen"
+        }
+      ]
     }
   ]
 }

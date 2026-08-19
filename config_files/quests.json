@@ -1,52 +1,68 @@
 {
-  "The knight and his emblem": {
-    "id": 10,
-    "steps": [
-      {
-        "id": 0,
-        "description": "Talk to the farmer.",
-        "trigger": {
-          "event_type": "DialogueFinished",
-          "subject": "knight"
+  "quests": [
+    {
+      "id": "faction.wizard.start",
+      "title": "Wizard Path",
+      "track": "faction",
+      "state": "locked",
+      "steps": [
+        {
+          "id": "talk_wizard",
+          "text": "Speak with the wizard near the merchant road.",
+          "trigger": {
+            "event_type": "DialogueFinished",
+            "subject": "wizard"
+          }
         }
-      },
-      {
-        "id": 1,
-        "description": "Find the emblem.",
-        "trigger": {
-          "event_type": "ItemPickedUp",
-          "subject": "emblem"
+      ]
+    },
+    {
+      "id": "faction.elf.start",
+      "title": "Elf Path",
+      "track": "faction",
+      "state": "locked",
+      "steps": [
+        {
+          "id": "talk_elf",
+          "text": "Speak with the elf near the merchant road.",
+          "trigger": {
+            "event_type": "DialogueFinished",
+            "subject": "elf"
+          }
         }
-      },
-      {
-        "id": 2,
-        "description": "Return the emblem to the knight.",
-        "trigger": {
-          "event_type": "DialogueFinished",
-          "subject": "knight"
+      ]
+    },
+    {
+      "id": "faction.dwarf.start",
+      "title": "Dwarf Path",
+      "track": "faction",
+      "state": "locked",
+      "steps": [
+        {
+          "id": "talk_dwarf",
+          "text": "Speak with the dwarf near the merchant road.",
+          "trigger": {
+            "event_type": "DialogueFinished",
+            "subject": "dwarf"
+          }
         }
-      }
-    ]
-  },
-  "The elf and dwarf": {
-    "id": 11,
-    "steps": [
-      {
-        "id": 0,
-        "description": "Talk to the elf.",
-        "trigger": {
-          "event_type": "DialogueFinished",
-          "subject": "elf"
+      ]
+    },
+    {
+      "id": "faction.knight.start",
+      "title": "Knight Path",
+      "track": "faction",
+      "state": "locked",
+      "steps": [
+        {
+          "id": "talk_knight",
+          "text": "Speak with the knight near the merchant road.",
+          "trigger": {
+            "event_type": "DialogueFinished",
+            "subject": "knight"
+          }
         }
-      },
-      {
-        "id": 1,
-        "description": "Talk to the dwarf.",
-        "trigger": {
-          "event_type": "DialogueFinished",
-          "subject": "dwarf"
-        }
-      }
-    ]
-  }
+      ]
+    }
+  ]
 }

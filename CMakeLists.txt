@@ -206,4 +206,26 @@ if (BUILD_TESTING)
         rect_conversion
         camera_zoom_origin
     )
+
+    add_executable(story_tests
+        tests/story/test_story_manager.cpp
+        src/story/StoryManager.cpp
+        src/physics/Vec2.cpp
+    )
+    target_include_directories(story_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/tests
+    )
+    target_compile_definitions(story_tests PRIVATE
+        HEAVENHELL_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    )
+    add_named_tests(story_tests story
+        load_new_format
+        multi_subject_trigger
+        chapter_one_order
+        unlock_faction_tracks
+        ignore_unrelated_events
+        save_restore_progression
+        dialog_lookup
+    )
 endif()

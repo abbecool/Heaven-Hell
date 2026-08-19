@@ -34,6 +34,7 @@ class Scene_Play : public Scene
     Vec2 m_levelSize;
     bool m_newGame;
     bool m_playerHealthCritical = false;
+    bool m_renderQuestDebug = true;
 
     struct LowHealthOverlayConfig {
         Color color{100, 0, 0, 255};
@@ -53,7 +54,6 @@ class Scene_Play : public Scene
     };
     
     void loadMobsNItems(const std::string& path);
-    void SubscribeToStoryEvents();
     void saveGame();
     
     EntityID spawnPlayer();
@@ -74,6 +74,7 @@ class Scene_Play : public Scene
     void sRenderHealth();
     void sRenderCurrency();
     void sRenderInventory();
+    void sRenderQuestDebug();
     void sRenderUI();
     void sAudio();
     
@@ -126,15 +127,16 @@ class Scene_Play : public Scene
 // event - subscriber: These emit a signal when called
     void onItemPickedUp(const std::string& itemName) {
         Event e{ EventType::ItemPickedUp, itemName };
-        m_eventBus.emit(e);
+        Emit(e);
     }
 
     void onEnemyKilled(const std::string& itemName) {
         Event e{ EventType::EntityKilled, itemName };
-        m_eventBus.emit(e);
+        Emit(e);
     }
 
     void Emit(Event e) {
+        m_storyManager.onEvent(e);
         m_eventBus.emit(e);
     }
 

@@ -59,6 +59,10 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_newGame(newGame),
     m_inventoryManager("config_files/items")
 {
+    m_storyManager.setSpawnHandler([this](const std::string& entityName, Vec2 position) {
+        Spawn(entityName, position);
+    });
+
     registerAction(InputCode::W, "UP");
     registerAction(InputCode::Up, "UP");
     registerAction(InputCode::S, "DOWN");
@@ -110,19 +114,6 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     SpawnFromJSON("dwarf", Vec2{344, 60}*m_gridSize);
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
-
-    SubscribeToStoryEvents();
-}
-
-void Scene_Play::SubscribeToStoryEvents(){
-    auto& quests = m_storyManager.getQuests();
-    for (Quest quest : quests){
-        QuestStep step = quest.steps[quest.currentStep];
-        Event e = step.asEvent();
-        m_eventBus.subscribe(e, [this](const Event& e) {
-                m_storyManager.onEvent(e);
-        });
-    }
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
@@ -182,7 +173,7 @@ void Scene_Play::saveGame()
                 {"items", inventoryItems},
                 {"activeSlot", inventory.activeItem.index}
             }},
-            {"progression", json::object()}
+            {"progression", m_storyManager.progressionJson()}
         }}
     };
     file << save.dump(4);
@@ -1110,10 +1101,43 @@ void Scene_Play::sRenderInventory() {
     }
 }
 
+void Scene_Play::sRenderQuestDebug() {
+    if (!m_renderQuestDebug) {
+        return;
+    }
+
+    const std::vector<std::string> lines = m_storyManager.debugObjectiveLines();
+    if (lines.empty()) {
+        return;
+    }
+
+    const int windowScale = m_game->getScale();
+    const float margin = 4.0f * windowScale;
+    const float lineHeight = 7.0f * windowScale;
+    const float textWidth = 260.0f * windowScale;
+    float y = 24.0f * windowScale;
+
+    for (const std::string& line : lines) {
+        m_game->render().drawText(TextDrawCommand{
+            line,
+            "Minecraft",
+            RectF{
+                margin,
+                y,
+                textWidth,
+                lineHeight
+            },
+            {255, 240, 150, 255}
+        });
+        y += lineHeight + 2.0f * windowScale;
+    }
+}
+
 void Scene_Play::sRenderUI() {
     sRenderHealth();
     sRenderCurrency();
     sRenderInventory();
+    sRenderQuestDebug();
 }
 
 void Scene_Play::sRender() {    
@@ -1358,6 +1382,10 @@ EntityID Scene_Play::spawnPlayer()
     if (inventory.activeItem.index >= 0 &&
         inventory.activeItem.index < inventory.size()) {
         updateActiveItem(entityID, inventory.activeItem.index);
+    }
+
+    if (playerSave.contains("progression")) {
+        m_storyManager.loadProgression(playerSave.at("progression"));
     }
 
     return entityID;
@@ -1778,6 +1806,10 @@ bool Scene_Play::tryPossess(EntityID player, EntityID mob)
         m_ECS.addComponent<CLifespan>(mob, 180);
         playerHealth.HP += static_cast<int>(1.5 * mobPosses.lifeForce);
         mobPosses.state = PossessState::Possess;
+        Emit(Event{
+            EventType::EntityDrained,
+            m_ECS.getComponent<CName>(mob).name
+        });
 
         return false;
     }
@@ -1834,11 +1866,20 @@ bool Scene_Play::tryPossess(EntityID player, EntityID mob)
             m_ECS.removeComponent<CLifespan>(mob);
         }
 
+        const std::string possessedName = m_ECS.hasComponent<CName>(mob)
+            ? m_ECS.getComponent<CName>(mob).name
+            : "";
+
         changePlayerID(newID);
         if (hasPossessedActiveItem)
         {
             addItemToInventory(mob, possessedActiveItem);
         }
+
+        Emit(Event{
+            EventType::EntityPossessed,
+            possessedName
+        });
 
         m_ECS.queueRemoveEntity(oldID);
         return true;

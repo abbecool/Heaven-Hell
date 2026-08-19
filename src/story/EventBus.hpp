@@ -1,6 +1,9 @@
 // Event.h
 #pragma once
+#include "physics/Vec2.hpp"
+
 #include <functional>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <cstdint>   // For uint32_t (EntityID)
@@ -12,6 +15,8 @@ enum class EventType {
     EnteredArea,
     EntityKilled,
     EntitySpawned,
+    EntityDrained,
+    EntityPossessed,
     DialogueFinished,
     FlagChanged,
     NoEvent,
