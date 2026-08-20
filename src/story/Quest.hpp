@@ -1,38 +1,48 @@
 #pragma once
-#include <string>
-#include <iostream>
-#include "external/json.hpp"
-#include "physics/Vec2.hpp"
+
 #include "story/EventBus.hpp"
-using json = nlohmann::json;
+
+#include <string>
+#include <vector>
+
+enum class QuestState {
+    Locked,
+    Active,
+    Completed,
+};
+
+struct EventMatcher {
+    EventType type = EventType::NoEvent;
+    std::vector<std::string> subjects;
+
+    bool matches(const Event& event) const;
+};
+
+struct QuestAction {
+    std::string type;
+    std::string questID;
+};
+
+struct TriggerReaction {
+    EventMatcher trigger;
+    std::vector<QuestAction> actions;
+};
 
 struct QuestStep {
-    EventType requiredType = EventType::NoEvent;
-    std::string requiredSubject = ""; // e.g. "wizard", "staff"
+    std::string id;
+    std::string description;
+    std::vector<EventMatcher> triggers;
+    std::vector<TriggerReaction> reactionsByTrigger;
     bool completed = false;
 
-    bool matches(const Event& e) const {
-        return e.type == requiredType && e.itemName == requiredSubject;
-    }
-    Event asEvent(){
-        return Event{requiredType, requiredSubject};
-    }
+    bool matches(const Event& event) const;
 };
 
 struct Quest {
-    int id;
-    std::string name;
+    std::string id;
+    std::string description;
+    QuestState state = QuestState::Locked;
     std::vector<QuestStep> steps;
-    int currentStep = 0;
-
-    // What happens on completion
-    Event onComplete;
-
-    void tryAdvance(const Event& e) {
-        if (currentStep < steps.size() && steps[currentStep].matches(e)) {
-            steps[currentStep].completed = true;
-            currentStep++;
-            // emit quest progress event
-        }
-    }
+    size_t currentStep = 0;
+    std::vector<QuestAction> reactions;
 };

@@ -54,7 +54,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), 
     m_levelPath(levelPath), 
     m_collisionManager(&m_ECS, this), 
-    m_storyManager(this, "config_files/story.json", "config_files/quests.json"),
+    m_storyManager("config_files/story1.json"),
     m_levelLoader(this, m_gridSize, game->loadImagePixels(levelPath)),
     m_newGame(newGame),
     m_inventoryManager("config_files/items")
@@ -111,18 +111,6 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
 
-    SubscribeToStoryEvents();
-}
-
-void Scene_Play::SubscribeToStoryEvents(){
-    auto& quests = m_storyManager.getQuests();
-    for (Quest quest : quests){
-        QuestStep step = quest.steps[quest.currentStep];
-        Event e = step.asEvent();
-        m_eventBus.subscribe(e, [this](const Event& e) {
-                m_storyManager.onEvent(e);
-        });
-    }
 }
 
 void Scene_Play::loadMobsNItems(const std::string& path){
@@ -1216,6 +1204,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     EntityID id = m_ECS.addEntity();
     
     m_ECS.addComponent<CName>(id, c.value("CName", name));
+    if (c.contains("CAllegiance")) {
+        m_ECS.addComponent<CAllegiance>(id, c["CAllegiance"]);
+    }
     if (c.contains("CAnimation")){
         addVisual(
             id,
@@ -1778,6 +1769,7 @@ bool Scene_Play::tryPossess(EntityID player, EntityID mob)
         m_ECS.addComponent<CLifespan>(mob, 180);
         playerHealth.HP += static_cast<int>(1.5 * mobPosses.lifeForce);
         mobPosses.state = PossessState::Possess;
+        Emit(Event{EventType::EntityDrained, m_ECS.getComponent<CName>(mob).name});
 
         return false;
     }
@@ -1788,6 +1780,7 @@ bool Scene_Play::tryPossess(EntityID player, EntityID mob)
             return false;
         }
         m_ECS.removeComponent<CPossessable>(mob);
+        const std::string possessedName = m_ECS.getComponent<CName>(mob).name;
         EntityID oldID = m_player;
         EntityID newID = mob;
         bool hasPossessedActiveItem = false;
@@ -1841,6 +1834,7 @@ bool Scene_Play::tryPossess(EntityID player, EntityID mob)
         }
 
         m_ECS.queueRemoveEntity(oldID);
+        Emit(Event{EventType::EntityPossessed, possessedName});
         return true;
     }
     default:

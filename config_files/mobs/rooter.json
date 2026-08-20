@@ -4,6 +4,9 @@
       "CTransform": {
         "pos": "Nan"
       },
+      "CAllegiance": {
+        "trueFaction": "Enemy"
+      },
       "CPhysicsBody": {
         "mass": 1,
         "moveForce": 1200,

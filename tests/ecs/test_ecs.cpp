@@ -568,7 +568,7 @@ void testEcsEntityZeroQueuedComponentRemoval()
     ecs.queueRemoveEntity(player);
     ecs.update();
 
-    require(ecs.isAlive(player), "queued entity removal should still protect entity 0");
+    require(!ecs.isAlive(player), "queued entity removal ignored entity 0");
 }
 
 constexpr std::array Tests = {

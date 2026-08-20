@@ -4,6 +4,9 @@
       "CTransform": {
         "pos": "Nan"
       },
+      "CAllegiance": {
+        "trueFaction": "Dwarf"
+      },
       "CPhysicsBody": {
         "mass": 1,
         "moveForce": 2400,

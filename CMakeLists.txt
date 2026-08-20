@@ -206,4 +206,21 @@ if (BUILD_TESTING)
         rect_conversion
         camera_zoom_origin
     )
+
+    add_executable(story_manager_tests
+        tests/story/test_story_manager.cpp
+        src/story/StoryManager.cpp
+    )
+    target_include_directories(story_manager_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/tests
+    )
+    target_compile_definitions(story_manager_tests PRIVATE
+        HEAVENHELL_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    )
+    add_named_tests(story_manager_tests story_manager
+        early_possession_is_credited_once
+        faction_branches_stay_exclusive
+        invalid_story_is_rejected
+    )
 endif()

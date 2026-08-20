@@ -1,9 +1,12 @@
-// Event.h
 #pragma once
+
+#include "physics/Vec2.hpp"
+
+#include <cstdint>
 #include <functional>
-#include <vector>
 #include <string>
-#include <cstdint>   // For uint32_t (EntityID)
+#include <unordered_map>
+#include <vector>
 
 using EntityID = uint32_t;
 
@@ -14,38 +17,36 @@ enum class EventType {
     EntitySpawned,
     DialogueFinished,
     FlagChanged,
+    EntityDrained,
+    EntityPossessed,
     NoEvent,
 };
 
 struct Event {
     EventType type = EventType::NoEvent;
-    std::string itemName = "";       // optional
-    Vec2 eventPosition = {-1, -1};         // optional
+    std::string itemName;
+    Vec2 eventPosition = {-1, -1};
 };
 
-// Simple bus
 class EventBus {
 public:
-    EventBus(){};
     using Listener = std::function<void(const Event&)>;
 
-    void subscribe(Event e, const Listener& listener) {
-        std::vector<Listener>& v = m_listenerMap[e.itemName];
-        v.push_back(listener);
+    void subscribe(const Event& event, const Listener& listener) {
+        m_listenerMap[event.itemName].push_back(listener);
     }
 
-    void emit(const Event& e) {
-        if (m_listenerMap.find(e.itemName) == m_listenerMap.end()){
+    void emit(const Event& event) {
+        const auto it = m_listenerMap.find(event.itemName);
+        if (it == m_listenerMap.end()) {
             return;
         }
-        
-        auto listeners = m_listenerMap.at(e.itemName);
-        for (auto& l : listeners) {
-            l(e);
+
+        for (const auto& listener : it->second) {
+            listener(event);
         }
     }
 
 private:
-    std::vector<Listener> m_listeners;
     std::unordered_map<std::string, std::vector<Listener>> m_listenerMap;
 };

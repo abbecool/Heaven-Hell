@@ -53,7 +53,6 @@ class Scene_Play : public Scene
     };
     
     void loadMobsNItems(const std::string& path);
-    void SubscribeToStoryEvents();
     void saveGame();
     
     EntityID spawnPlayer();
@@ -123,18 +122,17 @@ class Scene_Play : public Scene
     EntityID Spawn(std::string name, Vec2 pos);
     EntityID DropItem(const Item& item, Vec2 position);
 
-// event - subscriber: These emit a signal when called
+// Story events are always delivered to StoryManager before optional listeners.
     void onItemPickedUp(const std::string& itemName) {
-        Event e{ EventType::ItemPickedUp, itemName };
-        m_eventBus.emit(e);
+        Emit(Event{ EventType::ItemPickedUp, itemName });
     }
 
     void onEnemyKilled(const std::string& itemName) {
-        Event e{ EventType::EntityKilled, itemName };
-        m_eventBus.emit(e);
+        Emit(Event{ EventType::EntityKilled, itemName });
     }
 
-    void Emit(Event e) {
+    void Emit(const Event& e) {
+        m_storyManager.onEvent(e);
         m_eventBus.emit(e);
     }
 
