@@ -5,7 +5,7 @@
         "pos": "Nan"
       },
       "CAllegiance": {
-        "trueFaction": "Enemy"
+        "trueFaction": "Neutral"
       },
       "CPhysicsBody": {
         "mass": 1,

@@ -24,7 +24,7 @@
       "CAIAgent": {
         "sightRange": 64,
         "patrolRadius": 32,
-        "memoryDuration": 240,
+        "memoryDuration": 360,
         "patrolWaitDuration": 40
       },
       "CPossessable": {

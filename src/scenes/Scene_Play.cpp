@@ -10,8 +10,10 @@
 #include "physics/Level_Loader.hpp"
 #include "physics/Camera.hpp"
 #include "physics/RandomArray.hpp"
+#include "world/WorldLayout.hpp"
 
 #include "ecs/Components.hpp"
+#include "ecs/FactionRelations.hpp"
 
 #include "external/json.hpp"
 
@@ -35,6 +37,28 @@ constexpr float SPRINT_MULTIPLIER = 2.0f;
 constexpr float SNEAK_MULTIPLIER = 0.5f;
 constexpr float WEAK_MULTIPLIER = 0.33f;
 constexpr float STOP_SPEED = 1.0f;
+constexpr float FIELD_OF_VIEW_MIN_DOT_PRODUCT = 0.0f; // cos(90 degrees)
+
+Vec2 facingDirection(const CState& state)
+{
+    switch (state.facing) {
+    case PlayerState::RUN_UP:    return {0.0f, -1.0f};
+    case PlayerState::RUN_DOWN:  return {0.0f, 1.0f};
+    case PlayerState::RUN_LEFT:  return {-1.0f, 0.0f};
+    case PlayerState::RUN_RIGHT: return {1.0f, 0.0f};
+    case PlayerState::STAND:     return {0.0f, 1.0f};
+    }
+
+    return {0.0f, 1.0f};
+}
+
+bool isWithinFieldOfView(const CState& state, const Vec2& observerPos, const Vec2& targetPos)
+{
+    const Vec2 toTarget = (targetPos - observerPos).norm();
+    const Vec2 facing = facingDirection(state);
+    const float directionDotProduct = facing.x * toTarget.x + facing.y * toTarget.y;
+    return toTarget.isNull() || directionDotProduct >= FIELD_OF_VIEW_MIN_DOT_PRODUCT;
+}
 
 json loadJsonFile(const std::string& path)
 {
@@ -48,14 +72,28 @@ json loadJsonFile(const std::string& path)
     return data;
 }
 
+std::string activeTerrainPath(const std::string& fallbackPath)
+{
+    try {
+        LayoutRepository layouts;
+        layouts.load();
+        return layouts.activeLayout().terrainPath;
+    }
+    catch (const std::exception& exception) {
+        std::cerr << "Could not load active level layout: " << exception.what()
+                  << ". Falling back to " << fallbackPath << std::endl;
+        return fallbackPath;
+    }
+}
+
 }
 
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), 
-    m_levelPath(levelPath), 
+    m_levelPath(activeTerrainPath(levelPath)),
     m_collisionManager(&m_ECS, this), 
     m_storyManager("config_files/story1.json"),
-    m_levelLoader(this, m_gridSize, game->loadImagePixels(levelPath)),
+    m_levelLoader(this, m_gridSize, game->loadImagePixels(m_levelPath)),
     m_newGame(newGame),
     m_inventoryManager("config_files/items")
 {
@@ -102,32 +140,24 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     m_collisionManager.rebuildStaticQuadtree();
 
     spawnPlayer();
-    // mobs have to spawn after player, so they can target the player
-    loadMobsNItems("config_files/mobs.json");
-
-    SpawnFromJSON("elf", Vec2{348, 64}*m_gridSize);
-    SpawnFromJSON("wizard", Vec2{348, 60}*m_gridSize);
-    SpawnFromJSON("knight", Vec2{344, 64}*m_gridSize);
-    SpawnFromJSON("dwarf", Vec2{344, 60}*m_gridSize);
+    // Layout entities spawn after the player so their existing AI targets it.
+    loadActiveLayout();
 
     m_camera.calibrate(Vec2{width(), height()}, m_levelLoader.getLevelSize(), m_gridSize);
 
 }
 
-void Scene_Play::loadMobsNItems(const std::string& path){
-    std::ifstream file(path);
-    if (!file) {
-        throw std::runtime_error("Could not load mobs/items file: " + path);
-    }
-    json j;
-    file >> j;
-    file.close();
-    
-    Vec2 pos;
-    for (auto& [mobType, mobArray] : j["mobs"].items()) {
-        for (auto& mob : mobArray) {
-            pos = Vec2{mob["x"], mob["y"]};
-            EntityID id = Spawn(mobType, pos);
+void Scene_Play::loadActiveLayout()
+{
+    LayoutRepository layouts;
+    layouts.load();
+    const LayoutInfo& info = layouts.activeLayout();
+    const WorldLayout layout = layouts.loadLayout(info);
+
+    for (const LayoutPlacement& placement : layout.placements) {
+        if (Spawn(placement.definition, Vec2{placement.x, placement.y}) == static_cast<EntityID>(-1)) {
+            std::cerr << "Could not spawn layout entity '" << placement.definition
+                      << "' from layout " << info.id << std::endl;
         }
     }
 }
@@ -482,11 +512,16 @@ void Scene_Play::sLoader()
     m_levelLoader.update(playerPosition);
 }
 
+void Scene_Play::onTerrainChanged()
+{
+    m_collisionManager.rebuildStaticQuadtree();
+}
+
 void Scene_Play::sAI()
 {
     Vec2 playerPos = m_ECS.getComponent<CTransform>(m_player).pos;
 
-    for (auto [e, agent, input, transform] : m_ECS.View<CAIAgent, CInput, CTransform>())
+    for (auto [e, agent, input, transform, state, allegiance] : m_ECS.View<CAIAgent, CInput, CTransform, CState, CAllegiance>())
     {
         if (e == m_player) {
             continue;
@@ -497,7 +532,9 @@ void Scene_Play::sAI()
         // ── Sight check ────────────────────────────────────────────────
         float distToPlayer = (playerPos - pos).length();
         bool  inRange      = agent.sightRange > 0.0f && distToPlayer <= agent.sightRange;
-        agent.canSeePlayer = inRange && hasLineOfSight(pos, playerPos);
+        agent.canSeePlayer = inRange
+                          && isWithinFieldOfView(state, pos, playerPos)
+                          && hasLineOfSight(pos, playerPos);
 
         if (agent.canSeePlayer) {
             agent.lastKnownPlayerPos = playerPos;
@@ -505,10 +542,11 @@ void Scene_Play::sAI()
         }
 
         // ── State transitions ──────────────────────────────────────────
+        const Faction playerFaction = m_ECS.getComponent<CAllegiance>(m_player).perceivedFaction;
         switch (agent.state)
         {
         case AIStateType::Patrol:
-            if (agent.canSeePlayer) {
+            if (isHostile(allegiance.perceivedFaction, playerFaction) && agent.canSeePlayer) {
                 agent.state = AIStateType::Chase;
             }
             break;
@@ -527,6 +565,7 @@ void Scene_Play::sAI()
                 agent.memoryTimer--;
                 // Reached last known position or memory expired
                 bool arrived = (pos - agent.lastKnownPlayerPos).length() < 12.0f;
+                // TODO: agent should stay in Investigate state for a while after arriving at last known position, before returning to Patrol
                 if (arrived || agent.memoryTimer <= 0) {
                     agent.state           = AIStateType::Patrol;
                     agent.hasPatrolTarget = false;
@@ -1179,6 +1218,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         c["CName"] = item->name;
         c["CItem"]["itemID"] = item->id;
         c["CAnimation"]["animation"] = item->iconPath;
+        if (item->hasShadowConfig) {
+            c["CShadow"] = item->shadowConfig;
+        }
     }
 
     bool hasEvent = false;
@@ -1222,6 +1264,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         c["CTransform"]["pos"] = {{"x", pos.x}, {"y", pos.y}};
         m_ECS.addComponent<CTransform>(id, c["CTransform"]);
     }
+    if (c.contains("CShadow")) {
+        m_ECS.addComponent<CShadow>(id, c["CShadow"]);
+    }
     if (c.contains("CPhysicsBody")) {
         m_ECS.addComponent<CPhysicsBody>(id, c["CPhysicsBody"]);
         m_ECS.addComponent<CVelocity>(id);
@@ -1254,6 +1299,9 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         if (!m_ECS.hasComponent<CInput>(id)) {
             m_ECS.addComponent<CInput>(id);
         }
+        if (!m_ECS.hasComponent<CState>(id)) {
+            m_ECS.addComponent<CState>(id);
+        }
         m_ECS.addComponent<CAIAgent>(id, c["CAIAgent"]);
         // Record spawn position for patrol anchor
         m_ECS.getComponent<CAIAgent>(id).spawnPos = pos;
@@ -1262,7 +1310,10 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
         m_ECS.addComponent<CEvent>(id, event);
     }
     if (m_ECS.hasComponent<CTransform>(id) && m_ECS.hasComponent<CSprite>(id)) {
-        spawnShadow(id);
+        const CShadow shadowConfig = m_ECS.hasComponent<CShadow>(id)
+            ? m_ECS.getComponent<CShadow>(id)
+            : CShadow{};
+        spawnShadow(id, shadowConfig);
     }
     return id;
 }
@@ -1391,16 +1442,19 @@ EntityID Scene_Play::spawnSwimming(EntityID entityID)
     return swimmingID;
 }
 
-EntityID Scene_Play::spawnShadow(EntityID parentID){
+EntityID Scene_Play::spawnShadow(EntityID parentID, const CShadow& shadowConfig){
     const CTransform& parentTransform = m_ECS.getComponent<CTransform>(parentID);
     const CSprite& parentSprite = m_ECS.getComponent<CSprite>(parentID);
     const SpriteDefinition& shadowSprite = getSprite("shadow");
 
     const Vec2 parentSize = parentSprite.size() * parentTransform.scale;
     const Vec2 shadowSize = shadowSprite.frameSize();
-    const float shadowScale = parentSize.x / shadowSize.x;
+    const float shadowScale = parentSize.x / shadowSize.x * shadowConfig.scale;
     const Vec2 scaledShadowSize = shadowSize * shadowScale;
-    const Vec2 relativePos{0, parentSize.y / 2.0f - scaledShadowSize.y / 2.0f};
+    const Vec2 relativePos{
+        shadowConfig.offset.x,
+        parentSize.y / 2.0f - scaledShadowSize.y / 2.0f + shadowConfig.offset.y
+    };
 
     auto shadowID = m_ECS.addEntity();
     m_ECS.addComponent<CTransform>(shadowID);
@@ -1517,60 +1571,19 @@ EntityID Scene_Play::spawnHitbox(EntityID attackerID, Vec2 direction, const CWea
     return id;
 }
 
-std::vector<EntityID> Scene_Play::spawnDualTiles(const Vec2 pos, std::array<int, 5> tileTextures)
-{   
-    std::vector<EntityID> entityIDs;
-    for (int i = 0; i < tileTextures.size(); ++i) {
-        TileType tileKey = static_cast<TileType>(i);
-        int textureIndex = tileTextures[i];
-        if (textureIndex == 0) {
-            continue;
-        }
-        int layer = RenderLayer::TerrainTilesLow;
-        std::string tile_name = "grass";
-        
-        if (tileKey == TileType::WATER) {
-            tile_name = "water";
-        } else if (tileKey == TileType::DIRT) {
-            layer = RenderLayer::TerrainTilesHigh;
-            tile_name = "dirt";
-        } else if (tileKey == TileType::OBSTACLE) {
-            layer = RenderLayer::TerrainTilesHigh;
-            tile_name = "mountain";
-        }
-
-        EntityID entity = m_ECS.addEntity();
-        entityIDs.push_back(entity);
-        const std::string spriteName = tile_name + "_dual_sheet";
-        CSprite& sprite = addSprite(entity, spriteName, layer);
-        Vec2 tilePosition = Vec2{
-            static_cast<float>(textureIndex % 4),
-            static_cast<float>(textureIndex / 4)
-        };
-        sprite.src = getSprite(spriteName).frameRect(
-            static_cast<int>(tilePosition.x),
-            static_cast<int>(tilePosition.y)
-        );
-        if (tileKey == TileType::WATER) {
-            CAnimation& animation = m_ECS.addComponent<CAnimation>(entity, getSprite(spriteName), true);
-            animation.currentCol = static_cast<int>(tilePosition.x);
-            animation.currentRow = static_cast<int>(tilePosition.y);
-        }
-        Vec2 midGrid = gridToMidPixel(pos, entity);
-        m_ECS.addComponent<CTransform>(entity, midGrid);
-    }
-    return entityIDs;
-}
-
 void Scene_Play::changePlayerState(EntityID entity, PlayerState s) {
-    auto& prev = m_ECS.getComponent<CState>(entity).preState; 
+    CState& entityState = m_ECS.getComponent<CState>(entity);
+    auto& prev = entityState.preState;
     if (prev != s) {
-        prev = m_ECS.getComponent<CState>(entity).state;
-        m_ECS.getComponent<CState>(entity).state = s; 
-        m_ECS.getComponent<CState>(entity).changeAnimate = true;
+        prev = entityState.state;
+        entityState.state = s;
+        entityState.changeAnimate = true;
     }
-    else { 
-        m_ECS.getComponent<CState>(entity).changeAnimate = false;
+    else {
+        entityState.changeAnimate = false;
+    }
+    if (s != PlayerState::STAND) {
+        entityState.facing = s;
     }
 }
 

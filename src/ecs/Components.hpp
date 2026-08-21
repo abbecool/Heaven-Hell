@@ -189,6 +189,24 @@ struct CTransform
         : pos(j["pos"]), prevPos(j["pos"]) {}
 };
 
+// Visual-only shadow tuning. Scale is a multiplier of the automatically
+// calculated shadow width; offset is expressed in world pixels.
+struct CShadow
+{
+    float scale = 1.0f;
+    Vec2 offset = {0, 0};
+
+    CShadow() = default;
+    explicit CShadow(const json& j)
+        : scale(j.value("scale", 1.0f))
+        , offset(j.contains("offset") ? Vec2{j.at("offset")} : Vec2{0, 0})
+    {
+        if (scale < 0.0f) {
+            throw std::invalid_argument("CShadow scale cannot be negative");
+        }
+    }
+};
+
 struct CVelocity
 {
     // World-space linear velocity in pixels per second.
@@ -327,7 +345,7 @@ struct CCollider
     }
 };
 
-enum class Faction { Demon, Enemy, Wizard, Dwarf, Elf, Knight };
+enum class Faction { Demon, Enemy, Wizard, Dwarf, Elf, Knight, Neutral };
 
 inline Faction factionFromString(const std::string& factionName)
 {
@@ -337,6 +355,7 @@ inline Faction factionFromString(const std::string& factionName)
     if (factionName == "Dwarf") return Faction::Dwarf;
     if (factionName == "Elf") return Faction::Elf;
     if (factionName == "Knight") return Faction::Knight;
+    if (factionName == "Neutral") return Faction::Neutral;
     throw std::invalid_argument("Unknown faction: " + factionName);
 }
 
@@ -508,10 +527,11 @@ struct CAudio
 struct CState
 {
     PlayerState state = PlayerState::STAND;
-    PlayerState preState = PlayerState::STAND; 
+    PlayerState preState = PlayerState::STAND;
+    PlayerState facing = PlayerState::RUN_DOWN;
     bool changeAnimate = true;
     CState() {}
-    CState(const PlayerState s) : state(s), preState(s) {}
+    CState(const PlayerState s) : state(s), preState(s), facing(s) {}
 }; 
 
 enum class ProjectilePhase {
@@ -540,6 +560,19 @@ struct CDamage
     CDamage(int dmg) : damage(dmg) {}
     CDamage(int dmg, std::unordered_set<std::string> dmgType) 
         : damage(dmg), damageType(dmgType) {}
+};
+
+// Editor-only metadata. Preview entities intentionally have no gameplay
+// components; this is the information persisted back into a world layout.
+struct CEditorPlacement
+{
+    std::string definition;
+    int x = 0;
+    int y = 0;
+
+    CEditorPlacement() = default;
+    CEditorPlacement(std::string placementDefinition, int gridX, int gridY)
+        : definition(std::move(placementDefinition)), x(gridX), y(gridY) {}
 };
 
 struct CAttackHitbox

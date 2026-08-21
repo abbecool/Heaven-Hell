@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "activeLayoutId": "level_world",
+  "layouts": [
+    {
+      "id": "level_world",
+      "displayName": "Level World",
+      "terrainPath": "assets/images/levels/levelWorld.png",
+      "placementPath": "config_files/layouts/level_world.json"
+    }
+  ]
+}

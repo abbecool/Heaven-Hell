@@ -1,10 +1,12 @@
 #include "scenes/Scene_Menu.hpp"
 #include "scenes/Scene_Play.hpp"
+#include "scenes/Scene_Editor.hpp"
 #include "assets/Assets.hpp"
 #include "core/Game.hpp"
 #include "ecs/Components.hpp"
 #include "core/Action.hpp"
 #include "physics/RandomArray.hpp"
+#include "world/WorldLayout.hpp"
 
 #include <iostream>
 #include <string>
@@ -40,11 +42,25 @@ void Scene_Menu::loadMenu()
 
     spawnButton(Vec2 {64.f, 64.f}, "button_unpressed", "new", "NEW GAME");
     spawnButton(Vec2 {64.f, 128.f}, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2 {64.f, 192.f}, "button_unpressed", "editor", "EDITOR");
     spawnButton(Vec2 {float(width())-64.f,64.f }, "button_unpressed", "360p", "360p");
     spawnButton(Vec2 {float(width())-64.f,2*64.f }, "button_unpressed", "720p", "720p");
     spawnButton(Vec2 {float(width())-64.f,3*64.f }, "button_unpressed", "1080p", "1080p");
     spawnButton(Vec2 {float(width())-64.f,4*64.f }, "button_unpressed", "1440p", "1440p");
     spawnButton(Vec2 {float(width())-64.f,5*64.f }, "button_unpressed", "4K", "4K");
+
+    std::string activeLayout = "PLAY LAYOUT: unavailable";
+    try {
+        LayoutRepository layouts;
+        layouts.load();
+        activeLayout = "PLAY LAYOUT: " + layouts.activeLayout().displayName;
+    }
+    catch (const std::exception& exception) {
+        std::cerr << "Could not display active layout: " << exception.what() << std::endl;
+    }
+    const EntityID label = m_ECS.addEntity();
+    m_ECS.addComponent<CTransform>(label, Vec2{250.0f, 225.0f});
+    m_ECS.addComponent<CText>(label, activeLayout, 12.0f, "Minecraft");
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
@@ -104,6 +120,13 @@ void Scene_Menu::sDoAction(const Action& action)
                     "PLAY", 
                     std::make_shared<Scene_Play>(m_game, levelPath, false), 
                     true);
+            }
+            else if (name == "editor") {
+                m_game->changeScene(
+                    "EDITOR",
+                    std::make_shared<Scene_Editor>(m_game),
+                    true
+                );
             }
             else if ( name == "360p" ){
                 m_game->updateResolution(1);

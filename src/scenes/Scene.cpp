@@ -1,5 +1,6 @@
 #include "scenes/Scene.hpp"
 #include "scenes/TextBoxHelpers.hpp"
+#include "physics/Level_Loader.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -105,6 +106,52 @@ void Scene::setAnimation(EntityID entity, const std::string& spriteName, bool re
         return;
     }
     m_ECS.addComponent<CAnimation>(entity, getSprite(spriteName), repeat);
+}
+
+std::vector<EntityID> Scene::spawnDualTiles(const Vec2 pos, std::array<int, 5> tileTextures)
+{
+    std::vector<EntityID> entityIDs;
+    for (int i = 0; i < static_cast<int>(tileTextures.size()); ++i) {
+        const TileType tileKey = static_cast<TileType>(i);
+        const int textureIndex = tileTextures[i];
+        if (textureIndex == 0) {
+            continue;
+        }
+
+        int layer = RenderLayer::TerrainTilesLow;
+        std::string tileName = "grass";
+        if (tileKey == TileType::WATER) {
+            tileName = "water";
+        }
+        else if (tileKey == TileType::DIRT) {
+            layer = RenderLayer::TerrainTilesHigh;
+            tileName = "dirt";
+        }
+        else if (tileKey == TileType::OBSTACLE) {
+            layer = RenderLayer::TerrainTilesHigh;
+            tileName = "mountain";
+        }
+
+        const EntityID entity = m_ECS.addEntity();
+        entityIDs.push_back(entity);
+        const std::string spriteName = tileName + "_dual_sheet";
+        CSprite& sprite = addSprite(entity, spriteName, layer);
+        const Vec2 tilePosition{
+            static_cast<float>(textureIndex % 4),
+            static_cast<float>(textureIndex / 4)
+        };
+        sprite.src = getSprite(spriteName).frameRect(
+            static_cast<int>(tilePosition.x),
+            static_cast<int>(tilePosition.y)
+        );
+        if (tileKey == TileType::WATER) {
+            CAnimation& animation = m_ECS.addComponent<CAnimation>(entity, getSprite(spriteName), true);
+            animation.currentCol = static_cast<int>(tilePosition.x);
+            animation.currentRow = static_cast<int>(tilePosition.y);
+        }
+        m_ECS.addComponent<CTransform>(entity, gridToMidPixel(pos, entity));
+    }
+    return entityIDs;
 }
 
 void Scene::drawSprite(const CSprite& sprite, const RectF& dst, float angle, float whiteTint)

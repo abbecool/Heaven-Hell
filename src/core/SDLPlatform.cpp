@@ -52,6 +52,7 @@ std::optional<InputCode> inputCodeFromKey(SDL_Keycode key)
     case SDLK_7: return InputCode::Num7;
     case SDLK_8: return InputCode::Num8;
     case SDLK_9: return InputCode::Num9;
+    case SDLK_DELETE: return InputCode::Delete;
     default: return std::nullopt;
     }
 }

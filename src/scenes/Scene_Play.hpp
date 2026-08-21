@@ -10,6 +10,7 @@
 #include "scenes/Scene_Finish.hpp"
 #include "physics/Level_Loader.hpp"
 #include "story/EventBus.hpp"
+#include "world/WorldLayout.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -52,16 +53,11 @@ class Scene_Play : public Scene
         {"piercing", {"shielded"}}
     };
     
-    void loadMobsNItems(const std::string& path);
+    void loadActiveLayout();
     void saveGame();
     
     EntityID spawnPlayer();
-    EntityID spawnShadow(EntityID parentID);
-    std::vector<EntityID> spawnDualTiles(
-        const Vec2 pos, 
-        std::array<int, 5> tileIndex
-    );
-    
+    EntityID spawnShadow(EntityID parentID, const CShadow& shadowConfig = CShadow{});
     void sLoader();
     void sAttack();
     void sAI();
@@ -75,6 +71,7 @@ class Scene_Play : public Scene
     void sRenderInventory();
     void sRenderUI();
     void sAudio();
+    void onTerrainChanged() override;
     
     void sDoAction(const Action&);
     void onEnd();

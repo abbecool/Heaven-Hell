@@ -9,6 +9,13 @@
         "animation": "tree",
         "layer": "WORLD_PROP_RENDER_LAYER"
       },
+      "CShadow": {
+        "scale": 2.0,
+        "offset": {
+          "x": 0,
+          "y": 24
+        }
+      },
       "CCollider": {
         "shapes": [
           {
