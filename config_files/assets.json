@@ -4,6 +4,11 @@
       "name": "Minecraft",
       "path": "assets/fonts/Minecraft.ttf",
       "size": 24
+    },
+    {
+      "name": "OCRAEXT",
+      "path": "assets/fonts/OCRAEXT.TTF",
+      "size": 24
     }
   ],
   "textures": {
@@ -26,7 +31,10 @@
       "coin.png",
       "emblem.png",
       "tree.png",
-      "house.png",
+      "dwarf_house.png",
+      "elf_house.png",
+      "wizard_house.png",
+      "knight_house.png",
       "staff.png",
       "sword.png",
       "potion.png",
@@ -151,7 +159,34 @@
       "height": 80
     },
     {
-      "name": "house",
+      "name": "dwarf_house",
+      "frames": 1,
+      "frametime": 100,
+      "cols": 1,
+      "rows": 1,
+      "width": 80,
+      "height": 80
+    },
+    {
+      "name": "elf_house",
+      "frames": 1,
+      "frametime": 100,
+      "cols": 1,
+      "rows": 1,
+      "width": 80,
+      "height": 80
+    },
+    {
+      "name": "wizard_house",
+      "frames": 1,
+      "frametime": 100,
+      "cols": 1,
+      "rows": 1,
+      "width": 80,
+      "height": 80
+    },
+    {
+      "name": "knight_house",
       "frames": 1,
       "frametime": 100,
       "cols": 1,

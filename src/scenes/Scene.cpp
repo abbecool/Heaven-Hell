@@ -2,6 +2,7 @@
 #include "scenes/TextBoxHelpers.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 Scene::Scene()
 {
@@ -214,10 +215,25 @@ void Scene::updateAnimations()
 
 void Scene::sRenderBasic() {
     m_game->render().setWorldView(worldRenderView());
-    if (!m_drawTextures){
-        return;
+
+    if (m_drawTextures)
+    {
+        renderTextures();
     }
 
+    if (m_drawCollision)
+    {
+        renderColliderShapes();
+    }
+
+    if (m_drawDrawGrid)
+    {
+        renderGrid();
+    }
+}
+
+void Scene::renderTextures()
+{
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& spritePool = m_ECS.getComponentPool<CSprite>();
     const auto& layers = m_rendererManager.getLayers();
@@ -257,14 +273,10 @@ void Scene::sRenderBasic() {
             {255, 255, 255, 255}
         });
     }
-
-    if (m_drawCollision)
-    {
-        renderColliderShapes();
-    }
 }
 
-void Scene::renderColliderShapes() {
+void Scene::renderColliderShapes()
+{
     for (auto [e, collider, transform] : m_ECS.constView<CCollider, CTransform>())
     {
         for (const auto& shape : collider.shapes) {
@@ -276,6 +288,57 @@ void Scene::renderColliderShapes() {
                 shape.size.y
             };
             m_game->render().drawWorldRect(boxRect, shape.debugColor);
+        }
+    }
+}
+
+void Scene::renderGrid()
+{
+    if (m_gridSize.x <= 0.0f || m_gridSize.y <= 0.0f) {
+        return;
+    }
+
+    const RenderView view = worldRenderView();
+    if (view.scale <= 0.0f) {
+        return;
+    }
+
+    const Vec2 visibleWorldOrigin{
+        view.cameraX - view.originX / view.scale,
+        view.cameraY - view.originY / view.scale
+    };
+    const Vec2 visibleWorldSize{
+        static_cast<float>(m_game->getWidth()) / view.scale,
+        static_cast<float>(m_game->getHeight()) / view.scale
+    };
+    const int firstGridX = static_cast<int>(std::floor(visibleWorldOrigin.x / m_gridSize.x));
+    const int firstGridY = static_cast<int>(std::floor(visibleWorldOrigin.y / m_gridSize.y));
+    const int lastGridX = static_cast<int>(std::ceil((visibleWorldOrigin.x + visibleWorldSize.x) / m_gridSize.x)) - 1;
+    const int lastGridY = static_cast<int>(std::ceil((visibleWorldOrigin.y + visibleWorldSize.y) / m_gridSize.y)) - 1;
+
+    constexpr Color gridColor{0, 255, 0, 190};
+    constexpr Color coordinateColor{255, 255, 180, 255};
+    auto& renderer = m_game->render();
+    for (int gridY = firstGridY; gridY <= lastGridY; ++gridY) {
+        for (int gridX = firstGridX; gridX <= lastGridX; ++gridX) {
+            const RectF cellRect{
+                static_cast<float>(gridX) * m_gridSize.x,
+                static_cast<float>(gridY) * m_gridSize.y,
+                m_gridSize.x,
+                m_gridSize.y
+            };
+            renderer.drawWorldRect(cellRect, gridColor);
+            renderer.drawWorldText(WorldTextDrawCommand{
+                std::to_string(gridX) + "," + std::to_string(gridY),
+                "OCRAEXT",
+                RectF{
+                    cellRect.x + 1.0f,
+                    cellRect.y + 1.0f,
+                    std::max(1.0f, cellRect.w / 2.0f),
+                    std::max(1.0f, cellRect.h / 2.0f)
+                },
+                coordinateColor
+            });
         }
     }
 }

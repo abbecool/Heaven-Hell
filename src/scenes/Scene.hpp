@@ -39,7 +39,7 @@ class Scene
     MouseState m_mouseState;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
-    bool m_drawDrawGrid = true;
+    bool m_drawDrawGrid = false;
     Vec2 m_gridSize = {16, 16};    
     void bindEcsRemovalObserver();
     virtual void onEnd() = 0;
@@ -78,7 +78,9 @@ class Scene
     void drawSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
     void updateAnimations();
     void sRenderBasic();
+    void renderTextures();
     void renderColliderShapes();
+    void renderGrid();
 
     virtual void doAction(const Action& action);
     void registerAction(InputCode inputKey, const std::string& actionName);

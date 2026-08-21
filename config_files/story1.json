@@ -4,7 +4,7 @@
   "quests": [
     {
       "id": "opening.regain_strength",
-      "description": "A Small Life",
+      "description": "Drain the chicken to regain strength",
       "initial_state": "active",
       "steps": [
         {
@@ -19,7 +19,7 @@
     },
     {
       "id": "opening.leave_battlefield",
-      "description": "Beyond the Dead",
+      "description": "Get beyond the battlefield guard",
       "initial_state": "locked",
       "steps": [
         {
@@ -35,7 +35,7 @@
     },
     {
       "id": "world.choose_first_face",
-      "description": "A Borrowed Face",
+      "description": "Possess a dwarf, knight, elf, or wizard",
       "initial_state": "locked",
       "steps": [
         {
