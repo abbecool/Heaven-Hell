@@ -1,4 +1,6 @@
-# Story Chapter One: Awakening
+# Chapter One: Awakening
+
+**Status: Canon opening sequence.**
 
 The player, a weak demon or spirit, awakens on the ancient battlefield of the Six Day Battle. The only path forward is a small passage guarded by a hostile knight. The knight does not recognize the player; it sees only an unknown creature emerging from a dangerous ruin.
 

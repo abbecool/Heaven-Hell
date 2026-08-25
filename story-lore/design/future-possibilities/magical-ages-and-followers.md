@@ -1,43 +1,6 @@
-# Cyclical Magic and Gudloth's Followers
+# Magical Ages and Gudloth's Followers
 
-## Status
-
-The two magical cycles and their timeline are established canon. The ideas about earlier magical ages, surviving followers, milestones, mini-bosses, and altered regions remain exploratory.
-
-## The Two Cyclical Forces
-
-### Dark Ancient Magic
-
-Dark ancient magic is Gudloth's primary force. It peaks every **903 years**.
-
-Known peak years include:
-
-- Year 0 — The Visit
-- Year 903 — The Six Day Battle
-- Year 1806 — the next full dark-magic peak after the game's beginning
-
-### Nature or Life Force
-
-Nature or life force is a counterbalancing magic that peaks every **40 years**. Its lowest phase occurs roughly 20 years after each peak.
-
-Dark magic and nature magic have no shared factors in their periods. They peak together only every **36,120 years**, which makes the Visit an exceptionally rare convergence.
-
-## Established Timeline
-
-| Year After the Visit | Event | Dark ancient magic | Nature/life force |
-|---:|---|---|---|
-| 0 | The Visit | Peak | Peak |
-| 903 | Six Day Battle | Peak | Almost at its trough |
-| 1720 | Start of the game; Gudloth returns | Strong, 86 years before its next peak | Peak |
-| 1806 | Next dark-magic peak | Peak | Early in a new nature cycle |
-
-The decisive cycle positions are:
-
-- 903 = (22 × 40) + 23: nature magic is just beyond its trough, which occurs around Year 20 of its cycle.
-- 1720 = 43 × 40: nature or life force is at a full peak.
-- 1806 − 1720 = 86: dark magic is strong at the game's start but has not reached its next maximum.
-
-Gudloth's return is enabled by the Year 1720 combination of peak life force and already-strong dark ancient magic. The Six Day Battle was the opposite imbalance: dark magic was at maximum while nature force was almost absent.
+**Status: Exploratory.** The established magic-cycle rules are in [Magic Cycles](../../canon/world/magic-cycles.md). Nothing below establishes that a surviving follower, altered region, or earlier magical age currently exists in the game world.
 
 ## Earlier Magical Ages
 

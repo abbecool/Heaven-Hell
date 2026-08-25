@@ -1,6 +1,6 @@
 # Open Questions
 
-These questions are intentionally unresolved by the current canon. They should not be answered incidentally in other lore files.
+**Status: Open questions.** These need explicit decisions before they become canon. Do not answer them incidentally in other lore files.
 
 ## Central Mystery
 
@@ -18,7 +18,6 @@ These questions are intentionally unresolved by the current canon. They should n
 
 ## Timeline and Historical Detail
 
-- How many centuries passed between the Six Day Battle and the modern story?
 - What happened in the earliest years after the battle?
 - Which elf traditions are reliable, distorted, or politically shaped?
 - What fragments do wizard archives preserve, and why are they restricted?
@@ -42,7 +41,6 @@ These questions are intentionally unresolved by the current canon. They should n
 
 ## Gameplay and Possession
 
-- Is drain separate from possession, or one ability with different outcomes?
 - What limits which targets can be drained or possessed?
 - Does each body have a permanent level limit, and can the player return to former hosts?
 - What resource, cooldown, or danger governs switching bodies?

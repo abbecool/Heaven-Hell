@@ -1,6 +1,6 @@
-# Review and Feedback
+# Narrative Principles
 
-This feedback is assessed against the current combined canon in [Revised World History and Story Structure](Revised%20World%20History%20and%20Story%20Structure.md). It is design guidance, not a replacement source of canon.
+**Status: Design direction.** This is guidance for quests, dialogue, encounter design, and environmental storytelling. It does not establish or override canon.
 
 ## Overall Direction
 

@@ -1,12 +1,12 @@
 # Geography
 
-This is a working map reference. The locations below distinguish established story anchors from names and details that still need map design.
+**Status: Canon anchors with open map detail.** This file establishes relative story locations; final borders, scale, and site placement remain open.
 
 ## Established Locations
 
 ### Ancient Battlefield / Rock Plains
 
-The game opens on the ancient battlefield of the Six Day Battle, on or near the rock plains. It is a ruin from the destroyed Forge Kingdom: a place of old armor, weapons, graves, and conflicting historical traces. A knight guards its exit in the prologue, without knowing what the awakened demon is.
+The game opens on the ancient battlefield of the Six Day Battle, on or near the rock plains. It is a Forge ruin of old armour, weapons, graves, and conflicting historical traces. A knight guards its exit in the prologue without knowing what the awakened demon is.
 
 ### La Poise and the Lace River
 
@@ -24,7 +24,7 @@ Recent dwarven arrivals from the west have founded a settlement near the mountai
 
 ### Wizard Lands and the Old City
 
-Wizards preserve rare written history and may have bases, archives, seals, or protected routes in the eastern region. Their predecessors were a smaller scholarly community in the Forge Kingdom before retreating toward wizard regions after its decay, and they still study its poorly understood ancient magic. In the north, the Old City occupies the reinhabited remains of the Forge Kingdom. It may hold otherwise lost knowledge and is a long-term destination. Its relationship to the wizards and La Poise, and the authority and knowledge of its king, remain unresolved.
+Wizards preserve rare written history and may have bases, archives, seals, or protected routes in the eastern region. In the north, the Old City occupies the reinhabited Forge ruins. It may hold otherwise lost knowledge and is a long-term destination. Its relationship to the wizards and La Poise, and the authority and knowledge of its king, remain unresolved.
 
 ## Ancient and Working Place Names
 
@@ -39,3 +39,9 @@ These names should be used only where the map and later lore support them. They 
 ## Routes and Story Connections
 
 The merchant road outside the battlefield brings the player into contact with a dwarf, elf, wizard, and knight. Later routes should let the factions intersect through dwarf trade with La Poise, the human–elf territorial conflict, elf infiltration of wizard spaces, and dwarf exploration toward wizard territory. Faction abilities can then open mountain, forest, city, and magically sealed paths.
+
+## Map Decisions Still Needed
+
+- Define the compass relationship between La Poise, the Old City, wizard lands, elf territory, the dwarf settlement, and the battlefield.
+- Define travel times and the river, sea, mountain, and road connections that make faction contact plausible.
+- Decide which inherited names become final locations and which remain legends.

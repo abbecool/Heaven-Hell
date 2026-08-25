@@ -1,12 +1,14 @@
 # Gameplay Lore Hooks
 
+**Status: Design direction.** Established possession behaviour lives in [Drain and Possession](../canon/systems/possession.md); this file explains how systems should support the story.
+
 ## Possession Is the Story Mechanic
 
 The player is a weak demon or spirit that cannot progress like an ordinary person. It drains life and possesses bodies to gain survival, identity, faction access, and race-specific abilities.
 
 Possession must retain its narrative weight: every host is an actual person with relationships, status, responsibilities, and enemies. NPCs react to the current body's identity, while the demon may know little about the life it is impersonating. This makes each possession both a power gain and a potential moral or practical complication.
 
-The canonical opening demonstrates both sides of the mechanic: the player drains a chicken to recover strength, then reaches the merchant road to choose its first major host from a dwarf, elf, wizard, or knight. The guard encounter before that choice should not establish a permanent knight host.
+The canonical opening demonstrates the mechanic: the player drains a chicken to recover strength, then reaches the merchant road to choose its first major host from a dwarf, elf, wizard, or knight. The guard encounter before that choice should not establish a permanent knight host.
 
 ## Possession as Progression
 
@@ -19,7 +21,7 @@ Useful design rules:
 - Strong hosts can require weakening, quests, rituals, or faction access.
 - Possession detection, memory leakage, and host relationships can create consequences without making the mechanic unusable.
 
-The exact distinction between drain and possession belongs in the dedicated possession notes.
+The drain-then-possess interaction belongs in the dedicated possession notes.
 
 ## Race and Faction Abilities
 
