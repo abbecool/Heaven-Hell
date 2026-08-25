@@ -71,8 +71,10 @@ Current state:
 
 Recommended work:
 
-- Add tests for `ComponentPool`, `SpriteDefinition`, and pure `LevelLoader`
-  helpers.
+- Add tests for pure `LevelLoader` helpers, config validation, and focused
+  gameplay rules that do not need a renderer.
+- Expand existing ECS and `SpriteDefinition` coverage only when new behavior is
+  added.
 - Keep using assert-based tests until the test surface is large enough to
   justify Catch2 or doctest.
 - Keep renderer tests as manual/smoke tests for now unless you add an offscreen
@@ -85,7 +87,7 @@ Why now:
 
 ## Important Setup Work
 
-### 4. Keep CMake Presets As The Single Build Entry Point
+### 3. Keep CMake Presets As The Single Build Entry Point
 
 Current state:
 
@@ -103,7 +105,7 @@ Why now:
 - It removes duplicated build knowledge.
 - It makes future engine/game targets easier to configure consistently.
 
-### 5. Add Compile Warnings
+### 4. Add Compile Warnings
 
 Current state:
 
@@ -120,7 +122,7 @@ Why now:
 - Backend refactors are exactly where hidden type conversions and lifetime
   issues tend to surface.
 
-### 6. Tighten Release Packaging
+### 5. Tighten Release Packaging
 
 Current state:
 
@@ -145,7 +147,7 @@ You already know you want this eventually. It does not have to happen before
 new gameplay, but the repo is close enough that planning the boundary now will
 save churn.
 
-### 7. Split Targets Before Splitting Repositories
+### 6. Split Targets Before Splitting Repositories
 
 Do this inside one repo first.
 
@@ -175,7 +177,7 @@ Why one repo first:
 - You can move boundaries without package/versioning friction.
 - CMake can enforce the dependency direction before a physical repo split.
 
-### 8. Decide What Is Engine And What Is Game
+### 7. Decide What Is Engine And What Is Game
 
 Likely engine:
 
@@ -206,7 +208,7 @@ Needs thought:
 - `Assets` currently coordinates render and audio loading; it may need to
   become a generic asset catalog plus game-owned content loading.
 
-### 9. Separate Audio From Platform
+### 8. Separate Audio From Platform
 
 Current state:
 
@@ -224,7 +226,7 @@ Why not through `RenderBackend`:
 - Audio is not rendering.
 - Keeping it separate makes engine reuse cleaner.
 
-### 10. Move Level Loading Out Of Physics
+### 9. Move Level Loading Out Of Physics
 
 Current state:
 
@@ -243,7 +245,7 @@ Why now:
 
 ## Rendering Quality And Performance
 
-### 11. Cache SDL Text Rendering
+### 10. Cache SDL Text Rendering
 
 Current state:
 
@@ -256,7 +258,7 @@ Recommended work:
   backend and prioritize OpenGL.
 - At minimum, cache FPS text until its value changes.
 
-### 12. Improve OpenGL Batch Behavior
+### 11. Improve OpenGL Batch Behavior
 
 Current state:
 
@@ -269,7 +271,7 @@ Recommended work:
 - Keep layer correctness first.
 - Add metrics/logging for batch flush count before optimizing deeply.
 
-### 13. Externalize Shaders Later
+### 12. Externalize Shaders Later
 
 Current state:
 
@@ -291,8 +293,8 @@ Recommended work:
 
 ## Suggested Order
 
-1. DONE. Add configurable render-driver selection.
-2. DONE. Verify SDL/OpenGL visual parity using the world-space rendering path.
+1. Add configurable render-driver selection.
+2. Verify SDL/OpenGL visual parity using the world-space rendering path.
 3. Clean release packaging.
 4. Split CMake targets into engine and game inside this repo.
 5. Move audio and level loading to cleaner modules.

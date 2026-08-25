@@ -176,14 +176,17 @@ void Game::quit() {
 }
 
 void Game::update() {
-    // if play scene exists, update it
-    if (m_sceneMap.find("PLAY") != m_sceneMap.end()) {
+    if (m_currentScene == "PLAY") {
+        currentScene()->update();
+        return;
+    }
+
+    // Pause is the only overlay that intentionally keeps the play scene alive
+    // beneath it. Tools such as Scene_Editor must never advance gameplay.
+    if (m_currentScene == "SETTINGS" && m_sceneMap.find("PLAY") != m_sceneMap.end()) {
         m_sceneMap["PLAY"]->update();
     }
-    // update current scene
-    if (m_currentScene != "PLAY") {
-        currentScene()->update();
-    }
+    currentScene()->update();
 }
 
 SceneMap& Game::sceneMap(){

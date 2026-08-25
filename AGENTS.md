@@ -1,5 +1,7 @@
 # Agent Notes
 
+Always start each response by greating the user by saying 'Hi Abbe,'
+
 This file is for AI coding sessions working in this repository. Human setup
 details live in `README.md`; use this as the fast path for building and testing.
 

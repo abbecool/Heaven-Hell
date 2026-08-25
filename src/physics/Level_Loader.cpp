@@ -1,6 +1,5 @@
 #include "physics/Level_Loader.hpp"
-#include "scenes/Scene_Play.hpp"
-#include "scenes/Scene_Menu.hpp"
+#include "scenes/Scene.hpp"
 #include "assets/Assets.hpp"
 #include "core/Game.hpp"
 #include "ecs/Components.hpp"
@@ -105,12 +104,15 @@ void appendMergedColliderShapes(
 } // namespace
 
 LevelLoader::LevelLoader(
-    Scene_Play* scene, 
-    const Vec2 gridSize, 
-    const PixelImage& levelImage
-){
+    Scene* scene,
+    const Vec2 gridSize,
+    const PixelImage& levelImage,
+    bool buildColliders
+)
+{
     m_scene = scene;
     m_gridSize = gridSize;
+    m_buildColliders = buildColliders;
     if (levelImage.width <= 0 || levelImage.height <= 0 || levelImage.pixels.empty()) {
         std::cerr << "Level image has no pixels." << std::endl;
         return;
@@ -334,33 +336,35 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
         }
     }
 
-    std::vector<ColliderShape> colliderShapes;
-    const CollisionMask obstacleMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
-    appendMergedColliderShapes(
-        colliderShapes,
-        obstacleTiles,
-        chunkWidth,
-        chunkHeight,
-        m_gridSize,
-        OBSTACLE_LAYER,
-        obstacleMask,
-        Color{255, 255, 255, 255},
-        false
-    );
-    const CollisionMask waterMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
-    appendMergedColliderShapes(
-        colliderShapes,
-        waterTiles,
-        chunkWidth,
-        chunkHeight,
-        m_gridSize,
-        WATER_LAYER,
-        waterMask,
-        Color{0, 0, 255, 255},
-        true
-    );
-    if (!colliderShapes.empty()) {
-        m_scene->m_ECS.addComponent<CCollider>(chunkID, std::move(colliderShapes));
+    if (m_buildColliders) {
+        std::vector<ColliderShape> colliderShapes;
+        const CollisionMask obstacleMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER | PROJECTILE_LAYER;
+        appendMergedColliderShapes(
+            colliderShapes,
+            obstacleTiles,
+            chunkWidth,
+            chunkHeight,
+            m_gridSize,
+            OBSTACLE_LAYER,
+            obstacleMask,
+            Color{255, 255, 255, 255},
+            false
+        );
+        const CollisionMask waterMask = ENEMY_LAYER | FRIENDLY_LAYER | PLAYER_LAYER;
+        appendMergedColliderShapes(
+            colliderShapes,
+            waterTiles,
+            chunkWidth,
+            chunkHeight,
+            m_gridSize,
+            WATER_LAYER,
+            waterMask,
+            Color{0, 0, 255, 255},
+            true
+        );
+        if (!colliderShapes.empty()) {
+            m_scene->m_ECS.addComponent<CCollider>(chunkID, std::move(colliderShapes));
+        }
     }
 
     return chunkID;
@@ -443,7 +447,9 @@ void LevelLoader::update(Vec2 playerPosition)
             m_scene->m_ECS.update();
             m_scene->m_rendererManager.update();
         }
-        m_scene->m_collisionManager.rebuildStaticQuadtree();
+        if (m_buildColliders) {
+            m_scene->onTerrainChanged();
+        }
     }
  }
 

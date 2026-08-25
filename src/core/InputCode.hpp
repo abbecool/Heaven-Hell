@@ -40,6 +40,7 @@ enum class InputCode : std::uint16_t
     Num7,
     Num8,
     Num9,
+    Delete,
     MouseLeft,
     MouseRight,
     MouseWheel

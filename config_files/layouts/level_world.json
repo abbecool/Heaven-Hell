@@ -1,0 +1,230 @@
+{
+    "placements": [
+        {
+            "definition": "campfire",
+            "x": 350,
+            "y": 63
+        },
+        {
+            "definition": "chicken",
+            "x": 349,
+            "y": 58
+        },
+        {
+            "definition": "coin",
+            "x": 339,
+            "y": 73
+        },
+        {
+            "definition": "coin",
+            "x": 359,
+            "y": 73
+        },
+        {
+            "definition": "coin",
+            "x": 347,
+            "y": 88
+        },
+        {
+            "definition": "dwarf",
+            "x": 358,
+            "y": 71
+        },
+        {
+            "definition": "dwarf_home",
+            "x": 426,
+            "y": 67
+        },
+        {
+            "definition": "elf",
+            "x": 335,
+            "y": 81
+        },
+        {
+            "definition": "elf_home",
+            "x": 408,
+            "y": 68
+        },
+        {
+            "definition": "emblem",
+            "x": 345,
+            "y": 97
+        },
+        {
+            "definition": "goblin",
+            "x": 392,
+            "y": 78
+        },
+        {
+            "definition": "goblin",
+            "x": 398,
+            "y": 81
+        },
+        {
+            "definition": "golem",
+            "x": 390,
+            "y": 80
+        },
+        {
+            "definition": "knight",
+            "x": 335,
+            "y": 71
+        },
+        {
+            "definition": "knight_home",
+            "x": 390,
+            "y": 67
+        },
+        {
+            "definition": "potion",
+            "x": 343,
+            "y": 73
+        },
+        {
+            "definition": "rooter",
+            "x": 395,
+            "y": 84
+        },
+        {
+            "definition": "rooter",
+            "x": 336,
+            "y": 97
+        },
+        {
+            "definition": "staff",
+            "x": 363,
+            "y": 89
+        },
+        {
+            "definition": "sword",
+            "x": 364,
+            "y": 91
+        },
+        {
+            "definition": "tree",
+            "x": 395,
+            "y": 67
+        },
+        {
+            "definition": "tree",
+            "x": 400,
+            "y": 67
+        },
+        {
+            "definition": "tree",
+            "x": 403,
+            "y": 68
+        },
+        {
+            "definition": "tree",
+            "x": 396,
+            "y": 69
+        },
+        {
+            "definition": "tree",
+            "x": 399,
+            "y": 70
+        },
+        {
+            "definition": "tree",
+            "x": 393,
+            "y": 71
+        },
+        {
+            "definition": "tree",
+            "x": 406,
+            "y": 71
+        },
+        {
+            "definition": "tree",
+            "x": 400,
+            "y": 72
+        },
+        {
+            "definition": "tree",
+            "x": 403,
+            "y": 72
+        },
+        {
+            "definition": "tree",
+            "x": 408,
+            "y": 72
+        },
+        {
+            "definition": "tree",
+            "x": 397,
+            "y": 73
+        },
+        {
+            "definition": "tree",
+            "x": 401,
+            "y": 74
+        },
+        {
+            "definition": "tree",
+            "x": 405,
+            "y": 75
+        },
+        {
+            "definition": "tree",
+            "x": 408,
+            "y": 78
+        },
+        {
+            "definition": "tree",
+            "x": 327,
+            "y": 79
+        },
+        {
+            "definition": "tree",
+            "x": 393,
+            "y": 79
+        },
+        {
+            "definition": "tree",
+            "x": 400,
+            "y": 79
+        },
+        {
+            "definition": "tree",
+            "x": 396,
+            "y": 81
+        },
+        {
+            "definition": "tree",
+            "x": 394,
+            "y": 82
+        },
+        {
+            "definition": "tree",
+            "x": 398,
+            "y": 82
+        },
+        {
+            "definition": "tree",
+            "x": 395,
+            "y": 84
+        },
+        {
+            "definition": "tree",
+            "x": 402,
+            "y": 85
+        },
+        {
+            "definition": "tree",
+            "x": 397,
+            "y": 93
+        },
+        {
+            "definition": "wizard",
+            "x": 372,
+            "y": 80
+        },
+        {
+            "definition": "wizard_home",
+            "x": 380,
+            "y": 80
+        }
+    ],
+    "version": 1
+}

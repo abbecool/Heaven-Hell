@@ -41,7 +41,7 @@
       "description": "Go to the house.",
       "trigger": {
         "event_type": "EnteredArea",
-        "subject": "house"
+        "subject": "area.dwarf.home"
       }
     }
   ]

@@ -17,7 +17,7 @@ float dot(const Vec2& a, const Vec2& b)
 
 float inverseMass(Entity& entity)
 {
-    if (!entity.hasComponent<CPhysicsBody>()) {
+    if (!entity.hasComponent<CPhysicsBody>() || entity.getComponent<CPhysicsBody>().mass <= 0.0f) {
         return 0.0f;
     }
     return 1.0f / entity.getComponent<CPhysicsBody>().mass;
@@ -109,7 +109,7 @@ uint64_t hashCombine(uint64_t seed, uint64_t value)
     return seed ^ (value + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2));
 }
 
-} // namespace
+}
 
 uint8_t CollisionManager::layerIndex(CollisionMask layer)
 {
@@ -414,6 +414,11 @@ void CollisionManager::processQuadtreeLeaf(const std::vector<size_t>& proxyIndic
             }
 
             const Vec2 overlap = collisionOverlap(proxyA, proxyB);
+            handleBodyCollision(
+                {proxyA.entity, m_ECS},
+                {proxyB.entity, m_ECS},
+                overlap
+            );
             dispatch(
                 m_solidHandlers,
                 proxyA.entity,
@@ -429,12 +434,6 @@ void CollisionManager::processQuadtreeLeaf(const std::vector<size_t>& proxyIndic
 CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene)
     : m_ECS(ecs), m_scene(scene)
 {
-    registerSolidHandler(PLAYER_LAYER, OBSTACLE_LAYER, handleBodyCollision);
-    registerSolidHandler(PLAYER_LAYER, ENEMY_LAYER, handleBodyCollision);
-    registerSolidHandler(PLAYER_LAYER, FRIENDLY_LAYER, handleBodyCollision);
-    registerSolidHandler(FRIENDLY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
-    registerSolidHandler(FRIENDLY_LAYER, FRIENDLY_LAYER, handleBodyCollision);
-    registerSolidHandler(FRIENDLY_LAYER, ENEMY_LAYER, handleBodyCollision);
     registerSolidHandler(
         ENEMY_LAYER,
         PROJECTILE_LAYER,
@@ -452,12 +451,10 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene)
     registerSolidHandler(
         FRIENDLY_LAYER,
         PROJECTILE_LAYER,
-        [this](Entity friendly, Entity projectile, Vec2 overlap) {
+        [this](Entity projectile, Entity friendly, Vec2 overlap) {
             handleProjectileHit(m_scene, friendly, projectile);
         }
     );
-    registerSolidHandler(ENEMY_LAYER, ENEMY_LAYER, handleBodyCollision);
-    registerSolidHandler(ENEMY_LAYER, OBSTACLE_LAYER, handleBodyCollision);
     registerSolidHandler(
         PROJECTILE_LAYER,
         OBSTACLE_LAYER,

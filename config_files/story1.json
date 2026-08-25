@@ -1,0 +1,133 @@
+{
+  "format": "story-quests-v1",
+  "version": 1,
+  "quests": [
+    {
+      "id": "opening.regain_strength",
+      "description": "Drain the chicken to regain strength",
+      "initial_state": "active",
+      "steps": [
+        {
+          "id": "drain_chicken",
+          "description": "Drain the chicken to regain strength.",
+          "triggers": [
+            {"event_type": "EntityDrained", "subjects": ["chicken"]}
+          ]
+        }
+      ],
+      "reaction": {"type": "ActivateQuest", "quest": "opening.leave_battlefield"}
+    },
+    {
+      "id": "opening.leave_battlefield",
+      "description": "Get beyond the battlefield guard",
+      "initial_state": "locked",
+      "steps": [
+        {
+          "id": "leave_battlefield",
+          "description": "Get beyond the battlefield guard.",
+          "triggers": [
+            {"event_type": "EntityKilled", "subjects": ["knight"]},
+            {"event_type": "EntityPossessed", "subjects": ["knight"]}
+          ]
+        }
+      ],
+      "reaction": {"type": "ActivateQuest", "quest": "world.choose_first_face"}
+    },
+    {
+      "id": "world.choose_first_face",
+      "description": "Possess a dwarf, knight, elf, or wizard",
+      "initial_state": "locked",
+      "steps": [
+        {
+          "id": "possess_first_host",
+          "description": "Possess a dwarf, knight, elf, or wizard.",
+          "triggers": [
+            {"event_type": "EntityPossessed", "subjects": ["dwarf", "knight", "elf", "wizard"]}
+          ],
+          "reactions_by_trigger": [
+            {
+              "trigger": {"event_type": "EntityPossessed", "subjects": ["dwarf"]},
+              "reaction": {"type": "ActivateQuest", "quest": "faction.dwarf.return_home"}
+            },
+            {
+              "trigger": {"event_type": "EntityPossessed", "subjects": ["knight"]},
+              "reaction": {"type": "ActivateQuest", "quest": "faction.knight.return_home"}
+            },
+            {
+              "trigger": {"event_type": "EntityPossessed", "subjects": ["elf"]},
+              "reaction": {"type": "ActivateQuest", "quest": "faction.elf.return_home"}
+            },
+            {
+              "trigger": {"event_type": "EntityPossessed", "subjects": ["wizard"]},
+              "reaction": {"type": "ActivateQuest", "quest": "faction.wizard.return_home"}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "faction.dwarf.return_home",
+      "description": "A Dwarf's Home",
+      "initial_state": "locked",
+      "steps": [
+        {
+          "id": "go_home",
+          "description": "Go to the dwarf's home.",
+          "triggers": [{"event_type": "EnteredArea", "subjects": ["area.dwarf.home"]}]
+        }
+      ],
+      "reaction": {"type": "ActivateQuest", "quest": "main.kill_king"}
+    },
+    {
+      "id": "faction.knight.return_home",
+      "description": "A Knight's Home",
+      "initial_state": "locked",
+      "steps": [
+        {
+          "id": "go_home",
+          "description": "Go to the knight's home.",
+          "triggers": [{"event_type": "EnteredArea", "subjects": ["area.knight.home"]}]
+        }
+      ],
+      "reaction": {"type": "ActivateQuest", "quest": "main.kill_king"}
+    },
+    {
+      "id": "faction.elf.return_home",
+      "description": "An Elf's Home",
+      "initial_state": "locked",
+      "steps": [
+        {
+          "id": "go_home",
+          "description": "Go to the elf's home.",
+          "triggers": [{"event_type": "EnteredArea", "subjects": ["area.elf.home"]}]
+        }
+      ],
+      "reaction": {"type": "ActivateQuest", "quest": "main.kill_king"}
+    },
+    {
+      "id": "faction.wizard.return_home",
+      "description": "A Wizard's Home",
+      "initial_state": "locked",
+      "steps": [
+        {
+          "id": "go_home",
+          "description": "Go to the wizard's home.",
+          "triggers": [{"event_type": "EnteredArea", "subjects": ["area.wizard.home"]}]
+        }
+      ],
+      "reaction": {"type": "ActivateQuest", "quest": "main.kill_king"}
+    },
+    {
+      "id": "main.kill_king",
+      "description": "Kill the King",
+      "initial_state": "locked",
+      "steps": [
+        {
+          "id": "kill_placeholder_king",
+          "description": "Kill the king.",
+          "triggers": [{"event_type": "EntityKilled", "subjects": ["golem"]}]
+        }
+      ]
+    }
+  ]
+}

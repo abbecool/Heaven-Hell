@@ -1,0 +1,24 @@
+{
+  "factions": {
+    "dwarf": {
+      "need": "Keep the new mountain colony alive through mining, trade, and control of dangerous tunnels.",
+      "truth": "Their deepest dig has found traces of a pre-city power beneath the mountain.",
+      "lead": "faction.dwarf.return_home"
+    },
+    "knight": {
+      "need": "Feed and protect an overcrowded city whose farms cannot keep up with hunger.",
+      "truth": "The city depends on the king's authority, but expansion is making new enemies faster than it can contain them.",
+      "lead": "faction.knight.return_home"
+    },
+    "elf": {
+      "need": "Defend the forest and its people from farms, roads, and city expansion.",
+      "truth": "They believe the city is beginning another old-world catastrophe.",
+      "lead": "faction.elf.return_home"
+    },
+    "wizard": {
+      "need": "Contain dangerous magic and protect the old city from the last enemy.",
+      "truth": "They know more about the demon and the king's burden than any other faction.",
+      "lead": "faction.wizard.return_home"
+    }
+  }
+}

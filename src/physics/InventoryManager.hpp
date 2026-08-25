@@ -47,6 +47,8 @@ struct Item {
     int healing = 0;
     bool hasWeaponConfig = false;
     nlohmann::json weaponConfig = nlohmann::json::object();
+    bool hasShadowConfig = false;
+    nlohmann::json shadowConfig = nlohmann::json::object();
     
     Item() = default;
     ItemType getItemTypeFromString(const std::string& typeStr) {
@@ -79,6 +81,10 @@ struct Item {
         if (j.contains("weapon") && j["weapon"].is_object()) {
             hasWeaponConfig = true;
             weaponConfig = j["weapon"];
+        }
+        if (j.contains("shadow") && j["shadow"].is_object()) {
+            hasShadowConfig = true;
+            shadowConfig = j["shadow"];
         }
     };
 };

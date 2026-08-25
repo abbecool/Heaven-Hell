@@ -10,6 +10,7 @@
 #include "scenes/Scene_Finish.hpp"
 #include "physics/Level_Loader.hpp"
 #include "story/EventBus.hpp"
+#include "world/WorldLayout.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -52,17 +53,11 @@ class Scene_Play : public Scene
         {"piercing", {"shielded"}}
     };
     
-    void loadMobsNItems(const std::string& path);
-    void SubscribeToStoryEvents();
+    void loadActiveLayout();
     void saveGame();
     
     EntityID spawnPlayer();
-    EntityID spawnShadow(EntityID parentID);
-    std::vector<EntityID> spawnDualTiles(
-        const Vec2 pos, 
-        std::array<int, 5> tileIndex
-    );
-    
+    EntityID spawnShadow(EntityID parentID, const CShadow& shadowConfig = CShadow{});
     void sLoader();
     void sAttack();
     void sAI();
@@ -76,6 +71,7 @@ class Scene_Play : public Scene
     void sRenderInventory();
     void sRenderUI();
     void sAudio();
+    void onTerrainChanged() override;
     
     void sDoAction(const Action&);
     void onEnd();
@@ -123,18 +119,17 @@ class Scene_Play : public Scene
     EntityID Spawn(std::string name, Vec2 pos);
     EntityID DropItem(const Item& item, Vec2 position);
 
-// event - subscriber: These emit a signal when called
+// Story events are always delivered to StoryManager before optional listeners.
     void onItemPickedUp(const std::string& itemName) {
-        Event e{ EventType::ItemPickedUp, itemName };
-        m_eventBus.emit(e);
+        Emit(Event{ EventType::ItemPickedUp, itemName });
     }
 
     void onEnemyKilled(const std::string& itemName) {
-        Event e{ EventType::EntityKilled, itemName };
-        m_eventBus.emit(e);
+        Emit(Event{ EventType::EntityKilled, itemName });
     }
 
-    void Emit(Event e) {
+    void Emit(const Event& e) {
+        m_storyManager.onEvent(e);
         m_eventBus.emit(e);
     }
 

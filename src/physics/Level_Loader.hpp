@@ -21,12 +21,13 @@ enum struct TileType {
 
 using PixelMatrix = std::vector<TileType>;
 
-class Scene_Play;
+class Scene;
 class RenderBackend;
 class LevelLoader
 {
 private:
-    Scene_Play* m_scene = nullptr;
+    Scene* m_scene = nullptr;
+    bool m_buildColliders = true;
     int m_width = 0;
     int m_height = 0;
     Vec2 m_gridSize = {0, 0};
@@ -41,7 +42,12 @@ private:
     
 public:
     LevelLoader(){}
-    LevelLoader(Scene_Play* scene, const Vec2 gridSize, const PixelImage& levelImage);
+    LevelLoader(
+        Scene* scene,
+        Vec2 gridSize,
+        const PixelImage& levelImage,
+        bool buildColliders = true
+    );
     std::vector<TileType> m_pixelMatrix;
     std::array<bool, 4> neighborCheck(int x, int y, int width, int height);
     std::array<TileType, 4> neighborTag(int x, int y, int width, int height);

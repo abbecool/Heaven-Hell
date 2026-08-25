@@ -75,16 +75,20 @@ inline int renderLayerFromJson(const json& value)
 }
 
 using CollisionMask = std::bitset<MAX_LAYERS>;
-constexpr CollisionMask EMPTY_MASK              = 0;        // 00000000, No bits set
-constexpr CollisionMask PLAYER_LAYER            = 1 << 0;   // 00000001, Bit 1
-constexpr CollisionMask ENEMY_LAYER             = 1 << 1;   // 00000010, Bit 2
-constexpr CollisionMask PROJECTILE_LAYER        = 1 << 2;   // 00000100, Bit 3
-constexpr CollisionMask OBSTACLE_LAYER          = 1 << 3;   // 00001000, Bit 4
-constexpr CollisionMask FRIENDLY_LAYER          = 1 << 4;   // 00010000, Bit 5
-constexpr CollisionMask DAMAGE_LAYER            = 1 << 5;   // 00100000, Bit 6
-constexpr CollisionMask WATER_LAYER             = 1 << 6;   // 01000000, Bit 7
-constexpr CollisionMask LOOT_LAYER              = 1 << 7;   // 10000000, Bit 8
-constexpr CollisionMask AREA_LAYER              = 1 << 8;   // 10000000, Final bit set
+constexpr CollisionMask EMPTY_MASK              = 0;        // 000000000, No bits set
+constexpr CollisionMask PLAYER_LAYER            = 1 << 0;   // 000000001, Bit 0
+constexpr CollisionMask ENEMY_LAYER             = 1 << 1;   // 000000010, Bit 1
+constexpr CollisionMask PROJECTILE_LAYER        = 1 << 2;   // 000000100, Bit 2
+constexpr CollisionMask OBSTACLE_LAYER          = 1 << 3;   // 000001000, Bit 3
+constexpr CollisionMask FRIENDLY_LAYER          = 1 << 4;   // 000010000, Bit 4
+constexpr CollisionMask DAMAGE_LAYER            = 1 << 5;   // 000100000, Bit 5
+constexpr CollisionMask WATER_LAYER             = 1 << 6;   // 001000000, Bit 6
+constexpr CollisionMask LOOT_LAYER              = 1 << 7;   // 010000000, Bit 7
+constexpr CollisionMask AREA_LAYER              = 1 << 8;   // 100000000, Bit 8
+constexpr CollisionMask WIZARD_LAYER            = 1 << 9;
+constexpr CollisionMask DWARF_LAYER             = 1 << 10;
+constexpr CollisionMask ELF_LAYER               = 1 << 11;
+constexpr CollisionMask KNIGHT_LAYER            = 1 << 12;
 
 inline std::unordered_map<std::string, CollisionMask> componentMaskMap = 
 {
@@ -183,6 +187,24 @@ struct CTransform
         : pos(p), prevPos(p), scale(s){}
     CTransform(const json j)
         : pos(j["pos"]), prevPos(j["pos"]) {}
+};
+
+// Visual-only shadow tuning. Scale is a multiplier of the automatically
+// calculated shadow width; offset is expressed in world pixels.
+struct CShadow
+{
+    float scale = 1.0f;
+    Vec2 offset = {0, 0};
+
+    CShadow() = default;
+    explicit CShadow(const json& j)
+        : scale(j.value("scale", 1.0f))
+        , offset(j.contains("offset") ? Vec2{j.at("offset")} : Vec2{0, 0})
+    {
+        if (scale < 0.0f) {
+            throw std::invalid_argument("CShadow scale cannot be negative");
+        }
+    }
 };
 
 struct CVelocity
@@ -321,6 +343,35 @@ struct CCollider
     {
         shapes.push_back(shape);
     }
+};
+
+enum class Faction { Demon, Enemy, Wizard, Dwarf, Elf, Knight, Neutral };
+
+inline Faction factionFromString(const std::string& factionName)
+{
+    if (factionName == "Demon") return Faction::Demon;
+    if (factionName == "Enemy") return Faction::Enemy;
+    if (factionName == "Wizard") return Faction::Wizard;
+    if (factionName == "Dwarf") return Faction::Dwarf;
+    if (factionName == "Elf") return Faction::Elf;
+    if (factionName == "Knight") return Faction::Knight;
+    if (factionName == "Neutral") return Faction::Neutral;
+    throw std::invalid_argument("Unknown faction: " + factionName);
+}
+
+struct CAllegiance {
+    Faction trueFaction = Faction::Demon;
+    Faction perceivedFaction = Faction::Demon;
+
+    CAllegiance() = default;
+    explicit CAllegiance(Faction faction)
+        : trueFaction(faction), perceivedFaction(faction) {}
+    CAllegiance(Faction actualFaction, Faction currentFaction)
+        : trueFaction(actualFaction), perceivedFaction(currentFaction) {}
+    explicit CAllegiance(const json& j)
+        : trueFaction(factionFromString(j.at("trueFaction").get<std::string>())),
+          perceivedFaction(factionFromString(
+              j.value("perceivedFaction", j.at("trueFaction").get<std::string>()))) {}
 };
 
 struct CWater {
@@ -476,10 +527,11 @@ struct CAudio
 struct CState
 {
     PlayerState state = PlayerState::STAND;
-    PlayerState preState = PlayerState::STAND; 
+    PlayerState preState = PlayerState::STAND;
+    PlayerState facing = PlayerState::RUN_DOWN;
     bool changeAnimate = true;
     CState() {}
-    CState(const PlayerState s) : state(s), preState(s) {}
+    CState(const PlayerState s) : state(s), preState(s), facing(s) {}
 }; 
 
 enum class ProjectilePhase {
@@ -508,6 +560,19 @@ struct CDamage
     CDamage(int dmg) : damage(dmg) {}
     CDamage(int dmg, std::unordered_set<std::string> dmgType) 
         : damage(dmg), damageType(dmgType) {}
+};
+
+// Editor-only metadata. Preview entities intentionally have no gameplay
+// components; this is the information persisted back into a world layout.
+struct CEditorPlacement
+{
+    std::string definition;
+    int x = 0;
+    int y = 0;
+
+    CEditorPlacement() = default;
+    CEditorPlacement(std::string placementDefinition, int gridX, int gridY)
+        : definition(std::move(placementDefinition)), x(gridX), y(gridY) {}
 };
 
 struct CAttackHitbox

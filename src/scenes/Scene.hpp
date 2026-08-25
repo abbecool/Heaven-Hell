@@ -9,7 +9,9 @@
 #include "core/InputCode.hpp"
 
 #include <cstddef>
+#include <array>
 #include <map>
+#include <vector>
 
 class Game;
 
@@ -26,6 +28,8 @@ class Scene
 {
     protected:
 
+    friend class LevelLoader;
+
     Game* m_game = nullptr;  
     ActionMap m_actionMap;
     bool m_pause = false;
@@ -39,15 +43,17 @@ class Scene
     MouseState m_mouseState;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
-    bool m_drawDrawGrid = true;
+    bool m_drawDrawGrid = false;
     Vec2 m_gridSize = {16, 16};    
     void bindEcsRemovalObserver();
     virtual void onEnd() = 0;
+    virtual void onTerrainChanged() {}
     Vec2 gridToMidPixel(Vec2 grid, EntityID);
     RenderView worldRenderView();
     void drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f, float whiteTint = 0.0f);
     void drawWorldSprite(const SpriteDefinition& sprite, const RectF& dst, float angle = 0.0f);
     void drawWorldSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
+    std::vector<EntityID> spawnDualTiles(Vec2 pos, std::array<int, 5> tileTextures);
     
     public:
     ECS m_ECS;
@@ -78,7 +84,9 @@ class Scene
     void drawSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
     void updateAnimations();
     void sRenderBasic();
+    void renderTextures();
     void renderColliderShapes();
+    void renderGrid();
 
     virtual void doAction(const Action& action);
     void registerAction(InputCode inputKey, const std::string& actionName);

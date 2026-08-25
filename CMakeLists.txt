@@ -23,6 +23,9 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*.cpp")
 add_executable(heavenhell ${SOURCES})
 
 target_include_directories(heavenhell PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_compile_definitions(heavenhell PRIVATE
+    HEAVENHELL_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+)
 
 set_source_files_properties(src/external/glad/src/glad.c PROPERTIES LANGUAGE CXX)
 add_library(glad STATIC
@@ -205,5 +208,55 @@ if (BUILD_TESTING)
         point_conversion
         rect_conversion
         camera_zoom_origin
+    )
+
+    add_executable(story_manager_tests
+        tests/story/test_story_manager.cpp
+        src/story/StoryManager.cpp
+    )
+    target_include_directories(story_manager_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/tests
+    )
+    target_compile_definitions(story_manager_tests PRIVATE
+        HEAVENHELL_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    )
+    add_named_tests(story_manager_tests story_manager
+        early_possession_is_credited_once
+        faction_branches_stay_exclusive
+        invalid_story_is_rejected
+    )
+
+    add_executable(world_layout_tests
+        tests/world/test_world_layout.cpp
+        src/world/WorldLayout.cpp
+    )
+    target_include_directories(world_layout_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/tests
+    )
+    target_compile_definitions(world_layout_tests PRIVATE
+        HEAVENHELL_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    )
+    add_named_tests(world_layout_tests world_layout
+        active_layout_persists
+        save_and_reload
+        invalid_placement_rejected
+        default_layout_migration
+    )
+
+    add_executable(entity_catalog_tests
+        tests/world/test_entity_catalog.cpp
+        src/world/EntityCatalog.cpp
+    )
+    target_include_directories(entity_catalog_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/tests
+    )
+    target_compile_definitions(entity_catalog_tests PRIVATE
+        HEAVENHELL_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    )
+    add_named_tests(entity_catalog_tests entity_catalog
+        placeable_definitions
     )
 endif()

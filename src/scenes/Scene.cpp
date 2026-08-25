@@ -1,7 +1,9 @@
 #include "scenes/Scene.hpp"
 #include "scenes/TextBoxHelpers.hpp"
+#include "physics/Level_Loader.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 Scene::Scene()
 {
@@ -104,6 +106,52 @@ void Scene::setAnimation(EntityID entity, const std::string& spriteName, bool re
         return;
     }
     m_ECS.addComponent<CAnimation>(entity, getSprite(spriteName), repeat);
+}
+
+std::vector<EntityID> Scene::spawnDualTiles(const Vec2 pos, std::array<int, 5> tileTextures)
+{
+    std::vector<EntityID> entityIDs;
+    for (int i = 0; i < static_cast<int>(tileTextures.size()); ++i) {
+        const TileType tileKey = static_cast<TileType>(i);
+        const int textureIndex = tileTextures[i];
+        if (textureIndex == 0) {
+            continue;
+        }
+
+        int layer = RenderLayer::TerrainTilesLow;
+        std::string tileName = "grass";
+        if (tileKey == TileType::WATER) {
+            tileName = "water";
+        }
+        else if (tileKey == TileType::DIRT) {
+            layer = RenderLayer::TerrainTilesHigh;
+            tileName = "dirt";
+        }
+        else if (tileKey == TileType::OBSTACLE) {
+            layer = RenderLayer::TerrainTilesHigh;
+            tileName = "mountain";
+        }
+
+        const EntityID entity = m_ECS.addEntity();
+        entityIDs.push_back(entity);
+        const std::string spriteName = tileName + "_dual_sheet";
+        CSprite& sprite = addSprite(entity, spriteName, layer);
+        const Vec2 tilePosition{
+            static_cast<float>(textureIndex % 4),
+            static_cast<float>(textureIndex / 4)
+        };
+        sprite.src = getSprite(spriteName).frameRect(
+            static_cast<int>(tilePosition.x),
+            static_cast<int>(tilePosition.y)
+        );
+        if (tileKey == TileType::WATER) {
+            CAnimation& animation = m_ECS.addComponent<CAnimation>(entity, getSprite(spriteName), true);
+            animation.currentCol = static_cast<int>(tilePosition.x);
+            animation.currentRow = static_cast<int>(tilePosition.y);
+        }
+        m_ECS.addComponent<CTransform>(entity, gridToMidPixel(pos, entity));
+    }
+    return entityIDs;
 }
 
 void Scene::drawSprite(const CSprite& sprite, const RectF& dst, float angle, float whiteTint)
@@ -214,10 +262,25 @@ void Scene::updateAnimations()
 
 void Scene::sRenderBasic() {
     m_game->render().setWorldView(worldRenderView());
-    if (!m_drawTextures){
-        return;
+
+    if (m_drawTextures)
+    {
+        renderTextures();
     }
 
+    if (m_drawCollision)
+    {
+        renderColliderShapes();
+    }
+
+    if (m_drawDrawGrid)
+    {
+        renderGrid();
+    }
+}
+
+void Scene::renderTextures()
+{
     auto& transformPool = m_ECS.getComponentPool<CTransform>();
     auto& spritePool = m_ECS.getComponentPool<CSprite>();
     const auto& layers = m_rendererManager.getLayers();
@@ -257,14 +320,10 @@ void Scene::sRenderBasic() {
             {255, 255, 255, 255}
         });
     }
-
-    if (m_drawCollision)
-    {
-        renderColliderShapes();
-    }
 }
 
-void Scene::renderColliderShapes() {
+void Scene::renderColliderShapes()
+{
     for (auto [e, collider, transform] : m_ECS.constView<CCollider, CTransform>())
     {
         for (const auto& shape : collider.shapes) {
@@ -276,6 +335,57 @@ void Scene::renderColliderShapes() {
                 shape.size.y
             };
             m_game->render().drawWorldRect(boxRect, shape.debugColor);
+        }
+    }
+}
+
+void Scene::renderGrid()
+{
+    if (m_gridSize.x <= 0.0f || m_gridSize.y <= 0.0f) {
+        return;
+    }
+
+    const RenderView view = worldRenderView();
+    if (view.scale <= 0.0f) {
+        return;
+    }
+
+    const Vec2 visibleWorldOrigin{
+        view.cameraX - view.originX / view.scale,
+        view.cameraY - view.originY / view.scale
+    };
+    const Vec2 visibleWorldSize{
+        static_cast<float>(m_game->getWidth()) / view.scale,
+        static_cast<float>(m_game->getHeight()) / view.scale
+    };
+    const int firstGridX = static_cast<int>(std::floor(visibleWorldOrigin.x / m_gridSize.x));
+    const int firstGridY = static_cast<int>(std::floor(visibleWorldOrigin.y / m_gridSize.y));
+    const int lastGridX = static_cast<int>(std::ceil((visibleWorldOrigin.x + visibleWorldSize.x) / m_gridSize.x)) - 1;
+    const int lastGridY = static_cast<int>(std::ceil((visibleWorldOrigin.y + visibleWorldSize.y) / m_gridSize.y)) - 1;
+
+    constexpr Color gridColor{0, 255, 0, 190};
+    constexpr Color coordinateColor{255, 255, 180, 255};
+    auto& renderer = m_game->render();
+    for (int gridY = firstGridY; gridY <= lastGridY; ++gridY) {
+        for (int gridX = firstGridX; gridX <= lastGridX; ++gridX) {
+            const RectF cellRect{
+                static_cast<float>(gridX) * m_gridSize.x,
+                static_cast<float>(gridY) * m_gridSize.y,
+                m_gridSize.x,
+                m_gridSize.y
+            };
+            renderer.drawWorldRect(cellRect, gridColor);
+            renderer.drawWorldText(WorldTextDrawCommand{
+                std::to_string(gridX) + "," + std::to_string(gridY),
+                "OCRAEXT",
+                RectF{
+                    cellRect.x + 1.0f,
+                    cellRect.y + 1.0f,
+                    std::max(1.0f, cellRect.w / 2.0f),
+                    std::max(1.0f, cellRect.h / 2.0f)
+                },
+                coordinateColor
+            });
         }
     }
 }

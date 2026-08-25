@@ -9,6 +9,9 @@
         "pos": "spawn_position"
       },
       "CName": "demon",
+      "CAllegiance": {
+        "trueFaction": "Demon"
+      },
       "CAnimation": {
         "animation": "demon-sheet",
         "layer": "CHARACTER_RENDER_LAYER"
