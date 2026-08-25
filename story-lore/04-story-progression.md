@@ -1,118 +1,78 @@
 # Story Progression
 
-## Opening Mood
+This progression follows the current combined canon. The player is Gudloth returned in a weakened form, but this is a late-story revelation rather than starting knowledge. The circumstances of his defeat, and the king's knowledge and role, remain mysteries rather than fixed answers.
 
-The player begins weak, slow, and with little health. The screen may be dark or blurry, as if the character has just awakened.
+## Prologue
 
-The opening image is the old battlefield where the great battle took place. The player can see dead bodies, armor, and weapons, but is too weak to use much of it.
+1. In Year 1720 After the Visit, a weak demon or spirit awakens on the ancient battlefield of the Six Day Battle, 817 years after it occurred. Peak nature/life force and strong dark ancient magic make this return possible.
+2. It drains life from a chicken to regain enough strength to continue.
+3. It gets past the knight guarding the battlefield exit. The knight sees an unknown dangerous creature, not a returned Gudloth or a prophesied enemy.
+4. It reaches the merchant road outside the battlefield.
+5. It encounters potential hosts from the four major factions: dwarf, elf, wizard, and knight.
+6. The player chooses the first major possession.
 
-The exact timing is undecided:
+The exact means of getting past the guard can remain a gameplay decision; it must not establish that the knight is the player's first lasting host.
 
-- The player may wake shortly after the battle.
-- The player may wake long after the battle, when the battlefield has become an ancient ruin.
+## One World, Four Perspectives
 
-## Opening Route Options
+The initial host changes the player's first perspective, not the overall campaign. Dwarves, knights, elves, and wizards all participate in one advancing world story. Their encounters create later opportunities to possess the other groups, and the player eventually experiences all four important arcs.
 
-The notes suggest two possible opening routes.
+Suggested intersections are:
 
-### Option 1: Dwarf Colony Start
+- Dwarves trade metal and weapons with knights and La Poise.
+- Knights and elves face each other over farms, forests, settlements, and territorial expansion.
+- Elves infiltrate wizard territory for rescue, theft, or access.
+- Dwarf exploration and tunnels bring them into contact with wizards and ancient sites.
 
-The path leads to the dwarf colony. The player manages to possess an old or sleeping dwarf and begins the game through that body.
+The order may vary by the player's first possession, but the routes should converge around shared conflicts, new abilities, and discoveries.
 
-Strengths:
+## Possession, Identity, and Growth
 
-- Clear first playable identity.
-- Natural tutorial space.
-- Connects to mining, weapons, and early progression.
+Possession is more than class selection. Every host is a person with social ties, obligations, enemies, and a life the demon does not fully understand. NPCs respond to the identity of the current body, which creates practical and moral consequences.
 
-### Option 2: Open World Possession Start
+Bodies can have individual limits while the demon retains some growth and a persistent inventory. Race-specific hosts provide narrative access and traversal abilities:
 
-The player leaves the mountain or battlefield and enters the center of the world. People react depending on whether they are armed:
+- **Dwarf**: mining, breaking obstacles, and underground routes.
+- **Knight**: heavy combat, defense, authority, and access to human spaces.
+- **Elf**: mobility, stealth, forest traversal, and hidden natural routes.
+- **Wizard**: magic, barriers, seals, and supernatural understanding.
 
-- Unarmed people may run.
-- Armed people may hunt the player.
+The exact cost, duration, and rules of switching belong in the possession design notes.
 
-The player chooses a first victim or host, possesses them, and begins quests in that host's home village.
+## Shared Faction Story
 
-Strengths:
+The player enters a modern world whose conflicts are not caused by the demon. La Poise needs land and food for its growing population; elves see their ancient forests and territory being destroyed. Dwarves are newcomers investigating what happened to the region's vanished dwarves. Wizards preserve dangerous fragments of the past.
 
-- Stronger possession fantasy.
-- More player choice.
-- Makes the player feel dangerous but vulnerable.
+Each arc should reveal both a present-day conflict and a different, imperfect account of the Forge Kingdom and the Six Day Battle. Contradictions between human records, dwarf discoveries, elf traditions, and wizard archives drive the historical mystery.
 
-## Tutorial Flow
+Early and middle-game evidence should establish that Gudloth has returned and must be defeated. The Old City and its king remain distant mysteries: people know a king inhabits the old Forge remnant, but do not know its true history or Gudloth's role in it. The player can plausibly believe they are a savior, hero, king, or another wronged being. The late reveal overturns this framing: the player is Gudloth, while the king is the rightful descendant of the Forge crown and Gudloth's legitimate opponent.
 
-After the player takes over a body, someone from that host's race speaks to them and asks them to return to the race's home village.
+## Long-Term Direction
 
-The tutorial teaches:
+```text
+Awaken on battlefield
+        ↓
+Drain life and escape
+        ↓
+First possession
+        ↓
+Enter one faction perspective
+        ↓
+Possess other factions and unlock abilities
+        ↓
+Navigate intersecting modern conflicts
+        ↓
+Discover contradictory ancient evidence
+        ↓
+Find evidence that Gudloth has returned and must be defeated
+        ↓
+Investigate the mysterious king of the Old City
+        ↓
+Gain access to the Old City
+        ↓
+Learn the player is Gudloth and the king is the rightful Forge heir
+        ↓
+Confront the king and discover the truth
+```
 
-- Basic movement and survival.
-- Weapon use.
-- Fighting simple enemies.
-- The host race's special abilities.
-- The idea that the player is living through someone else's identity.
-
-When the player reaches the village, they temporarily live the life of the person they possessed before beginning their own goals.
-
-## Possession and Growth
-
-The player remains weak at first. As they level up, they can possess or switch into other individuals.
-
-Rules from the notes:
-
-- Each individual has their own max level.
-- Switching within the same race lets the player keep leveling beyond one body's limit.
-- Switching to another race unlocks new abilities.
-- Some race abilities may be required for story progression.
-- Switching always costs experience or another resource, so it should not be done carelessly.
-
-## Unlocking New Races
-
-Race unlocks happen through faction meetings and story events.
-
-Suggested encounters:
-
-- **Dwarves and knights** meet when dwarves sell metals and weapons in the city.
-- **Knights and elves or archers** meet when they fight over land south of the city.
-- **Elves or archers and wizards** meet when elves sneak into a wizard base to rescue an elf or steal something.
-- **Wizards and dwarves** meet when dwarves tunnel through the mountain and emerge near a wizard camp.
-
-At these meetings, the player can unlock a new race or class, unless that race has already been unlocked through another route.
-
-## Main Objective
-
-The newer notes suggest the main objective is to kill the rightful king in the old city to the northeast. The wizards protect this old city.
-
-This should be treated as the current priority version.
-
-Possible structure:
-
-- The player starts weak and hidden.
-- The player uses possession to gain a first host body.
-- The player unlocks races through faction conflicts.
-- The player gains the abilities needed to reach the old city.
-- The player eventually confronts the rightful king.
-
-## First-Version Objective Inspiration
-
-The older long lore gives a different main objective: kill Gudloth.
-
-Gudloth lives in La Poise, and the player cannot simply walk in at the start. The player must gain power through sidequests and exploration before attempting to reach him.
-
-Possible routes into or toward La Poise:
-
-- Get a boat and cross the water.
-- Cross the Poise Templar bridge, which is guarded by extremely strong NPCs.
-- Travel through the Enchanted Lands, the Old Woods, and the Elf Swamp.
-
-This structure is still useful even if Gudloth is no longer the main villain. The current old city can use the same idea: the final destination is unreachable until the player has the right power, route, body, or faction access.
-
-## Possible Connection Between Versions
-
-The first-version Gudloth material can still connect to the current rightful king idea:
-
-- The rightful king could be inspired by Gudloth.
-- Gudloth could be an ancient founder of the king's line.
-- Gudloth could become a myth rather than an active character.
-- La Poise could inspire the old city without keeping the exact name.
-- The player could inherit the revenge mood without keeping the Forge Kingdom plot literally.
+The player may ultimately need to kill the king, but that is not yet established. The story should first determine what the king knows, why the player seeks the Old City, and how both connect to Gudloth and the battle.

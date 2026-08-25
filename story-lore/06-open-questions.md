@@ -1,59 +1,57 @@
 # Open Questions
 
-## Main Canon
+These questions are intentionally unresolved by the current canon. They should not be answered incidentally in other lore files.
 
-- Is the player a demon, a spirit, or something else?
-- Is the "last enemy" the same being as the player?
-- How much of the older Forge Kingdom / Gudloth / La Poise lore should become canon, and how much should remain only inspiration?
-- Should Gudloth inspire the rightful king, remain as an ancient historical figure, or be removed from the active plot?
-- Is La Poise useful as a name for the current city, the old northeast city, or neither?
-
-## Timeline
+## Central Mystery
 
 - What exactly was The Visit?
-- Did the player wake shortly after the Six Day Battle, or centuries later?
-- Is the Six Day Battle still canon, or only the vibe behind the opening battlefield?
-- If the Forge Kingdom remains, is it still active behind the barrier, or only remembered through ruins and remnants?
+- Why did Gudloth fight the Forge Kingdom?
+- What happened to Gudloth during the Six Day Battle, and what form did his defeat, imprisonment, or sealing take before his return?
+- How much history was deliberately hidden, and how much faded through ordinary loss and retelling?
+
+## The Old City and King
+
+- What does its current king know about the ancient events?
+- Why do wizards protect, oppose, or otherwise interact with the city and king?
+- Why does the player need or want to reach the king?
+- Does the eventual confrontation require the king's death, a revelation, a ritual, or another outcome?
+
+## Timeline and Historical Detail
+
+- How many centuries passed between the Six Day Battle and the modern story?
+- What happened in the earliest years after the battle?
+- Which elf traditions are reliable, distorted, or politically shaped?
+- What fragments do wizard archives preserve, and why are they restricted?
+- Does the Forge Barrier still exist, or is it only a legend built from the kingdom's disappearance?
 
 ## Map and Locations
 
-- What is the real name of Mountain X?
-- What is the unnamed dwarf legend: a dragon egg, a relic, or something else?
-- What exactly is the Kirabata: river, border, pass, wall, or region?
-- Is Poise Templar a bridge, fortress, district, or order of guards?
-- What is the relationship between the Old Woods and the Enchanted Lands?
+- What are the final name and location of the dwarf mountain settlement?
+- What is the dwarves' local legend: dragon egg, relic, lost mine, or something else?
+- What exactly are Kirabata, Poise Templar, Fort Delta, and Fort Dom, if they are retained?
+- Is the Cursed Sea the route used by the new dwarves?
+- How do the Old Woods, Enchanted Lands, Rock Plains, and Rocky Cliffs fit on the final map?
+- What is the Old City's political and economic relationship to La Poise?
 
-## Factions
+## Faction Detail
 
-- Are the elves and the forest archers the same people?
-- If they are the same, should they be called elves, archers, swamp elves, forest archers, or something unique?
-- Are the eastern wizards loyal to the rightful king, independent, or secretly opposed to him?
-- If Gudloth is reused, is he connected to the eastern wizards?
-- Are ordinary magicians a race, profession, or class available across multiple races?
-- How sympathetic should the current city be?
-- If La Poise is reused, does it replace the current city, inspire it, or stay separate?
-- How brutal should the archer/elf faction feel in tone?
+- What is the elves' preferred name and social structure?
+- How far will La Poise go to solve food and resource pressure, and how far will the elves go to stop it?
+- Are wizards a people, a profession, or both? Which groups know the most about Gudloth?
+- Are orcs, dragon riders, or other groups part of the main game, optional content, or only future possibilities?
 
-## Gameplay
+## Gameplay and Possession
 
-- What resource should body or class switching cost: experience, souls, altar charges, rare items, or something else?
-- Can the player possess unwilling targets at any time, or only through specific story conditions?
-- Does each individual body have a permanent max level?
-- Can the player return to previous bodies?
-- Are altars common checkpoints or rare sacred places?
+- Is drain separate from possession, or one ability with different outcomes?
+- What limits which targets can be drained or possessed?
+- Does each body have a permanent level limit, and can the player return to former hosts?
+- What resource, cooldown, or danger governs switching bodies?
+- How do hosts' relationships, memories, possessions, and faction detection create consequences?
+- Are altars common checkpoints, rare sacred places, or something else?
 
 ## Story Structure
 
-- Should the game force one starting route, or let the player choose between the dwarf colony and open-world possession openings?
-- Should race unlocks be linear or possible in several orders?
-- Does the player become more monstrous as they grow stronger, or more human through living other lives?
-- Is the player's mission against the rightful king meant to feel justified, tragic, or morally corrupt?
-- If the Gudloth revenge story is reused, how much should it shape the player's motivation?
-
-## Possible Additions
-
-- Dragon riders.
-- Orcs.
-- A deeper definition of The Visit.
-- A hidden truth about the Ancient Mother of the Enchanted Lands.
-- A late-game return to the Forge Barrier.
+- Which faction perspective is most useful for the first playable build, while keeping all four initial choices valid in the intended story?
+- In which order can later faction arcs be unlocked, and where must they converge?
+- What knowledge and abilities are necessary to enter the Old City?
+- How does the player change morally through living stolen lives?

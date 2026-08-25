@@ -2,173 +2,66 @@
 
 ## Player Entity
 
-The player is described in two related ways:
+The player is a weak demon or spirit-like entity that awakens in Year 1720 After the Visit, 817 years after the Six Day Battle. It survives and grows by draining life and possessing living bodies.
 
-- A demon or last enemy being hunted by wizards.
-- A weak spirit or entity that can take over other bodies.
-- In the older lore only, the spirit of the Dark Overlord of the Forge.
+The player is Gudloth, returned in a weak demon or spirit-like form. This fact is hidden from the player and the modern world at the start; the demon can appear to be a lost savior, hero, king, or another wronged being. In Year 1720, the peak nature/life force combines with already-strong dark ancient magic to bring him back to life. The state he was left in after the battle and his eventual need to reach the Old City and king remain mysteries. Most modern people do not know he has awakened or consider the creature a returning ancient power.
 
-Current working version: the player is a weakened demon or spirit. They begin nearly powerless and must possess or switch into living bodies to survive and grow.
+Every possessed body belongs to a real person. Their family, friends, rivals, debts, rank, and duties shape how others treat the player while it uses that identity.
 
-Motivation:
+## Gudloth and His Followers
 
-- Reach and kill the rightful king in the old northeast city.
-- Survival in a world that would destroy them if discovered.
-- Gradual growth through stolen bodies and unlocked race abilities.
-- Possible revenge or lost-kingdom motivation, if the older lore is reused.
+Gudloth was a powerful wizard from the Enchanted Lands who rejected its traditions and developed demigod-like power in the Old Woods. He gathered followers, with the strongest becoming apprentices, before fighting the Forge Kingdom.
 
-## First-Version Inspiration: Gudloth
+He disappeared in the Six Day Battle and later returned as the player. His motives and the form of his defeat or sealing are unknown. His return occurs when peak nature/life force combines with strong dark ancient magic in Year 1720. Ancient apprentices and their surviving traces can inform ruins, records, relics, or boss design, but an active modern order serving Gudloth is not established.
 
-Gudloth is the central antagonist in the older first-version lore, not necessarily the current story's main villain.
+## The Forge Kingdom
 
-Identity:
+The Forge Kingdom was the ancient regional civilization destroyed in the Six Day Battle. As the region's largest city and economic center, it supported smaller settlements through trade, industry, and protection. Its population and armies included humans, dwarves, elves, and mages; its multicultural cooperation produced prosperity across the region.
 
-- Rogue wizard from the Enchanted Lands.
-- Son of the ancient mother of the Enchanted Lands.
-- Demigod after decades of meditation and magical practice in the Old Woods.
-- Founder of La Poise.
+Elves maintained forest settlements while relying on the kingdom's economy and urban elf population. Dwarves served as soldiers, blacksmiths, and craftsmen, while mountain communities mined ore for Forge weapons and industry. Wizards were fewer in number and commonly served as scholars, scientists, librarians, and researchers of nature and poorly understood ancient magic.
 
-Possible reuse:
+The kingdom's northern city was abandoned after the battle. Long afterward, later generations reinhabited its remains and called it the Old City. Its population and current king belong to that later city, not to a continuous surviving Forge government.
 
-- Inspiration for the rightful king.
-- Ancient historical figure behind the old city.
-- Name for a demigod, wizard-king, or mythic founder.
-- Source of powerful apprentices or magical mini-bosses.
+Its ruins, battlefield remains, old mines, graves, weapons, and inscriptions are valuable evidence of a past that each modern faction remembers differently.
 
-## First-Version Inspiration: Gudloth's Apprentices
+## La Poise and the Knights
 
-These are not ordinary magicians. They are elite followers empowered by Gudloth or trained under him.
+La Poise is the modern human city that developed around the Lace River after the Forge Kingdom's collapse. It did not belong to Gudloth and is not a continuation of his empire.
 
-Gameplay role:
+The knights protect the city, its roads, farmers, settlements, and expansion. Growth has increased the city's need for food, farmland, resources, and territory, bringing it into conflict with the elves. The knights are not demon servants or a simple evil faction; they defend people facing real scarcity.
 
-- Mini-bosses.
-- Gatekeepers for major areas.
-- Visible reminders of Gudloth's conquest.
+A knight guarding the starting battlefield does not recognize the demon or know ancient secrets. A knight host provides heavy combat, defense, authority, and access to human-controlled spaces.
 
-## First-Version Inspiration: The Forge Kingdom
+## The Old City and Its King
 
-The Forge Kingdom comes from the older lore. It was a former superpower that used elves, dwarves, and mages in its armies, suggesting it ruled over or united several peoples.
+The Old City is the northern, reinhabited remnant of the Forge Kingdom. Living among its ruins may give its inhabitants access to ancient structures, records, and artifacts unavailable elsewhere. Its current king is the legitimate descendant of the last Forge king and rules the later city that grew there.
 
-Current state:
+To most people, the king is simply a distant and mysterious ruler. They know the Old City exists in Forge ruins but do not know the true history of Gudloth or the Six Day Battle. He is a figure to investigate, not an openly evil enemy; what he knows about Gudloth, the battle, and the old kingdom remains open.
 
-- Defeated.
-- Hidden behind a barrier.
-- Associated with the player's past.
-- Still contains dark remnants seeking revenge.
+## Elves
 
-Tone:
+Elves survived the fall of the Forge Kingdom and preserved cultural and oral memories of the ancient world, though centuries of retelling may have distorted them. Before the battle, they maintained forest settlements but also relied on the Forge Kingdom's economy and on elves living in its city. In the modern era, they oppose La Poise's expansion into forests and territory they consider theirs.
 
-- Ancient, industrial, militarized, wounded.
-- Powerful but broken.
+They are nature-connected archers and can be nomadic, stealthy, and frighteningly brutal in their defense of the land. Their conflict with humans is morally ambiguous: the city needs land to feed its population, while the elves see forests and communities being destroyed.
 
-## First-Version Inspiration: La Poise
-
-La Poise is the new rising power created by Gudloth after the Forge Kingdom fell in the older lore. In the current direction, it can inspire the city or the old northeast city, but the newer notes take priority.
-
-Traits:
-
-- Expanding fast.
-- Politically dominant.
-- Protected by strong soldiers and outposts.
-- Hostile toward elves or forest archers on its frontier.
-- Does not appear to welcome elves inside the city.
-
-Potential gameplay role:
-
-- Late-game destination.
-- Main enemy capital.
-- Source of high-level guards and blocked routes.
-
-## Archers / Elves
-
-The newer notes emphasize archers who live as nomads in the forest or jungle and are deeply connected to nature. They hate the city because its expansion destroys the forest for farms and colonies.
-
-Current traits:
-
-- Nomadic.
-- Brutal toward enemies.
-- Protective of nature.
-- Opposed to the city and its knights.
-- Use dead enemies as fertilizer when replanting destroyed forest.
-
-The older lore describes elves in a similar archer role, but with different details:
-
-Elves from the longer lore draft:
-
-- Small, about 0.7 meters tall.
-- Not highly intelligent, but not mindless.
-- Skilled archers.
-- Live in huts on solid ground within the Elf Swamp.
-- Raid villages and steal crops.
-- Formerly common in the Forge Kingdom's army.
-- Mostly retreated after the Forge Kingdom's defeat.
-
-Combined option: a nature-bound archer people forced into conflict with the expanding city. Their brutality can be framed as vengeance, ritual, ecological extremism, or desperate survival.
+An elf host grants mobility, stealth, forest traversal, and access to hidden natural routes. The exact elven name, society, and regional habitat remain open.
 
 ## Dwarves
 
-The dwarves are newly arrived in the region from the west. They travel by water and settle into a mountain colony.
+The dwarves in the ancient Forge Kingdom were wiped out in the Six Day Battle. The modern dwarf settlement is a recent expedition from another dwarven civilization, probably arriving from the west by sea and settling near the mountains.
 
-Traits:
+Because no dwarves had been seen locally for centuries, their return shocks a population that often believed dwarves were extinct or fictional. The newcomers mine, trade, and explore while gradually discovering evidence of the dwarves who once lived here: city forges, military service, and mountain mines that supplied the Forge Kingdom with ore. Their language and culture may be different enough that old inscriptions are recognizable but difficult to read.
 
-- Miners and metalworkers.
-- Weapon sellers and traders.
-- Use hammers as signature weapons in one note.
-- Search for valuable metals and possibly a dragon egg legend.
-- Can meet knights when selling metals and weapons in the city.
+A dwarf host provides mining, obstacle breaking, underground access, metalwork, and durability.
 
-Potential opening role:
+## Wizards
 
-- The player may possess an old or sleeping dwarf near the start.
-- The dwarf colony can be a first safe hub and tutorial space.
+Wizards preserve the strongest surviving written records of the ancient world. Their predecessors lived in the Forge Kingdom in smaller numbers as scholars, scientists, librarians, and students of nature and mysterious ancient magic. Gudloth studied and eventually mastered this poorly understood magic. After the kingdom's decay, wizards retreated toward their own regions and continued the research. Some groups may know Gudloth was real and that the Six Day Battle concealed something important, though even they need not know the full truth.
 
-## Wizards / Magicians
+They can be mysterious keepers of archives, magic, seals, and supernatural routes. Their exact relationship to the Old City and king remains unresolved; they must not be presented as confirmed royal loyalists or as a unified enemy of the player.
 
-The newer notes describe wizards who live in the east, are mysterious, and may be trying to kill the last enemy or demon the player controls. They also protect the old city and the rightful king.
+A wizard host grants magical knowledge, barrier and seal access, and a perspective on the supernatural mystery.
 
-The older lore adds two useful categories:
+## Possible Future Groups
 
-- Ordinary magicians, who can be normal NPCs.
-- Gudloth's apprentices, who are stronger and more dangerous.
-
-Potential role:
-
-- Magical faction in the east.
-- Enemy of the demon/player.
-- Guardians of forbidden routes.
-- Unlockable race or class through story encounters.
-
-## Orcs
-
-The Orcs live in the northern parts of the map. In the caves (or swamps) between the mountain and the old city. They are nasty creatures that take inspiration from LoR orcs and gollum. They are related to the race of the wizards but where cut of long ago and have been forced into the dark caves after the large conflict. They are fast and use mainly close combat melee weapons but still remember some ancient magic from the wizards, but it is corrupted dirty magic that also corrupts themselfs.
-
-Motivation:
-
-- They hate and hold recentment towards the wizards for abandoning them long ago. Although they almost dont remeber the reason anymore. 
-- They sometimes travel out of the caves to hunt travelers on the pathways outside of the cities.
-- They are fundementally magical creatures like the wizards but have limited intelegence from years living in caves with no outside contact. They have forgotten who they are and are condumed by rage.
-
-## Knights
-
-Knights protect the city. They are at war with the archers over resources and fertile land.
-
-Motivation:
-
-- The city is suffering from population growth and hunger.
-- More farmland is needed to stop starvation.
-- Forest clearing creates conflict with nature-bound archers.
-
-Potential role:
-
-- First city-aligned playable race or class.
-- Heavy armor and melee weapons.
-- Moral contrast: they defend civilians, but also expand into others' land.
-
-## Additional Possible Races
-
-The notes mention possible additional races:
-
-- Dragon riders.
-- Orcs.
-
-These are not developed yet, but they could become optional late-game unlocks, enemy factions, or expansion ideas.
+**Orcs**, **dragon riders**, and other groups are not part of the established four-faction structure. The existing idea of cave-dwelling, magic-corrupted orcs estranged from wizards can remain a future option, but their origin, location, and role need separate canon decisions before they are treated as current world facts.

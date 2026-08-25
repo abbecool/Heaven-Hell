@@ -1,90 +1,68 @@
 # Gameplay Lore Hooks
 
-## Altars
+## Possession Is the Story Mechanic
 
-One note proposes altars where the player can:
+The player is a weak demon or spirit that cannot progress like an ordinary person. It drains life and possesses bodies to gain survival, identity, faction access, and race-specific abilities.
 
-- Heal.
-- Save.
-- Switch between classes.
+Possession must retain its narrative weight: every host is an actual person with relationships, status, responsibilities, and enemies. NPCs react to the current body's identity, while the demon may know little about the life it is impersonating. This makes each possession both a power gain and a potential moral or practical complication.
 
-Lore possibilities:
-
-- Altars are spiritual anchors that let the player stabilize stolen bodies.
-- Altars are forbidden shrines connected to the demon or player spirit.
-- Altars are remnants of the first-version Forge Kingdom, if that older mythology is reused.
-- Different factions may interpret them differently.
+The canonical opening demonstrates both sides of the mechanic: the player drains a chicken to recover strength, then reaches the merchant road to choose its first major host from a dwarf, elf, wizard, or knight. The guard encounter before that choice should not establish a permanent knight host.
 
 ## Possession as Progression
 
-The core mechanic can be explained through the player's nature as a weakened spirit. The player cannot grow like a normal person, so they grow by taking bodies, identities, and abilities.
+Useful design rules:
 
-Useful rules:
+- A body can have an individual maximum level or capability limit.
+- The demon can retain some progress and a persistent inventory between hosts.
+- The current host provides race-specific abilities and social access.
+- Switching can cost experience, souls, altar charges, rare items, or another limited resource.
+- Strong hosts can require weakening, quests, rituals, or faction access.
+- Possession detection, memory leakage, and host relationships can create consequences without making the mechanic unusable.
 
-- A body has a max level.
-- The spirit carries some progress between bodies.
-- Race-specific abilities come from the host body.
-- Switching bodies costs experience or a special resource.
-- Powerful bodies may require quests, rituals, weakening the target, or faction access.
+The exact distinction between drain and possession belongs in the dedicated possession notes.
 
-## Classes and Race Abilities
+## Race and Faction Abilities
 
-Possible race or class roles from the notes:
+The four major possession paths should work as narrative and traversal keys:
 
-- **Dwarf**: hammer, mining, metalwork, durability, mountain access.
-- **Knight**: armor, melee combat, city access, formal military status.
-- **Elf or archer**: ranged attacks, forest or swamp movement, nature knowledge, stealth.
-- **Wizard or magician**: magic, eastern route access, ritual knowledge.
-- **Forge remnant**: dark powers, barrier lore, and revenge-driven abilities, if the older mythology is reused.
+- **Dwarf**: mining, breaking obstacles, metalwork, ancient underground routes, and dwarven ruins.
+- **Knight**: heavy combat, defense, authority, and entry to human-controlled areas.
+- **Elf**: mobility, stealth, forest traversal, and hidden natural routes.
+- **Wizard**: magic, magical barriers, ancient seals, and supernatural understanding.
 
-Some abilities should become traversal keys. For example:
+Progression should eventually require the player to combine these perspectives and abilities rather than solve the entire game through one faction alone.
 
-- Dwarf tunneling or mining opens mountain routes.
-- Archer or elf movement helps cross swamp or forest terrain.
-- Wizard magic opens sealed or enchanted paths.
-- Knight status grants entry to guarded city spaces.
+## Altars
 
-## Sidequests
+Altars are a working mechanic, not yet established history. They can serve as places to heal, save, stabilize a stolen body, or switch hosts.
 
-Sidequests exist for both progression and worldbuilding.
+Possible lore roles:
 
-They can:
+- Spiritual anchors that make possession safer.
+- Forbidden shrines whose purpose factions interpret differently.
+- Ancient remnants connected to the Forge Kingdom, the battle, or later magic.
 
-- Build enough strength to challenge guarded routes.
-- Introduce local conflicts.
-- Let the player understand the life of a possessed host.
-- Unlock races or classes.
-- Reveal the current history of the battlefield, the old city, the rightful king, and any selected first-version mythology.
+Their frequency, ownership, and true origin remain open. They should feel useful but slightly unsettling rather than like neutral menu stations.
 
-## Mini-Bosses
+## Sidequests and Environmental Storytelling
 
-The older lore's idea of Gudloth's apprentices is useful mini-boss inspiration. In the current version, these could become elite wizards, royal guardians, cursed champions, or servants of the rightful king.
+Sidequests should build strength while revealing the life of the current host and the existing problems of its faction. They can unlock a new race, enable movement through a contested area, or expose an imperfect piece of history.
 
-Possible uses:
+The battlefield should tell its story without a complete explanation: mixed-race weapons and remains point to the old Forge Kingdom, while ruins, graves, old mines, and inscriptions let later factions discover conflicting evidence of the Six Day Battle.
 
-- Guard late-game routes.
-- Lead royal, wizard, or city military expeditions.
-- Hunt the player when the player becomes too visible.
-- Protect relics tied to the king, the old city, or the first-version mythic history.
+## Encounters and Guardians
 
-## Environmental Storytelling
+Gudloth's historical apprentices are useful inspiration for dangerous ancient traces, named enemies, relic guardians, or mini-bosses. A continuing modern cult or army loyal to Gudloth is not established.
 
-The battlefield can teach the player the world without exposition.
-
-Examples:
-
-- Weapons the player is too weak to lift.
-- Corpses from different races, showing that several factions were drawn into the same disaster.
-- Old armor, broken banners, or abandoned weapons pointing toward a larger lost history.
-- Signs of a battle so devastating that later powers built their world on top of it.
+Modern high-level enemies can be knight officers, elf defenders, dwarf expedition rivals, wizard wardens, or Old City guardians. Their loyalties and connections to the king must follow later story decisions rather than be assumed now.
 
 ## Resource Pressure
 
-The war between knights and archers gives the world practical stakes:
+The La Poise–elf conflict gives the world practical stakes:
 
-- The city needs fertile land because population growth has caused hunger.
-- The archers or elves need the forest to survive.
-- City expansion creates farms and colonies.
-- Forest destruction fuels raids, ambushes, and revenge.
+- La Poise needs fertile land because population growth has created food and resource pressure.
+- The elves need forests and territory to survive and preserve their way of life.
+- Expansion creates farms, roads, and settlements while destroying or claiming land the elves value.
+- Raids, patrols, ambushes, and restoration efforts can emerge from both sides.
 
-This makes the conflict morally messy instead of simple good versus evil.
+The player sees this conflict from multiple hosts, so gameplay should avoid framing either faction as the default villain.

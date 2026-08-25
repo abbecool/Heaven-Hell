@@ -1,87 +1,41 @@
 # Geography
 
-## Current World Shape
+This is a working map reference. The locations below distinguish established story anchors from names and details that still need map design.
 
-The newer notes suggest a world arranged around a city, a western dwarf colony, eastern wizards, a forest or jungle archer territory, and an old city in the northeast.
+## Established Locations
 
-Current anchors:
+### Ancient Battlefield / Rock Plains
 
-- **Old battlefield**: likely opening location or early landmark.
-- **Dwarf colony**: a new settlement in the side of an unnamed mountain, founded by dwarves who arrived from the west by water.
-- **The city**: protected by knights and strained by population growth and hunger.
-- **Forest or jungle territory**: home of archers or elves who hate the city's expansion.
-- **Eastern wizard lands**: mysterious region where wizards live.
-- **Old city in the northeast**: home of the rightful king, who may be the main target.
+The game opens on the ancient battlefield of the Six Day Battle, on or near the rock plains. It is a ruin from the destroyed Forge Kingdom: a place of old armor, weapons, graves, and conflicting historical traces. A knight guards its exit in the prologue, without knowing what the awakened demon is.
 
-The older long lore adds optional geography for atmosphere and naming:
+### La Poise and the Lace River
 
-- **Cursed Sea**: a body of water that marks part of the old Forge Kingdom's former reach.
-- **Lace River**: a major river connected to La Poise and its delta.
-- **Rocky Cliffs**: a mountain or cliff region tied to dwarves, mines, and the Forge Kingdom's retreat.
-- **Rock Plains**: the site of the Six Day Battle.
-- **Old Woods**: an ancient forest containing treasures, creatures, and the place where Gudloth became a demigod.
-- **Enchanted Lands**: the homeland of magicians and Gudloth's origin.
-- **Elf Swamp**: the elven homeland after the Forge Kingdom's collapse in the first version.
-- **Kirabata**: an eastern border or boundary near La Poise and the elf frontier.
+La Poise is the modern human city that grew from post-Forge settlements around the Lace River and fertile surroundings. It is not Gudloth's foundation, nor is it automatically the Old City. Its need for farmland, resources, roads, and defended settlements drives expansion into nearby elf-held forest and territory.
 
-## First-Version Inspiration: La Poise Territory
+The exact city plan, outposts, and borders remain open. **Fort Delta**, **Fort Dom**, **Poise Templar**, and **Kirabata** are useful inherited names, but their precise locations and functions are not yet established.
 
-La Poise belongs to the older first-version lore. It can still inspire the current city or old city, but should not automatically replace them.
+### Forest and Elf Territory
 
-In that older version, La Poise is enclosed by the Lace River to the west, south, and north, and by the Kirabata to the east. It has a small, unclear land border with the elves.
+The elves occupy forests and other territory threatened by La Poise's expansion. The exact mix of forest, jungle, wetland, and the older working name **Elf Swamp** is undecided. The important geographic fact is that this frontier is where human need for farms collides with elven stewardship and survival.
 
-This unclear border is dangerous. La Poise has begun building a wall there to keep elf raiders out.
+### Dwarf Settlement and Mountains
 
-Important La Poise locations:
+Recent dwarven arrivals from the west have founded a settlement near the mountains, likely after travelling by sea. Before the Six Day Battle, local dwarves also worked mountain mines that supplied Forge Kingdom weapons, tools, and other industry with ore. The mountains therefore contain valuable metals and possible ancient dwarf sites. The settlement's exact mountain, its green hillside homes, and any dragon-egg or relic legend are working details rather than fixed canon.
 
-- **La Poise**: Gudloth's city and the main final target location in one version of the story.
-- **Fort Delta**: a La Poise outpost.
-- **Fort Dom**: a La Poise outpost.
-- **Poise Templar**: a heavily guarded bridge or crossing into La Poise.
+### Wizard Lands and the Old City
 
-## First-Version Inspiration: The Forge Barrier
+Wizards preserve rare written history and may have bases, archives, seals, or protected routes in the eastern region. Their predecessors were a smaller scholarly community in the Forge Kingdom before retreating toward wizard regions after its decay, and they still study its poorly understood ancient magic. In the north, the Old City occupies the reinhabited remains of the Forge Kingdom. It may hold otherwise lost knowledge and is a long-term destination. Its relationship to the wizards and La Poise, and the authority and knowledge of its king, remain unresolved.
 
-In the first-version lore, after the Six Day Battle, the Forge Kingdom's survivors retreated beyond the rocky cliffs and built a huge wall or magical barrier. It is believed to be impenetrable.
+## Ancient and Working Place Names
 
-The battlefield outside it is an important opening image:
+- **Cursed Sea**: a possible name for water along the old Forge Kingdom's former reach and a natural route for the new dwarven arrival.
+- **Old Woods**: the forest where Gudloth developed his powers in the inherited account.
+- **Enchanted Lands**: Gudloth's homeland and a likely historical source of scattered mages.
+- **Rocky Cliffs**: a possible mountain or cliff region associated with mines and old Forge ruins.
+- **Forge Barrier**: an inherited legend of a great wall or barrier after the battle. Its survival, location, and nature are unconfirmed.
 
-- Old corpses.
-- Abandoned armor and weapons.
-- The player too weak to use what lies around them.
-- The Forge gate looking out over the place where the kingdom fell.
+These names should be used only where the map and later lore support them. They are atmosphere and potential discoveries, not proof of a surviving Forge Kingdom.
 
-## Elf Swamp and Forest Frontier
+## Routes and Story Connections
 
-The newer notes focus on archers or elves who live as nomads in the forest or jungle. They are close to nature and hate the city because it destroys the forest for farms and colonies.
-
-The older lore describes an Elf Swamp as the home of small elf creatures, roughly 0.7 meters tall. They live in huts built on rare solid ground, are skilled archers, and often raid villages for crops. This may inspire the current archer faction, but it is not higher priority than the newer forest/jungle version.
-
-Their frontier conflict with the city is one of the main regional wars. La Poise can inspire that city if the older name or political shape is reused.
-
-## Dwarf Colony
-
-The dwarves have recently arrived from the west by water and founded a new colony in the side of an unnamed mountain. Their homes are described as small green houses, with a cozy village feeling.
-
-The dwarves mine valuable metals in the mountains above their homes. They may also be searching for a legend tied to an unnamed object, possibly a dragon egg.
-
-Working placeholder:
-
-- Mountain X.
-- Legend of X or a dragon egg.
-
-## Eastern Wizard Lands
-
-The wizards live in the east and are mysterious. In one version, they are trying to kill the last enemy, possibly the demon or spirit the player controls. In another version, they protect the old city and its rightful king.
-
-The eastern region can contain:
-
-- Wizard bases.
-- Hidden camps.
-- Magical defenses.
-- A route that intersects with dwarf tunnels through the mountain.
-
-## Old City in the Northeast
-
-The newer notes place an old city in the northeast, ruled by the rightful king. The game's goal appears to be killing this king, and the wizards protect him.
-
-This is currently more important than La Poise or Gudloth. The older names can still inspire this location if desired. See [Open Questions](06-open-questions.md).
+The merchant road outside the battlefield brings the player into contact with a dwarf, elf, wizard, and knight. Later routes should let the factions intersect through dwarf trade with La Poise, the human–elf territorial conflict, elf infiltration of wizard spaces, and dwarf exploration toward wizard territory. Faction abilities can then open mountain, forest, city, and magically sealed paths.

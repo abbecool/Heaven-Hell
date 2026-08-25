@@ -1,85 +1,67 @@
-# World History and First-Version Inspiration
+# World History
 
-The current story direction comes from the newer PDFs. This file also preserves material from the older long lore PDF, but that older material should be treated as inspiration unless it is intentionally brought back into the current canon.
+This file expands the established history in [Revised World History and Story Structure](Revised%20World%20History%20and%20Story%20Structure.md). Details identified as mysteries or working names remain deliberately open.
 
-## Current Historical Shape
+## Historical Timeline
 
-The newer notes establish a world already shaped by conflict:
+### Year 0 — The Visit
 
-- The player begins near an old battlefield where a great battle happened.
-- The player is weak, slow, and possibly newly awakened.
-- Dwarves have recently arrived from the west and founded a mountain colony.
-- Knights protect a city that is struggling with population growth and hunger.
-- Archers or elves fight the city over fertile land and forest destruction.
-- Wizards live in the east and may protect an old city in the northeast.
-- The main target in the newer notes appears to be the rightful king of that old city.
+The calendar begins with an ancient event called **The Visit**. Its nature is unknown: it may have been divine, magical, cosmic, or simply the traditional beginning of recorded history.
 
-The exact ancient history behind the battlefield is still open. The first-version lore gives strong inspiration for what that history could feel like.
+It was also a rare shared peak of two cyclical forces. Dark or ancient magic, Gudloth's primary force, peaks every 903 years. Nature magic peaks every 40 years. Since the periods share no factors, both peak together only once every 36,120 years.
 
-## First-Version Inspiration: The Visit
+### The Forge Kingdom
 
-The older lore uses an event called **The Visit** as a historical anchor. The exact nature of The Visit is not defined, but one key event is dated to the 903rd year after it.
+For centuries, the Forge Kingdom was the region's largest city and dominant political and economic center. Its trade, protection, industry, and prosperity supported smaller cities and settlements across the region. It included humans, dwarves, elves, and organized mages, whose mixed population and armies contrast with the modern divided factions.
 
-Potential role:
+Elves retained forest settlements, but depended on the kingdom's economic support and on elves who lived and worked in the city. Dwarves served there as soldiers, blacksmiths, and craftsmen, while other dwarf communities mined the mountains for ore used in city weapons, tools, and trade. Wizards lived in the kingdom in smaller numbers, commonly as scholars, scientists, librarians, and students of nature and mysterious ancient magic.
 
-- A divine arrival, cosmic event, or first contact moment.
-- The beginning of recorded history.
-- The reason the world uses religious or supernatural language around power.
+### Gudloth's Rise
 
-## First-Version Inspiration: The Forge Kingdom
+Gudloth was an exceptionally powerful wizard from the Enchanted Lands. After rejecting its traditions, he spent decades studying and developing magic in the Old Woods, including the poorly understood ancient magic investigated by earlier scholars, until he became effectively a demigod. He gathered followers, including powerful apprentices, before coming into conflict with the Forge Kingdom.
 
-In the first-version lore, the Forge Kingdom was once the dominant power in the known world. Its reach stretched from the body of water now called the Cursed Sea, across the Old Woods, to the Lace River, the rocky cliffs, and the rock plains.
+Gudloth is the player, returned 817 years after the battle in a weakened demon or spirit-like form. In Year 1720, nature or life force reaches a peak while dark magic is already strong, and their combined condition allows him to return to life. His precise motives and the form of his defeat or sealing are unresolved. Claims that he was the son of an Ancient Mother, or that he ruled a surviving modern state, are not established.
 
-Its armies included several peoples:
+### Year 903 After the Visit — The Six Day Battle
 
-- Elven archers.
-- Dwarven axe fighters.
-- Organized ranks of mages or magicians.
+The Forge Kingdom fought Gudloth and his followers on the rock plains. The conflict lasted six days and devastated the kingdom despite its immense forces. Dark magic was at its 903-year peak, while nature magic was almost at its 40-year trough, giving Gudloth a powerful advantage. Gudloth was defeated, destroyed, sealed, or otherwise removed from the world; what actually happened remains the central historical mystery.
 
-The kingdom appears to have been a mixed empire rather than a single-species realm. After its defeat, its surviving peoples scattered or retreated:
+Immediate consequences included:
 
-- Dwarves withdrew into the rocky cliffs and mines.
-- Elves withdrew into the Elf Swamp.
-- Magicians scattered across the world, with some returning to the Enchanted Lands.
-- The remnants of the Forge Kingdom vanished behind a great barrier.
+- The Forge Kingdom ceased to be a major political power.
+- The region's dwarven population was completely wiped out.
+- Elven survivors withdrew from the fallen kingdom.
+- Surviving mages scattered or retreated toward wizard regions, including the Enchanted Lands.
+- Human survivors dispersed into smaller settlements.
+- Much of the old civilization became ruin, burial ground, or reused material.
 
-## First-Version Inspiration: Gudloth's Rise
+### The Lost Period
 
-Gudloth began as a wizard from the Enchanted Lands. He is the son of the ancient mother of those lands, which makes him unusually powerful from the beginning.
+The game begins in Year 1720 After the Visit, 817 years after the battle. Knowledge of Gudloth faded, the Forge Kingdom became ancient history, and the modern political order emerged independently. Its northern city lay abandoned for a long time, then was reinhabited by later generations and became the Old City. This is a new settlement among Forge ruins, not a continuous Forge state or population. A surviving barrier or hidden Forge state is not established; such ideas are useful legends or future possibilities only.
 
-After refusing to follow the customs of the Enchanted Lands, Gudloth entered the Old Woods. There he spent decades in meditation and magical practice until he reached demigod status. He then emerged and moved north, then west, defeating any local powers that challenged him.
+### Modern La Poise
 
-As rumors spread, both the Enchanted Lands and the Forge Kingdom sent forces against him. Gudloth survived these attempts and gathered followers during his migration. His most dangerous followers became his apprentices, who can function as mini-bosses in the game.
+La Poise developed after the Forge Kingdom's fall from settlements around the Lace River and fertile land. It is a human successor civilization, not Gudloth's city or empire. Its knights protect its people, farms, roads, and expansion. They do not know the player is connected to ancient events and do not await Gudloth's return.
 
-## First-Version Inspiration: The Six Day Battle
+Population growth has made La Poise expand into surrounding forest and farmland, creating a grounded conflict with the elves. The city needs food, territory, and resources; the elves are defending land and forests they consider theirs. Neither side is wholly right or wrong.
 
-In the first-version lore, in the 903rd year after The Visit, the Forge Kingdom fought Gudloth's force in the battle later known as the **Six Day Battle**.
+### The Dwarves Return
 
-The battle took place on the rock plains near the rocky cliffs. Gudloth's force was smaller than the Forge Kingdom's army, but his power and his apprentices were overwhelming. The first Forge army engaged him, and the second Forge army arrived as reinforcements, but both were destroyed.
+The ancient local dwarves died in the Six Day Battle. The modern dwarves are a recent expedition from a distant civilization, probably arriving from the west by sea and establishing a mountain settlement. Because no dwarves lived locally for centuries, many people believed they were extinct, fictional, or folklore.
 
-After six days, only a few survivors remained. The Forge Kingdom was humbled and broken. Its people retreated into the unknown and constructed a great wall or barrier that is still believed to be impenetrable.
+Their historical arc begins with discovering old mines, graves, inscriptions, weapons, and ruins left by the earlier dwarves. Their records may remember ancestors travelling east without explaining their fate.
 
-The battlefield remains a major landmark. It is littered with corpses, armor, and weapons, facing the large gate of the hidden Forge Kingdom.
+## What the Modern World Knows
 
-## First-Version Inspiration: La Poise
+- **Common humans** know a simplified legend of a fallen ancient kingdom and catastrophic battle. Gudloth is forgotten or obscure; dwarves were mythology until their return.
+- **La Poise knights and scholars** know conventional history and the locations of some ruins, but not the truth of the battle or Gudloth.
+- **Dwarves** have distant records and can recognize, but not easily read, local dwarf remains.
+- **Elves** retain oral traditions containing both genuine knowledge and centuries of distortion.
+- **Wizards** hold the strongest surviving written records. Their predecessors were a smaller scholarly community in the Forge Kingdom and studied the same poorly understood ancient magic that Gudloth later mastered. They continued that incomplete research after retreating to wizard regions. Some may know Gudloth existed and that the battle concealed something important, but none need know the whole truth.
+- **The Old City** is the northern remnant of the Forge Kingdom, reinhabited long after its abandonment. It may preserve unique knowledge through its location among the ruins; what its current king knows about Gudloth and the battle is unresolved.
 
-After defeating the Forge Kingdom, Gudloth founded **La Poise** at the delta of the Lace River. La Poise grew quickly because the Forge Kingdom's retreat left a power vacuum.
+## Historical Mystery
 
-In that older version's current era, much of the known world has gathered around La Poise, except for the elves. The city and its territory are expanding, and this growth creates pressure on frontier peoples, especially elves or forest archers.
+The established sequence is: The Visit, the Forge Kingdom, Gudloth's rise, the Six Day Battle, the kingdom's destruction and Gudloth's disappearance, centuries of recovery, the rise of modern factions, the return of dwarves, and the demon's awakening.
 
-La Poise has outposts named **Fort Delta** and **Fort Dom**. Its soldiers are dangerous, especially near its borders and roads.
-
-## How to Reuse This Material
-
-The first-version lore works best as a tone and mythology source for the current game.
-
-Useful carryovers:
-
-- The feeling of an ancient, devastating battle.
-- A ruined battlefield as a starting image.
-- A sealed or hidden fallen power behind a barrier.
-- A demigod-like historical villain, if the current king needs mythic weight.
-- Names such as Gudloth, La Poise, The Visit, Cursed Sea, Old Woods, Lace River, and Kirabata.
-- Elite magical followers or apprentices as mini-boss inspiration.
-
-The newer notes should decide the active plot. For now, the most current target is the rightful king in the old city, not necessarily Gudloth.
+The story should reveal this past through conflicting evidence rather than a single authoritative explanation. The unanswered questions are why Gudloth fought, what happened to leave him diminished before his return, and what the Old City's king knows about these events.
