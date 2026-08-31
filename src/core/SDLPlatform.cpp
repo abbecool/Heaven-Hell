@@ -25,6 +25,7 @@ std::optional<InputCode> inputCodeFromKey(SDL_Keycode key)
     case SDLK_D: return InputCode::D;
     case SDLK_RIGHT: return InputCode::Right;
     case SDLK_I: return InputCode::I;
+    case SDLK_L: return InputCode::L;
     case SDLK_E: return InputCode::E;
     case SDLK_LSHIFT: return InputCode::LeftShift;
     case SDLK_LCTRL: return InputCode::LeftCtrl;

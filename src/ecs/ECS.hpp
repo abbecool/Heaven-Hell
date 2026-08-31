@@ -477,11 +477,26 @@ public:
     bool hasComponent(EntityID entityId) {
         return getOrCreateComponentPool<T>().hasComponent(entityId);
     }
+
+    template <typename T>
+    bool hasComponent(EntityID entityId) const {
+        const ComponentPool<T>* pool = findComponentPool<T>();
+        return pool != nullptr && pool->hasComponent(entityId);
+    }
     
     // Get a component from an entity
     template <typename T>
     T& getComponent(EntityID entityId) {
         return getComponentPool<T>().getComponent(entityId);
+    }
+
+    template <typename T>
+    const T& getComponent(EntityID entityId) const {
+        const ComponentPool<T>* pool = findComponentPool<T>();
+        if (pool == nullptr) {
+            throw std::out_of_range("Component pool not found.");
+        }
+        return pool->getComponent(entityId);
     }
     
     // make a copy of a entities component and add it to another entity

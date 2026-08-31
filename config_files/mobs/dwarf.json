@@ -24,7 +24,7 @@
         "level": 10
       },
       "CAIAgent": {
-        "sightRange": 0,
+        "sightRange": 64,
         "patrolRadius": 16,
         "memoryDuration": 180,
         "patrolWaitDuration": 180

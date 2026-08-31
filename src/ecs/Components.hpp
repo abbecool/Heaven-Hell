@@ -445,7 +445,7 @@ struct CDamageFlash
 
 struct CLifespan
 {
-    int lifespan;
+    int lifespan = 0;
     CLifespan() {}
     CLifespan(int lf) : lifespan(lf){}
 };
@@ -636,7 +636,7 @@ struct CPossessable
     int level = 10;
     int duration = 120;
     int timeLeft = 120;
-    int lifeForce;
+    int lifeForce = 0;
     PossessState state = PossessState::Drain;
 
     CPossessable() {}
@@ -722,9 +722,9 @@ struct CInventory{
 
 struct CKnockback
 {    
-    int duration;
-    int magnitude;
-    Vec2 direction;
+    int duration = 0;
+    int magnitude = 0;
+    Vec2 direction = {0, 0};
     int timeElapsed = 0;
 
     CKnockback() {}
@@ -789,7 +789,7 @@ struct CWeapon
 
 struct CEvent
 {
-    int questID;
+    int questID = 0;
     Event event;
 
     CEvent() {}

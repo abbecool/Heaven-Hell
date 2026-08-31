@@ -27,7 +27,7 @@
         },
         {
             "definition": "dwarf",
-            "x": 358,
+            "x": 335,
             "y": 71
         },
         {
@@ -67,8 +67,8 @@
         },
         {
             "definition": "knight",
-            "x": 335,
-            "y": 71
+            "x": 357,
+            "y": 72
         },
         {
             "definition": "knight_home",

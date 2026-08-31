@@ -71,6 +71,7 @@ class Scene_Play : public Scene
     void sRenderInventory();
     void sRenderUI();
     void sAudio();
+    void printHoveredEntityComponents();
     void onTerrainChanged() override;
     
     void sDoAction(const Action&);

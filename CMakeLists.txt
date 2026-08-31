@@ -161,6 +161,7 @@ if (BUILD_TESTING)
 
     add_executable(ecs_tests
         tests/ecs/test_ecs.cpp
+        src/debug/EntityInspector.cpp
         src/physics/Vec2.cpp
         src/physics/Quadtree.cpp
     )
@@ -195,6 +196,8 @@ if (BUILD_TESTING)
         queued_removal
         removal_observer_sees_cascade
         entity_zero_queued_component_removal
+        entity_inspector_serializes_components
+        entity_inspector_finds_overlapping_nonstatic_colliders
     )
 
     add_executable(render_view_tests

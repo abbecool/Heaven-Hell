@@ -428,8 +428,6 @@ void LevelLoader::update(Vec2 playerPosition)
         chunksChanged = true;
     }
 
-    // std::cout << "Chunk Queue Size: " << m_chunkQueue.size() << " | Loaded Chunks: " << m_loadedChunks.size() << std::endl;
-
     std::vector<Vec2> chunksToRemove;
     for (Vec2 chunk : m_loadedChunks){
         if (std::find(m_neighboringChunks.begin(), m_neighboringChunks.end(), chunk) == m_neighboringChunks.end()){

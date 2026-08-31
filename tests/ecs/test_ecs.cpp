@@ -1,4 +1,5 @@
 #include "TestSupport.hpp"
+#include "debug/EntityInspector.hpp"
 #include "ecs/ECS.hpp"
 #include "physics/Quadtree.hpp"
 
@@ -571,6 +572,69 @@ void testEcsEntityZeroQueuedComponentRemoval()
     require(!ecs.isAlive(player), "queued entity removal ignored entity 0");
 }
 
+void testEntityInspectorSerializesComponents()
+{
+    ECS ecs;
+    const EntityID entity = ecs.addEntity();
+
+    ecs.addComponent<CName>(entity, "Goblin");
+    ecs.addComponent<CTransform>(entity, Vec2{12, 34}, 45.0f, Vec2{2, 3});
+    CHealth& health = ecs.addComponent<CHealth>(entity, 4, 10, 30);
+    health.HPType = {"poison", "fire"};
+    ecs.addComponent<CDamage>(entity, 7, std::unordered_set<std::string>{"ice", "fire"});
+    CAttackHitbox& hitbox = ecs.addComponent<CAttackHitbox>(entity, 99);
+    hitbox.hitEntities = {8, 3};
+    ecs.addComponent<CStatic>(entity);
+
+    const nlohmann::json dump = DebugEntityInspector::inspectEntity(ecs, entity);
+    const nlohmann::json& components = dump.at("components");
+
+    require(dump.at("entityId") == entity, "inspector reported the wrong entity ID");
+    require(dump.at("name") == "Goblin", "inspector omitted the entity name");
+    require(components.at("CTransform").at("pos").at("x") == 12, "inspector omitted transform data");
+    require(components.at("CTransform").at("scale").at("y") == 3, "inspector omitted nested transform data");
+    require(components.at("CHealth").at("HPType") == nlohmann::json::array({"fire", "poison"}),
+        "inspector did not sort health type data");
+    require(components.at("CDamage").at("damageType") == nlohmann::json::array({"fire", "ice"}),
+        "inspector did not sort damage type data");
+    require(components.at("CAttackHitbox").at("hitEntities") == nlohmann::json::array({3, 8}),
+        "inspector did not sort hit entity IDs");
+    require(components.at("CStatic") == nlohmann::json::object(), "inspector did not serialize a marker component");
+}
+
+void testEntityInspectorFindsOverlappingNonStaticColliders()
+{
+    ECS ecs;
+    const EntityID staticEntity = ecs.addEntity();
+    const EntityID solidEntity = ecs.addEntity();
+    const EntityID triggerEntity = ecs.addEntity();
+    const EntityID chunkEntity = ecs.addEntity();
+    const EntityID distantEntity = ecs.addEntity();
+
+    ecs.addComponent<CTransform>(staticEntity, Vec2{0, 0});
+    ecs.addComponent<CCollider>(staticEntity, Vec2{10, 10});
+    ecs.addComponent<CStatic>(staticEntity);
+
+    ecs.addComponent<CTransform>(solidEntity, Vec2{0, 0});
+    ecs.addComponent<CCollider>(solidEntity, Vec2{10, 10});
+
+    ecs.addComponent<CTransform>(triggerEntity, Vec2{0, 0});
+    ecs.addComponent<CCollider>(triggerEntity, Vec2{10, 10}, AREA_LAYER, PLAYER_LAYER, true);
+
+    ecs.addComponent<CTransform>(chunkEntity, Vec2{0, 0});
+    ecs.addComponent<CCollider>(chunkEntity, Vec2{10, 10});
+    ecs.addComponent<CChunk>(chunkEntity);
+
+    ecs.addComponent<CTransform>(distantEntity, Vec2{100, 100});
+    ecs.addComponent<CCollider>(distantEntity, Vec2{10, 10});
+
+    const std::vector<EntityID> matches = DebugEntityInspector::findInspectableEntitiesAt(ecs, Vec2{0, 0});
+    require(matches == std::vector<EntityID>({solidEntity, triggerEntity}),
+        "inspector did not return the expected overlapping non-static colliders");
+    require(DebugEntityInspector::findInspectableEntitiesAt(ecs, Vec2{50, 50}).empty(),
+        "inspector reported an entity where no collider was hovered");
+}
+
 constexpr std::array Tests = {
     TestSupport::TestCase{"pool_add_and_get", testPoolAddAndGet},
     TestSupport::TestCase{"pool_replace_existing", testPoolReplaceExisting},
@@ -597,7 +661,9 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"world_centered_quadtree_covers_level_edges", testWorldCenteredQuadtreeCoversLevelEdges},
     TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval},
     TestSupport::TestCase{"removal_observer_sees_cascade", testEcsRemovalObserverSeesCascade},
-    TestSupport::TestCase{"entity_zero_queued_component_removal", testEcsEntityZeroQueuedComponentRemoval}
+    TestSupport::TestCase{"entity_zero_queued_component_removal", testEcsEntityZeroQueuedComponentRemoval},
+    TestSupport::TestCase{"entity_inspector_serializes_components", testEntityInspectorSerializesComponents},
+    TestSupport::TestCase{"entity_inspector_finds_overlapping_nonstatic_colliders", testEntityInspectorFindsOverlappingNonStaticColliders}
 };
 
 } // namespace

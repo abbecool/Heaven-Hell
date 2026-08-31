@@ -14,6 +14,7 @@
 
 #include "ecs/Components.hpp"
 #include "ecs/FactionRelations.hpp"
+#include "debug/EntityInspector.hpp"
 
 #include "external/json.hpp"
 
@@ -107,6 +108,7 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     registerAction(InputCode::Right, "RIGHT");
     
     registerAction(InputCode::I, "INVENTORY");
+    registerAction(InputCode::L, "PRINT_HOVERED_COMPONENTS");
     registerAction(InputCode::MouseLeft, "USE");
     registerAction(InputCode::MouseRight, "WRITE POSITION");
     registerAction(InputCode::MouseWheel, "SCROLL");
@@ -279,6 +281,9 @@ void Scene_Play::sDoAction(const Action& action){
             Vec2 cursorPosition = (m_mousePosition+m_camera.position)/m_gridSize;
             cursorPosition.print("Cursor position");
         }
+        if (action.name() == "PRINT_HOVERED_COMPONENTS") {
+            printHoveredEntityComponents();
+        }
         if ( action.name() == "ESC") {
             m_game->changeScene("SETTINGS", std::make_shared<Scene_Pause>(m_game), false);
             saveGame();
@@ -303,6 +308,28 @@ void Scene_Play::sDoAction(const Action& action){
     } if (inputs.right){
         inputs.direction.x++;
     } 
+}
+
+void Scene_Play::printHoveredEntityComponents()
+{
+    const RenderView view = worldRenderView();
+    const float windowScale = static_cast<float>(m_game->getScale());
+    const Vec2 worldPoint{
+        (m_mousePosition.x * windowScale - view.originX) / view.scale + view.cameraX,
+        (m_mousePosition.y * windowScale - view.originY) / view.scale + view.cameraY
+    };
+
+    const std::vector<EntityID> entities = DebugEntityInspector::findInspectableEntitiesAt(m_ECS, worldPoint);
+    if (entities.empty()) {
+        std::cout << "No inspectable entities at world position {\"x\":" << worldPoint.x
+                  << ",\"y\":" << worldPoint.y << "}." << std::endl;
+        return;
+    }
+
+    for (const EntityID entity : entities) {
+        std::cout << "--- Hovered Entity Inspector ---" << std::endl;
+        std::cout << DebugEntityInspector::inspectEntity(m_ECS, entity).dump(2) << std::endl;
+    }
 }
 
 const Item* Scene_Play::findItemFromJson(const json& itemRef) const

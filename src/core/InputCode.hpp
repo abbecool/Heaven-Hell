@@ -13,6 +13,7 @@ enum class InputCode : std::uint16_t
     D,
     Right,
     I,
+    L,
     E,
     LeftShift,
     LeftCtrl,
