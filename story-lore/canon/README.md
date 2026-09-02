@@ -7,7 +7,7 @@ Only this directory establishes current in-world truth. Where a fact appears in 
 1. [Core Premise](core-premise.md)
 2. [World History](world/history.md), [Magic Cycles](world/magic-cycles.md), and [Geography](world/geography.md)
 3. [Factions](factions/README.md) and [Gudloth](characters/gudloth.md)
-4. [Main Story Arc](story/main-arc.md) and [Chapter One](story/chapters/01-awakening.md)
+4. [Main Story Arc](story/main-arc.md) and [Chapter 0: Awakening](story/chapters/00-awakening.md)
 5. [Drain and Possession](systems/possession.md)
 
 ## Reference

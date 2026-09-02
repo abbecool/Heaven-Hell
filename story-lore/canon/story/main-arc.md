@@ -2,16 +2,7 @@
 
 **Status: Canon story structure.** The exact content and order of faction quests remain a design direction.
 
-## Prologue
-
-1. In Year 1720, a weak demon or spirit awakens on the Six Day Battlefield.
-2. It drains a chicken to recover enough strength to continue.
-3. It escapes the knight guarding the battlefield exit. The knight sees an unknown dangerous creature, not a returning Gudloth.
-4. It reaches the merchant road.
-5. It encounters a dwarf, elf, wizard, and knight as potential hosts.
-6. The player chooses the first major possession.
-
-The guard is an obstacle, not the first lasting host. See [Chapter One](chapters/01-awakening.md) and [Possession](../systems/possession.md).
+The opening is told in [Chapter 0: Awakening](chapters/00-awakening.md). See also [Possession](../systems/possession.md).
 
 ## One World, Four Perspectives
 

@@ -16,7 +16,7 @@ The current reading order is:
 1. [Core Premise](canon/core-premise.md)
 2. [History](canon/world/history.md) and [Magic Cycles](canon/world/magic-cycles.md)
 3. [Geography](canon/world/geography.md), [Factions](canon/factions/), and [Characters](canon/characters/)
-4. [Main Story Arc](canon/story/main-arc.md) and [Chapter One](canon/story/chapters/01-awakening.md)
+4. [Main Story Arc](canon/story/main-arc.md) and [Chapter 0: Awakening](canon/story/chapters/00-awakening.md)
 5. [Possession](canon/systems/possession.md)
 
 ## Status Language
