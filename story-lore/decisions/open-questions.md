@@ -46,6 +46,7 @@
 - What resource, cooldown, or danger governs switching bodies?
 - How do hosts' relationships, memories, possessions, and faction detection create consequences?
 - Are altars common checkpoints, rare sacred places, or something else?
+- Which quest situations can be completed through several factions, and which should advance to an authored aftermath when the player leaves them?
 
 ## Story Structure
 

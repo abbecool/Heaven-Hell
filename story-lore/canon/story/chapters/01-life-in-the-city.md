@@ -1,5 +1,7 @@
 # Chapter 1: Life in the city
 
+**Status: Design direction.** This is an early faction-route outline. Its quest structure must support free host switching; see [Possession and Quest Design](../../../design/possession-and-quest-design.md).
+
 ## Story
 The knight has captured an elder elf and must return with the prisoner to the city for interegations. 
 

@@ -4,6 +4,8 @@
 
 The opening is told in [Chapter 0: Awakening](chapters/00-awakening.md). See also [Possession](../systems/possession.md).
 
+The working design for free host switching and world-owned quests is in [Possession and Quest Design](../../design/possession-and-quest-design.md).
+
 ## One World, Four Perspectives
 
 The initial host determines the first perspective, not a separate campaign. Dwarves, knights, elves, and wizards participate in one advancing world story; later contact creates opportunities to inhabit the other groups. The player ultimately experiences all four important arcs.

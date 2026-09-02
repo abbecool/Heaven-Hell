@@ -19,6 +19,10 @@ The current reading order is:
 4. [Main Story Arc](canon/story/main-arc.md) and [Chapter 0: Awakening](canon/story/chapters/00-awakening.md)
 5. [Possession](canon/systems/possession.md)
 
+## Design References
+
+- [Possession and Quest Design](design/possession-and-quest-design.md): working direction for freely switching hosts, host progression, and quest structure.
+
 ## Status Language
 
 - **Canon**: established and usable as fact.

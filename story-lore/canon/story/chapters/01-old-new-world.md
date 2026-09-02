@@ -1,5 +1,7 @@
 # Chapter 1: The dwarfen old new world
 
+**Status: Design direction.** This is an early faction-route outline. Its quest structure must support free host switching; see [Possession and Quest Design](../../../design/possession-and-quest-design.md).
+
 ## Story
 The dwarfs have a settlement on the coastline by the northwestern mountains where they have been for a number of years. They know that dwarfs left their homeland long ago but do not know where they went. The Dwarfs were an integral part of the forge kingdoms long ago. They will eventually learn this and discover old ruins and artifacts.
 

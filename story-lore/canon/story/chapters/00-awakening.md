@@ -8,12 +8,12 @@ In Year 1720, a weak demon or spirit awakens on the ancient battlefield of the S
 ---
 ## Quest 1: Get past the battlefield guard and leave the ancient battlefield.
 
-The player is too weak to fight or use possession effectively against the guard. A chicken nearby can be drained to restore enough strength to be able to possess the knight. How the player gets past the knight remains open for gameplay design. The knight is possesable but not mandatory, the player can: kill, sneak past or possess the knight.
+The player is too weak to fight or use possession effectively against the guard. A chicken nearby can be drained to restore enough immediate strength to escape. The exact interaction remains open for gameplay design: it may be a brief intrusion or disorientation, a temporary possession, or another solution. The guard must not become the normal first lasting knight host. The player may be able to kill or sneak past the guard as alternative solutions.
 
 ---
 ## Quest 2: Possess one of the four potential hosts.
 
-After escaping the battlefield, the player reaches a busy merchant road. A wizard, elf, and dwarf are present as potential hosts. The player must choose and possess one of them to progress; this is the first major faction choice. The player can always switch between NPCs and thus switch factions leading to new questlines opening and old ones closing.
+After escaping the battlefield, the player reaches a busy merchant road. A wizard, elf, dwarf, and knight are present as potential hosts. The player must choose and possess one of them to progress; this is the first major faction choice. The player can always switch between hosts. Faction and world quest states should persist or advance into authored aftermaths rather than close or hard-lock because of a switch.
 
 ---
 ## Quest 3: Life in anothers shoes

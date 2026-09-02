@@ -2,6 +2,8 @@
 
 **Status: Canon mechanic baseline.** Exact target thresholds, costs, and persistence rules remain open design decisions.
 
+For the current working direction on free host switching and quest structure, see [Possession and Quest Design](../../design/possession-and-quest-design.md).
+
 The returned demon survives and progresses by draining living targets and possessing weakened living hosts. Possession is not merely a class switch: every host is an existing person whose relationships, rank, obligations, inventory, and enemies continue to affect how the world responds.
 
 ## Current Interaction

@@ -2,6 +2,8 @@
 
 **Status: Design direction.** Established possession behaviour lives in [Drain and Possession](../canon/systems/possession.md); this file explains how systems should support the story.
 
+For the more specific working decisions around host switching, possession progression, and quest ownership, see [Possession and Quest Design](possession-and-quest-design.md).
+
 ## Possession Is the Story Mechanic
 
 The player is a weak demon or spirit that cannot progress like an ordinary person. It drains life and possesses bodies to gain survival, identity, faction access, and race-specific abilities.
