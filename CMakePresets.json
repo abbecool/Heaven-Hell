@@ -73,6 +73,24 @@
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
       }
+    },
+    {
+      "name": "linux-core-debug",
+      "displayName": "Linux Core Tests",
+      "inherits": "linux-debug",
+      "binaryDir": "${sourceDir}/build/Core/Debug",
+      "cacheVariables": {
+        "HEAVENHELL_BUILD_GAME": "OFF"
+      }
+    },
+    {
+      "name": "linux-core-sanitize",
+      "displayName": "Linux Core Tests with Sanitizers",
+      "inherits": "linux-core-debug",
+      "binaryDir": "${sourceDir}/build/Core/Sanitize",
+      "cacheVariables": {
+        "HEAVENHELL_ENABLE_SANITIZERS": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -91,6 +109,14 @@
     {
       "name": "linux-release",
       "configurePreset": "linux-release"
+    },
+    {
+      "name": "linux-core-debug",
+      "configurePreset": "linux-core-debug"
+    },
+    {
+      "name": "linux-core-sanitize",
+      "configurePreset": "linux-core-sanitize"
     }
   ],
   "testPresets": [
@@ -118,6 +144,20 @@
     {
       "name": "linux-release",
       "configurePreset": "linux-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-core-debug",
+      "configurePreset": "linux-core-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "linux-core-sanitize",
+      "configurePreset": "linux-core-sanitize",
       "output": {
         "outputOnFailure": true
       }

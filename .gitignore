@@ -5,6 +5,7 @@ temp_*
 build/*
 build-vs/*
 dist/
+.vs/
 
 # Ignore everything in run/
 run/**

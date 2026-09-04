@@ -2,59 +2,66 @@
 
 #include "Components.hpp"
 
-#include <iostream>
-#include <unordered_map>
-#include <map>
-#include <vector>
 #include <algorithm>
-#include <memory>
-#include <unordered_set>
-#include <typeindex>
-#include <functional>
-#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <iostream>
 #include <limits>
-#include <array>
+#include <stdexcept>
+#include <string>
+#include <typeinfo>
+#include <utility>
+#include <vector>
 
 using EntityID = uint32_t;
-static constexpr EntityID tombstone = std::numeric_limits<EntityID>::max();
+static constexpr std::size_t INVALID_DENSE_INDEX = std::numeric_limits<std::size_t>::max();
+static constexpr std::size_t INITIAL_ENTITY_CAPACITY = 8192;
 
 class BaseComponentPool {
-    public:
+public:
     std::vector<EntityID> entitiesToRemove;
     std::vector<EntityID> denseEntities;  // Dense vector of IDs
     virtual ~BaseComponentPool() = default;  // Virtual destructor to allow proper deletion
-    virtual void removeComponent(EntityID entityId){};
+    virtual void removeComponent(EntityID entityId) = 0;
     virtual bool hasComponent(EntityID id) const = 0;
     virtual std::string getTypeName() const = 0;
-    const std::vector<EntityID>& getEntities() const {return denseEntities;};
-    virtual EntityID getLength() = 0;
+    const std::vector<EntityID>& getEntities() const { return denseEntities; }
+    virtual std::size_t getLength() const = 0;
 };
 
-static constexpr EntityID MAX_ENTITIES = 8192;  // Define a maximum number of entities 
-
 template<typename T>
-class ComponentPool : public BaseComponentPool{
-    private:
-    
-    std::array<EntityID, MAX_ENTITIES> sparse; // Sparse vector of IDs
+class ComponentPool : public BaseComponentPool {
+private:
+    std::vector<std::size_t> sparse;
     std::vector<T> dense;  // Dense vector of components
-public:
 
-    ComponentPool() {
-        sparse.fill(tombstone);  // Initialize sparse array with tombstone value
+    void ensureEntityCapacity(EntityID id) {
+        if (id < sparse.size()) {
+            return;
+        }
+
+        const std::size_t requiredSize = static_cast<std::size_t>(id) + 1;
+        const std::size_t grownSize = std::max(requiredSize, sparse.size() * 2);
+        sparse.resize(grownSize, INVALID_DENSE_INDEX);
     }
 
-    EntityID getLength(){
+public:
+
+    ComponentPool()
+        : sparse(INITIAL_ENTITY_CAPACITY, INVALID_DENSE_INDEX) {}
+
+    std::size_t getLength() const override {
         return dense.size();
     }
 
     template<typename... Args>
-    T& addComponent(EntityID id, Args... args) {
+    T& addComponent(EntityID id, Args&&... args) {
+        ensureEntityCapacity(id);
         if (hasComponent(id)){
             removeComponent(id);
         }
         // Sparse set implementation
-        const size_t index = dense.size();
+        const std::size_t index = dense.size();
         sparse[id] = index;
         dense.emplace_back(std::forward<Args>(args)...);
         denseEntities.push_back(id);
@@ -62,27 +69,30 @@ public:
     }
     
     inline bool hasComponent(EntityID e) const noexcept {
-        return sparse[e] != tombstone && sparse[e] < dense.size();
+        if (e >= sparse.size()) {
+            return false;
+        }
+        return sparse[e] != INVALID_DENSE_INDEX && sparse[e] < dense.size();
     }
     
     inline T& getComponent(EntityID e) {
         
-        EntityID index = sparse[e];
-        if (index == tombstone) {
+        if (!hasComponent(e)) {
             std::cout << "component type: " << typeid(T).name() << " entity id: " << e << std::endl;
             throw std::out_of_range("Component not found.");
         }
+        const std::size_t index = sparse[e];
         T& component = dense[index];
         return component;
     }
 
     inline const T& getComponent(EntityID e) const {
 
-        EntityID index = sparse[e];
-        if (index == tombstone) {
+        if (!hasComponent(e)) {
             std::cout << "component type: " << typeid(T).name() << " entity id: " << e << std::endl;
             throw std::out_of_range("Component not found.");
         }
+        const std::size_t index = sparse[e];
         const T& component = dense[index];
         return component;
     }
@@ -94,13 +104,14 @@ public:
         if (!hasComponent(src)) {
             throw std::out_of_range("Source component not found.");
         }
+        ensureEntityCapacity(dst);
         if (hasComponent(dst)) {
             removeComponent(dst);
         }
 
-        const EntityID index = sparse[src];
+        const std::size_t index = sparse[src];
         sparse[dst] = index;
-        sparse[src] = tombstone;
+        sparse[src] = INVALID_DENSE_INDEX;
         denseEntities[index] = dst;
 
         return dense[index];
@@ -110,18 +121,18 @@ public:
         entitiesToRemove.push_back(id);
     }
 
-    void removeComponent(EntityID id) {
-        EntityID index = sparse[id];
-        if (index == tombstone) {
+    void removeComponent(EntityID id) override {
+        if (!hasComponent(id)) {
             return;
         }
-        EntityID lastId = denseEntities.back();
+        const std::size_t index = sparse[id];
+        const EntityID lastId = denseEntities.back();
 
         std::swap(dense[index], dense.back());  // Swap with the last element
         std::swap(denseEntities[index], denseEntities.back());  // Swap with the last element
 
         sparse[lastId] = index;  // Update the sparse index for the moved element
-        sparse[id] = tombstone;
+        sparse[id] = INVALID_DENSE_INDEX;
 
         dense.pop_back();  // Remove the last element
         denseEntities.pop_back();  // Remove the last ID

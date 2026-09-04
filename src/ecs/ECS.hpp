@@ -5,18 +5,14 @@
 
 #include <iostream>
 #include <unordered_map>
-#include <map>
 #include <vector>
 #include <algorithm>
 #include <memory>
-#include <unordered_set>
 #include <typeindex>
 #include <functional>
 #include <cassert>
-#include <bitset>
 #include <cstdint>
 #include <tuple>
-#include <algorithm>
 #include <limits>
 #include <utility>
 
@@ -25,10 +21,6 @@ using EntityID = uint32_t;
 namespace ecs {
     template<typename... Components>
     struct Exclude {};
-}
-
-static bool comp(int a, int b) {
-    return a > b;
 }
 
 template<typename... Components>
@@ -288,7 +280,7 @@ private:
 public:
 
     ECS() {
-        m_sparse.resize(MAX_ENTITIES); // reserve sparse array
+        m_sparse.resize(INITIAL_ENTITY_CAPACITY); // reserve sparse array
     }
 
     void setEntityRemovalObserver(EntityRemovalObserver observer) {
@@ -464,7 +456,7 @@ public:
     T& addComponent(EntityID entity, Args &&... args) {
         auto& pool = getOrCreateComponentPool<T>();
         return pool.addComponent(entity, std::forward<Args>(args)...);
-    };
+    }
     
     // Remove a component from an entityId
     template <typename T>

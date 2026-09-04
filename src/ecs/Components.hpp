@@ -182,7 +182,7 @@ struct CTransform
     CTransform(const Vec2 & p, float a)
         : pos(p), prevPos(p), angle(a) {}
     CTransform(const Vec2 & p, float a, Vec2 s)
-        : pos(p), prevPos(p), angle(a), scale(s){}
+        : pos(p), prevPos(p), scale(s), angle(a){}
     CTransform(const Vec2 & p, Vec2 s)
         : pos(p), prevPos(p), scale(s){}
     CTransform(const json j)
@@ -506,8 +506,8 @@ struct CAnimation
         step = std::max(1, step);
         const int col = std::min(cols - 1, currentCol + static_cast<int>(frame) * step);
         return RectF{
-            sourceOrigin.x + col * frameSize.x,
-            sourceOrigin.y + currentRow * frameSize.y,
+            sourceOrigin.x + static_cast<float>(col) * frameSize.x,
+            sourceOrigin.y + static_cast<float>(currentRow) * frameSize.y,
             frameSize.x,
             frameSize.y
         };
@@ -623,7 +623,9 @@ struct CText
 
     CText() {}
     CText(std::string txt, const float sz, std::string fnt)
-        : text(txt), size(Vec2{sz*txt.length()/4, sz}), font_name(fnt){}
+        : size(Vec2{sz * static_cast<float>(txt.length()) / 4.0f, sz})
+        , text(std::move(txt))
+        , font_name(std::move(fnt)) {}
 };
 
 enum class PossessState {
@@ -710,7 +712,7 @@ struct CInventory{
     }
 
     CInventory(int slotCount = DefaultSlotCount)
-        : items(std::max(1, slotCount)) {
+        : items(static_cast<size_t>(std::max(1, slotCount))) {
         activeItem.index = 0;
         int index = 0;
         for (Item& item: items){

@@ -77,6 +77,21 @@ Get-Content config_files\assets.json -Raw | ConvertFrom-Json > $null
 
 Adjust the path for each edited JSON file.
 
+CTest registers one executable per suite; invoking a suite without a test-name
+argument runs every case in that suite. Do not duplicate individual case names
+in `CMakeLists.txt`.
+
+For platform-independent changes on a machine without SDL, use:
+
+```sh
+cmake --preset linux-core-debug
+cmake --build --preset linux-core-debug
+ctest --preset linux-core-debug
+```
+
+Use the `linux-core-sanitize` configure, build, and test presets for
+AddressSanitizer and UndefinedBehaviorSanitizer validation.
+
 ## Do Not Edit Unless Asked
 
 - Do not edit `build/`, `run/`, `dist/`, or generated/package outputs unless

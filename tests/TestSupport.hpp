@@ -24,23 +24,34 @@ struct TestCase {
 template<size_t TestCount>
 int runNamedTest(int argc, char* argv[], const std::array<TestCase, TestCount>& tests)
 {
-    if (argc != 2) {
-        std::cerr << "Expected one test name." << std::endl;
+    if (argc > 2) {
+        std::cerr << "Expected zero or one test name." << std::endl;
         return 2;
+    }
+
+    const auto runTest = [](const TestCase& test) {
+        try {
+            test.run();
+            return true;
+        } catch (const std::exception& error) {
+            std::cerr << test.name << ": " << error.what() << std::endl;
+            return false;
+        }
+    };
+
+    if (argc == 1) {
+        for (const TestCase& test : tests) {
+            if (!runTest(test)) {
+                return 1;
+            }
+        }
+        return 0;
     }
 
     const std::string_view requestedTest = argv[1];
     for (const TestCase& test : tests) {
-        if (test.name != requestedTest) {
-            continue;
-        }
-
-        try {
-            test.run();
-            return 0;
-        } catch (const std::exception& error) {
-            std::cerr << test.name << ": " << error.what() << std::endl;
-            return 1;
+        if (test.name == requestedTest) {
+            return runTest(test) ? 0 : 1;
         }
     }
 

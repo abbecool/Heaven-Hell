@@ -152,6 +152,9 @@ C:/msys64/ucrt64/bin/cmake.exe --build --preset windows-ninja-debug
 C:/msys64/ucrt64/bin/ctest.exe --preset windows-ninja-debug --output-on-failure
 ```
 
+CTest registers one entry per test suite. Each suite runs all of its internal
+cases and reports the failing case by name.
+
 ## Linux Setup
 
 Linux support exists in the CMake and VS Code setup, but the current day-to-day
@@ -190,6 +193,28 @@ run/Debug/heavenhell
 run/Release/heavenhell
 ```
 
+### Core-only build
+
+The platform-independent core and all tests can be built on a Linux machine
+without SDL installed:
+
+```sh
+cmake --preset linux-core-debug
+cmake --build --preset linux-core-debug
+ctest --preset linux-core-debug
+```
+
+The equivalent sanitizer build is:
+
+```sh
+cmake --preset linux-core-sanitize
+cmake --build --preset linux-core-sanitize
+ctest --preset linux-core-sanitize
+```
+
+`HEAVENHELL_STRICT_CONVERSIONS=ON` enables the additional `-Wconversion` and
+`-Wsign-conversion` audit warnings for GCC and Clang.
+
 ## Current Backend Notes
 
 - SDL3 is still the platform API.
@@ -202,5 +227,5 @@ run/Release/heavenhell
 - CTest is enabled with small `Vec2`, `RandomArray`, `SpriteDefinition`, and
   ECS/component-pool test suites.
 
-See [doc/BackendSetupRoadmap.md](doc/BackendSetupRoadmap.md) for the recommended
+See [docs/BackendSetupRoadmap.md](docs/BackendSetupRoadmap.md) for the recommended
 backend/setup work before shifting fully back to gameplay features.

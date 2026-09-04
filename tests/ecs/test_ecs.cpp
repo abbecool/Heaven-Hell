@@ -102,6 +102,33 @@ void testPoolMove()
         "moved entity was missing from the dense entity list");
 }
 
+void testPoolGrowsBeyondInitialCapacity()
+{
+    ComponentPool<TestComponent> pool;
+    const EntityID largeID = static_cast<EntityID>(INITIAL_ENTITY_CAPACITY + 17);
+
+    require(!pool.hasComponent(largeID), "out-of-range entity unexpectedly had a component");
+    pool.removeComponent(largeID);
+    pool.addComponent(largeID, TestComponent{42});
+
+    require(pool.hasComponent(largeID), "component pool did not grow for a large entity ID");
+    require(pool.getComponent(largeID).value == 42, "grown component pool stored the wrong value");
+}
+
+void testEcsGrowsComponentPoolsBeyondInitialCapacity()
+{
+    ECS ecs;
+    EntityID lastEntity = 0;
+    for (size_t index = 0; index <= INITIAL_ENTITY_CAPACITY; ++index) {
+        lastEntity = ecs.addEntity();
+    }
+
+    require(lastEntity == INITIAL_ENTITY_CAPACITY, "ECS did not allocate the expected large entity ID");
+    ecs.addComponent<TestComponent>(lastEntity, TestComponent{73});
+    require(ecs.getComponent<TestComponent>(lastEntity).value == 73,
+        "ECS component pool did not grow with entity storage");
+}
+
 void testEcsEntityLifecycle()
 {
     ECS ecs;
@@ -181,11 +208,16 @@ void testEcsViewMissingPoolIsEmpty()
 
     size_t matches = 0;
     for (auto [id, secondary] : ecs.View<SecondaryComponent>()) {
+        static_cast<void>(id);
+        static_cast<void>(secondary);
         matches++;
     }
     require(matches == 0, "single-component view with a missing pool was not empty");
 
     for (auto [id, test, secondary] : ecs.View<TestComponent, SecondaryComponent>()) {
+        static_cast<void>(id);
+        static_cast<void>(test);
+        static_cast<void>(secondary);
         matches++;
     }
     require(matches == 0, "multi-component view with a missing pool was not empty");
@@ -641,7 +673,9 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"pool_entity_zero_component_removal", testPoolEntityZeroComponentRemoval},
     TestSupport::TestCase{"pool_remove_compacts", testPoolRemoveCompacts},
     TestSupport::TestCase{"pool_move", testPoolMove},
+    TestSupport::TestCase{"pool_grows_beyond_initial_capacity", testPoolGrowsBeyondInitialCapacity},
     TestSupport::TestCase{"entity_lifecycle", testEcsEntityLifecycle},
+    TestSupport::TestCase{"ecs_grows_component_pools_beyond_initial_capacity", testEcsGrowsComponentPoolsBeyondInitialCapacity},
     TestSupport::TestCase{"copy_and_view", testEcsCopyAndView},
     TestSupport::TestCase{"view_mutates_components", testEcsViewMutatesComponents},
     TestSupport::TestCase{"view_missing_pool_is_empty", testEcsViewMissingPoolIsEmpty},
@@ -662,6 +696,7 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"queued_removal", testEcsQueuedRemoval},
     TestSupport::TestCase{"removal_observer_sees_cascade", testEcsRemovalObserverSeesCascade},
     TestSupport::TestCase{"entity_zero_queued_component_removal", testEcsEntityZeroQueuedComponentRemoval},
+    TestSupport::TestCase{"entity_zero_queued_removal_cascades_to_children", testEcsQueueRemoveEntityZeroAndChildren},
     TestSupport::TestCase{"entity_inspector_serializes_components", testEntityInspectorSerializesComponents},
     TestSupport::TestCase{"entity_inspector_finds_overlapping_nonstatic_colliders", testEntityInspectorFindsOverlappingNonStaticColliders}
 };

@@ -133,6 +133,48 @@ function Copy-RuntimeDependencies {
     }
 }
 
+function Copy-RuntimeAsset {
+    param([string]$RelativePath)
+
+    $source = Join-Path $RepoRoot $RelativePath
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+        throw "Runtime asset declared by config does not exist: $RelativePath"
+    }
+
+    $destination = Join-Path $StageDir $RelativePath
+    Assert-PathInside -Path $destination -Parent $StageDir
+    $destinationDirectory = Split-Path -Parent $destination
+    New-Item -ItemType Directory -Path $destinationDirectory -Force | Out-Null
+    Copy-Item -LiteralPath $source -Destination $destination -Force
+}
+
+function Copy-ConfiguredAssets {
+    $assetConfigPath = Join-Path $RepoRoot "config_files/assets.json"
+    $assetConfig = Get-Content -LiteralPath $assetConfigPath -Raw | ConvertFrom-Json
+
+    foreach ($font in $assetConfig.fonts) {
+        Copy-RuntimeAsset $font.path
+    }
+
+    $textureRoot = $assetConfig.textures.master_path
+    foreach ($texture in $assetConfig.textures.individual_paths) {
+        Copy-RuntimeAsset (Join-Path $textureRoot $texture)
+    }
+
+    foreach ($manifestPath in $assetConfig.atlas_manifests) {
+        $manifest = Get-Content -LiteralPath (Join-Path $RepoRoot $manifestPath) -Raw | ConvertFrom-Json
+        Copy-RuntimeAsset $manifest.atlas.path
+    }
+
+    foreach ($audio in $assetConfig.audio) {
+        Copy-RuntimeAsset (Join-Path "assets/audio" $audio.path)
+    }
+
+    foreach ($music in $assetConfig.music) {
+        Copy-RuntimeAsset (Join-Path "assets/music" $music.path)
+    }
+}
+
 Assert-ToolExists $CMake
 Assert-ToolExists $Ninja
 Assert-ToolExists $Gxx
@@ -169,7 +211,7 @@ if (Test-Path $ZipPath) {
 New-Item -ItemType Directory -Path $StageDir | Out-Null
 
 Copy-Item -LiteralPath $ExePath -Destination $StageDir
-Copy-Item -LiteralPath (Join-Path $RepoRoot "assets") -Destination $StageDir -Recurse
+Copy-ConfiguredAssets
 Copy-Item -LiteralPath (Join-Path $RepoRoot "config_files") -Destination $StageDir -Recurse
 Copy-RuntimeDependencies -RootBinary (Join-Path $StageDir "heavenhell.exe") -Destination $StageDir
 
