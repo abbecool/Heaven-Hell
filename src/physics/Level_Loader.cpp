@@ -308,8 +308,6 @@ EntityID LevelLoader::loadChunk(Vec2 chunk)
         for (int x = chunkStartX; x < chunkEndX; ++x) 
         {
             const TileType& pixel = m_pixelMatrix[y * m_width + x];
-            std::array<bool, 4> neighbors = neighborCheck(x, y, m_width, m_height);
-            int textureIndex = getObstacleTextureIndex(neighbors);
             std::array<int, 5> tileIndex = createDualGrid(x, y);
             std::vector<EntityID> ids = m_scene->spawnDualTiles(
                 Vec2 {16.0f * static_cast<float>(x) - 8.0f, 16.0f * static_cast<float>(y) - 8.0f},

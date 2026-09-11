@@ -96,7 +96,7 @@ void SDLRenderBackend::loadFont(const std::string& name, const std::string& path
     m_fonts[name] = font;
 }
 
-void SDLRenderBackend::onWindowResized(int width, int height)
+void SDLRenderBackend::onWindowResized(int, int)
 {
 }
 

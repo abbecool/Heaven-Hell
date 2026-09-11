@@ -27,7 +27,6 @@ Scene_Finish::Scene_Finish(Game* game)
     m_rendererManager.addEntityToLayer(entityId, RenderLayer::MenuControl);
     Vec2 pos = Vec2{m_game->getVirtualWidth(), m_game->getVirtualHeight()/2}/2;
     entity.addComponent<CTransform>(pos);
-    Vec2 size = Vec2{512, 128};
     entity.addComponent<CName>("death_text");
     entity.addComponent<CText>("You Won!", 64, "Minecraft");
 

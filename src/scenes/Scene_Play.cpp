@@ -92,11 +92,11 @@ std::string activeTerrainPath(const std::string& fallbackPath)
 Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
     : Scene(game), 
     m_levelPath(activeTerrainPath(levelPath)),
-    m_collisionManager(&m_ECS, this), 
+    m_collisionManager(&m_ECS, this),
+    m_inventoryManager("config_files/items"),
     m_storyManager("config_files/story1.json"),
     m_levelLoader(this, m_gridSize, game->loadImagePixels(m_levelPath)),
-    m_newGame(newGame),
-    m_inventoryManager("config_files/items")
+    m_newGame(newGame)
 {
     registerAction(InputCode::W, "UP");
     registerAction(InputCode::Up, "UP");
@@ -1213,8 +1213,8 @@ EntityID Scene_Play::SpawnFromJSON(std::string name, Vec2 pos)
     std::ifstream file;
     std::string definitionName = name;
 
-    for (const std::string& directory : {"config_files/mobs", "config_files/entities"}) {
-        file.open(directory + "/" + name + ".json");
+    for (const char* directory : {"config_files/mobs", "config_files/entities"}) {
+        file.open(std::string(directory) + "/" + name + ".json");
         if (file.is_open()) {
             break;
         }

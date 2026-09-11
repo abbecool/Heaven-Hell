@@ -6,7 +6,7 @@ using json = nlohmann::json;
 // Different elemental types like, ice, fire, earth, air etc. each with special damage multipliers and resistances on enemies.
 // Different weapons have differant elemental effects and damage types... very original
 
-int main(int argc, char* argv[]){   
+int main(int, char*[]){
     Game g("config_files/assets.json");
     g.run();
 

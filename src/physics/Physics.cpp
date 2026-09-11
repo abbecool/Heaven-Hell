@@ -116,7 +116,7 @@ std::vector<std::shared_ptr<Quadtree>> Physics::createInteractionQuadtreeVector(
     return quadtreeVector;
 }
 
-Vec2 Physics::aStar(Vec2 start, Vec2 target){
+Vec2 Physics::aStar(Vec2, Vec2){
     Vec2 velocity = {0,0};
     return velocity;
 }

@@ -437,28 +437,28 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene)
     registerSolidHandler(
         ENEMY_LAYER,
         PROJECTILE_LAYER,
-        [this](Entity enemy, Entity projectile, Vec2 overlap) {
+        [this](Entity enemy, Entity projectile, Vec2) {
             handleProjectileHit(m_scene, enemy, projectile);
         }
     );
     registerSolidHandler(
         PLAYER_LAYER,
         PROJECTILE_LAYER,
-        [this](Entity player, Entity projectile, Vec2 overlap) {
+        [this](Entity player, Entity projectile, Vec2) {
             handleProjectileHit(m_scene, player, projectile);
         }
     );
     registerSolidHandler(
         FRIENDLY_LAYER,
         PROJECTILE_LAYER,
-        [this](Entity projectile, Entity friendly, Vec2 overlap) {
+        [this](Entity projectile, Entity friendly, Vec2) {
             handleProjectileHit(m_scene, friendly, projectile);
         }
     );
     registerSolidHandler(
         PROJECTILE_LAYER,
         OBSTACLE_LAYER,
-        [this](Entity projectile, Entity obstacle, Vec2 overlap) {
+        [this](Entity projectile, Entity, Vec2) {
             if (!isFlyingProjectile(projectile)) {
                 return;
             }
@@ -474,7 +474,7 @@ CollisionManager::CollisionManager(ECS* ecs, Scene_Play* scene)
     registerTriggerHandler(
         PLAYER_LAYER,
         ENEMY_LAYER,
-        [this](Entity a, Entity b, Vec2 overlap) {
+        [this](Entity a, Entity b, Vec2) {
             m_scene->tryPossess(a.getID(), b.getID());
         }
     );
@@ -594,7 +594,7 @@ void CollisionManager::renderQuadtree(RenderBackend& renderer)
     m_quadRoot->renderBoundary(renderer, {255, 0, 0, 255});
 }
 
-void CollisionManager::handleDamageHitbox(Entity entityA, Entity entityB, Vec2 overlap)
+void CollisionManager::handleDamageHitbox(Entity entityA, Entity entityB, Vec2)
 {
     Entity hitbox = entityA;
     Entity target = entityB;
@@ -648,7 +648,7 @@ bool CollisionManager::talkToNPC(Entity player, Entity friendly)
     return true;
 }
 
-void CollisionManager::handlePlayerFriendly(Entity player, Entity friendly, Vec2 overlap)
+void CollisionManager::handlePlayerFriendly(Entity player, Entity friendly, Vec2)
 {
     if (talkToNPC(player, friendly)) {
         return;
@@ -739,7 +739,7 @@ void CollisionManager::showLootLabel(Entity loot, const std::string& name)
     );
 }
 
-void CollisionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overlap)
+void CollisionManager::handlePlayerLoot(Entity player, Entity loot, Vec2)
 {
     if (!loot.hasComponent<CName>() || !loot.hasComponent<CItem>()) {
         return;
@@ -788,7 +788,7 @@ void CollisionManager::handlePlayerLoot(Entity player, Entity loot, Vec2 overlap
     return;
 }
 
-void CollisionManager::handlePlayerArea(Entity player, Entity area, Vec2 overlap)
+void CollisionManager::handlePlayerArea(Entity, Entity area, Vec2)
 {
     if (!area.hasComponent<CEvent>()) {
         return;
@@ -798,7 +798,7 @@ void CollisionManager::handlePlayerArea(Entity player, Entity area, Vec2 overlap
     return;
 }
 
-void CollisionManager::handleMobWater(Entity mob, Entity water, Vec2 overlap)
+void CollisionManager::handleMobWater(Entity mob, Entity, Vec2)
 {
     m_entitiesInWater.insert(mob.getID());
     if (m_scene) {
