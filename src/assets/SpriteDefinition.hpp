@@ -20,24 +20,12 @@ class SpriteDefinition
 public:
     SpriteDefinition();
     SpriteDefinition(const std::string& name, TextureHandle texture);
-    SpriteDefinition(
-        const std::string& name,
-        TextureHandle texture,
-        size_t frameCount,
-        size_t frameDuration,
-        int rows,
-        int cols,
-        TextureSize textureSize
-    );
-    SpriteDefinition(
-        const std::string& name,
-        TextureHandle texture,
-        size_t frameCount,
-        size_t frameDuration,
-        int rows,
-        int cols,
-        RectF sourceRegion
-    );
+    SpriteDefinition(const std::string& name, TextureHandle texture,
+                     size_t frameCount, size_t frameDuration, int rows,
+                     int cols, TextureSize textureSize);
+    SpriteDefinition(const std::string& name, TextureHandle texture,
+                     size_t frameCount, size_t frameDuration, int rows,
+                     int cols, RectF sourceRegion);
 
     const std::string& name() const;
     TextureHandle texture() const;

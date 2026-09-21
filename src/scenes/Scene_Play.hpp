@@ -18,25 +18,25 @@
 
 class Scene_Play : public Scene
 {
-    protected:
-    
+protected:
     friend class LevelLoader;
     EntityID m_player;
     std::string m_playerDefinition = "player";
     std::string m_levelPath;
-    
+
     CollisionManager m_collisionManager;
     InventoryManager m_inventoryManager;
     StoryManager m_storyManager;
     LevelLoader m_levelLoader;
     EventBus m_eventBus;
-    
+
     float m_zoomStep = 2;
     Vec2 m_levelSize;
     bool m_newGame;
     bool m_playerHealthCritical = false;
 
-    struct LowHealthOverlayConfig {
+    struct LowHealthOverlayConfig
+    {
         Color color{100, 0, 0, 255};
         float centerTransparency = 0.15f;
         float edgeTransparency = 0.75f;
@@ -44,20 +44,20 @@ class Scene_Play : public Scene
         float pulseMin = 0.35f;
         float pulseMax = 0.95f;
     } m_lowHealthOverlayConfig;
-    
-    std::unordered_map<std::string, std::unordered_set<std::string>> m_damageToEnemyMap = {
-        {"fire", {"grass"}},
-        {"water", {"fire"}},
-        {"ice", {"water"}},
-        {"explosive", {"rock"}},
-        {"piercing", {"shielded"}}
-    };
-    
+
+    std::unordered_map<std::string, std::unordered_set<std::string>>
+        m_damageToEnemyMap = {{"fire", {"grass"}},
+                              {"water", {"fire"}},
+                              {"ice", {"water"}},
+                              {"explosive", {"rock"}},
+                              {"piercing", {"shielded"}}};
+
     void loadActiveLayout();
     void saveGame();
-    
+
     EntityID spawnPlayer();
-    EntityID spawnShadow(EntityID parentID, const CShadow& shadowConfig = CShadow{});
+    EntityID spawnShadow(EntityID parentID,
+                         const CShadow& shadowConfig = CShadow{});
     void sLoader();
     void sAttack();
     void sAI();
@@ -73,7 +73,7 @@ class Scene_Play : public Scene
     void sAudio();
     void printHoveredEntityComponents();
     void onTerrainChanged() override;
-    
+
     void sDoAction(const Action&);
     void onEnd();
     void togglePause();
@@ -84,20 +84,24 @@ class Scene_Play : public Scene
     void updateActiveItem(EntityID entity, int newActiveItem);
     void changePlayerState(EntityID entity, PlayerState s);
     void startAttack(EntityID attackerID, Vec2 direction, CWeapon& weapon);
-    void finishAttack(EntityID attackerID, CAttackState& attackState, const CWeapon* weapon);
+    void finishAttack(EntityID attackerID, CAttackState& attackState,
+                      const CWeapon* weapon);
     bool hasLineOfSight(Vec2 origin, Vec2 target);
-    bool rayIntersectsAABB(Vec2 origin, Vec2 dir, float maxDist, 
-        Vec2 boxMin, Vec2 boxMax);
+    bool rayIntersectsAABB(Vec2 origin, Vec2 dir, float maxDist, Vec2 boxMin,
+                           Vec2 boxMax);
     void tickPatrol(CAIAgent& agent, Vec2 pos, CInput& intent);
-    
-    public:    
+
+public:
     Scene_Play(Game* game, std::string path, bool newGame);
     Vec2 getCameraPosition() override;
-    
-    EntityID spawnProjectile(EntityID attackerID, Vec2 direction, const CWeapon& weapon);
-    EntityID spawnHitbox(EntityID attackerID, Vec2 direction, const CWeapon& weapon);
+
+    EntityID spawnProjectile(EntityID attackerID, Vec2 direction,
+                             const CWeapon& weapon);
+    EntityID spawnHitbox(EntityID attackerID, Vec2 direction,
+                         const CWeapon& weapon);
     void destroyProjectile(EntityID projectileID);
-    void updateSwimmingState(const std::unordered_set<EntityID>& activeWaterEntities);
+    void updateSwimmingState(
+        const std::unordered_set<EntityID>& activeWaterEntities);
     EntityID spawnSwimming(EntityID entityID);
     bool tryPossess(EntityID playerID, EntityID mobID);
     bool addItemToInventory(EntityID player, const Item& item);
@@ -107,29 +111,34 @@ class Scene_Play : public Scene
     void updateActiveItem(int newActiveItem);
     void update();
     void setPaused(bool);
-    
-    StoryManager& getStoryManager() {
+
+    StoryManager& getStoryManager()
+    {
         return m_storyManager;
-    }  
-    
-    InventoryManager& getInventoryManager() {
+    }
+
+    InventoryManager& getInventoryManager()
+    {
         return m_inventoryManager;
-    }  
+    }
 
     EntityID SpawnFromJSON(std::string name, Vec2 pos);
     EntityID Spawn(std::string name, Vec2 pos);
     EntityID DropItem(const Item& item, Vec2 position);
 
-// Story events are always delivered to StoryManager before optional listeners.
-    void onItemPickedUp(const std::string& itemName) {
-        Emit(Event{ EventType::ItemPickedUp, itemName });
+    // Story events are always delivered to StoryManager before optional listeners.
+    void onItemPickedUp(const std::string& itemName)
+    {
+        Emit(Event{EventType::ItemPickedUp, itemName});
     }
 
-    void onEnemyKilled(const std::string& itemName) {
-        Emit(Event{ EventType::EntityKilled, itemName });
+    void onEnemyKilled(const std::string& itemName)
+    {
+        Emit(Event{EventType::EntityKilled, itemName});
     }
 
-    void Emit(const Event& e) {
+    void Emit(const Event& e)
+    {
         m_storyManager.onEvent(e);
         m_eventBus.emit(e);
     }

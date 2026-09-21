@@ -3,7 +3,8 @@
 
 #include <array>
 
-namespace {
+namespace
+{
 
 using TestSupport::require;
 
@@ -19,8 +20,10 @@ void testSizeAndRange()
     const std::vector<int> values = generateRandomArray(100, 42, -3, 7);
     require(values.size() == 100, "requested size was not preserved");
 
-    for (const int value : values) {
-        require(value >= -3 && value <= 7, "generated value was outside the requested range");
+    for (const int value : values)
+    {
+        require(value >= -3 && value <= 7,
+                "generated value was outside the requested range");
     }
 }
 
@@ -33,8 +36,7 @@ void testZeroSize()
 constexpr std::array Tests = {
     TestSupport::TestCase{"deterministic_seed", testDeterministicSeed},
     TestSupport::TestCase{"size_and_range", testSizeAndRange},
-    TestSupport::TestCase{"zero_size", testZeroSize}
-};
+    TestSupport::TestCase{"zero_size", testZeroSize}};
 
 } // namespace
 

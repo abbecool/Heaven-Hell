@@ -14,10 +14,13 @@
 #include "render/sdl/SDLRenderBackend.hpp"
 #include "scenes/Scene_Menu.hpp"
 
-namespace {
-std::unique_ptr<RenderBackend> createRenderBackend(RenderDriver driver, SDLPlatform& platform)
+namespace
 {
-    switch (driver) {
+std::unique_ptr<RenderBackend> createRenderBackend(RenderDriver driver,
+                                                   SDLPlatform& platform)
+{
+    switch (driver)
+    {
     case RenderDriver::SDLRenderer:
         return std::make_unique<SDLRenderBackend>(platform.window());
     case RenderDriver::OpenGL:
@@ -25,35 +28,38 @@ std::unique_ptr<RenderBackend> createRenderBackend(RenderDriver driver, SDLPlatf
     }
     throw std::runtime_error("Unknown render driver.");
 }
-}
+} // namespace
 
-Game::Game(const std::string & pathImages)
+Game::Game(const std::string& pathImages)
 {
-    try {
-        m_platform = std::make_unique<SDLPlatform>(
-            "Heaven & Hell",
-            m_width,
-            m_height,
-            m_renderDriver);
-    } catch (const std::exception& e) {
+    try
+    {
+        m_platform = std::make_unique<SDLPlatform>("Heaven & Hell", m_width,
+                                                   m_height, m_renderDriver);
+    }
+    catch (const std::exception& e)
+    {
         std::cerr << e.what() << std::endl;
         m_running = false;
         return;
     }
-    
+
     current_frame = steady_clock::now();
     last_fps_update = current_frame;
 
-    try {
+    try
+    {
         m_renderBackend = createRenderBackend(m_renderDriver, *m_platform);
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         std::cerr << e.what() << std::endl;
         m_running = false;
         return;
     }
 
     m_assets.loadFromFile(pathImages, *m_renderBackend, *m_platform);
-    
+
     updateResolution(displayScale(false));
     changeScene("MENU", std::make_shared<Scene_Menu>(this));
 }
@@ -69,19 +75,19 @@ void Game::updateResolution(int scale)
     setHeight(height);
     m_platform->setWindowSize(width, height);
     m_renderBackend->onWindowResized(width, height);
-    m_fpsRect = {
-        static_cast<float>(width - 100),
-        static_cast<float>(height - 20),
-        100.0f,
-        20.0f
-    };
+    m_fpsRect = {static_cast<float>(width - 100),
+                 static_cast<float>(height - 20), 100.0f, 20.0f};
 }
 
-void Game::ToggleFullscreen(){
-    if (m_platform->isFullscreen()) {
+void Game::ToggleFullscreen()
+{
+    if (m_platform->isFullscreen())
+    {
         m_platform->setFullscreen(false);
         updateResolution(displayScale(false));
-    } else {
+    }
+    else
+    {
         m_platform->setFullscreen(true);
         updateResolution(displayScale(true));
     }
@@ -89,34 +95,38 @@ void Game::ToggleFullscreen(){
 
 int Game::displayScale(bool fullscreen) const
 {
-    const int displayHeight = m_platform->currentDisplaySize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT).h;
+    const int displayHeight =
+        m_platform->currentDisplaySize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT).h;
     const int scale = displayHeight / VIRTUAL_HEIGHT;
     return std::max(1, fullscreen ? scale : scale - 1);
 }
 
-std::shared_ptr<Scene> Game::currentScene() {
+std::shared_ptr<Scene> Game::currentScene()
+{
     return m_sceneMap[m_currentScene];
 }
 
-void Game::changeScene(
-    const std::string& sceneName, 
-    std::shared_ptr<Scene> scene, 
-    bool endCurrentScene)
+void Game::changeScene(const std::string& sceneName,
+                       std::shared_ptr<Scene> scene, bool endCurrentScene)
+{
+    if (endCurrentScene)
     {
-    if (endCurrentScene) {
         m_sceneMap.erase(m_currentScene);
     }
     m_currentScene = sceneName;
-    if (m_sceneMap.find(sceneName) == m_sceneMap.end()) {
+    if (m_sceneMap.find(sceneName) == m_sceneMap.end())
+    {
         m_sceneMap[sceneName] = scene;
     }
 }
 
-bool Game::isRunning() {
+bool Game::isRunning()
+{
     return m_running;
 }
 
-int Game::framerate(){
+int Game::framerate()
+{
     return m_framerate;
 }
 
@@ -133,7 +143,7 @@ void Game::run()
     m_assets.shutdown();
     m_renderBackend.reset();
     m_platform.reset();
-}   
+}
 
 void Game::FrametimeHandler()
 {
@@ -141,8 +151,10 @@ void Game::FrametimeHandler()
     auto now = std::chrono::steady_clock::now();
     auto frameDuration = now - current_frame;
 
-    if (m_renderFPS) {
-        int64_t frame_time_ns = std::chrono::duration_cast<nanoseconds>(frameDuration).count();
+    if (m_renderFPS)
+    {
+        int64_t frame_time_ns =
+            std::chrono::duration_cast<nanoseconds>(frameDuration).count();
         accumulated_frame_time += frame_time_ns;
         frame_count++;
 
@@ -155,45 +167,52 @@ void Game::FrametimeHandler()
             frame_count = 0;
             last_fps_update = steady_clock::now();
         }
-        m_renderBackend->drawText(TextDrawCommand{
-            "FPS: " + std::to_string(average_fps),
-            "Minecraft",
-            m_fpsRect,
-            {255, 255, 255, 255}
-        });
+        m_renderBackend->drawText(
+            TextDrawCommand{"FPS: " + std::to_string(average_fps),
+                            "Minecraft",
+                            m_fpsRect,
+                            {255, 255, 255, 255}});
     }
 
     auto targetFrameDuration = std::chrono::milliseconds(1000 / m_framerate);
 
-    if (frameDuration < targetFrameDuration) {
+    if (frameDuration < targetFrameDuration)
+    {
         std::this_thread::sleep_for(targetFrameDuration - frameDuration);
     }
     current_frame = std::chrono::steady_clock::now();
 }
 
-void Game::quit() {
+void Game::quit()
+{
     m_running = false;
 }
 
-void Game::update() {
-    if (m_currentScene == "PLAY") {
+void Game::update()
+{
+    if (m_currentScene == "PLAY")
+    {
         currentScene()->update();
         return;
     }
 
     // Pause is the only overlay that intentionally keeps the play scene alive
     // beneath it. Tools such as Scene_Editor must never advance gameplay.
-    if (m_currentScene == "SETTINGS" && m_sceneMap.find("PLAY") != m_sceneMap.end()) {
+    if (m_currentScene == "SETTINGS" &&
+        m_sceneMap.find("PLAY") != m_sceneMap.end())
+    {
         m_sceneMap["PLAY"]->update();
     }
     currentScene()->update();
 }
 
-SceneMap& Game::sceneMap(){
+SceneMap& Game::sceneMap()
+{
     return m_sceneMap;
 }
 
-RenderBackend& Game::render(){
+RenderBackend& Game::render()
+{
     return *m_renderBackend;
 }
 
@@ -232,7 +251,8 @@ void Game::sUserInput()
     m_platform->pollEvents(*this);
 }
 
-Assets& Game::assets(){
+Assets& Game::assets()
+{
     return m_assets;
 }
 
@@ -243,9 +263,12 @@ void Game::playAudio(const std::string& name)
 
 PixelImage Game::loadImagePixels(const std::string& path) const
 {
-    try {
+    try
+    {
         return m_platform->loadImagePixels(path);
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         std::cerr << e.what() << std::endl;
         return {};
     }
@@ -256,15 +279,18 @@ void Game::setPaused(bool paused)
     m_paused = paused;
 }
 
-void Game::setScale(int scale){
+void Game::setScale(int scale)
+{
     m_scale = scale;
 }
 
-int Game::getScale(){
+int Game::getScale()
+{
     return m_scale;
 }
 
-void Game::toggleRenderFPS(){
+void Game::toggleRenderFPS()
+{
     m_renderFPS = !m_renderFPS;
     std::cout << m_renderFPS << std::endl;
 }

@@ -7,9 +7,11 @@ class RenderBackend
 public:
     virtual ~RenderBackend() = default;
 
-    virtual void loadTexture(const std::string& name, const std::string& path) = 0;
+    virtual void loadTexture(const std::string& name,
+                             const std::string& path) = 0;
     virtual TextureSize textureSize(const TextureHandle& texture) const = 0;
-    virtual void loadFont(const std::string& name, const std::string& path, int size) = 0;
+    virtual void loadFont(const std::string& name, const std::string& path,
+                          int size) = 0;
 
     virtual void onWindowResized(int width, int height) = 0;
     virtual void beginFrame(Color clearColor) = 0;
@@ -24,13 +26,10 @@ public:
     virtual void fillWorldRect(const RectF& rect, Color color) = 0;
     virtual void drawText(const TextDrawCommand& command) = 0;
     virtual void drawWorldText(const WorldTextDrawCommand& command) = 0;
-    virtual void drawScreenRadialGradient(
-        Color color,
-        float centerAlpha,
-        float edgeAlpha,
-        float pulse,
-        float centerXRatio,
-        float centerYRatio)
+    virtual void drawScreenRadialGradient(Color color, float centerAlpha,
+                                          float edgeAlpha, float pulse,
+                                          float centerXRatio,
+                                          float centerYRatio)
     {
         (void)color;
         (void)centerAlpha;

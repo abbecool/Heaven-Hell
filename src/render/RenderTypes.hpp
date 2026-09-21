@@ -47,12 +47,8 @@ struct RenderView
 
     RectF worldToScreen(const RectF& rect) const
     {
-        return RectF{
-            worldToScreenX(rect.x),
-            worldToScreenY(rect.y),
-            rect.w * scale,
-            rect.h * scale
-        };
+        return RectF{worldToScreenX(rect.x), worldToScreenY(rect.y),
+                     rect.w * scale, rect.h * scale};
     }
 };
 

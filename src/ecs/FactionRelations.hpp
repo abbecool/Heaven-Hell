@@ -15,14 +15,22 @@ struct FactionRelations
 
     [[nodiscard]] constexpr bool relationTo(Faction faction) const
     {
-        switch (faction) {
-        case Faction::Demon:   return demon;
-        case Faction::Enemy:   return enemy;
-        case Faction::Wizard:  return wizard;
-        case Faction::Dwarf:   return dwarf;
-        case Faction::Elf:     return elf;
-        case Faction::Knight:  return knight;
-        case Faction::Neutral: return neutral;
+        switch (faction)
+        {
+        case Faction::Demon:
+            return demon;
+        case Faction::Enemy:
+            return enemy;
+        case Faction::Wizard:
+            return wizard;
+        case Faction::Dwarf:
+            return dwarf;
+        case Faction::Elf:
+            return elf;
+        case Faction::Knight:
+            return knight;
+        case Faction::Neutral:
+            return neutral;
         }
 
         return false;
@@ -101,14 +109,22 @@ inline constexpr FactionRelations NeutralHostileRelations{
 
 [[nodiscard]] constexpr const FactionRelations& relationsFor(Faction faction)
 {
-    switch (faction) {
-    case Faction::Demon:   return DemonHostileRelations;
-    case Faction::Enemy:   return EnemyHostileRelations;
-    case Faction::Wizard:  return WizardHostileRelations;
-    case Faction::Dwarf:   return DwarfHostileRelations;
-    case Faction::Elf:     return ElfHostileRelations;
-    case Faction::Knight:  return KnightHostileRelations;
-    case Faction::Neutral: return NeutralHostileRelations;
+    switch (faction)
+    {
+    case Faction::Demon:
+        return DemonHostileRelations;
+    case Faction::Enemy:
+        return EnemyHostileRelations;
+    case Faction::Wizard:
+        return WizardHostileRelations;
+    case Faction::Dwarf:
+        return DwarfHostileRelations;
+    case Faction::Elf:
+        return ElfHostileRelations;
+    case Faction::Knight:
+        return KnightHostileRelations;
+    case Faction::Neutral:
+        return NeutralHostileRelations;
     }
 
     return NeutralHostileRelations;

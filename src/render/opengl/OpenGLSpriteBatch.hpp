@@ -16,11 +16,13 @@ class OpenGLSpriteBatch
     static constexpr int MaxSpritesPerBatch = 8192;
     static constexpr int IndicesPerSprite = 6;
 
-    struct QuadVertex {
+    struct QuadVertex
+    {
         float x, y;
     };
 
-    struct SpriteInstance {
+    struct SpriteInstance
+    {
         float dstX, dstY, dstW, dstH;
         float srcU0, srcV0, srcU1, srcV1;
         float angle;
@@ -40,11 +42,8 @@ class OpenGLSpriteBatch
     int m_screenHeight = 1;
     RenderView m_worldView;
     std::array<float, 16> m_screenProjection = {
-        2.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, -2.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, -1.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 1.0f
-    };
+        2.0f, 0.0f, 0.0f,  0.0f, 0.0f,  -2.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, -1.0f, 0.0f, -1.0f, 1.0f,  0.0f, 1.0f};
     std::array<float, 16> m_worldProjection = m_screenProjection;
     OpenGLRenderSpace m_currentSpace = OpenGLRenderSpace::Screen;
     int m_batchCount = 0;
@@ -59,13 +58,8 @@ public:
     void flush();
 
     unsigned int whiteTexture() const;
-    void drawTexturedQuad(
-        unsigned int textureId,
-        TextureSize textureSize,
-        const RectF& src,
-        const RectF& dst,
-        float angle,
-        Color color,
-        OpenGLRenderSpace renderSpace,
-        float whiteTint = 0.0f);
+    void drawTexturedQuad(unsigned int textureId, TextureSize textureSize,
+                          const RectF& src, const RectF& dst, float angle,
+                          Color color, OpenGLRenderSpace renderSpace,
+                          float whiteTint = 0.0f);
 };

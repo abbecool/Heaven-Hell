@@ -13,35 +13,37 @@ public:
     Vec2();
 
     Vec2(float x_, float y_) : x(x_), y(y_) {}
-    Vec2(int x_, int y_) : x(static_cast<float>(x_)), y(static_cast<float>(y_)) {}
+    Vec2(int x_, int y_) : x(static_cast<float>(x_)), y(static_cast<float>(y_))
+    {
+    }
     Vec2(int x_, float y_) : x(static_cast<float>(x_)), y(y_) {}
     Vec2(float x_, int y_) : x(x_), y(static_cast<float>(y_)) {}
 
-    Vec2(json j) : x(j["x"]), y(j["y"]){}
-    Vec2(json jx, json jy) : x(jx), y(jy){}
+    Vec2(json j) : x(j["x"]), y(j["y"]) {}
+    Vec2(json jx, json jy) : x(jx), y(jy) {}
 
-    bool operator == (const Vec2 & rhs) const;
-    bool operator >= (const Vec2 & rhs) const;
-    bool operator != (const Vec2 & rhs) const;
+    bool operator==(const Vec2& rhs) const;
+    bool operator>=(const Vec2& rhs) const;
+    bool operator!=(const Vec2& rhs) const;
 
-    Vec2 operator + (const Vec2 & rhs) const;
-    Vec2 operator - (const Vec2 & rhs) const;
-    Vec2 operator * (const Vec2 & rhs) const;
-    Vec2 operator * (const float val) const;
-    Vec2 operator / (const float val) const;
-    Vec2 operator / (const Vec2 & rhs) const;
-    Vec2 operator % (const Vec2 & rhs) const;
-    Vec2 operator % (const int val) const;
+    Vec2 operator+(const Vec2& rhs) const;
+    Vec2 operator-(const Vec2& rhs) const;
+    Vec2 operator*(const Vec2& rhs) const;
+    Vec2 operator*(const float val) const;
+    Vec2 operator/(const float val) const;
+    Vec2 operator/(const Vec2& rhs) const;
+    Vec2 operator%(const Vec2& rhs) const;
+    Vec2 operator%(const int val) const;
 
-    void operator ++ ();
-    void operator -- ();
+    void operator++();
+    void operator--();
 
-    void operator += (const Vec2 & rhs);
-    void operator -= (const Vec2 &rhs);
-    void operator *= (const float val);
-    void operator /= (const float val);
+    void operator+=(const Vec2& rhs);
+    void operator-=(const Vec2& rhs);
+    void operator*=(const float val);
+    void operator/=(const float val);
 
-    float dist(const Vec2 & rhs) const;
+    float dist(const Vec2& rhs) const;
     bool isNull() const;
     float length() const;
     Vec2 abs_elem() const;

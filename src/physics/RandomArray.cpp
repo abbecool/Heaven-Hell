@@ -1,10 +1,14 @@
 #include "RandomArray.hpp"
 
 // Function to generate an array of random integers
-std::vector<int> generateRandomArray(int size, int seed, int minValue, int maxValue) {
+std::vector<int> generateRandomArray(int size, int seed, int minValue,
+                                     int maxValue)
+{
     // Create a random number engine and seed it
-    if (seed == 0) {
-        seed = std::random_device{}(); // Use a random device if no seed is provided
+    if (seed == 0)
+    {
+        seed = std::
+            random_device{}(); // Use a random device if no seed is provided
     }
     std::mt19937 engine(seed);
 
@@ -15,7 +19,8 @@ std::vector<int> generateRandomArray(int size, int seed, int minValue, int maxVa
     std::vector<int> randomArray(size);
 
     // Fill the vector with random numbers
-    for (int& num : randomArray) {
+    for (int& num : randomArray)
+    {
         num = dist(engine);
     }
 

@@ -18,7 +18,8 @@ using json = nlohmann::json;
 
 constexpr uint8_t MAX_LAYERS = 16;
 
-namespace RenderLayer {
+namespace RenderLayer
+{
 constexpr int ReservedBelowTerrain = 1;
 constexpr int TerrainTilesLow = 2;
 constexpr int TerrainTilesHigh = 3;
@@ -35,10 +36,9 @@ constexpr int Dialog = 12;
 constexpr int MenuBackground = 1;
 constexpr int MenuTitle = 2;
 constexpr int MenuControl = 3;
-}
+} // namespace RenderLayer
 
-inline const std::unordered_map<std::string, int> renderLayerMap =
-{
+inline const std::unordered_map<std::string, int> renderLayerMap = {
     {"RESERVED_BELOW_TERRAIN_RENDER_LAYER", RenderLayer::ReservedBelowTerrain},
     {"TERRAIN_TILE_LOW_RENDER_LAYER", RenderLayer::TerrainTilesLow},
     {"TERRAIN_TILE_HIGH_RENDER_LAYER", RenderLayer::TerrainTilesHigh},
@@ -58,53 +58,52 @@ inline const std::unordered_map<std::string, int> renderLayerMap =
 
 inline int renderLayerFromJson(const json& value)
 {
-    if (value.is_number_integer()) {
+    if (value.is_number_integer())
+    {
         return value.get<int>();
     }
 
-    if (value.is_string()) {
+    if (value.is_string())
+    {
         const std::string layerName = value.get<std::string>();
         const auto it = renderLayerMap.find(layerName);
-        if (it != renderLayerMap.end()) {
+        if (it != renderLayerMap.end())
+        {
             return it->second;
         }
         throw std::out_of_range("Unknown render layer: " + layerName);
     }
 
-    throw std::invalid_argument("Render layer must be an integer or render layer name");
+    throw std::invalid_argument(
+        "Render layer must be an integer or render layer name");
 }
 
 using CollisionMask = std::bitset<MAX_LAYERS>;
-constexpr CollisionMask EMPTY_MASK              = 0;        // 000000000, No bits set
-constexpr CollisionMask PLAYER_LAYER            = 1 << 0;   // 000000001, Bit 0
-constexpr CollisionMask ENEMY_LAYER             = 1 << 1;   // 000000010, Bit 1
-constexpr CollisionMask PROJECTILE_LAYER        = 1 << 2;   // 000000100, Bit 2
-constexpr CollisionMask OBSTACLE_LAYER          = 1 << 3;   // 000001000, Bit 3
-constexpr CollisionMask FRIENDLY_LAYER          = 1 << 4;   // 000010000, Bit 4
-constexpr CollisionMask DAMAGE_LAYER            = 1 << 5;   // 000100000, Bit 5
-constexpr CollisionMask WATER_LAYER             = 1 << 6;   // 001000000, Bit 6
-constexpr CollisionMask LOOT_LAYER              = 1 << 7;   // 010000000, Bit 7
-constexpr CollisionMask AREA_LAYER              = 1 << 8;   // 100000000, Bit 8
-constexpr CollisionMask WIZARD_LAYER            = 1 << 9;
-constexpr CollisionMask DWARF_LAYER             = 1 << 10;
-constexpr CollisionMask ELF_LAYER               = 1 << 11;
-constexpr CollisionMask KNIGHT_LAYER            = 1 << 12;
+constexpr CollisionMask EMPTY_MASK = 0;            // 000000000, No bits set
+constexpr CollisionMask PLAYER_LAYER = 1 << 0;     // 000000001, Bit 0
+constexpr CollisionMask ENEMY_LAYER = 1 << 1;      // 000000010, Bit 1
+constexpr CollisionMask PROJECTILE_LAYER = 1 << 2; // 000000100, Bit 2
+constexpr CollisionMask OBSTACLE_LAYER = 1 << 3;   // 000001000, Bit 3
+constexpr CollisionMask FRIENDLY_LAYER = 1 << 4;   // 000010000, Bit 4
+constexpr CollisionMask DAMAGE_LAYER = 1 << 5;     // 000100000, Bit 5
+constexpr CollisionMask WATER_LAYER = 1 << 6;      // 001000000, Bit 6
+constexpr CollisionMask LOOT_LAYER = 1 << 7;       // 010000000, Bit 7
+constexpr CollisionMask AREA_LAYER = 1 << 8;       // 100000000, Bit 8
+constexpr CollisionMask WIZARD_LAYER = 1 << 9;
+constexpr CollisionMask DWARF_LAYER = 1 << 10;
+constexpr CollisionMask ELF_LAYER = 1 << 11;
+constexpr CollisionMask KNIGHT_LAYER = 1 << 12;
 
-inline std::unordered_map<std::string, CollisionMask> componentMaskMap = 
-{
-    {"EMPTY_MASK", EMPTY_MASK},
-    {"PLAYER_LAYER", PLAYER_LAYER},
-    {"ENEMY_LAYER", ENEMY_LAYER},
-    {"PROJECTILE_LAYER", PROJECTILE_LAYER},
-    {"OBSTACLE_LAYER", OBSTACLE_LAYER},
-    {"FRIENDLY_LAYER", FRIENDLY_LAYER},
-    {"DAMAGE_LAYER", DAMAGE_LAYER},
-    {"WATER_LAYER", WATER_LAYER},
-    {"LOOT_LAYER", LOOT_LAYER},
-    {"AREA_LAYER", AREA_LAYER},
+inline std::unordered_map<std::string, CollisionMask> componentMaskMap = {
+    {"EMPTY_MASK", EMPTY_MASK},         {"PLAYER_LAYER", PLAYER_LAYER},
+    {"ENEMY_LAYER", ENEMY_LAYER},       {"PROJECTILE_LAYER", PROJECTILE_LAYER},
+    {"OBSTACLE_LAYER", OBSTACLE_LAYER}, {"FRIENDLY_LAYER", FRIENDLY_LAYER},
+    {"DAMAGE_LAYER", DAMAGE_LAYER},     {"WATER_LAYER", WATER_LAYER},
+    {"LOOT_LAYER", LOOT_LAYER},         {"AREA_LAYER", AREA_LAYER},
 };
 
-enum struct PlayerState {
+enum struct PlayerState
+{
     STAND = 0,
     RUN_DOWN = 1,
     RUN_RIGHT = 2,
@@ -117,9 +116,9 @@ using EntityID = uint32_t;
 struct CParent
 {
     EntityID parent;
-    Vec2 relativePos = {0,0};
+    Vec2 relativePos = {0, 0};
     CParent() {}
-    CParent(EntityID p) : parent(p){}
+    CParent(EntityID p) : parent(p) {}
     CParent(EntityID p, Vec2 relPos) : parent(p), relativePos(relPos) {}
 };
 
@@ -133,60 +132,54 @@ struct CProjectile
     CollisionMask targetMask = ENEMY_LAYER;
     CProjectile() {}
     CProjectile(EntityID projectileOwner, Vec2 projectileDirection)
-        : owner(projectileOwner), direction(projectileDirection) {}
-    CProjectile(
-        EntityID projectileOwner,
-        Vec2 projectileDirection,
-        float projectileSpeed,
-        int lifetime,
-        float offset,
-        CollisionMask targets = ENEMY_LAYER
-    )
-        : owner(projectileOwner),
-          direction(projectileDirection),
-          speed(projectileSpeed),
-          flightLifetime(lifetime),
-          createOffset(offset),
-          targetMask(targets) {}
+        : owner(projectileOwner), direction(projectileDirection)
+    {
+    }
+    CProjectile(EntityID projectileOwner, Vec2 projectileDirection,
+                float projectileSpeed, int lifetime, float offset,
+                CollisionMask targets = ENEMY_LAYER)
+        : owner(projectileOwner), direction(projectileDirection),
+          speed(projectileSpeed), flightLifetime(lifetime),
+          createOffset(offset), targetMask(targets)
+    {
+    }
 };
 
 struct CInput
 {
     Vec2 direction = {0, 0};
-    bool up         = false;
-    bool down       = false;
-    bool left       = false;
-    bool right      = false;
-    bool shift      = false;
-    bool ctrl       = false;
-    bool interact   = false;
-    bool use        = false;
-    bool useHeld    = false;
+    bool up = false;
+    bool down = false;
+    bool left = false;
+    bool right = false;
+    bool shift = false;
+    bool ctrl = false;
+    bool interact = false;
+    bool use = false;
+    bool useHeld = false;
 
-    bool shoot      = false;
-    bool canShoot   = false;
-    bool posses     = false;
-    bool possesHeld     = false;
+    bool shoot = false;
+    bool canShoot = false;
+    bool posses = false;
+    bool possesHeld = false;
     CInput() {};
 };
 
 struct CTransform
 {
-    Vec2 pos = {0, 0};  
-    Vec2 prevPos = {0, 0};  
-    Vec2 scale = {1, 1};    
+    Vec2 pos = {0, 0};
+    Vec2 prevPos = {0, 0};
+    Vec2 scale = {1, 1};
     float angle = 0;
     CTransform() {}
-    CTransform(const Vec2 & p)
-        : pos(p), prevPos(p) {}
-    CTransform(const Vec2 & p, float a)
-        : pos(p), prevPos(p), angle(a) {}
-    CTransform(const Vec2 & p, float a, Vec2 s)
-        : pos(p), prevPos(p), scale(s), angle(a){}
-    CTransform(const Vec2 & p, Vec2 s)
-        : pos(p), prevPos(p), scale(s){}
-    CTransform(const json j)
-        : pos(j["pos"]), prevPos(j["pos"]) {}
+    CTransform(const Vec2& p) : pos(p), prevPos(p) {}
+    CTransform(const Vec2& p, float a) : pos(p), prevPos(p), angle(a) {}
+    CTransform(const Vec2& p, float a, Vec2 s)
+        : pos(p), prevPos(p), scale(s), angle(a)
+    {
+    }
+    CTransform(const Vec2& p, Vec2 s) : pos(p), prevPos(p), scale(s) {}
+    CTransform(const json j) : pos(j["pos"]), prevPos(j["pos"]) {}
 };
 
 // Visual-only shadow tuning. Scale is a multiplier of the automatically
@@ -198,10 +191,11 @@ struct CShadow
 
     CShadow() = default;
     explicit CShadow(const json& j)
-        : scale(j.value("scale", 1.0f))
-        , offset(j.contains("offset") ? Vec2{j.at("offset")} : Vec2{0, 0})
+        : scale(j.value("scale", 1.0f)),
+          offset(j.contains("offset") ? Vec2{j.at("offset")} : Vec2{0, 0})
     {
-        if (scale < 0.0f) {
+        if (scale < 0.0f)
+        {
             throw std::invalid_argument("CShadow scale cannot be negative");
         }
     }
@@ -212,8 +206,7 @@ struct CVelocity
     // World-space linear velocity in pixels per second.
     Vec2 vel = {0, 0};
     CVelocity() {}
-    CVelocity(const Vec2& v)
-        : vel(v) {}
+    CVelocity(const Vec2& v) : vel(v) {}
 };
 
 struct CPhysicsBody
@@ -227,7 +220,8 @@ struct CPhysicsBody
     CPhysicsBody() = default;
 
     CPhysicsBody(float bodyMass, float force, float speed, float damping)
-        : mass(bodyMass), moveForce(force), maxSpeed(speed), linearDamping(damping)
+        : mass(bodyMass), moveForce(force), maxSpeed(speed),
+          linearDamping(damping)
     {
         validate();
     }
@@ -244,20 +238,25 @@ struct CPhysicsBody
 private:
     void validate() const
     {
-        if (mass <= 0.0f || moveForce < 0.0f || maxSpeed < 0.0f || linearDamping < 0.0f) {
-            throw std::invalid_argument("CPhysicsBody requires positive mass and non-negative tuning values");
+        if (mass <= 0.0f || moveForce < 0.0f || maxSpeed < 0.0f ||
+            linearDamping < 0.0f)
+        {
+            throw std::invalid_argument("CPhysicsBody requires positive mass "
+                                        "and non-negative tuning values");
         }
     }
 };
 
 inline CollisionMask collisionMaskFromJson(const json& value)
 {
-    if (value.is_string()) {
+    if (value.is_string())
+    {
         return componentMaskMap.at(value.get<std::string>());
     }
 
     CollisionMask mask = EMPTY_MASK;
-    for (const auto& maskStr : value) {
+    for (const auto& maskStr : value)
+    {
         mask |= componentMaskMap.at(maskStr.get<std::string>());
     }
     return mask;
@@ -265,12 +264,10 @@ inline CollisionMask collisionMaskFromJson(const json& value)
 
 inline Color colorFromJson(const json& value)
 {
-    return Color{
-        static_cast<uint8_t>(value.at("r").get<int>()),
-        static_cast<uint8_t>(value.at("g").get<int>()),
-        static_cast<uint8_t>(value.at("b").get<int>()),
-        static_cast<uint8_t>(value.at("a").get<int>())
-    };
+    return Color{static_cast<uint8_t>(value.at("r").get<int>()),
+                 static_cast<uint8_t>(value.at("g").get<int>()),
+                 static_cast<uint8_t>(value.at("b").get<int>()),
+                 static_cast<uint8_t>(value.at("a").get<int>())};
 }
 
 struct ColliderShape
@@ -284,36 +281,37 @@ struct ColliderShape
     bool isTrigger = false;
 
     ColliderShape() = default;
-    ColliderShape(const Vec2& s)
-        : size(s), halfSize(s / 2.0f) {}
-    ColliderShape(const Vec2& s, CollisionMask l, CollisionMask targets, bool trigger = false)
-        : size(s), halfSize(s / 2.0f), layer(l), targetMask(targets), isTrigger(trigger) {}
-    ColliderShape(
-        const Vec2& shapeOffset,
-        const Vec2& shapeSize,
-        CollisionMask shapeLayer,
-        CollisionMask shapeTargets,
-        Color shapeDebugColor,
-        bool trigger
-    )
-        : offset(shapeOffset),
-          size(shapeSize),
-          halfSize(shapeSize / 2.0f),
-          layer(shapeLayer),
-          targetMask(shapeTargets),
-          debugColor(shapeDebugColor),
-          isTrigger(trigger) {}
-    ColliderShape(const json& j, Color defaultColor = {255, 255, 255, 255}, bool defaultTrigger = false)
+    ColliderShape(const Vec2& s) : size(s), halfSize(s / 2.0f) {}
+    ColliderShape(const Vec2& s, CollisionMask l, CollisionMask targets,
+                  bool trigger = false)
+        : size(s), halfSize(s / 2.0f), layer(l), targetMask(targets),
+          isTrigger(trigger)
+    {
+    }
+    ColliderShape(const Vec2& shapeOffset, const Vec2& shapeSize,
+                  CollisionMask shapeLayer, CollisionMask shapeTargets,
+                  Color shapeDebugColor, bool trigger)
+        : offset(shapeOffset), size(shapeSize), halfSize(shapeSize / 2.0f),
+          layer(shapeLayer), targetMask(shapeTargets),
+          debugColor(shapeDebugColor), isTrigger(trigger)
+    {
+    }
+    ColliderShape(const json& j, Color defaultColor = {255, 255, 255, 255},
+                  bool defaultTrigger = false)
     {
         offset = j.value("offset", Vec2{0, 0});
         size = j.at("size").get<Vec2>();
         halfSize = size / 2.0f;
-        debugColor = j.contains("debugColor") ? colorFromJson(j.at("debugColor")) : defaultColor;
+        debugColor = j.contains("debugColor")
+                         ? colorFromJson(j.at("debugColor"))
+                         : defaultColor;
         isTrigger = j.value("isTrigger", defaultTrigger);
-        if (j.contains("layer")) {
+        if (j.contains("layer"))
+        {
             layer = collisionMaskFromJson(j.at("layer"));
         }
-        if (j.contains("targetMask")) {
+        if (j.contains("targetMask"))
+        {
             targetMask = collisionMaskFromJson(j.at("targetMask"));
         }
     }
@@ -324,17 +322,26 @@ struct CCollider
     std::vector<ColliderShape> shapes;
 
     CCollider() = default;
-    CCollider(const Vec2& size)
-        : shapes{ColliderShape(size)} {}
-    CCollider(const Vec2& size, CollisionMask layer, CollisionMask targetMask, bool isTrigger = false)
-        : shapes{ColliderShape(size, layer, targetMask, isTrigger)} {}
-    CCollider(const Vec2& size, CollisionMask layer, CollisionMask targetMask, Color debugColor, bool isTrigger = false)
-        : shapes{ColliderShape(Vec2{0, 0}, size, layer, targetMask, debugColor, isTrigger)} {}
+    CCollider(const Vec2& size) : shapes{ColliderShape(size)} {}
+    CCollider(const Vec2& size, CollisionMask layer, CollisionMask targetMask,
+              bool isTrigger = false)
+        : shapes{ColliderShape(size, layer, targetMask, isTrigger)}
+    {
+    }
+    CCollider(const Vec2& size, CollisionMask layer, CollisionMask targetMask,
+              Color debugColor, bool isTrigger = false)
+        : shapes{ColliderShape(Vec2{0, 0}, size, layer, targetMask, debugColor,
+                               isTrigger)}
+    {
+    }
     CCollider(std::vector<ColliderShape> colliderShapes)
-        : shapes(std::move(colliderShapes)) {}
+        : shapes(std::move(colliderShapes))
+    {
+    }
     CCollider(const json& j)
     {
-        for (const auto& shapeJson : j.at("shapes")) {
+        for (const auto& shapeJson : j.at("shapes"))
+        {
             shapes.emplace_back(shapeJson);
         }
     }
@@ -345,40 +352,64 @@ struct CCollider
     }
 };
 
-enum class Faction { Demon, Enemy, Wizard, Dwarf, Elf, Knight, Neutral };
+enum class Faction
+{
+    Demon,
+    Enemy,
+    Wizard,
+    Dwarf,
+    Elf,
+    Knight,
+    Neutral
+};
 
 inline Faction factionFromString(const std::string& factionName)
 {
-    if (factionName == "Demon") return Faction::Demon;
-    if (factionName == "Enemy") return Faction::Enemy;
-    if (factionName == "Wizard") return Faction::Wizard;
-    if (factionName == "Dwarf") return Faction::Dwarf;
-    if (factionName == "Elf") return Faction::Elf;
-    if (factionName == "Knight") return Faction::Knight;
-    if (factionName == "Neutral") return Faction::Neutral;
+    if (factionName == "Demon")
+        return Faction::Demon;
+    if (factionName == "Enemy")
+        return Faction::Enemy;
+    if (factionName == "Wizard")
+        return Faction::Wizard;
+    if (factionName == "Dwarf")
+        return Faction::Dwarf;
+    if (factionName == "Elf")
+        return Faction::Elf;
+    if (factionName == "Knight")
+        return Faction::Knight;
+    if (factionName == "Neutral")
+        return Faction::Neutral;
     throw std::invalid_argument("Unknown faction: " + factionName);
 }
 
-struct CAllegiance {
+struct CAllegiance
+{
     Faction trueFaction = Faction::Demon;
     Faction perceivedFaction = Faction::Demon;
 
     CAllegiance() = default;
     explicit CAllegiance(Faction faction)
-        : trueFaction(faction), perceivedFaction(faction) {}
+        : trueFaction(faction), perceivedFaction(faction)
+    {
+    }
     CAllegiance(Faction actualFaction, Faction currentFaction)
-        : trueFaction(actualFaction), perceivedFaction(currentFaction) {}
+        : trueFaction(actualFaction), perceivedFaction(currentFaction)
+    {
+    }
     explicit CAllegiance(const json& j)
-        : trueFaction(factionFromString(j.at("trueFaction").get<std::string>())),
-          perceivedFaction(factionFromString(
-              j.value("perceivedFaction", j.at("trueFaction").get<std::string>()))) {}
+        : trueFaction(
+              factionFromString(j.at("trueFaction").get<std::string>())),
+          perceivedFaction(factionFromString(j.value(
+              "perceivedFaction", j.at("trueFaction").get<std::string>())))
+    {
+    }
 };
 
-struct CWater {
-    bool isDeep = false;  // Differentiates deep vs shallow water
+struct CWater
+{
+    bool isDeep = false; // Differentiates deep vs shallow water
     CWater() {}
-    CWater(bool d) 
-        : isDeep(d) {}
+    CWater(bool d) : isDeep(d) {}
 };
 
 struct CSwimming
@@ -386,16 +417,14 @@ struct CSwimming
     EntityID childEntity = 0;
 
     CSwimming() = default;
-    explicit CSwimming(EntityID child)
-        : childEntity(child) {}
+    explicit CSwimming(EntityID child) : childEntity(child) {}
 };
 
 struct CCurrency
 {
     int value = 0;
     CCurrency() {}
-    CCurrency(const json& j)
-        : value(j.value("value", 0)){}
+    CCurrency(const json& j) : value(j.value("value", 0)) {}
 };
 
 struct CHealth
@@ -407,14 +436,17 @@ struct CHealth
     std::unordered_set<std::string> HPType;
     CHealth() {}
     CHealth(int hp, int hp_max, int hrt_frms)
-        : HP(hp), HP_max(hp_max), i_frames(hrt_frms){}
-    CHealth(const json& j) {
-        HP       = j["HP"];
-        HP_max   = j["HP_max"];
+        : HP(hp), HP_max(hp_max), i_frames(hrt_frms)
+    {
+    }
+    CHealth(const json& j)
+    {
+        HP = j["HP"];
+        HP_max = j["HP_max"];
         i_frames = j["i_frames"];
         if (j.contains("type"))
             for (auto& t : j["type"])
-            HPType.insert(t);
+                HPType.insert(t);
     }
 };
 
@@ -424,22 +456,22 @@ struct CDamageFlash
     int totalFrames = 8;
 
     CDamageFlash() {}
-    CDamageFlash(int frames)
-        : framesRemaining(frames), totalFrames(frames) {}
+    CDamageFlash(int frames) : framesRemaining(frames), totalFrames(frames) {}
 
-    void reset() {
+    void reset()
+    {
         framesRemaining = totalFrames;
     }
 
-    float whiteTint() const {
-        if (totalFrames <= 0 || framesRemaining <= 0) {
+    float whiteTint() const
+    {
+        if (totalFrames <= 0 || framesRemaining <= 0)
+        {
             return 0.0f;
         }
-        return std::clamp(
-            static_cast<float>(framesRemaining) / static_cast<float>(totalFrames),
-            0.0f,
-            1.0f
-        );
+        return std::clamp(static_cast<float>(framesRemaining) /
+                              static_cast<float>(totalFrames),
+                          0.0f, 1.0f);
     }
 };
 
@@ -447,7 +479,7 @@ struct CLifespan
 {
     int lifespan = 0;
     CLifespan() {}
-    CLifespan(int lf) : lifespan(lf){}
+    CLifespan(int lf) : lifespan(lf) {}
 };
 
 struct CActiveHitboxLifetime
@@ -455,8 +487,7 @@ struct CActiveHitboxLifetime
     int framesRemaining = 15;
 
     CActiveHitboxLifetime() {}
-    CActiveHitboxLifetime(int frames)
-        : framesRemaining(frames) {}
+    CActiveHitboxLifetime(int frames) : framesRemaining(frames) {}
 };
 
 struct CSprite
@@ -468,9 +499,12 @@ struct CSprite
 
     CSprite() {}
     CSprite(const SpriteDefinition& sprite, int l)
-        : texture(sprite.texture()), src(sprite.firstFrame()), layer(l) {}
+        : texture(sprite.texture()), src(sprite.firstFrame()), layer(l)
+    {
+    }
 
-    Vec2 size() const {
+    Vec2 size() const
+    {
         return Vec2{src.w, src.h};
     }
 };
@@ -493,35 +527,35 @@ struct CAnimation
           frameDuration(std::max<size_t>(1, sprite.frameDuration())),
           frameSize(sprite.frameSize()),
           sourceOrigin(Vec2{sprite.sourceRegion().x, sprite.sourceRegion().y}),
-          cols(std::max(1, sprite.cols())),
-          repeat(r) {}
+          cols(std::max(1, sprite.cols())), repeat(r)
+    {
+    }
 
-    bool hasEnded() const {
+    bool hasEnded() const
+    {
         return (currentFrame / frameDuration) % frameCount == frameCount - 1;
     }
 
-    RectF sourceRect() const {
+    RectF sourceRect() const
+    {
         const size_t frame = (currentFrame / frameDuration) % frameCount;
         int step = static_cast<int>(cols / static_cast<int>(frameCount));
         step = std::max(1, step);
-        const int col = std::min(cols - 1, currentCol + static_cast<int>(frame) * step);
-        return RectF{
-            sourceOrigin.x + static_cast<float>(col) * frameSize.x,
-            sourceOrigin.y + static_cast<float>(currentRow) * frameSize.y,
-            frameSize.x,
-            frameSize.y
-        };
+        const int col =
+            std::min(cols - 1, currentCol + static_cast<int>(frame) * step);
+        return RectF{sourceOrigin.x + static_cast<float>(col) * frameSize.x,
+                     sourceOrigin.y +
+                         static_cast<float>(currentRow) * frameSize.y,
+                     frameSize.x, frameSize.y};
     }
-};  
+};
 
 struct CAudio
 {
     std::string audioName;
     int loops = 0;
-    CAudio(std::string a, int l)
-        : audioName(a), loops(l){}
-    CAudio(std::string a)
-        : audioName(a){}
+    CAudio(std::string a, int l) : audioName(a), loops(l) {}
+    CAudio(std::string a) : audioName(a) {}
 };
 
 struct CState
@@ -532,9 +566,10 @@ struct CState
     bool changeAnimate = true;
     CState() {}
     CState(const PlayerState s) : state(s), preState(s), facing(s) {}
-}; 
+};
 
-enum class ProjectilePhase {
+enum class ProjectilePhase
+{
     Flying,
     Destroying
 };
@@ -543,14 +578,16 @@ struct CProjectileState
 {
     ProjectilePhase phase = ProjectilePhase::Flying;
     CProjectileState() {}
-    CProjectileState(ProjectilePhase projectilePhase) : phase(projectilePhase) {}
-}; 
+    CProjectileState(ProjectilePhase projectilePhase) : phase(projectilePhase)
+    {
+    }
+};
 struct CName
 {
     std::string name;
     CName() {}
     CName(const std::string nm) : name(nm) {}
-}; 
+};
 
 struct CDamage
 {
@@ -558,8 +595,10 @@ struct CDamage
     std::unordered_set<std::string> damageType;
     CDamage() {}
     CDamage(int dmg) : damage(dmg) {}
-    CDamage(int dmg, std::unordered_set<std::string> dmgType) 
-        : damage(dmg), damageType(dmgType) {}
+    CDamage(int dmg, std::unordered_set<std::string> dmgType)
+        : damage(dmg), damageType(dmgType)
+    {
+    }
 };
 
 // Editor-only metadata. Preview entities intentionally have no gameplay
@@ -572,7 +611,9 @@ struct CEditorPlacement
 
     CEditorPlacement() = default;
     CEditorPlacement(std::string placementDefinition, int gridX, int gridY)
-        : definition(std::move(placementDefinition)), x(gridX), y(gridY) {}
+        : definition(std::move(placementDefinition)), x(gridX), y(gridY)
+    {
+    }
 };
 
 struct CAttackHitbox
@@ -581,8 +622,7 @@ struct CAttackHitbox
     std::unordered_set<EntityID> hitEntities;
 
     CAttackHitbox() {}
-    CAttackHitbox(EntityID ownerID)
-        : owner(ownerID) {}
+    CAttackHitbox(EntityID ownerID) : owner(ownerID) {}
 };
 
 struct CAttackState
@@ -599,36 +639,40 @@ struct CAttackState
     CAnimation previousAnimation;
 
     CAttackState() {}
-    CAttackState(Vec2 attackDirection)
-        : direction(attackDirection) {}
+    CAttackState(Vec2 attackDirection) : direction(attackDirection) {}
 
-    int hitGameFrame() const {
+    int hitGameFrame() const
+    {
         return std::max(0, attackHitFrame * animationFrameDuration);
     }
 
-    int totalGameFrames() const {
+    int totalGameFrames() const
+    {
         return std::max(1, animationFrameCount * animationFrameDuration);
     }
 
-    int finishGameFrame() const {
+    int finishGameFrame() const
+    {
         return std::max(1, totalGameFrames() - 1);
     }
 };
 
 struct CText
-{    
+{
     Vec2 size;
     std::string text;
     std::string font_name;
 
     CText() {}
     CText(std::string txt, const float sz, std::string fnt)
-        : size(Vec2{sz * static_cast<float>(txt.length()) / 4.0f, sz})
-        , text(std::move(txt))
-        , font_name(std::move(fnt)) {}
+        : size(Vec2{sz * static_cast<float>(txt.length()) / 4.0f, sz}),
+          text(std::move(txt)), font_name(std::move(fnt))
+    {
+    }
 };
 
-enum class PossessState {
+enum class PossessState
+{
     Drain,
     Possess
 };
@@ -642,80 +686,91 @@ struct CPossessable
     PossessState state = PossessState::Drain;
 
     CPossessable() {}
-    CPossessable(int l)
-        : level(l) {}
-    CPossessable(const json& j) {
-        if (j.is_number()) {
+    CPossessable(int l) : level(l) {}
+    CPossessable(const json& j)
+    {
+        if (j.is_number())
+        {
             level = j;
         }
-        else if (j.contains("level")) {
+        else if (j.contains("level"))
+        {
             level = j["level"];
         }
     }
 };
 
-enum class AIStateType {
+enum class AIStateType
+{
     Patrol,
     Chase,
     Investigate
 };
 
-struct CAIAgent {
+struct CAIAgent
+{
     // --- Sight ---
-    float sightRange   = 200.0f;
-    bool  canSeePlayer = false;
+    float sightRange = 200.0f;
+    bool canSeePlayer = false;
 
     // --- Memory ---
-    Vec2  lastKnownPlayerPos = {0, 0};
-    int   memoryTimer        = 0;
-    int   memoryDuration     = 240;   // frames before giving up investigation
+    Vec2 lastKnownPlayerPos = {0, 0};
+    int memoryTimer = 0;
+    int memoryDuration = 240; // frames before giving up investigation
 
     // --- Patrol ---
-    Vec2  spawnPos           = {0, 0};
-    float patrolRadius       = 96.0f;
-    Vec2  patrolTarget       = {0, 0};
-    bool  hasPatrolTarget    = false;
-    int   patrolWaitTimer    = 0;
-    int   patrolWaitDuration = 90;    // frames to stand still between patrol points
+    Vec2 spawnPos = {0, 0};
+    float patrolRadius = 96.0f;
+    Vec2 patrolTarget = {0, 0};
+    bool hasPatrolTarget = false;
+    int patrolWaitTimer = 0;
+    int patrolWaitDuration = 90; // frames to stand still between patrol points
 
     // --- State ---
     AIStateType state = AIStateType::Patrol;
 
     CAIAgent() {}
-    CAIAgent(const json& j) {
-        sightRange       = j.value("sightRange",       200.0f);
-        patrolRadius     = j.value("patrolRadius",     96.0f);
-        memoryDuration   = j.value("memoryDuration",   240);
+    CAIAgent(const json& j)
+    {
+        sightRange = j.value("sightRange", 200.0f);
+        patrolRadius = j.value("patrolRadius", 96.0f);
+        memoryDuration = j.value("memoryDuration", 240);
         patrolWaitDuration = j.value("patrolWaitDuration", 90);
     }
 };
 
-struct CItem{
+struct CItem
+{
     int itemID;
     bool hasPickupModeOverride = false;
     PickupMode pickupModeOverride = PickupMode::Manual;
 
-    CItem(int id)
-        : itemID(id) {}
+    CItem(int id) : itemID(id) {}
     CItem(int id, PickupMode mode)
-        : itemID(id), hasPickupModeOverride(true), pickupModeOverride(mode) {}
+        : itemID(id), hasPickupModeOverride(true), pickupModeOverride(mode)
+    {
+    }
 };
 
-struct CInventory{
+struct CInventory
+{
     static constexpr int DefaultSlotCount = 3;
 
     Item activeItem;
     std::vector<Item> items;
 
-    int size() const {
+    int size() const
+    {
         return static_cast<int>(items.size());
     }
 
     CInventory(int slotCount = DefaultSlotCount)
-        : items(static_cast<size_t>(std::max(1, slotCount))) {
+        : items(static_cast<size_t>(std::max(1, slotCount)))
+    {
         activeItem.index = 0;
         int index = 0;
-        for (Item& item: items){
+        for (Item& item : items)
+        {
             item.index = index;
             index++;
         }
@@ -723,18 +778,21 @@ struct CInventory{
 };
 
 struct CKnockback
-{    
+{
     int duration = 0;
     int magnitude = 0;
     Vec2 direction = {0, 0};
     int timeElapsed = 0;
 
     CKnockback() {}
-    CKnockback( int dur, int mag, Vec2 dir)
-        : duration(dur), magnitude(mag), direction(dir) {}
+    CKnockback(int dur, int mag, Vec2 dir)
+        : duration(dur), magnitude(mag), direction(dir)
+    {
+    }
 };
 
-enum struct WeaponType {
+enum struct WeaponType
+{
     Melee,
     Projectile,
     AoE
@@ -757,33 +815,41 @@ struct CWeapon
 
     CWeapon() {}
     CWeapon(int damage, int speed, int range)
-                : damage(damage), speed(speed), range(range){}
-    
-    CWeapon(int damage, int speed, int range, WeaponType type, CollisionMask mask = ENEMY_LAYER)
-                : damage(damage), speed(speed), range(range), weaponType(type), targetMask(mask){}
+        : damage(damage), speed(speed), range(range)
+    {
+    }
 
-    CWeapon(const json& j) {
+    CWeapon(int damage, int speed, int range, WeaponType type,
+            CollisionMask mask = ENEMY_LAYER)
+        : damage(damage), speed(speed), range(range), weaponType(type),
+          targetMask(mask)
+    {
+    }
+
+    CWeapon(const json& j)
+    {
         damage = j["damage"];
-        speed  = j["speed"];
-        delay  = j["speed"]; // intentional
-        range  = j["range"];
+        speed = j["speed"];
+        delay = j["speed"]; // intentional
+        range = j["range"];
         attackAnimation = j.value("attackAnimation", "");
         attackAnimationRow = j.value("attackAnimationRow", attackAnimationRow);
         attackHitFrame = j.value("attackHitFrame", attackHitFrame);
         hitboxSprite = j.value("hitboxSprite", hitboxSprite);
         hitboxAnimation = j.value("hitboxAnimation", "");
         hitboxActiveFrames = j.value("hitboxActiveFrames", hitboxActiveFrames);
-        static const std::unordered_map<
-            std::string, WeaponType> wMap = {
-            {"Melee",      WeaponType::Melee},
+        static const std::unordered_map<std::string, WeaponType> wMap = {
+            {"Melee", WeaponType::Melee},
             {"Projectile", WeaponType::Projectile},
-            {"AoE",        WeaponType::AoE}
-        };
+            {"AoE", WeaponType::AoE}};
         weaponType = wMap.at(j["type"]);
-        if (j.contains("mask")) {
+        if (j.contains("mask"))
+        {
             targetMask = EMPTY_MASK;
-            for (const auto& maskStr : j["mask"]) {
-                targetMask = targetMask | componentMaskMap.at(maskStr.get<std::string>());
+            for (const auto& maskStr : j["mask"])
+            {
+                targetMask = targetMask |
+                             componentMaskMap.at(maskStr.get<std::string>());
             }
         }
     }
@@ -795,8 +861,7 @@ struct CEvent
     Event event;
 
     CEvent() {}
-    CEvent(Event e)
-            : event(e){}
+    CEvent(Event e) : event(e) {}
 };
 
 struct ChildLink
@@ -806,7 +871,9 @@ struct ChildLink
 
     ChildLink() {}
     ChildLink(EntityID childID, bool remove)
-        : child(childID), removeOnDeath(remove) {}
+        : child(childID), removeOnDeath(remove)
+    {
+    }
 };
 
 struct CChild
@@ -814,10 +881,8 @@ struct CChild
     std::vector<ChildLink> children;
 
     CChild() {}
-    CChild(EntityID cID)
-        : children{{cID, true}} {}
-    CChild(EntityID cID, bool remove)
-        : children{{cID, remove}} {}
+    CChild(EntityID cID) : children{{cID, true}} {}
+    CChild(EntityID cID, bool remove) : children{{cID, remove}} {}
 };
 
 struct CStatic

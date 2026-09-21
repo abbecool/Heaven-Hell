@@ -10,7 +10,8 @@
 
 using EntityID = uint32_t;
 
-enum class EventType {
+enum class EventType
+{
     ItemPickedUp,
     EnteredArea,
     EntityKilled,
@@ -22,27 +23,33 @@ enum class EventType {
     NoEvent,
 };
 
-struct Event {
+struct Event
+{
     EventType type = EventType::NoEvent;
     std::string itemName;
     Vec2 eventPosition = {-1, -1};
 };
 
-class EventBus {
+class EventBus
+{
 public:
     using Listener = std::function<void(const Event&)>;
 
-    void subscribe(const Event& event, const Listener& listener) {
+    void subscribe(const Event& event, const Listener& listener)
+    {
         m_listenerMap[event.itemName].push_back(listener);
     }
 
-    void emit(const Event& event) {
+    void emit(const Event& event)
+    {
         const auto it = m_listenerMap.find(event.itemName);
-        if (it == m_listenerMap.end()) {
+        if (it == m_listenerMap.end())
+        {
             return;
         }
 
-        for (const auto& listener : it->second) {
+        for (const auto& listener : it->second)
+        {
             listener(event);
         }
     }

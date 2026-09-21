@@ -28,7 +28,8 @@ struct LayoutInfo
 class LayoutRepository
 {
 public:
-    explicit LayoutRepository(std::filesystem::path registryPath = "config_files/levels.json");
+    explicit LayoutRepository(
+        std::filesystem::path registryPath = "config_files/levels.json");
 
     void load();
     const std::vector<LayoutInfo>& layouts() const;
@@ -54,8 +55,11 @@ private:
     void saveRegistry() const;
     std::string nextLayoutId() const;
     const LayoutInfo* find(const std::string& id) const;
-    static void writeJsonFile(const std::filesystem::path& path, const std::string& contents);
-    void writeJsonFileAndMirror(const std::filesystem::path& path, const std::string& contents) const;
+    static void writeJsonFile(const std::filesystem::path& path,
+                              const std::string& contents);
+    void writeJsonFileAndMirror(const std::filesystem::path& path,
+                                const std::string& contents) const;
     void removeLayoutFileAndMirror(const std::filesystem::path& path) const;
-    std::filesystem::path sourceMirrorPath(const std::filesystem::path& path) const;
+    std::filesystem::path
+    sourceMirrorPath(const std::filesystem::path& path) const;
 };

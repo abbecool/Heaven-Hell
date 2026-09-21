@@ -26,15 +26,14 @@ struct EditorEntityDefinition
 class EntityCatalog
 {
 public:
-    EntityCatalog(
-        std::string mobsPath = "config_files/mobs",
-        std::string entitiesPath = "config_files/entities",
-        std::string itemsPath = "config_files/items"
-    );
+    EntityCatalog(std::string mobsPath = "config_files/mobs",
+                  std::string entitiesPath = "config_files/entities",
+                  std::string itemsPath = "config_files/items");
 
     void load();
     const std::vector<EditorEntityDefinition>& all() const;
-    const std::vector<EditorEntityDefinition>& category(EditorEntityCategory category) const;
+    const std::vector<EditorEntityDefinition>&
+    category(EditorEntityCategory category) const;
     const EditorEntityDefinition* find(const std::string& id) const;
 
 private:

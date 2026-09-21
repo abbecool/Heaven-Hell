@@ -10,11 +10,10 @@ class Scene_Menu : public Scene
     struct PlayerConfig
     {
         float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
-        std::string WEAPON; 
+        std::string WEAPON;
     };
 
-    protected:
-
+protected:
     EntityID m_player;
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
@@ -25,12 +24,12 @@ class Scene_Menu : public Scene
 
     void sAnimation();
     void sRender();
-    
+
     void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
 
-    public:
+public:
     Scene_Menu(Game* game);
     void update();
 };

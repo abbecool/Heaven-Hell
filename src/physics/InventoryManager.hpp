@@ -8,7 +8,8 @@
 #include <string>
 #include <unordered_map>
 
-enum class ItemType {
+enum class ItemType
+{
     None,
     Weapon,
     WeaponMelee,
@@ -19,19 +20,23 @@ enum class ItemType {
     Currency
 };
 
-enum class PickupMode {
+enum class PickupMode
+{
     Manual,
     Automatic
 };
 
 inline PickupMode pickupModeFromString(const std::string& mode)
 {
-    if (mode == "Manual") return PickupMode::Manual;
-    if (mode == "Automatic") return PickupMode::Automatic;
+    if (mode == "Manual")
+        return PickupMode::Manual;
+    if (mode == "Automatic")
+        return PickupMode::Automatic;
     throw std::invalid_argument("Unknown pickup mode: " + mode);
 }
 
-struct Item {
+struct Item
+{
     int id = -1;
     int index = -1;
     std::string name;
@@ -49,86 +54,110 @@ struct Item {
     nlohmann::json weaponConfig = nlohmann::json::object();
     bool hasShadowConfig = false;
     nlohmann::json shadowConfig = nlohmann::json::object();
-    
+
     Item() = default;
-    ItemType getItemTypeFromString(const std::string& typeStr) {
-        if (typeStr == "WeaponMelee") return ItemType::WeaponMelee;
-        if (typeStr == "WeaponRanged") return ItemType::WeaponRanged;
-        if (typeStr == "WeaponAoE") return ItemType::WeaponAoE;
-        if (typeStr == "Consumable") return ItemType::Consumable;
-        if (typeStr == "Quest") return ItemType::Quest;
-        if (typeStr == "Currency") return ItemType::Currency;
+    ItemType getItemTypeFromString(const std::string& typeStr)
+    {
+        if (typeStr == "WeaponMelee")
+            return ItemType::WeaponMelee;
+        if (typeStr == "WeaponRanged")
+            return ItemType::WeaponRanged;
+        if (typeStr == "WeaponAoE")
+            return ItemType::WeaponAoE;
+        if (typeStr == "Consumable")
+            return ItemType::Consumable;
+        if (typeStr == "Quest")
+            return ItemType::Quest;
+        if (typeStr == "Currency")
+            return ItemType::Currency;
         return ItemType::None;
     }
-    Item(const nlohmann::json& j) {
-        id          = j.value("id", -1);
-        name        = j.value("name", "Unknown");
+    Item(const nlohmann::json& j)
+    {
+        id = j.value("id", -1);
+        name = j.value("name", "Unknown");
         description = j.value("description", "");
-        iconPath    = j.value("iconPath", "");
-        maxStack    = j.value("maxStack", 1);
-        pickupMode  = pickupModeFromString(j.value("pickupMode", "Manual"));
+        iconPath = j.value("iconPath", "");
+        maxStack = j.value("maxStack", 1);
+        pickupMode = pickupModeFromString(j.value("pickupMode", "Manual"));
         currencyValue = j.value("value", 0);
 
         type = getItemTypeFromString(j.value("type", "None"));
 
         // load stats only if they exist
-        if (j.contains("damage")) {
+        if (j.contains("damage"))
+        {
             damage = j["damage"].get<int>();
         }
-        if (j.contains("healing")) {
+        if (j.contains("healing"))
+        {
             healing = j["healing"].get<int>();
         }
-        if (j.contains("weapon") && j["weapon"].is_object()) {
+        if (j.contains("weapon") && j["weapon"].is_object())
+        {
             hasWeaponConfig = true;
             weaponConfig = j["weapon"];
         }
-        if (j.contains("shadow") && j["shadow"].is_object()) {
+        if (j.contains("shadow") && j["shadow"].is_object())
+        {
             hasShadowConfig = true;
             shadowConfig = j["shadow"];
         }
     };
 };
 
-
 class InventoryManager
 {
-    public:
-    InventoryManager(){}
-    InventoryManager(const std::string& path) {
-        for (const auto& entry : std::filesystem::directory_iterator(path)) {
-            if (!entry.is_regular_file() || entry.path().extension() != ".json") {
+public:
+    InventoryManager() {}
+    InventoryManager(const std::string& path)
+    {
+        for (const auto& entry : std::filesystem::directory_iterator(path))
+        {
+            if (!entry.is_regular_file() || entry.path().extension() != ".json")
+            {
                 continue;
             }
 
             std::ifstream file(entry.path());
-            if (!file) {
-                throw std::runtime_error("Could not load item file: " + entry.path().string());
+            if (!file)
+            {
+                throw std::runtime_error("Could not load item file: " +
+                                         entry.path().string());
             }
 
             nlohmann::json j;
             file >> j;
 
             const std::string itemName = entry.path().stem().string();
-            if (!j.contains(itemName)) {
-                throw std::runtime_error("Item file is missing its '" + itemName + "' definition: " + entry.path().string());
+            if (!j.contains(itemName))
+            {
+                throw std::runtime_error(
+                    "Item file is missing its '" + itemName +
+                    "' definition: " + entry.path().string());
             }
 
             Item item(j[itemName]);
             addItem(item);
         }
     }
-    
-    void addItem(const Item& item) {
+
+    void addItem(const Item& item)
+    {
         items[item.id] = item;
     }
-    
-    const Item& getItem(int id) const {
+
+    const Item& getItem(int id) const
+    {
         return items.at(id);
     }
 
-    const Item* findItem(const std::string& name) const {
-        for (const auto& [id, item] : items) {
-            if (item.name == name) {
+    const Item* findItem(const std::string& name) const
+    {
+        for (const auto& [id, item] : items)
+        {
+            if (item.name == name)
+            {
                 return &item;
             }
         }

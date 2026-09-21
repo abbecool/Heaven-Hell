@@ -67,7 +67,8 @@ class Scene_Editor : public Scene
     void clearWorld();
 
     EntityID spawnPreview(const LayoutPlacement& placement);
-    EntityID spawnPreviewShadow(EntityID parentID, const EditorEntityDefinition& definition);
+    EntityID spawnPreviewShadow(EntityID parentID,
+                                const EditorEntityDefinition& definition);
     std::optional<EntityID> previewAt(Vec2 worldPoint) const;
     Vec2 screenToWorld(Vec2 screenPoint);
     Vec2 snappedGrid(Vec2 worldPoint) const;
@@ -79,8 +80,10 @@ class Scene_Editor : public Scene
     Vec2 scenePlayStartPosition() const;
     WorldLayout buildLayout() const;
 
-    void drawButton(const RectF& rect, const std::string& label, bool active = false) const;
-    void drawText(const std::string& text, RectF rect, Color color = {255, 255, 255, 255}) const;
+    void drawButton(const RectF& rect, const std::string& label,
+                    bool active = false) const;
+    void drawText(const std::string& text, RectF rect,
+                  Color color = {255, 255, 255, 255}) const;
     RectF screenRect(const RectF& virtualRect) const;
     static bool contains(const RectF& rect, Vec2 point);
 

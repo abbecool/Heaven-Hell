@@ -17,8 +17,9 @@ class Game;
 
 typedef std::map<InputCode, std::string> ActionMap;
 
-struct MouseState {
-    Vec2 pos = {0,0};
+struct MouseState
+{
+    Vec2 pos = {0, 0};
     int scroll = 0;
     bool hold_left_click = false;
     bool hold_right_click = false;
@@ -26,11 +27,10 @@ struct MouseState {
 
 class Scene
 {
-    protected:
-
+protected:
     friend class LevelLoader;
 
-    Game* m_game = nullptr;  
+    Game* m_game = nullptr;
     ActionMap m_actionMap;
     bool m_pause = false;
     bool m_hasEnded = false;
@@ -44,44 +44,50 @@ class Scene
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawDrawGrid = false;
-    Vec2 m_gridSize = {16, 16};    
+    Vec2 m_gridSize = {16, 16};
     void bindEcsRemovalObserver();
     virtual void onEnd() = 0;
     virtual void onTerrainChanged() {}
     Vec2 gridToMidPixel(Vec2 grid, EntityID);
     RenderView worldRenderView();
-    void drawWorldSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f, float whiteTint = 0.0f);
-    void drawWorldSprite(const SpriteDefinition& sprite, const RectF& dst, float angle = 0.0f);
-    void drawWorldSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
-    std::vector<EntityID> spawnDualTiles(Vec2 pos, std::array<int, 5> tileTextures);
-    
-    public:
+    void drawWorldSprite(const CSprite& sprite, const RectF& dst,
+                         float angle = 0.0f, float whiteTint = 0.0f);
+    void drawWorldSprite(const SpriteDefinition& sprite, const RectF& dst,
+                         float angle = 0.0f);
+    void drawWorldSprite(const SpriteDefinition& sprite, const RectF& src,
+                         const RectF& dst, float angle = 0.0f);
+    std::vector<EntityID> spawnDualTiles(Vec2 pos,
+                                         std::array<int, 5> tileTextures);
+
+public:
     ECS m_ECS;
     RendererManager m_rendererManager;
-    
+
     Scene();
     Scene(Game* game);
     virtual ~Scene();
-    
+
     virtual void update() = 0;
     virtual void sDoAction(const Action& action) = 0;
-    EntityID SpawnDialog(std::string dialog, int size, std::string font, EntityID parentID);
-    EntityID SpawnTextBox(
-        const std::string& text,
-        int size,
-        const std::string& font,
-        EntityID parentID,
-        const Vec2& relativePosition,
-        int lifespan
-    );
-    
-    CSprite& addSprite(EntityID entity, const std::string& spriteName, int layer);
-    void addVisual(EntityID entity, const std::string& spriteName, int layer, bool repeat = true);
+    EntityID SpawnDialog(std::string dialog, int size, std::string font,
+                         EntityID parentID);
+    EntityID SpawnTextBox(const std::string& text, int size,
+                          const std::string& font, EntityID parentID,
+                          const Vec2& relativePosition, int lifespan);
+
+    CSprite& addSprite(EntityID entity, const std::string& spriteName,
+                       int layer);
+    void addVisual(EntityID entity, const std::string& spriteName, int layer,
+                   bool repeat = true);
     void setSprite(EntityID entity, const std::string& spriteName);
-    void setAnimation(EntityID entity, const std::string& spriteName, bool repeat = true);
-    void drawSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f, float whiteTint = 0.0f);
-    void drawSprite(const SpriteDefinition& sprite, const RectF& dst, float angle = 0.0f);
-    void drawSprite(const SpriteDefinition& sprite, const RectF& src, const RectF& dst, float angle = 0.0f);
+    void setAnimation(EntityID entity, const std::string& spriteName,
+                      bool repeat = true);
+    void drawSprite(const CSprite& sprite, const RectF& dst, float angle = 0.0f,
+                    float whiteTint = 0.0f);
+    void drawSprite(const SpriteDefinition& sprite, const RectF& dst,
+                    float angle = 0.0f);
+    void drawSprite(const SpriteDefinition& sprite, const RectF& src,
+                    const RectF& dst, float angle = 0.0f);
     void updateAnimations();
     void sRenderBasic();
     void renderTextures();
@@ -90,7 +96,7 @@ class Scene
 
     virtual void doAction(const Action& action);
     void registerAction(InputCode inputKey, const std::string& actionName);
-    
+
     int width() const;
     int height() const;
     size_t currentFrame() const;
@@ -106,11 +112,6 @@ class Scene
     virtual Vec2 getCameraPosition();
     const SpriteDefinition& getSprite(const std::string& name) const;
 
-    void spawnButton(
-        const Vec2 pos, 
-        const std::string& button_name, 
-        const std::string& name, 
-        const std::string& dialog
-    );
-    
+    void spawnButton(const Vec2 pos, const std::string& button_name,
+                     const std::string& name, const std::string& dialog);
 };

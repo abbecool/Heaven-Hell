@@ -7,18 +7,18 @@
 
 class Scene_Finish : public Scene
 {
-    protected:
+protected:
     std::string m_levelPath;
     Vec2 levelSize;
 
     void sAnimation();
     void sRender();
-    
+
     void sDoAction(const Action&);
     void onEnd();
     void setPaused(bool);
 
-    public:
+public:
     Scene_Finish(Game* game);
     void update();
 };

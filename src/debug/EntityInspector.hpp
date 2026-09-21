@@ -4,9 +4,11 @@
 
 #include <vector>
 
-namespace DebugEntityInspector {
+namespace DebugEntityInspector
+{
 
 nlohmann::json inspectEntity(const ECS& ecs, EntityID entity);
-std::vector<EntityID> findInspectableEntitiesAt(const ECS& ecs, Vec2 worldPoint);
+std::vector<EntityID> findInspectableEntitiesAt(const ECS& ecs,
+                                                Vec2 worldPoint);
 
 } // namespace DebugEntityInspector

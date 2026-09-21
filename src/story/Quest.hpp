@@ -5,30 +5,35 @@
 #include <string>
 #include <vector>
 
-enum class QuestState {
+enum class QuestState
+{
     Locked,
     Active,
     Completed,
 };
 
-struct EventMatcher {
+struct EventMatcher
+{
     EventType type = EventType::NoEvent;
     std::vector<std::string> subjects;
 
     bool matches(const Event& event) const;
 };
 
-struct QuestAction {
+struct QuestAction
+{
     std::string type;
     std::string questID;
 };
 
-struct TriggerReaction {
+struct TriggerReaction
+{
     EventMatcher trigger;
     std::vector<QuestAction> actions;
 };
 
-struct QuestStep {
+struct QuestStep
+{
     std::string id;
     std::string description;
     std::vector<EventMatcher> triggers;
@@ -38,7 +43,8 @@ struct QuestStep {
     bool matches(const Event& event) const;
 };
 
-struct Quest {
+struct Quest
+{
     std::string id;
     std::string description;
     QuestState state = QuestState::Locked;

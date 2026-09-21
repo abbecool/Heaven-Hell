@@ -11,7 +11,8 @@
 
 using EntityID = uint32_t;
 
-enum struct TileType {
+enum struct TileType
+{
     OBSTACLE = 0,
     DIRT = 1,
     GRASS = 2,
@@ -31,7 +32,7 @@ private:
     int m_width = 0;
     int m_height = 0;
     Vec2 m_gridSize = {0, 0};
-    
+
     Vec2 m_currentChunk = Vec2{1, 0};
     Vec2 m_chunkSize = Vec2{12, 12};
     Vec2 m_levelSize;
@@ -39,15 +40,11 @@ private:
     std::deque<Vec2> m_chunkQueue;
     std::vector<Vec2> m_neighboringChunks;
     std::vector<EntityID> m_loadedChunkIDs;
-    
+
 public:
-    LevelLoader(){}
-    LevelLoader(
-        Scene* scene,
-        Vec2 gridSize,
-        const PixelImage& levelImage,
-        bool buildColliders = true
-    );
+    LevelLoader() {}
+    LevelLoader(Scene* scene, Vec2 gridSize, const PixelImage& levelImage,
+                bool buildColliders = true);
     std::vector<TileType> m_pixelMatrix;
     std::array<bool, 4> neighborCheck(int x, int y, int width, int height);
     std::array<TileType, 4> neighborTag(int x, int y, int width, int height);

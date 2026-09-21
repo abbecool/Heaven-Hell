@@ -14,7 +14,8 @@ struct TTF_Font;
 
 class OpenGLRenderBackend : public RenderBackend
 {
-    struct OpenGLTexture {
+    struct OpenGLTexture
+    {
         unsigned int id = 0;
         TextureSize size;
     };
@@ -41,12 +42,9 @@ class OpenGLRenderBackend : public RenderBackend
     const OpenGLTexture& getTexture(const TextureHandle& texture) const;
     TTF_Font* getFont(const std::string& name) const;
     const OpenGLGlyphAtlas& getFontAtlas(const std::string& name) const;
-    void drawTextImpl(
-        const std::string& text,
-        const std::string& fontName,
-        const RectF& dst,
-        Color color,
-        OpenGLRenderSpace renderSpace);
+    void drawTextImpl(const std::string& text, const std::string& fontName,
+                      const RectF& dst, Color color,
+                      OpenGLRenderSpace renderSpace);
 
 public:
     explicit OpenGLRenderBackend(SDL_Window* window);
@@ -54,7 +52,8 @@ public:
 
     void loadTexture(const std::string& name, const std::string& path) override;
     TextureSize textureSize(const TextureHandle& texture) const override;
-    void loadFont(const std::string& name, const std::string& path, int size) override;
+    void loadFont(const std::string& name, const std::string& path,
+                  int size) override;
 
     void onWindowResized(int width, int height) override;
     void beginFrame(Color clearColor) override;
@@ -69,11 +68,8 @@ public:
     void fillWorldRect(const RectF& rect, Color color) override;
     void drawText(const TextDrawCommand& command) override;
     void drawWorldText(const WorldTextDrawCommand& command) override;
-    void drawScreenRadialGradient(
-        Color color,
-        float centerAlpha,
-        float edgeAlpha,
-        float pulse,
-        float centerXRatio,
-        float centerYRatio) override;
+    void drawScreenRadialGradient(Color color, float centerAlpha,
+                                  float edgeAlpha, float pulse,
+                                  float centerXRatio,
+                                  float centerYRatio) override;
 };

@@ -2,11 +2,12 @@
 #include "external/json.hpp"
 using json = nlohmann::json;
 
-// Alternative idea for game. RPG like with different weapons and upgrades. zelda/pokemon still with quests and side-quests! 
+// Alternative idea for game. RPG like with different weapons and upgrades. zelda/pokemon still with quests and side-quests!
 // Different elemental types like, ice, fire, earth, air etc. each with special damage multipliers and resistances on enemies.
 // Different weapons have differant elemental effects and damage types... very original
 
-int main(int, char*[]){
+int main(int, char*[])
+{
     Game g("config_files/assets.json");
     g.run();
 

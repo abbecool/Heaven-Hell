@@ -8,7 +8,8 @@
 #include <sstream>
 #include <string_view>
 
-namespace {
+namespace
+{
 
 using TestSupport::require;
 
@@ -58,18 +59,22 @@ void testJsonScalarConstructor()
 
 void testEquality()
 {
-    require(Vec2{1.0f, 2.0f} == Vec2{1.0f, 2.0f}, "equal vectors compare unequal");
+    require(Vec2{1.0f, 2.0f} == Vec2{1.0f, 2.0f},
+            "equal vectors compare unequal");
 }
 
 void testGreaterEqual()
 {
-    require(Vec2{3.0f, 4.0f} >= Vec2{1.0f, 4.0f}, "greater-equal comparison failed");
-    require(!(Vec2{1.0f, 2.0f} >= Vec2{2.0f, 1.0f}), "greater-equal comparison ignored x");
+    require(Vec2{3.0f, 4.0f} >= Vec2{1.0f, 4.0f},
+            "greater-equal comparison failed");
+    require(!(Vec2{1.0f, 2.0f} >= Vec2{2.0f, 1.0f}),
+            "greater-equal comparison ignored x");
 }
 
 void testInequality()
 {
-    require(Vec2{1.0f, 2.0f} != Vec2{1.0f, 3.0f}, "different vectors compare equal");
+    require(Vec2{1.0f, 2.0f} != Vec2{1.0f, 3.0f},
+            "different vectors compare equal");
 }
 
 void testAddition()
@@ -156,7 +161,8 @@ void testDivideAssign()
 
 void testDistance()
 {
-    require(nearlyEqual(Vec2{1.0f, 2.0f}.dist(Vec2{4.0f, 6.0f}), 5.0f), "distance was incorrect");
+    require(nearlyEqual(Vec2{1.0f, 2.0f}.dist(Vec2{4.0f, 6.0f}), 5.0f),
+            "distance was incorrect");
 }
 
 void testIsNull()
@@ -167,7 +173,8 @@ void testIsNull()
 
 void testLength()
 {
-    require(nearlyEqual(Vec2{3.0f, 4.0f}.length(), 5.0f), "length was incorrect");
+    require(nearlyEqual(Vec2{3.0f, 4.0f}.length(), 5.0f),
+            "length was incorrect");
 }
 
 void testAbsoluteValue()
@@ -193,7 +200,8 @@ void testScaledNormalization()
 
 void testAngle()
 {
-    require(nearlyEqual(Vec2{0.0f, 1.0f}.angle(), 90.0f), "angle was incorrect");
+    require(nearlyEqual(Vec2{0.0f, 1.0f}.angle(), 90.0f),
+            "angle was incorrect");
 }
 
 void testMainDirection()
@@ -216,8 +224,10 @@ void testSmaller()
     Vec2 narrower{1.0f, 5.0f};
     Vec2 comparison{2.0f, 4.0f};
     require(smaller.smaller(larger), "smaller comparison failed");
-    require(!larger.smaller(smaller), "smaller comparison ignored both components");
-    require(narrower.smaller(comparison), "smaller comparison ignored one smaller component");
+    require(!larger.smaller(smaller),
+            "smaller comparison ignored both components");
+    require(narrower.smaller(comparison),
+            "smaller comparison ignored one smaller component");
 }
 
 void testGreater()
@@ -227,16 +237,21 @@ void testGreater()
     Vec2 wider{5.0f, 1.0f};
     Vec2 comparison{4.0f, 2.0f};
     require(larger.greater(smaller), "greater comparison failed");
-    require(!smaller.greater(larger), "greater comparison ignored both components");
-    require(wider.greater(comparison), "greater comparison ignored one greater component");
+    require(!smaller.greater(larger),
+            "greater comparison ignored both components");
+    require(wider.greater(comparison),
+            "greater comparison ignored one greater component");
 }
 
-class ScopedCoutRedirect {
+class ScopedCoutRedirect
+{
     std::streambuf* m_originalBuffer = nullptr;
 
 public:
     explicit ScopedCoutRedirect(std::streambuf* replacement)
-        : m_originalBuffer(std::cout.rdbuf(replacement)) {}
+        : m_originalBuffer(std::cout.rdbuf(replacement))
+    {
+    }
 
     ~ScopedCoutRedirect()
     {
@@ -249,7 +264,8 @@ void testPrint()
     std::ostringstream output;
     ScopedCoutRedirect redirect(output.rdbuf());
     Vec2{1.5f, -2.25f}.print("position");
-    require(output.str() == "position: 1.5, -2.25\n", "print output was incorrect");
+    require(output.str() == "position: 1.5, -2.25\n",
+            "print output was incorrect");
 }
 
 void testHasPositive()
@@ -327,8 +343,7 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"has_negative", testHasNegative},
     TestSupport::TestCase{"is_positive", testIsPositive},
     TestSupport::TestCase{"is_negative", testIsNegative},
-    TestSupport::TestCase{"from_json", testFromJson}
-};
+    TestSupport::TestCase{"from_json", testFromJson}};
 
 } // namespace
 

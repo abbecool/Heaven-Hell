@@ -12,12 +12,14 @@ struct SDL_Window;
 
 class Game;
 
-struct DisplaySize {
+struct DisplaySize
+{
     int w = 0;
     int h = 0;
 };
 
-class SDLPlatform {
+class SDLPlatform
+{
     SDL_Window* m_window = nullptr;
     MIX_Mixer* m_mixer = nullptr;
     std::map<std::string, MIX_Audio*> m_audios;
@@ -27,11 +29,8 @@ class SDLPlatform {
     MIX_Audio* getAudio(const std::string& name) const;
 
 public:
-    SDLPlatform(
-        const char* title,
-        int width,
-        int height,
-        RenderDriver renderDriver = RenderDriver::SDLRenderer);
+    SDLPlatform(const char* title, int width, int height,
+                RenderDriver renderDriver = RenderDriver::SDLRenderer);
     ~SDLPlatform();
 
     SDL_Window* window();

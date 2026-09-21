@@ -14,8 +14,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-Scene_Menu::Scene_Menu(Game* game)
-    : Scene(game)
+Scene_Menu::Scene_Menu(Game* game) : Scene(game)
 {
     registerAction(InputCode::Escape, "QUIT");
     registerAction(InputCode::T, "TOGGLE_TEXTURE");
@@ -37,26 +36,34 @@ void Scene_Menu::loadMenu()
     EntityID entityId1 = m_ECS.addEntity();
     Entity entity1 = {entityId1, &m_ECS};
     addSprite(entityId1, "game_title", RenderLayer::MenuTitle);
-    entity1.addComponent<CTransform>(Vec2 {300, 45});
+    entity1.addComponent<CTransform>(Vec2{300, 45});
     entity1.addComponent<CName>("game_title");
 
-    spawnButton(Vec2 {64.f, 64.f}, "button_unpressed", "new", "NEW GAME");
-    spawnButton(Vec2 {64.f, 128.f}, "button_unpressed", "continue", "CONTINUE");
-    spawnButton(Vec2 {64.f, 192.f}, "button_unpressed", "editor", "EDITOR");
-    spawnButton(Vec2 {float(width())-64.f,64.f }, "button_unpressed", "360p", "360p");
-    spawnButton(Vec2 {float(width())-64.f,2*64.f }, "button_unpressed", "720p", "720p");
-    spawnButton(Vec2 {float(width())-64.f,3*64.f }, "button_unpressed", "1080p", "1080p");
-    spawnButton(Vec2 {float(width())-64.f,4*64.f }, "button_unpressed", "1440p", "1440p");
-    spawnButton(Vec2 {float(width())-64.f,5*64.f }, "button_unpressed", "4K", "4K");
+    spawnButton(Vec2{64.f, 64.f}, "button_unpressed", "new", "NEW GAME");
+    spawnButton(Vec2{64.f, 128.f}, "button_unpressed", "continue", "CONTINUE");
+    spawnButton(Vec2{64.f, 192.f}, "button_unpressed", "editor", "EDITOR");
+    spawnButton(Vec2{float(width()) - 64.f, 64.f}, "button_unpressed", "360p",
+                "360p");
+    spawnButton(Vec2{float(width()) - 64.f, 2 * 64.f}, "button_unpressed",
+                "720p", "720p");
+    spawnButton(Vec2{float(width()) - 64.f, 3 * 64.f}, "button_unpressed",
+                "1080p", "1080p");
+    spawnButton(Vec2{float(width()) - 64.f, 4 * 64.f}, "button_unpressed",
+                "1440p", "1440p");
+    spawnButton(Vec2{float(width()) - 64.f, 5 * 64.f}, "button_unpressed", "4K",
+                "4K");
 
     std::string activeLayout = "PLAY LAYOUT: unavailable";
-    try {
+    try
+    {
         LayoutRepository layouts;
         layouts.load();
         activeLayout = "PLAY LAYOUT: " + layouts.activeLayout().displayName;
     }
-    catch (const std::exception& exception) {
-        std::cerr << "Could not display active layout: " << exception.what() << std::endl;
+    catch (const std::exception& exception)
+    {
+        std::cerr << "Could not display active layout: " << exception.what()
+                  << std::endl;
     }
     const EntityID label = m_ECS.addEntity();
     m_ECS.addComponent<CTransform>(label, Vec2{250.0f, 225.0f});
@@ -64,7 +71,7 @@ void Scene_Menu::loadMenu()
 }
 
 void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
-{   
+{
     EntityID id = m_ECS.addEntity();
     addSprite(id, level, RenderLayer::MenuBackground);
     m_ECS.addComponent<CTransform>(id, pos);
@@ -73,87 +80,109 @@ void Scene_Menu::spawnLevel(const Vec2 pos, std::string level)
 
 void Scene_Menu::sDoAction(const Action& action)
 {
-    if (action.type() == "START"){
-        if (action.name() == "TOGGLE_TEXTURE"){
-            m_drawTextures = !m_drawTextures; 
+    if (action.type() == "START")
+    {
+        if (action.name() == "TOGGLE_TEXTURE")
+        {
+            m_drawTextures = !m_drawTextures;
         }
-        else if (action.name() == "TOGGLE_COLLISION"){ 
-            m_drawCollision = !m_drawCollision; 
+        else if (action.name() == "TOGGLE_COLLISION")
+        {
+            m_drawCollision = !m_drawCollision;
         }
-        else if (action.name() == "TOGGLE_GRID"){ 
+        else if (action.name() == "TOGGLE_GRID")
+        {
             m_drawDrawGrid = !m_drawDrawGrid;
         }
-        else if (action.name() == "QUIT"){ 
+        else if (action.name() == "QUIT")
+        {
             onEnd();
         }
-        else if (action.name() == "FULLSCREEN"){
+        else if (action.name() == "FULLSCREEN")
+        {
             m_game->ToggleFullscreen();
         }
-        else if (action.name() == "MOUSE LEFT CLICK") {
-            for (auto [e, collider, transform, text, sprite] : m_ECS.View<CCollider, CTransform, CText, CSprite>()){
-                if (!m_physics.PointInCollider(m_mousePosition, transform, collider)){
+        else if (action.name() == "MOUSE LEFT CLICK")
+        {
+            for (auto [e, collider, transform, text, sprite] :
+                 m_ECS.View<CCollider, CTransform, CText, CSprite>())
+            {
+                if (!m_physics.PointInCollider(m_mousePosition, transform,
+                                               collider))
+                {
                     continue;
                 }
                 setSprite(e, "button_pressed");
             }
-        }   
+        }
     }
-    else if (action.type() == "END"){
-        if (!(action.name() == "MOUSE LEFT CLICK")){
+    else if (action.type() == "END")
+    {
+        if (!(action.name() == "MOUSE LEFT CLICK"))
+        {
             return;
-        }   
-        for (auto [e, collider, transform, text, sprite, nameComponent] : m_ECS.View<CCollider, CTransform, CText, CSprite, CName>()){
-            if (!m_physics.PointInCollider(m_mousePosition, transform, collider)){
+        }
+        for (auto [e, collider, transform, text, sprite, nameComponent] :
+             m_ECS.View<CCollider, CTransform, CText, CSprite, CName>())
+        {
+            if (!m_physics.PointInCollider(m_mousePosition, transform,
+                                           collider))
+            {
                 continue;
             }
-            auto &name = nameComponent.name;
+            auto& name = nameComponent.name;
             setSprite(e, "button_unpressed");
             std::string levelPath = "assets/images/levels/levelWorld.png";
-            if ( name == "new" ){
+            if (name == "new")
+            {
                 m_game->changeScene(
-                    "PLAY", 
-                    std::make_shared<Scene_Play>(m_game, levelPath, true), 
+                    "PLAY",
+                    std::make_shared<Scene_Play>(m_game, levelPath, true),
                     true);
             }
-            else if ( name == "continue" ){
+            else if (name == "continue")
+            {
                 m_game->changeScene(
-                    "PLAY", 
-                    std::make_shared<Scene_Play>(m_game, levelPath, false), 
+                    "PLAY",
+                    std::make_shared<Scene_Play>(m_game, levelPath, false),
                     true);
             }
-            else if (name == "editor") {
+            else if (name == "editor")
+            {
                 m_game->changeScene(
-                    "EDITOR",
-                    std::make_shared<Scene_Editor>(m_game),
-                    true
-                );
+                    "EDITOR", std::make_shared<Scene_Editor>(m_game), true);
             }
-            else if ( name == "360p" ){
+            else if (name == "360p")
+            {
                 m_game->updateResolution(1);
             }
-            else if ( name == "720p" ){
+            else if (name == "720p")
+            {
                 m_game->updateResolution(2);
             }
-            else if ( name == "1080p" ){
+            else if (name == "1080p")
+            {
                 m_game->updateResolution(3);
             }
-            else if ( name == "1440p" ){
+            else if (name == "1440p")
+            {
                 m_game->updateResolution(4);
             }
-            else if ( name == "4K" ){
+            else if (name == "4K")
+            {
                 m_game->updateResolution(6);
             }
         }
     }
 }
 
-void Scene_Menu::update() 
+void Scene_Menu::update()
 {
     sAnimation();
     sRender();
 }
 
-void Scene_Menu::sAnimation() 
+void Scene_Menu::sAnimation()
 {
     updateAnimations();
 }
@@ -163,12 +192,12 @@ void Scene_Menu::sRender()
     sRenderBasic();
 }
 
-void Scene_Menu::onEnd() 
+void Scene_Menu::onEnd()
 {
     m_game->quit();
 }
 
-void Scene_Menu::setPaused(bool pause) 
+void Scene_Menu::setPaused(bool pause)
 {
     m_pause = pause;
 }

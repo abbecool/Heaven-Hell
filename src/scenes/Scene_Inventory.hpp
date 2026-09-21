@@ -8,11 +8,12 @@
 
 class Scene_Inventory : public Scene
 {
-    protected:
+protected:
     EntityID m_item;
     Vec2 m_mousePosition;
     Vec2 m_inventorySize = {4, 2};
-    Vec2 m_inventoryPos = Vec2{m_game->getWidth()-m_inventorySize.x*32, 64.0f};
+    Vec2 m_inventoryPos =
+        Vec2{m_game->getWidth() - m_inventorySize.x * 32, 64.0f};
     bool m_drawTextures = false;
     bool m_drawCollision = false;
     bool m_open = false;
@@ -31,7 +32,7 @@ class Scene_Inventory : public Scene
     void sDoAction(const Action&);
     void onEnd();
 
-    public:
+public:
     Scene_Inventory(Game* play);
     void update();
     void Scroll(int scroll);

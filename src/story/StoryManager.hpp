@@ -10,7 +10,8 @@
 using DialogMap = std::unordered_map<std::string, std::string>;
 using NPCDialogs = std::unordered_map<std::string, DialogMap>;
 
-class StoryManager {
+class StoryManager
+{
 public:
     StoryManager() = default;
     explicit StoryManager(const std::string& storyFilePath);
@@ -27,7 +28,8 @@ public:
     const std::string& getDialog(const std::string& npcID) const;
 
 private:
-    struct RecordedEvent {
+    struct RecordedEvent
+    {
         Event event;
         bool consumed = false;
     };

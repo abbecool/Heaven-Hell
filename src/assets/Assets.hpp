@@ -9,21 +9,17 @@ class SDLPlatform;
 
 class Assets
 {
-	std::map<std::string, SpriteDefinition> m_sprites;
+    std::map<std::string, SpriteDefinition> m_sprites;
 
 public:
+    Assets();
+    ~Assets();
 
-	Assets();
-	~Assets();
+    void addSprite(const std::string& name, SpriteDefinition sprite);
 
-	void addSprite(const std::string& name, SpriteDefinition sprite);
+    const SpriteDefinition& getSprite(const std::string& name) const;
+    void shutdown();
 
-	const SpriteDefinition& getSprite(const std::string& name) const;
-	void shutdown();
-
-	void loadFromFile(
-		const std::string & pathImages, 
-		RenderBackend& renderBackend,
-		SDLPlatform& platform
-	);
+    void loadFromFile(const std::string& pathImages,
+                      RenderBackend& renderBackend, SDLPlatform& platform);
 };

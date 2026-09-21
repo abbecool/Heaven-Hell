@@ -49,13 +49,9 @@ protected:
     int accumulated_frame_time = 0;
     int average_fps = 0;
 
-    RectF m_fpsRect = {
-        static_cast<float>(m_width - 100),
-        static_cast<float>(m_height - 20),
-        100.0f,
-        20.0f
-    };
-    
+    RectF m_fpsRect = {static_cast<float>(m_width - 100),
+                       static_cast<float>(m_height - 20), 100.0f, 20.0f};
+
     void update();
     void setPaused(bool paused);
     void sUserInput();
@@ -63,19 +59,17 @@ protected:
     int displayScale(bool fullscreen) const;
 
 public:
-    Game(const std::string & pathImages);
+    Game(const std::string& pathImages);
     ~Game();
-    void changeScene(
-        const std::string& sceneName,
-        std::shared_ptr<Scene> scene,
-        bool endCurrentScene=false);
+    void changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene,
+                     bool endCurrentScene = false);
     std::shared_ptr<Scene> currentScene();
     void quit();
     void run();
     bool isRunning();
     int framerate();
     RenderBackend& render();
-    Assets& assets(); 
+    Assets& assets();
     void playAudio(const std::string& name);
     PixelImage loadImagePixels(const std::string& path) const;
     SceneMap& sceneMap();

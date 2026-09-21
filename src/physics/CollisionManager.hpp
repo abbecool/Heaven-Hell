@@ -50,49 +50,38 @@ private:
 
     static uint8_t layerIndex(CollisionMask layer);
     static uint64_t pairKey(size_t first, size_t second);
-    static uint64_t triggerPairKey(const ColliderProxy& first, const ColliderProxy& second);
-    static bool layersMatch(const ColliderProxy& first, const ColliderProxy& second);
-    static bool aabbIntersects(const ColliderProxy& first, const ColliderProxy& second);
+    static uint64_t triggerPairKey(const ColliderProxy& first,
+                                   const ColliderProxy& second);
+    static bool layersMatch(const ColliderProxy& first,
+                            const ColliderProxy& second);
+    static bool aabbIntersects(const ColliderProxy& first,
+                               const ColliderProxy& second);
 
     bool hasValidWorldBounds() const;
-    void insertColliderProxy(
-        EntityID entityID,
-        size_t shapeIndex,
-        const ColliderShape& shape,
-        const CTransform& transform,
-        bool isStatic,
-        std::vector<ColliderProxy>& proxies,
-        Quadtree& tree
-    );
+    void insertColliderProxy(EntityID entityID, size_t shapeIndex,
+                             const ColliderShape& shape,
+                             const CTransform& transform, bool isStatic,
+                             std::vector<ColliderProxy>& proxies,
+                             Quadtree& tree);
     Vec2 calculateDelta(Vec2 aPos, Vec2 aSize, Vec2 bPos, Vec2 bSize) const;
-    Vec2 calculateHorizontalMovement(
-        const Vec2& aPos,
-        const Vec2& aSize,
-        const Vec2& bPos,
-        const Vec2& bSize,
-        const Vec2& overlap,
-        const Vec2& prevOverlap
-    ) const;
-    Vec2 calculateVerticalMovement(
-        const Vec2& aPos,
-        const Vec2& aSize,
-        const Vec2& bPos,
-        const Vec2& bSize,
-        const Vec2& overlap,
-        const Vec2& prevOverlap
-    ) const;
-    Vec2 collisionOverlap(const ColliderProxy& first, const ColliderProxy& second) const;
+    Vec2 calculateHorizontalMovement(const Vec2& aPos, const Vec2& aSize,
+                                     const Vec2& bPos, const Vec2& bSize,
+                                     const Vec2& overlap,
+                                     const Vec2& prevOverlap) const;
+    Vec2 calculateVerticalMovement(const Vec2& aPos, const Vec2& aSize,
+                                   const Vec2& bPos, const Vec2& bSize,
+                                   const Vec2& overlap,
+                                   const Vec2& prevOverlap) const;
+    Vec2 collisionOverlap(const ColliderProxy& first,
+                          const ColliderProxy& second) const;
 
-    void registerSolidHandler(CollisionMask layerA, CollisionMask layerB, Handler handler);
-    void registerTriggerHandler(CollisionMask layerA, CollisionMask layerB, Handler handler);
-    void dispatch(
-        CollisionMatrix& matrix,
-        EntityID entityA,
-        CollisionMask layerA,
-        EntityID entityB,
-        CollisionMask layerB,
-        Vec2 overlap
-    );
+    void registerSolidHandler(CollisionMask layerA, CollisionMask layerB,
+                              Handler handler);
+    void registerTriggerHandler(CollisionMask layerA, CollisionMask layerB,
+                                Handler handler);
+    void dispatch(CollisionMatrix& matrix, EntityID entityA,
+                  CollisionMask layerA, EntityID entityB, CollisionMask layerB,
+                  Vec2 overlap);
     void buildQuadtree();
     void processQuadtreeLeaf(const std::vector<size_t>& proxyIndices);
 
@@ -113,5 +102,8 @@ public:
     void rebuildStaticQuadtree();
     void doCollisions();
     void renderQuadtree(RenderBackend& renderer);
-    const std::vector<ColliderProxy>& proxies() const { return m_proxies; }
+    const std::vector<ColliderProxy>& proxies() const
+    {
+        return m_proxies;
+    }
 };

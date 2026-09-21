@@ -7,7 +7,8 @@
 
 struct TTF_Font;
 
-struct OpenGLGlyphInfo {
+struct OpenGLGlyphInfo
+{
     RectF src;
     int surfaceWidth = 0;
     int surfaceHeight = 0;
