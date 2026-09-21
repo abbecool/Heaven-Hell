@@ -5,20 +5,23 @@
 #include <random>
 #include <cmath>
 
-Camera::Camera(){}
+Camera::Camera() {}
 
-void Camera::calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize){
+void Camera::calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize)
+{
     m_screenSize = screenSize;
     m_levelSize = levelSize;
     m_gridSize = gridSize;
-    position = Vec2{0,0};
+    position = Vec2{0, 0};
 }
 
-void Camera::reset() {
-        position = originalPosition;
-    }
+void Camera::reset()
+{
+    position = originalPosition;
+}
 
-void Camera::movement(Vec2 playerPos){
+void Camera::movement(Vec2 playerPos)
+{
     auto width = m_screenSize.x;
     auto height = m_screenSize.y;
     auto levelX = m_levelSize.x;
@@ -26,110 +29,139 @@ void Camera::movement(Vec2 playerPos){
     auto gridX = m_gridSize.x;
     auto gridY = m_gridSize.y;
 
-    if (!m_cameraFollow){
+    if (!m_cameraFollow)
+    {
         originalPosition = playerPos - Vec2(width / 2, height / 2);
-        if (originalPosition.x + width > gridX*levelX) // right wall
+        if (originalPosition.x + width > gridX * levelX) // right wall
         {
-            originalPosition.x = gridX*levelX - width;
+            originalPosition.x = gridX * levelX - width;
         }
         if (originalPosition.x < 0) // left wall
         {
             originalPosition.x = 0;
-        } 
-        if (originalPosition.y + height > gridY*levelY) // bottom wall
+        }
+        if (originalPosition.y + height > gridY * levelY) // bottom wall
         {
-            originalPosition.y = gridY*levelY - height;
+            originalPosition.y = gridY * levelY - height;
         }
         if (originalPosition.y < 0) // top wall
         {
             originalPosition.y = 0;
         }
-    } else{
-        originalPosition = Vec2{
-            gridX * 32.0f * static_cast<int>(static_cast<int>(playerPos.x) / (32.0f * gridX)),
-            gridY * 32.0f * static_cast<int>(static_cast<int>(playerPos.y) / (32.0f * gridY))
-        };
+    }
+    else
+    {
+        const float cellWidth = gridX * 32.0f;
+        const float cellHeight = gridY * 32.0f;
+
+        originalPosition =
+            Vec2{std::floor(playerPos.x / cellWidth) * cellWidth,
+                 std::floor(playerPos.y / cellHeight) * cellHeight};
     }
     position = originalPosition;
 }
 
 // Start screen shake with a magnitude and duration
-void Camera::startShake(float magnitude, int duration) {
+void Camera::startShake(float magnitude, int duration)
+{
     shakeMagnitude = magnitude;
     shakeDuration = duration;
-    shakeTimeElapsed = 0;  // Reset elapsed time
+    shakeTimeElapsed = 0; // Reset elapsed time
 }
 
 // Function to apply screen shake
-void Camera::screenShake() {
-    if (shakeDuration > 0) {
-        shakeTimeElapsed += 16; // Assuming 60 FPS, increase time (16ms per frame)
-        if (shakeTimeElapsed < shakeDuration) {
+void Camera::screenShake()
+{
+    if (shakeDuration > 0)
+    {
+        shakeTimeElapsed +=
+            16; // Assuming 60 FPS, increase time (16ms per frame)
+        if (shakeTimeElapsed < shakeDuration)
+        {
             // Generate random offset
-            float randomX = ((std::rand() % 2001) / 1000.0f - 1.0f) * shakeMagnitude;
-            float randomY = ((std::rand() % 2001) / 1000.0f - 1.0f) * shakeMagnitude;
+            float randomX =
+                ((std::rand() % 2001) / 1000.0f - 1.0f) * shakeMagnitude;
+            float randomY =
+                ((std::rand() % 2001) / 1000.0f - 1.0f) * shakeMagnitude;
 
             // Apply random offset to the camera position
             position.x = originalPosition.x + randomX;
             position.y = originalPosition.y + randomY;
 
             // Optionally reduce the magnitude over time (decay effect)
-            shakeMagnitude *= 0.9f; // Reduce the magnitude to create a decay effect
-        } else {
+            shakeMagnitude *=
+                0.9f; // Reduce the magnitude to create a decay effect
+        }
+        else
+        {
             // Reset the shake when the duration is over
             shakeDuration = 0;
-        }    
+        }
     }
 }
 
-void Camera::toggleCameraFollow(){
+void Camera::toggleCameraFollow()
+{
     m_cameraFollow = !m_cameraFollow;
 }
 
-bool Camera::getCameraFollow(){
+bool Camera::getCameraFollow()
+{
     return m_cameraFollow;
 }
 
-int Camera::stepCameraZoom(int zoom, int windowZoom){
-    if (windowZoom > m_cameraZoom+zoom)
+int Camera::stepCameraZoom(int zoom, int windowZoom)
+{
+    if (windowZoom > m_cameraZoom + zoom)
     {
         m_cameraZoom += zoom;
     }
     return m_cameraZoom;
 }
 
-int Camera::getCameraZoom(){
+int Camera::getCameraZoom()
+{
     return m_cameraZoom;
 }
 
 // Start screen shake with a magnitude and duration
-bool Camera::startPan(float speed, int duration, Vec2 pos, bool pause) {
+bool Camera::startPan(float speed, int duration, Vec2 pos, bool pause)
+{
     panSpeed = speed;
     panDuration = duration;
-    panTimeElapsed = 0;  // Reset elapsed time
+    panTimeElapsed = 0; // Reset elapsed time
     panPos = pos;
     panStartPos = originalPosition;
     panInitPause = pause;
-    i = 0;
+    panStepCount = 0;
     return true;
 }
 
-void Camera::panCamera(){
-    Vec2 panVelocity = (panPos - panStartPos).norm() * static_cast<float>(i) * panSpeed / 60.0f;
-    if (panDuration <= 0) {
+void Camera::panCamera()
+{
+    Vec2 panVelocity = (panPos - panStartPos).norm() *
+                       static_cast<float>(panStepCount) * panSpeed / 60.0f;
+    if (panDuration <= 0)
+    {
         return;
     }
-    bool dontKnow = (panPos-(panStartPos + panVelocity)).length() > 32;
-    if (dontKnow && (panTimeElapsed < panDuration)) {
-        i++;
+    bool dontKnow = (panPos - (panStartPos + panVelocity)).length() > 32;
+    if (dontKnow && (panTimeElapsed < panDuration))
+    {
+        panStepCount++;
     }
-    else {
+    else
+    {
         panTimeElapsed += 16; // Assuming 60 FPS, increase time (16ms per frame)
     }
-    if ( panTimeElapsed >= panDuration ) {
-        if ( ( panStartPos-(panStartPos + panVelocity) ).length() > 32 ) {
-            i--;
-        } else {
+    if (panTimeElapsed >= panDuration)
+    {
+        if ((panStartPos - (panStartPos + panVelocity)).length() > 32)
+        {
+            panStepCount--;
+        }
+        else
+        {
             panDuration = 0;
             m_cameraPause = panInitPause;
         }
@@ -137,41 +169,37 @@ void Camera::panCamera(){
     position = panStartPos + panVelocity;
 }
 
-bool Camera::update(Vec2 playerPos, bool pause) {
+bool Camera::update(Vec2 playerPos, bool pause)
+{
     m_cameraPause = pause;
     // Usual camera movement logic
     movement(playerPos); // Example player position
-    
+
     // Apply screen shake effect if it's active
     screenShake();
-    
-    if (panDuration > 0) {
+
+    if (panDuration > 0)
+    {
         panCamera();
     }
 
     return m_cameraPause;
 }
 
-Vec2 Camera::getScreenSize() {
+Vec2 Camera::getScreenSize()
+{
     return m_screenSize;
 }
 
 #include "ecs/ScriptableEntity.hpp"
 #include <iostream>
 
-class CameraController : public ScriptableEntity 
+class CameraController : public ScriptableEntity
 {
 public:
-    void OnCreateFunction()
-    {
-    }
+    void OnCreateFunction() {}
 
-    void OnDestroyFunction()
-    {
-    }
+    void OnDestroyFunction() {}
 
-    void OnUpdateFunction()
-    {
-    }
+    void OnUpdateFunction() {}
 };
-

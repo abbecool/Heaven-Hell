@@ -3,31 +3,34 @@
 #include "physics/Vec2.hpp"
 #include "ecs/Entity.hpp"
 
-class Camera {
+class Camera
+{
 
     bool m_cameraFollow = false;
     int m_cameraZoom = 0;
     Vec2 m_screenSize = {1920, 1080};
     Vec2 m_levelSize;
     Vec2 m_gridSize;
-    
+
     float shakeMagnitude;
     int shakeDuration = 0;
     int shakeTimeElapsed;
     float panSpeed;
     int panTimeElapsed;
-    int i;
+    int panStepCount;
     bool panInitPause;
     bool m_cameraPause;
-    Vec2 panPos = Vec2{0,0};
-    Vec2 panStartPos = Vec2{0,0};
+    Vec2 panPos = Vec2{0, 0};
+    Vec2 panStartPos = Vec2{0, 0};
+
 public:
     int panDuration = 0;
     Camera();
     void calibrate(Vec2 screenSize, Vec2 levelSize, Vec2 gridSize);
-    Vec2 position = Vec2{0,0};      // Current camera position
-    Vec2 originalPosition = Vec2{0,0};  // Original camera position (before shake)
-    
+    Vec2 position = Vec2{0, 0}; // Current camera position
+    Vec2 originalPosition =
+        Vec2{0, 0}; // Original camera position (before shake)
+
     void reset();
 
     void movement(Vec2 playerPos);
