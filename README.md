@@ -80,6 +80,52 @@ When MSYS2 is ready, open the repository in VS Code, select a launch
 configuration, and press F5. VS Code will configure CMake, build the project,
 and run the game.
 
+## Formatting and Static Analysis
+
+Use **Terminal > Run Task** in VS Code:
+
+| Task | Action |
+| --- | --- |
+| `clang-format: current file` | Format the saved, active C/C++ file in place. |
+| `clang-format: check project` | Report formatting differences without editing files. |
+| `clang-format: format project` | Format all first-party C/C++ sources and headers in place. |
+| `cppcheck: project` | Configure the debug preset, then analyze its compilation database. |
+
+Save files before running these tasks: the tools read the files on disk.
+Formatting uses `.clang-format`: four spaces, Allman braces, an 80-column
+limit, `Type*`/`Type&` alignment, and preserved include order. The check task
+reports the first formatting diagnostic per file in the Problems panel and
+exits with code 1 when changes are needed. The formatting tasks apply those
+changes; review the resulting diff before committing.
+
+The shared `scripts/format-code.ps1` runner limits all formatting tasks to
+`src/` and `tests/`, excludes `src/external/`, and skips symbolic links.
+The current-file task rejects excluded files as well. `.clang-format-ignore`
+also applies these directory exclusions to direct clang-format invocations
+(requires a modern clang-format with ignore-file support).
+The vendored C/C++ dependencies are nlohmann JSON and GLAD/Khronos, all under
+`src/external/`. Build outputs, packaged copies, and `.venv/` are outside the
+formatting allowlist.
+
+Cppcheck uses C++20 and the debug compilation database's include paths and
+defines. It checks compiled project sources and their included headers,
+including the test targets. External source files are excluded; diagnostics
+from vendored headers are suppressed, though those headers must still be
+read to understand project code. Warning, style, performance, and portability
+checks are enabled. Findings appear as warnings in Problems with Cppcheck's
+original severity and diagnostic ID in the message; findings cause exit code 1.
+Review findings before treating them as confirmed bugs.
+
+On Windows, install LLVM and Cppcheck at the paths used by `.vscode/tasks.json`:
+
+- `C:/Program Files/LLVM/bin/clang-format.exe`
+- `C:/Program Files/Cppcheck/cppcheck.exe`
+
+Adjust the task paths if installed elsewhere. Formatting uses built-in
+Windows PowerShell. On Linux, the formatting tasks require PowerShell 7
+(`pwsh`) and `clang-format` on `PATH`; analysis requires `cppcheck` on `PATH`.
+No VS Code extension is required for these tasks.
+
 ## Windows Manual Build
 
 The VS Code tasks and package script use CMake presets. Windows presets use

@@ -2,6 +2,101 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "clang-format: current file",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile", "-File", "${workspaceFolder}/scripts/format-code.ps1",
+        "-Mode", "Format", "-File", "${file}"
+      ],
+      "windows": {
+        "command": "powershell.exe",
+        "args": [
+          "-NoProfile", "-ExecutionPolicy", "Bypass",
+          "-File", "${workspaceFolder}/scripts/format-code.ps1",
+          "-Mode", "Format", "-File", "${file}",
+          "-ClangFormat", "C:/Program Files/LLVM/bin/clang-format.exe"
+        ]
+      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "clang-format: check project",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile", "-File", "${workspaceFolder}/scripts/format-code.ps1",
+        "-Mode", "Check"
+      ],
+      "windows": {
+        "command": "powershell.exe",
+        "args": [
+          "-NoProfile", "-ExecutionPolicy", "Bypass",
+          "-File", "${workspaceFolder}/scripts/format-code.ps1",
+          "-Mode", "Check",
+          "-ClangFormat", "C:/Program Files/LLVM/bin/clang-format.exe"
+        ]
+      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "clang-format: format project",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile", "-File", "${workspaceFolder}/scripts/format-code.ps1",
+        "-Mode", "Format"
+      ],
+      "windows": {
+        "command": "powershell.exe",
+        "args": [
+          "-NoProfile", "-ExecutionPolicy", "Bypass",
+          "-File", "${workspaceFolder}/scripts/format-code.ps1",
+          "-Mode", "Format",
+          "-ClangFormat", "C:/Program Files/LLVM/bin/clang-format.exe"
+        ]
+      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "cppcheck: project",
+      "type": "process",
+      "dependsOn": "configure-debug",
+      "command": "cppcheck",
+      "args": [
+        "--project=build/Debug/compile_commands.json",
+        "--platform=unix64",
+        "--std=c++20",
+        "--enable=warning,style,performance,portability",
+        "--inline-suppr",
+        "--error-exitcode=1",
+        "--template={file}:{line}:{column}: warning: {severity}: {message} [{id}]",
+        "-isrc/external",
+        "--suppress=*:src/external/*",
+        "--suppress=*:*/src/external/*"
+      ],
+      "windows": {
+        "command": "C:/Program Files/Cppcheck/cppcheck.exe",
+        "args": [
+          "--project=build/Windows/Ninja/Debug/compile_commands.json",
+          "--platform=win64",
+          "--std=c++20",
+          "--enable=warning,style,performance,portability",
+          "--inline-suppr",
+          "--error-exitcode=1",
+          "--template={file}:{line}:{column}: warning: {severity}: {message} [{id}]",
+          "-isrc/external",
+          "--suppress=*:src/external/*",
+          "--suppress=*:*/src/external/*"
+        ]
+      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": "$gcc"
+    },
+    {
       "label": "configure-release",
       "type": "shell",
       "command": "cmake",

@@ -1,0 +1,5 @@
+# Only first-party source and tests are eligible, even for direct CLI use.
+**
+!src/**
+!tests/**
+src/external/**
