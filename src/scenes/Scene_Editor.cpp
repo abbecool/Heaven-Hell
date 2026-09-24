@@ -367,8 +367,8 @@ void Scene_Editor::openLayout(const std::string& id)
                        std::max(0.0f, worldSize.y - visibleHeight));
         m_currentLayout = info;
         m_unresolvedPlacements.clear();
-        for (const LayoutPlacement& placement :
-             m_layouts.loadLayout(info).placements)
+        const WorldLayout loadedLayout = m_layouts.loadLayout(info);
+        for (const LayoutPlacement& placement : loadedLayout.placements)
         {
             if (!isValidGrid(Vec2{placement.x, placement.y}) ||
                 spawnPreview(placement) == static_cast<EntityID>(-1))
