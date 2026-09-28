@@ -44,6 +44,7 @@ add_library(heavenhell_core STATIC
     src/physics/RandomArray.cpp
     src/physics/Vec2.cpp
     src/story/StoryManager.cpp
+    src/story/GameSave.cpp
     src/world/EntityCatalog.cpp
     src/world/WorldLayout.cpp
 )

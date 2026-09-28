@@ -34,6 +34,15 @@ using json = nlohmann::json;
 
 namespace
 {
+json placementSignature(const WorldLayout& layout)
+{
+    json placements = json::array();
+    for (const LayoutPlacement& placement : layout.placements)
+        placements.push_back({{"definition", placement.definition},
+                              {"x", placement.x}, {"y", placement.y}});
+    return placements;
+}
+
 constexpr float PHYSICS_DT = 1.0f / 60.0f;
 constexpr float SPRINT_MULTIPLIER = 2.0f;
 constexpr float SNEAK_MULTIPLIER = 0.5f;
@@ -110,6 +119,17 @@ Scene_Play::Scene_Play(Game* game, std::string levelPath, bool newGame)
       m_levelLoader(this, m_gridSize, game->loadImagePixels(m_levelPath)),
       m_newGame(newGame)
 {
+    m_ECS.setEntityRemovalObserver([this](EntityID id) {
+        m_rendererManager.queueRemoveEntity(id);
+        const auto it = m_placedEntities.find(id);
+        if (it != m_placedEntities.end())
+        {
+            m_removedPlacements.insert(it->second);
+            m_placedEntities.erase(it);
+        }
+    });
+    if (!m_newGame)
+        restoreSavedWorld();
     registerAction(InputCode::W, "UP");
     registerAction(InputCode::Up, "UP");
     registerAction(InputCode::S, "DOWN");
@@ -168,16 +188,107 @@ void Scene_Play::loadActiveLayout()
     const LayoutInfo& info = layouts.activeLayout();
     const WorldLayout layout = layouts.loadLayout(info);
 
-    for (const LayoutPlacement& placement : layout.placements)
+    for (size_t index = 0; index < layout.placements.size(); ++index)
     {
-        if (Spawn(placement.definition, Vec2{placement.x, placement.y}) ==
-            static_cast<EntityID>(-1))
+        if (m_removedPlacements.contains(index) || index == m_playerPlacement)
+            continue;
+        const LayoutPlacement& placement = layout.placements[index];
+        const EntityID id = Spawn(placement.definition,
+                                  Vec2{placement.x, placement.y});
+        if (id == static_cast<EntityID>(-1))
         {
             std::cerr << "Could not spawn layout entity '"
                       << placement.definition << "' from layout " << info.id
                       << std::endl;
         }
+        else
+        {
+            m_placedEntities.emplace(id, index);
+            const auto state = m_restoredEntities.find(index);
+            if (state != m_restoredEntities.end())
+            {
+                const json& saved = state->second;
+                if (saved.contains("hp") && m_ECS.hasComponent<CHealth>(id))
+                    m_ECS.getComponent<CHealth>(id).HP =
+                        saved.at("hp").get<int>();
+                if (saved.contains("position") &&
+                    m_ECS.hasComponent<CTransform>(id))
+                {
+                    const Vec2 pos = Vec2(saved.at("position")) * m_gridSize;
+                    auto& transform = m_ECS.getComponent<CTransform>(id);
+                    transform.pos = pos;
+                    transform.prevPos = pos;
+                }
+            }
+        }
     }
+    if (!m_newGame)
+    {
+        for (const json& item : m_loadedSave.at("world").at("dynamic_items"))
+        {
+            const std::string name = item.at("name").get<std::string>();
+            if (!m_inventoryManager.findItem(name))
+                throw std::runtime_error("Unknown saved world item: " + name);
+            const EntityID id = Spawn(name, Vec2(item.at("position")));
+            if (id == static_cast<EntityID>(-1))
+                throw std::runtime_error("Could not restore world item: " + name);
+            const Vec2 position = Vec2(item.at("position")) * m_gridSize;
+            auto& transform = m_ECS.getComponent<CTransform>(id);
+            transform.pos = position;
+            transform.prevPos = position;
+            if (item.at("manual_pickup").get<bool>())
+            {
+                auto& component = m_ECS.getComponent<CItem>(id);
+                component.hasPickupModeOverride = true;
+                component.pickupModeOverride = PickupMode::Manual;
+            }
+        }
+    }
+}
+
+void Scene_Play::restoreSavedWorld()
+{
+    m_loadedSave = m_saveRepository.load();
+    LayoutRepository layouts;
+    layouts.load();
+    const json& world = m_loadedSave.at("world");
+    if (world.at("layout") != layouts.activeLayout().id)
+        throw std::runtime_error("Saved world uses a different level layout");
+    const WorldLayout layout = layouts.loadLayout(layouts.activeLayout());
+    if (world.at("placements") != placementSignature(layout))
+        throw std::runtime_error("Level placements changed since save");
+    for (const json& indexJson : world.at("removed_placements"))
+    {
+        const size_t index = indexJson.get<size_t>();
+        if (index >= layout.placements.size() ||
+            !m_removedPlacements.insert(index).second)
+            throw std::runtime_error("Invalid removed placement in save");
+    }
+    if (!world.at("player_placement").is_null())
+    {
+        m_playerPlacement = world.at("player_placement").get<size_t>();
+        if (m_playerPlacement >= layout.placements.size() ||
+            m_removedPlacements.contains(m_playerPlacement) ||
+            layout.placements[m_playerPlacement].definition !=
+                m_loadedSave.at("player").at("definition").get<std::string>())
+            throw std::runtime_error("Invalid player host in save");
+    }
+    for (const json& state : world.at("entities"))
+    {
+        const size_t index = state.at("index").get<size_t>();
+        if (index >= layout.placements.size() ||
+            m_removedPlacements.contains(index) || index == m_playerPlacement ||
+            !m_restoredEntities.emplace(index, state).second)
+            throw std::runtime_error("Invalid placed entity state in save");
+    }
+    for (const json& item : world.at("dynamic_items"))
+    {
+        if (!item.is_object() || !item.at("name").is_string() ||
+            !item.at("position").is_object() ||
+            !item.at("manual_pickup").is_boolean())
+            throw std::runtime_error("Invalid saved world item");
+    }
+    m_storyManager.loadState(m_loadedSave.at("story"));
 }
 
 // Function to save the game state to a file
@@ -204,26 +315,63 @@ void Scene_Play::saveGame()
         inventoryItems.push_back(item.id);
     }
 
-    std::ofstream file("config_files/game_save.json");
-    if (!file)
+    json removed = json::array();
+    std::vector<size_t> indices(m_removedPlacements.begin(),
+                                m_removedPlacements.end());
+    std::sort(indices.begin(), indices.end());
+    for (size_t index : indices)
+        removed.push_back(index);
+    json entities = json::array();
+    for (const auto& [id, index] : m_placedEntities)
     {
-        throw std::runtime_error(
-            "Could not open game save file: config_files/game_save.json");
+        if (!m_ECS.isAlive(id))
+            continue;
+        json state = {{"index", index}};
+        if (m_ECS.hasComponent<CHealth>(id))
+            state["hp"] = m_ECS.getComponent<CHealth>(id).HP;
+        if (m_ECS.hasComponent<CTransform>(id))
+        {
+            const Vec2 pos = m_ECS.getComponent<CTransform>(id).pos / m_gridSize;
+            state["position"] = {{"x", pos.x}, {"y", pos.y}};
+        }
+        entities.push_back(std::move(state));
     }
-    json save = {{"player",
+    json dynamicItems = json::array();
+    for (auto [id, item, transform, name] :
+         m_ECS.View<CItem, CTransform, CName>())
+    {
+        if (m_placedEntities.contains(id))
+            continue;
+        const Vec2 position = transform.pos / m_gridSize;
+        dynamicItems.push_back({{"name", name.name},
+                                {"position", {{"x", position.x}, {"y", position.y}}},
+                                {"manual_pickup", item.hasPickupModeOverride &&
+                                      item.pickupModeOverride == PickupMode::Manual}});
+    }
+    LayoutRepository layouts;
+    layouts.load();
+    const WorldLayout layout = layouts.loadLayout(layouts.activeLayout());
+    json save = {{"version", 1}, {"player",
                   {{"definition", m_playerDefinition},
                    {"position",
-                    {{"x", int(playerPos.x / m_gridSize.x)},
-                     {"y", int(playerPos.y / m_gridSize.y)}}},
+                    {{"x", playerPos.x / m_gridSize.x},
+                     {"y", playerPos.y / m_gridSize.y}}},
                    {"hp", hp},
+                   {"hp_max", m_ECS.getComponent<CHealth>(m_player).HP_max},
                    {"currency", currency},
                    {"inventory",
                     {{"slots", inventory.size()},
                      {"items", inventoryItems},
-                     {"activeSlot", inventory.activeItem.index}}},
-                   {"progression", json::object()}}}};
-    file << save.dump(4);
-    file.close();
+                     {"activeSlot", inventory.activeItem.index}}}}},
+                 {"story", m_storyManager.saveState()},
+                 {"world", {{"layout", layouts.activeLayout().id},
+                             {"placements", placementSignature(layout)},
+                             {"removed_placements", removed},
+                             {"entities", entities},
+                             {"dynamic_items", dynamicItems},
+                             {"player_placement", m_playerPlacement == static_cast<size_t>(-1)
+                                  ? json(nullptr) : json(m_playerPlacement)}}}};
+    m_saveRepository.write(save);
 }
 
 void Scene_Play::sDoAction(const Action& action)
@@ -1693,22 +1841,17 @@ EntityID Scene_Play::DropItem(const Item& item, Vec2 position)
 
 EntityID Scene_Play::spawnPlayer()
 {
-    json save;
     json playerSave;
     m_playerDefinition = "player";
 
     if (!m_newGame)
     {
-        save = loadJsonFile("config_files/game_save.json");
-        playerSave = save.at("player");
+        playerSave = m_loadedSave.at("player");
         m_playerDefinition = playerSave.value("definition", "player");
     }
 
-    const std::string definitionPath =
-        "config_files/entities/" + m_playerDefinition + ".json";
-    json playerDefinitionJson = loadJsonFile(definitionPath);
-    const json& playerDefinition = playerDefinitionJson.at(m_playerDefinition);
-    Vec2 spawnGrid = playerDefinition.at("spawn");
+    const json playerTemplate = loadJsonFile("config_files/entities/player.json");
+    Vec2 spawnGrid = playerTemplate.at("player").at("spawn");
     if (playerSave.contains("position"))
     {
         spawnGrid = playerSave.at("position");
@@ -1721,11 +1864,32 @@ EntityID Scene_Play::spawnPlayer()
                                  m_playerDefinition);
     }
     m_player = entityID;
+    if (playerSave.contains("position"))
+    {
+        const Vec2 position = Vec2(playerSave.at("position")) * m_gridSize;
+        auto& transform = m_ECS.getComponent<CTransform>(entityID);
+        transform.pos = position;
+        transform.prevPos = position;
+    }
+    if (m_playerDefinition != "player")
+    {
+        m_ECS.addComponent<CCollider>(
+            entityID, playerTemplate.at("player").at("components").at("CCollider"));
+        if (!m_ECS.hasComponent<CInput>(entityID))
+            m_ECS.addComponent<CInput>(entityID);
+        if (m_ECS.hasComponent<CAIAgent>(entityID))
+            m_ECS.removeComponent<CAIAgent>(entityID);
+        if (m_ECS.hasComponent<CPossessable>(entityID))
+            m_ECS.removeComponent<CPossessable>(entityID);
+        if (m_ECS.hasComponent<CLifespan>(entityID))
+            m_ECS.removeComponent<CLifespan>(entityID);
+    }
 
     if (playerSave.contains("hp") && m_ECS.hasComponent<CHealth>(entityID))
     {
-        m_ECS.getComponent<CHealth>(entityID).HP =
-            playerSave.at("hp").get<int>();
+        CHealth& health = m_ECS.getComponent<CHealth>(entityID);
+        health.HP = playerSave.at("hp").get<int>();
+        health.HP_max = playerSave.at("hp_max").get<int>();
     }
 
     if (!m_ECS.hasComponent<CCurrency>(entityID))
@@ -1746,12 +1910,13 @@ EntityID Scene_Play::spawnPlayer()
         const json& inventorySave = playerSave.at("inventory");
         loadInventoryFromJson(entityID, inventorySave);
     }
-    else if (save.contains("inventory"))
-    {
-        loadInventoryFromJson(entityID, save.at("inventory"));
-    }
 
-    const auto& inventory = m_ECS.getComponent<CInventory>(entityID);
+    auto& inventory = m_ECS.getComponent<CInventory>(entityID);
+    for (Item& item : inventory.items)
+    {
+        if (item.hasWeaponConfig)
+            item.weaponConfig["mask"] = json::array({"ENEMY_LAYER"});
+    }
     if (inventory.activeItem.index >= 0 &&
         inventory.activeItem.index < inventory.size())
     {
@@ -2245,6 +2410,14 @@ bool Scene_Play::tryPossess(EntityID player, EntityID mob)
             m_ECS.removeComponent<CLifespan>(mob);
         }
 
+        if (m_playerPlacement != static_cast<size_t>(-1))
+            m_removedPlacements.insert(m_playerPlacement);
+        const auto placed = m_placedEntities.find(newID);
+        m_playerPlacement = placed != m_placedEntities.end()
+                                ? placed->second : static_cast<size_t>(-1);
+        if (placed != m_placedEntities.end())
+            m_placedEntities.erase(placed);
+        m_playerDefinition = possessedName;
         changePlayerID(newID);
         if (hasPossessedActiveItem)
         {

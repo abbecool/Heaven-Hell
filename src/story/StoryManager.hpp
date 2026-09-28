@@ -1,6 +1,7 @@
 #pragma once
 
 #include "story/Quest.hpp"
+#include "external/json.hpp"
 
 #include <cstddef>
 #include <string>
@@ -24,6 +25,8 @@ public:
     bool isQuestActive(const std::string& questID) const;
     const std::string& getPrimaryActiveQuestID() const;
     const std::vector<Quest>& getQuests() const;
+    nlohmann::json saveState() const;
+    void loadState(const nlohmann::json& state);
     void loadDialogs(const std::string& path);
     const std::string& getDialog(const std::string& npcID) const;
 
@@ -38,6 +41,7 @@ private:
     std::unordered_map<std::string, size_t> m_questIndices;
     std::vector<RecordedEvent> m_eventHistory;
     std::string m_primaryActiveQuestID;
+    std::string m_definitionFingerprint;
     bool m_storyFinished = false;
     NPCDialogs m_npcDialogs;
 
@@ -49,4 +53,5 @@ private:
     bool advanceQuest(Quest& quest, const Event& event);
     void executeActions(const std::vector<QuestAction>& actions);
     void refreshPrimaryActiveQuest();
+    static bool recordsPriorAction(EventType type);
 };

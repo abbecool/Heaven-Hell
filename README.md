@@ -190,6 +190,9 @@ To package an existing build without rebuilding first:
 
 ## Tests
 
+Quest and save state contracts are documented in
+[docs/QuestAndSaveState.md](docs/QuestAndSaveState.md).
+
 Configure and build the debug preset, then run CTest:
 
 ```powershell

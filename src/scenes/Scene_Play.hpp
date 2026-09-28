@@ -10,6 +10,7 @@
 #include "scenes/Scene_Finish.hpp"
 #include "physics/Level_Loader.hpp"
 #include "story/EventBus.hpp"
+#include "story/GameSave.hpp"
 #include "world/WorldLayout.hpp"
 
 #include <memory>
@@ -29,6 +30,12 @@ protected:
     StoryManager m_storyManager;
     LevelLoader m_levelLoader;
     EventBus m_eventBus;
+    GameSave m_saveRepository;
+    nlohmann::json m_loadedSave;
+    std::unordered_map<EntityID, size_t> m_placedEntities;
+    std::unordered_set<size_t> m_removedPlacements;
+    std::unordered_map<size_t, nlohmann::json> m_restoredEntities;
+    size_t m_playerPlacement = static_cast<size_t>(-1);
 
     float m_zoomStep = 2;
     Vec2 m_levelSize;
@@ -54,6 +61,7 @@ protected:
 
     void loadActiveLayout();
     void saveGame();
+    void restoreSavedWorld();
 
     EntityID spawnPlayer();
     EntityID spawnShadow(EntityID parentID,

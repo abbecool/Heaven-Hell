@@ -1,5 +1,6 @@
 #include "TestSupport.hpp"
 #include "story/StoryManager.hpp"
+#include "story/GameSave.hpp"
 
 #include <array>
 #include <filesystem>
@@ -111,6 +112,81 @@ void testInvalidStoryIsRejected()
     require(threw, "invalid Story1 document was accepted");
 }
 
+void testSaveAndRestoreProgress()
+{
+    StoryManager original(StoryPath);
+    original.onEvent(event(EventType::EntityPossessed, "knight"));
+    for (int i = 0; i < 200; ++i)
+    {
+        original.onEvent(event(EventType::EnteredArea, "area.dwarf.home"));
+        original.onEvent(event(EventType::EntityPossessed, "knight"));
+    }
+    const auto saved = original.saveState();
+    require(saved.at("prior_actions").size() == 1,
+            "area contacts should not be stored for future quests");
+
+    StoryManager resumed(StoryPath);
+    resumed.loadState(saved);
+    resumed.onEvent(event(EventType::EntityDrained, "chicken"));
+    require(resumed.isQuestActive("world.choose_first_face"),
+            "restored prior possession was not credited exactly once");
+    resumed.onEvent(event(EventType::EntityPossessed, "dwarf"));
+    require(resumed.isQuestActive("faction.dwarf.return_home"),
+            "restored story did not allow the next choice");
+    require(!resumed.isQuestActive("main.kill_king"),
+            "earlier area contact incorrectly completed the new quest");
+
+    StoryManager finalResume(StoryPath);
+    finalResume.loadState(resumed.saveState());
+    finalResume.onEvent(event(EventType::EnteredArea, "area.dwarf.home"));
+    require(finalResume.isQuestActive("main.kill_king"),
+            "saved quest step was not restored");
+}
+
+void testRejectChangedQuestDefinitions()
+{
+    StoryManager story(StoryPath);
+    auto state = story.saveState();
+    state["quests"][0]["steps"][0] = "different_step";
+    bool rejected = false;
+    try { story.loadState(state); }
+    catch (const std::exception&) { rejected = true; }
+    require(rejected, "save for different quest definitions was accepted");
+    require(story.isQuestActive("opening.regain_strength"),
+            "failed restoration changed live quest state");
+}
+
+void testSaveFileRoundTripAndFailure()
+{
+    const auto path = std::filesystem::temp_directory_path() /
+                      "heavenhell_story_save_test.json";
+    const GameSave save(path);
+    const nlohmann::json snapshot = {{"version", 1}, {"player", nlohmann::json::object()},
+                                     {"story", nlohmann::json::object()},
+                                     {"world", nlohmann::json::object()}};
+    save.write(snapshot);
+    require(save.load() == snapshot, "saved game did not round-trip");
+    bool rejected = false;
+    try { save.write({{"version", 2}}); }
+    catch (const std::exception&) { rejected = true; }
+    require(rejected && save.load() == snapshot,
+            "failed save replaced a valid prior save");
+    std::filesystem::remove(path);
+}
+
+void testEventBusRoutesByTypeAndSubject()
+{
+    EventBus bus;
+    int calls = 0;
+    bus.subscribe(event(EventType::EntityKilled, "knight"),
+                  [&calls](const Event&) { ++calls; });
+    bus.emit(event(EventType::EntityPossessed, "knight"));
+    bus.emit(event(EventType::EntityKilled, "dwarf"));
+    require(calls == 0, "event bus delivered an unrelated event");
+    bus.emit(event(EventType::EntityKilled, "knight"));
+    require(calls == 1, "event bus lost matching event");
+}
+
 constexpr std::array Tests = {
     TestSupport::TestCase{"early_possession_is_credited_once",
                           testEarlyPossessionIsCreditedOnce},
@@ -118,6 +194,11 @@ constexpr std::array Tests = {
                           testFactionBranchesStayExclusive},
     TestSupport::TestCase{"invalid_story_is_rejected",
                           testInvalidStoryIsRejected},
+    TestSupport::TestCase{"save_and_restore_progress", testSaveAndRestoreProgress},
+    TestSupport::TestCase{"reject_changed_quest_definitions", testRejectChangedQuestDefinitions},
+    TestSupport::TestCase{"save_file_round_trip", testSaveFileRoundTripAndFailure},
+    TestSupport::TestCase{"event_bus_routes_by_type_and_subject",
+                          testEventBusRoutesByTypeAndSubject},
 };
 
 } // namespace

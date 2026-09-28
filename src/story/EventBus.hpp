@@ -37,12 +37,12 @@ public:
 
     void subscribe(const Event& event, const Listener& listener)
     {
-        m_listenerMap[event.itemName].push_back(listener);
+        m_listenerMap[{event.type, event.itemName}].push_back(listener);
     }
 
     void emit(const Event& event)
     {
-        const auto it = m_listenerMap.find(event.itemName);
+        const auto it = m_listenerMap.find({event.type, event.itemName});
         if (it == m_listenerMap.end())
         {
             return;
@@ -55,5 +55,22 @@ public:
     }
 
 private:
-    std::unordered_map<std::string, std::vector<Listener>> m_listenerMap;
+    struct Key
+    {
+        EventType type;
+        std::string subject;
+
+        bool operator==(const Key&) const = default;
+    };
+
+    struct KeyHash
+    {
+        size_t operator()(const Key& key) const
+        {
+            const size_t typeHash = std::hash<int>{}(static_cast<int>(key.type));
+            return typeHash ^ (std::hash<std::string>{}(key.subject) << 1);
+        }
+    };
+
+    std::unordered_map<Key, std::vector<Listener>, KeyHash> m_listenerMap;
 };
