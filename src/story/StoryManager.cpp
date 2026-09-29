@@ -3,6 +3,7 @@
 #include "external/json.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -110,6 +111,14 @@ void StoryManager::loadStory(const std::string& storyFilePath)
             "Invalid Story1 document: expected format story-quests-v1, version "
             "1, and quests array");
     }
+
+    uint64_t fingerprint = 14695981039346656037ULL;
+    for (unsigned char byte : document.dump())
+    {
+        fingerprint ^= byte;
+        fingerprint *= 1099511628211ULL;
+    }
+    m_definitionFingerprint = std::to_string(fingerprint);
 
     m_quests.clear();
     m_questIndices.clear();
@@ -275,8 +284,147 @@ void StoryManager::loadStory(const std::string& storyFilePath)
 
 void StoryManager::onEvent(const Event& event)
 {
+    // Area contacts occur each frame. Only discrete actions may satisfy a
+    // quest which becomes active after the action took place.
+    if (!recordsPriorAction(event.type))
+    {
+        m_eventHistory.push_back(RecordedEvent{event, false});
+        processRecordedEvent(m_eventHistory.size() - 1);
+        m_eventHistory.pop_back();
+        return;
+    }
+
+    const size_t index = m_eventHistory.size();
     m_eventHistory.push_back(RecordedEvent{event, false});
-    processRecordedEvent(m_eventHistory.size() - 1);
+    processRecordedEvent(index);
+    // Keep at most one unmatched occurrence of each discrete action/subject.
+    // A bounded history also prevents long sessions from growing without limit.
+    if (!m_eventHistory[index].consumed)
+    {
+        for (size_t i = 0; i < index; ++i)
+        {
+            if (!m_eventHistory[i].consumed &&
+                m_eventHistory[i].event.type == event.type &&
+                m_eventHistory[i].event.itemName == event.itemName)
+            {
+                m_eventHistory.pop_back();
+                break;
+            }
+        }
+    }
+    if (m_eventHistory.size() > 128)
+    {
+        m_eventHistory.erase(m_eventHistory.begin());
+    }
+}
+
+bool StoryManager::recordsPriorAction(EventType type)
+{
+    switch (type)
+    {
+    case EventType::ItemPickedUp:
+    case EventType::EntityKilled:
+    case EventType::EntityDrained:
+    case EventType::EntityPossessed:
+    case EventType::DialogueFinished:
+    case EventType::FlagChanged:
+        return true;
+    default:
+        return false;
+    }
+}
+
+json StoryManager::saveState() const
+{
+    json quests = json::array();
+    for (const Quest& quest : m_quests)
+    {
+        json stepIDs = json::array();
+        for (const QuestStep& step : quest.steps)
+            stepIDs.push_back(step.id);
+        const char* state = quest.state == QuestState::Locked ? "locked" :
+                            quest.state == QuestState::Active ? "active" : "completed";
+        quests.push_back({{"id", quest.id}, {"steps", stepIDs},
+                          {"state", state}, {"current_step", quest.currentStep}});
+    }
+
+    json priorActions = json::array();
+    for (const RecordedEvent& record : m_eventHistory)
+    {
+        if (!record.consumed && recordsPriorAction(record.event.type))
+        {
+            priorActions.push_back({{"type", static_cast<int>(record.event.type)},
+                                    {"subject", record.event.itemName}});
+        }
+    }
+    return {{"version", 1}, {"definition", m_definitionFingerprint},
+            {"quests", quests},
+            {"prior_actions", priorActions}, {"finished", m_storyFinished}};
+}
+
+void StoryManager::loadState(const json& state)
+{
+    if (!state.is_object() || state.at("version") != 1 ||
+        state.at("definition") != m_definitionFingerprint ||
+        !state.at("quests").is_array() ||
+        state.at("quests").size() != m_quests.size() ||
+        !state.at("prior_actions").is_array() ||
+        state.at("prior_actions").size() > 128)
+    {
+        throw std::runtime_error("Incompatible quest save state");
+    }
+
+    std::vector<Quest> restored = m_quests;
+    size_t activeCount = 0;
+    for (size_t i = 0; i < restored.size(); ++i)
+    {
+        const json& entry = state.at("quests").at(i);
+        Quest& quest = restored[i];
+        if (entry.at("id") != quest.id || !entry.at("steps").is_array() ||
+            entry.at("steps").size() != quest.steps.size())
+            throw std::runtime_error("Quest definitions changed since save");
+        for (size_t s = 0; s < quest.steps.size(); ++s)
+        {
+            if (entry.at("steps").at(s) != quest.steps[s].id)
+                throw std::runtime_error("Quest steps changed since save");
+        }
+        quest.state = questStateFromString(entry.at("state").get<std::string>());
+        quest.currentStep = entry.at("current_step").get<size_t>();
+        if (quest.currentStep > quest.steps.size() ||
+            (quest.state == QuestState::Completed) !=
+                (quest.currentStep == quest.steps.size()) ||
+            (quest.state == QuestState::Locked && quest.currentStep != 0))
+            throw std::runtime_error("Invalid saved quest progression");
+        for (size_t s = 0; s < quest.steps.size(); ++s)
+            quest.steps[s].completed = s < quest.currentStep;
+        activeCount += quest.state == QuestState::Active ? 1 : 0;
+    }
+    const bool finished = state.at("finished").get<bool>();
+    if (activeCount > 1 || (finished != (activeCount == 0)))
+        throw std::runtime_error("Invalid saved active quest state");
+
+    std::vector<RecordedEvent> history;
+    for (const json& action : state.at("prior_actions"))
+    {
+        int rawType = action.at("type").get<int>();
+        if (rawType < 0 || rawType >= static_cast<int>(EventType::NoEvent) ||
+            !recordsPriorAction(static_cast<EventType>(rawType)))
+            throw std::runtime_error("Invalid saved prior action");
+        Event event{static_cast<EventType>(rawType),
+                    action.at("subject").get<std::string>()};
+        const auto duplicate = std::find_if(history.begin(), history.end(),
+            [&event](const RecordedEvent& previous) {
+                return previous.event.type == event.type &&
+                       previous.event.itemName == event.itemName;
+            });
+        if (duplicate != history.end())
+            throw std::runtime_error("Duplicate saved prior action");
+        history.push_back({event, false});
+    }
+    m_quests = std::move(restored);
+    m_eventHistory = std::move(history);
+    m_storyFinished = finished;
+    refreshPrimaryActiveQuest();
 }
 
 bool StoryManager::isStoryFinished() const

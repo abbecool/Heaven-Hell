@@ -7,6 +7,7 @@
 #include "core/Action.hpp"
 #include "physics/RandomArray.hpp"
 #include "world/WorldLayout.hpp"
+#include "story/GameSave.hpp"
 
 #include <iostream>
 #include <string>
@@ -142,10 +143,18 @@ void Scene_Menu::sDoAction(const Action& action)
             }
             else if (name == "continue")
             {
-                m_game->changeScene(
-                    "PLAY",
-                    std::make_shared<Scene_Play>(m_game, levelPath, false),
-                    true);
+                try
+                {
+                    if (GameSave().exists())
+                        m_game->changeScene(
+                            "PLAY", std::make_shared<Scene_Play>(
+                                        m_game, levelPath, false), true);
+                }
+                catch (const std::exception& exception)
+                {
+                    std::cerr << "Could not continue saved game: "
+                              << exception.what() << '\n';
+                }
             }
             else if (name == "editor")
             {
