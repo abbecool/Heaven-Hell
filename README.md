@@ -190,7 +190,14 @@ To package an existing build without rebuilding first:
 
 ## Tests
 
-Quest and save state contracts are documented in
+The menu's **New Game** starts from the initial story and world state, even if
+a save exists. **Continue** loads the saved player and host, quest progress,
+and supported world changes. Saves are stored in the user data directory:
+`%LOCALAPPDATA%/HeavenHell/save.json` on Windows and
+`$XDG_DATA_HOME/heavenhell/save.json` (or
+`~/.local/share/heavenhell/save.json`) on Linux. The
+`config_files/game_save.json` file is a legacy sample, not the active save.
+The snapshot's scope and quest event rules are documented in
 [docs/QuestAndSaveState.md](docs/QuestAndSaveState.md).
 
 Configure and build the debug preset, then run CTest:
@@ -202,7 +209,9 @@ C:/msys64/ucrt64/bin/ctest.exe --preset windows-ninja-debug --output-on-failure
 ```
 
 CTest registers one entry per test suite. Each suite runs all of its internal
-cases and reports the failing case by name.
+cases and reports the failing case by name. The eight suites cover `Vec2`,
+`RandomArray`, `SpriteDefinition`, ECS/component pools, `RenderView`,
+`StoryManager`, world layouts, and the entity catalog.
 
 ## Linux Setup
 
@@ -271,10 +280,11 @@ ctest --preset linux-core-sanitize
 - The SDL backend is useful as a compatibility/reference renderer.
 - The OpenGL backend supports batched textured sprites, filled/drawn
   rectangles, and text through glyph atlases.
-- World-space camera projection has not moved into the renderer yet; scenes
-  still calculate camera-to-screen transforms on the CPU.
-- CTest is enabled with small `Vec2`, `RandomArray`, `SpriteDefinition`, and
-  ECS/component-pool test suites.
+- Scenes provide camera state through `RenderView` and submit world-space draw
+  commands. The SDL backend converts those commands on the CPU; the OpenGL
+  backend uses a world projection matrix. See
+  [docs/WorldSpaceRendering.md](docs/WorldSpaceRendering.md).
 
-See [docs/BackendSetupRoadmap.md](docs/BackendSetupRoadmap.md) for the recommended
-backend/setup work before shifting fully back to gameplay features.
+See [docs/BackendSetupRoadmap.md](docs/BackendSetupRoadmap.md) for background on
+the backend setup. Some of its status and priorities predate the current build
+and quest/save work; use the code and current documentation for present behavior.
