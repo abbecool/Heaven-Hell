@@ -88,7 +88,11 @@ if (HEAVENHELL_BUILD_GAME)
         src/scenes/Scene_Inventory.cpp
         src/scenes/Scene_Menu.cpp
         src/scenes/Scene_Pause.cpp
+        src/scenes/Scene_Play_Combat.cpp
         src/scenes/Scene_Play.cpp
+        src/scenes/Scene_Play_Render.cpp
+        src/scenes/Scene_Play_Systems.cpp
+        src/scenes/Scene_Play_World.cpp
     )
     target_include_directories(heavenhell_runtime PUBLIC ${CMAKE_SOURCE_DIR}/src)
     target_link_libraries(heavenhell_runtime
