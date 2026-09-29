@@ -74,8 +74,8 @@ protected:
     void printHoveredEntityComponents();
     void onTerrainChanged() override;
 
-    void sDoAction(const Action&);
-    void onEnd();
+    void sDoAction(const Action&) override;
+    void onEnd() override;
     void togglePause();
     const Item* findItemFromJson(const json& itemRef) const;
     void loadInventoryFromJson(EntityID entity, const json& inventoryJson);
@@ -109,7 +109,7 @@ public:
     bool addCurrencyToPlayer(int amount);
     bool addCurrencyToPlayer(const Item& item);
     void updateActiveItem(int newActiveItem);
-    void update();
+    void update() override;
     void setPaused(bool);
 
     StoryManager& getStoryManager()

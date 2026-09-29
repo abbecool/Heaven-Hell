@@ -197,9 +197,9 @@ Vec2 Camera::getScreenSize()
 class CameraController : public ScriptableEntity
 {
 public:
-    void OnCreateFunction() {}
+    void OnCreateFunction() override {}
 
-    void OnDestroyFunction() {}
+    void OnDestroyFunction() override {}
 
-    void OnUpdateFunction() {}
+    void OnUpdateFunction() override {}
 };

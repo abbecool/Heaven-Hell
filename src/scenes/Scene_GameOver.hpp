@@ -25,11 +25,11 @@ protected:
     void sAnimation();
     void sRender();
 
-    void sDoAction(const Action&);
-    void onEnd();
+    void sDoAction(const Action&) override;
+    void onEnd() override;
     void setPaused(bool);
 
 public:
     Scene_GameOver(Game* game);
-    void update();
+    void update() override;
 };

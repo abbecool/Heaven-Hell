@@ -29,12 +29,12 @@ protected:
     void sRender();
     void sAudio();
 
-    void sDoAction(const Action&);
-    void onEnd();
+    void sDoAction(const Action&) override;
+    void onEnd() override;
 
 public:
     Scene_Inventory(Game* play);
-    void update();
+    void update() override;
     void Scroll(int scroll);
     void toggleInventory();
 };

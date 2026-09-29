@@ -3,8 +3,8 @@
 ## Run details
 
 - Date: 2026-09-22.
-- Source snapshot: `db04605` (`clang-format entire project`) plus the named-layout
-  change in `Scene_Editor::openLayout`. Locations below refer to this working tree.
+- Source snapshot: `15a1c90` plus the override/unreachable-code cleanup.
+  Locations below refer to this working tree.
 - Tool: Cppcheck 2.22.0; C++20; Windows x64.
 - Completed: **38/38 translation units**, including the test targets.
 - Exit code: **1**, as configured when findings are reported; the refreshed run
@@ -56,12 +56,12 @@ the practical priority of an individual finding.
 | 2 | warning | 30 |
 | 3 | performance | 29 |
 | 4 | portability | 0 |
-| 5 | style | 132 |
-| | **Total** | **191** |
+| 5 | style | 110 |
+| | **Total** | **169** |
 
 Counts are emitted occurrences, not distinct root causes. Template
 instantiations can generate multiple messages at the same source location.
-The current ranked inventory below includes all **23 diagnostic IDs**. Repeated
+The current ranked inventory below includes all **21 diagnostic IDs**. Repeated
 line locations are consolidated there; the full log retains every occurrence.
 
 ## Recommended attention order after source review
@@ -79,14 +79,33 @@ line locations are consolidated there; the full log retains every occurrence.
    flags hide separate base-class members. This can cause state divergence if
    future code uses the wrong member; the current derived duplicates appear
    unused.
-4. **Potential logic/intent issues:** the unreachable ECS log, boolean bitwise
-   operators, and the reported unused ECS assignments deserve source review.
+4. **Potential logic/intent issues:** boolean bitwise operators and the reported
+   unused ECS assignments deserve source review.
    Do not remove component mutations just because Cppcheck labels them unread.
 5. **Performance and routine style:** address selectively after correctness.
    Passing a value can be intentional, and changing copies into references can
    change aliasing or lifetime behavior.
 
 ## Ranked diagnostic inventory
+
+### Completed behavior-preserving cleanup
+
+- Added `override` to 21 existing virtual overrides in six scene headers and
+  `CameraController`. This adds compiler checking without changing dispatch.
+- Removed the unreachable log after `return emptyPool;` in `ECS.hpp`. It could
+  never execute; it was removed rather than moved into a live execution path.
+- Full Cppcheck completed 38/38 translation units. Exactly 21 `missingOverride`
+  reports and one `unreachableCode` report disappeared. Remaining messages are
+  unchanged apart from shifted ECS line numbers.
+- Formatting check and build passed. Tests remain 7/8 passing, with only the
+  previously observed Windows-path JSON fixture failure in `world_layout_tests`.
+- Checkpoint: 191 -> 169 total findings; 132 -> 110 style findings. No new
+  suppressions or runtime behavior changes were introduced.
+
+Before changing initialization defaults, implicit conversions, member lookup,
+parameter/return ownership, or ECS mutations, request approval if behavior
+could change. Those categories need individual analysis rather than automatic
+application of Cppcheck suggestions.
 
 ### 1. Errors — 0 occurrences
 
@@ -139,7 +158,7 @@ invalid read was established during this review.
 | ID | Count | Locations | Meaning / caveat |
 | --- | ---: | --- | --- |
 | `passedByValue` | 14 | `src/assets/Assets.cpp:93`; `src/assets/SpriteDefinition.cpp:8,14`; `src/ecs/Components.hpp:558,589,598,864`; `src/physics/Vec2.cpp:174`; `src/scenes/Scene.cpp:37` (2), `:103`; `src/scenes/Scene_Inventory.cpp:87`; `src/scenes/Scene_Play.cpp:105,1659` | Possible avoidable parameter copies. Check ownership and move semantics before replacing with const references. |
-| `stlFindInsert` | 8 | `src/core/Game.cpp:119`; `src/ecs/ECS.hpp:620` (7 template-related reports) | Lookup followed by insertion may do redundant map work. A blind `try_emplace(key, make_unique(...))` rewrite still eagerly evaluates `make_unique` on an existing key. |
+| `stlFindInsert` | 8 | `src/core/Game.cpp:119`; `src/ecs/ECS.hpp:619` (7 template-related reports) | Lookup followed by insertion may do redundant map work. A blind `try_emplace(key, make_unique(...))` rewrite still eagerly evaluates `make_unique` on an existing key. |
 | `iterateByValue` | 3 | `src/assets/Assets.cpp:48,128`; `src/physics/Quadtree.hpp:70` | Range loop copies each element; a const reference may be cheaper. |
 | `useInitializationList` | 3 | `src/ecs/Components.hpp:302,835`; `src/physics/Level_Loader.cpp:120` | Initialize members directly rather than assigning in the constructor body, where appropriate. |
 | `returnByReference` | 1 | `src/assets/SpriteDefinition.hpp:31` | Possible copied member return; review the size of `TextureHandle` and caller lifetime requirements before changing the API. |
@@ -149,17 +168,15 @@ invalid read was established during this review.
 No portability diagnostics were emitted with the selected Windows/C++20
 configuration. This does not establish that every platform is supported.
 
-### 5. Style — 132 occurrences
+### 5. Style — 110 occurrences
 
 Listed with behavior/intent-related items first, then routine API/style items.
 
 | ID | Count | Locations | Meaning / review note |
 | --- | ---: | --- | --- |
-| `unreachableCode` | 1 | `src/ecs/ECS.hpp:611` | Logging follows `return emptyPool;` and can never execute. Confirmed dead statement. |
 | `bitwiseOnBoolean` | 4 | `src/physics/Vec2.cpp:181,186,191,196` | Boolean comparisons use bitwise operators. With these boolean operands the truth values match logical operators, but evaluation is not short-circuited. Verify intent. |
 | `unreadVariable` | 3 | `src/physics/CollisionManager.cpp:774,787,814` | Writes through ECS component references are reported unread. They may intentionally affect later systems; inspect consumers before deleting. |
 | `knownConditionTrueFalse` | 1 | `src/physics/Quadtree.hpp:64` | `!m_divided` is true here because the earlier divided branch returns. Redundant guard, not evidence of a broken quadtree. |
-| `missingOverride` | 21 | `src/physics/Camera.cpp:200,202,204`; `src/scenes/Scene_Finish.hpp:17,18,23`; `Scene_GameOver.hpp:28,29,34`; `Scene_Inventory.hpp:32,33,37`; `Scene_Menu.hpp:28,29,34`; `Scene_Pause.hpp:26,30,31`; `Scene_Play.hpp:77,78,112` (all latter headers under `src/scenes/`) | Add `override` to make the compiler check the intended overrides. |
 | `noExplicitConstructor` | 42 | `src/core/Game.hpp:62`; `src/ecs/Components.hpp:121,175,182,209,229,284,299,325,337,341,412,427,442,459,482,490,525,558,568,581,589,597,625,642,689,690,733,748,767,829,864,884`; `src/physics/InventoryManager.hpp:75,113`; `src/physics/Vec2.hpp:22`; `src/scenes/Scene_Finish.hpp:22`; `Scene_GameOver.hpp:33`; `Scene_Inventory.hpp:36`; `Scene_Menu.hpp:33`; `Scene_Pause.hpp:29` (scene headers under `src/scenes/`); `src/world/EntityCatalog.hpp:29` | Single-argument constructors permit implicit conversions. Add `explicit` only where those conversions are not intended. |
 | `constVariableReference` | 17 | `src/physics/CollisionManager.cpp:652,744`; `src/physics/Quadtree.cpp:74`; `src/scenes/Scene.cpp:50`; `Scene_Finish.cpp:83`; `Scene_GameOver.cpp:96`; `Scene_Menu.cpp:133`; `Scene_Pause.cpp:102`; `Scene_Play.cpp:630,988,1000,1185,1220,1316,1417,2271` (scene files under `src/scenes/`); `tests/ecs/test_ecs.cpp:106` | Local reference could be const. |
 | `useStlAlgorithm` | 16 | `src/debug/EntityInspector.cpp:283`; `src/ecs/Components.hpp:345,449`; `src/ecs/ECS.hpp:138,270,444`; `src/physics/CollisionManager.cpp:619`; `src/physics/Physics.cpp:20`; `src/physics/Quadtree.cpp:133`; `src/physics/RandomArray.cpp:24`; `src/physics/Renderer.hpp:99`; `src/scenes/Scene_Editor.cpp:376`; `src/story/StoryManager.cpp:478,522`; `tests/TestSupport.hpp:56,67` | Optional replacement of loops with standard algorithms. Readability preference, not a correctness requirement. |
@@ -168,7 +185,7 @@ Listed with behavior/intent-related items first, then routine API/style items.
 | `constParameterReference` | 3 | `src/assets/Assets.cpp:56`; `src/scenes/Scene_Play.cpp:895,944` | Parameter could be a reference to const. |
 | `uselessOverride` | 3 | `src/physics/Camera.cpp:200,202,204` | Empty overrides repeat base behavior; cleanup opportunity if deliberate extension points are not needed. |
 | `constParameterPointer` | 1 | `src/ecs/ECS.hpp:110` | Pointer parameter could point to const. |
-| `constVariablePointer` | 1 | `src/ecs/ECS.hpp:657` | Local pointer could point to const. |
+| `constVariablePointer` | 1 | `src/ecs/ECS.hpp:656` | Local pointer could point to const. |
 | `variableScope` | 1 | `src/physics/Level_Loader.cpp:287` | Local variable could have narrower scope. |
 
 ## Formatting diff review

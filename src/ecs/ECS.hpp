@@ -608,7 +608,6 @@ public:
         {
             static ComponentPool<T> emptyPool;
             return emptyPool;
-            std::cout << typeid(T).name() << " pool doesnt exist." << std::endl;
         }
     }
 

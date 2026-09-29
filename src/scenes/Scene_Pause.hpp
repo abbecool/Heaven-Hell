@@ -23,10 +23,10 @@ protected:
     void loadLayout(const std::string& path);
     void setPaused(bool);
 
-    void onEnd() {};
+    void onEnd() override {};
 
 public:
     Scene_Pause(Game* game);
-    void update();
-    void sDoAction(const Action&);
+    void update() override;
+    void sDoAction(const Action&) override;
 };
