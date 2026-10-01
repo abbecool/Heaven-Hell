@@ -6,6 +6,9 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace
 {
@@ -174,6 +177,53 @@ void testSaveFileRoundTripAndFailure()
     std::filesystem::remove(path);
 }
 
+#ifdef _WIN32
+void testDefaultSavePathSupportsUnicodeLocalAppData()
+{
+    constexpr wchar_t LocalAppData[] = L"LOCALAPPDATA";
+    const DWORD previousSize = GetEnvironmentVariableW(LocalAppData, nullptr, 0);
+    std::wstring previousValue;
+    if (previousSize > 0)
+    {
+        previousValue.resize(previousSize);
+        const DWORD copied = GetEnvironmentVariableW(
+            LocalAppData, previousValue.data(), previousSize);
+        require(copied > 0 && copied < previousSize,
+                "could not capture LOCALAPPDATA for the test");
+        previousValue.resize(copied);
+    }
+
+    const std::wstring unicodeRoot =
+        L"C:\\Users\\Abbe\\AppData\\Local\\HeavenHell-ä";
+    require(SetEnvironmentVariableW(LocalAppData, unicodeRoot.c_str()) != 0,
+            "could not set Unicode LOCALAPPDATA for the test");
+
+    std::filesystem::path actualPath;
+    try
+    {
+        actualPath = GameSave::defaultPath();
+    }
+    catch (...)
+    {
+        if (previousSize > 0)
+            SetEnvironmentVariableW(LocalAppData, previousValue.c_str());
+        else
+            SetEnvironmentVariableW(LocalAppData, nullptr);
+        throw;
+    }
+
+    if (previousSize > 0)
+        SetEnvironmentVariableW(LocalAppData, previousValue.c_str());
+    else
+        SetEnvironmentVariableW(LocalAppData, nullptr);
+
+    const std::filesystem::path expectedPath =
+        std::filesystem::path(unicodeRoot) / L"HeavenHell" / L"save.json";
+    require(actualPath == expectedPath,
+            "default save path did not preserve Unicode LOCALAPPDATA");
+}
+#endif
+
 void testEventBusRoutesByTypeAndSubject()
 {
     EventBus bus;
@@ -197,6 +247,10 @@ constexpr std::array Tests = {
     TestSupport::TestCase{"save_and_restore_progress", testSaveAndRestoreProgress},
     TestSupport::TestCase{"reject_changed_quest_definitions", testRejectChangedQuestDefinitions},
     TestSupport::TestCase{"save_file_round_trip", testSaveFileRoundTripAndFailure},
+#ifdef _WIN32
+    TestSupport::TestCase{"default_save_path_supports_unicode_local_app_data",
+                          testDefaultSavePathSupportsUnicodeLocalAppData},
+#endif
     TestSupport::TestCase{"event_bus_routes_by_type_and_subject",
                           testEventBusRoutesByTypeAndSubject},
 };

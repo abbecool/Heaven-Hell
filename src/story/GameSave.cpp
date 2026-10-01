@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <stdexcept>
+#include <string>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -14,11 +15,28 @@ GameSave::GameSave(std::filesystem::path path) : m_path(std::move(path)) {}
 std::filesystem::path GameSave::defaultPath()
 {
 #ifdef _WIN32
-    const char* root = std::getenv("LOCALAPPDATA");
-    if (!root || !*root)
-        root = std::getenv("APPDATA");
-    if (root && *root)
-        return std::filesystem::path(root) / "HeavenHell" / "save.json";
+    const auto getWindowsEnvironmentPath = [](const wchar_t* name)
+    {
+        const DWORD bufferSize = GetEnvironmentVariableW(name, nullptr, 0);
+        if (bufferSize == 0)
+            return std::filesystem::path{};
+
+        std::wstring value(bufferSize, L'\0');
+        const DWORD length =
+            GetEnvironmentVariableW(name, value.data(), bufferSize);
+        if (length == 0 || length >= bufferSize)
+            return std::filesystem::path{};
+
+        value.resize(length);
+        return std::filesystem::path(std::move(value));
+    };
+
+    std::filesystem::path root =
+        getWindowsEnvironmentPath(L"LOCALAPPDATA");
+    if (root.empty())
+        root = getWindowsEnvironmentPath(L"APPDATA");
+    if (!root.empty())
+        return root / L"HeavenHell" / L"save.json";
 #else
     const char* root = std::getenv("XDG_DATA_HOME");
     if (root && *root)
