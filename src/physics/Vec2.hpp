@@ -19,7 +19,7 @@ public:
     Vec2(int x_, float y_) : x(static_cast<float>(x_)), y(y_) {}
     Vec2(float x_, int y_) : x(x_), y(static_cast<float>(y_)) {}
 
-    Vec2(json j) : x(j["x"]), y(j["y"]) {}
+    explicit Vec2(json j) : x(j["x"]), y(j["y"]) {}
     Vec2(json jx, json jy) : x(jx), y(jy) {}
 
     bool operator==(const Vec2& rhs) const;

@@ -26,7 +26,7 @@ protected:
     void onEnd() override {};
 
 public:
-    Scene_Pause(Game* game);
+    explicit Scene_Pause(Game* game);
     void update() override;
     void sDoAction(const Action&) override;
 };

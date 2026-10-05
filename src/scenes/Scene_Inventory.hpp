@@ -33,7 +33,7 @@ protected:
     void onEnd() override;
 
 public:
-    Scene_Inventory(Game* play);
+    explicit Scene_Inventory(Game* play);
     void update() override;
     void Scroll(int scroll);
     void toggleInventory();

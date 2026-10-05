@@ -19,6 +19,6 @@ protected:
     void setPaused(bool);
 
 public:
-    Scene_Finish(Game* game);
+    explicit Scene_Finish(Game* game);
     void update() override;
 };

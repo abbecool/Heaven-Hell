@@ -118,7 +118,7 @@ struct CParent
     EntityID parent;
     Vec2 relativePos = {0, 0};
     CParent() {}
-    CParent(EntityID p) : parent(p) {}
+    explicit CParent(EntityID p) : parent(p) {}
     CParent(EntityID p, Vec2 relPos) : parent(p), relativePos(relPos) {}
 };
 
@@ -172,14 +172,14 @@ struct CTransform
     Vec2 scale = {1, 1};
     float angle = 0;
     CTransform() {}
-    CTransform(const Vec2& p) : pos(p), prevPos(p) {}
+    explicit CTransform(const Vec2& p) : pos(p), prevPos(p) {}
     CTransform(const Vec2& p, float a) : pos(p), prevPos(p), angle(a) {}
     CTransform(const Vec2& p, float a, Vec2 s)
         : pos(p), prevPos(p), scale(s), angle(a)
     {
     }
     CTransform(const Vec2& p, Vec2 s) : pos(p), prevPos(p), scale(s) {}
-    CTransform(const json j) : pos(j["pos"]), prevPos(j["pos"]) {}
+    explicit CTransform(const json j) : pos(j["pos"]), prevPos(j["pos"]) {}
 };
 
 // Visual-only shadow tuning. Scale is a multiplier of the automatically
@@ -206,7 +206,7 @@ struct CVelocity
     // World-space linear velocity in pixels per second.
     Vec2 vel = {0, 0};
     CVelocity() {}
-    CVelocity(const Vec2& v) : vel(v) {}
+    explicit CVelocity(const Vec2& v) : vel(v) {}
 };
 
 struct CPhysicsBody
@@ -226,7 +226,7 @@ struct CPhysicsBody
         validate();
     }
 
-    CPhysicsBody(const json& j)
+    explicit CPhysicsBody(const json& j)
         : mass(j.at("mass").get<float>()),
           moveForce(j.at("moveForce").get<float>()),
           maxSpeed(j.at("maxSpeed").get<float>()),
@@ -281,7 +281,7 @@ struct ColliderShape
     bool isTrigger = false;
 
     ColliderShape() = default;
-    ColliderShape(const Vec2& s) : size(s), halfSize(s / 2.0f) {}
+    explicit ColliderShape(const Vec2& s) : size(s), halfSize(s / 2.0f) {}
     ColliderShape(const Vec2& s, CollisionMask l, CollisionMask targets,
                   bool trigger = false)
         : size(s), halfSize(s / 2.0f), layer(l), targetMask(targets),
@@ -296,7 +296,7 @@ struct ColliderShape
           debugColor(shapeDebugColor), isTrigger(trigger)
     {
     }
-    ColliderShape(const json& j, Color defaultColor = {255, 255, 255, 255},
+    explicit ColliderShape(const json& j, Color defaultColor = {255, 255, 255, 255},
                   bool defaultTrigger = false)
     {
         offset = j.value("offset", Vec2{0, 0});
@@ -322,7 +322,7 @@ struct CCollider
     std::vector<ColliderShape> shapes;
 
     CCollider() = default;
-    CCollider(const Vec2& size) : shapes{ColliderShape(size)} {}
+    explicit CCollider(const Vec2& size) : shapes{ColliderShape(size)} {}
     CCollider(const Vec2& size, CollisionMask layer, CollisionMask targetMask,
               bool isTrigger = false)
         : shapes{ColliderShape(size, layer, targetMask, isTrigger)}
@@ -334,11 +334,11 @@ struct CCollider
                                isTrigger)}
     {
     }
-    CCollider(std::vector<ColliderShape> colliderShapes)
+    explicit CCollider(std::vector<ColliderShape> colliderShapes)
         : shapes(std::move(colliderShapes))
     {
     }
-    CCollider(const json& j)
+    explicit CCollider(const json& j)
     {
         for (const auto& shapeJson : j.at("shapes"))
         {
@@ -409,7 +409,7 @@ struct CWater
 {
     bool isDeep = false; // Differentiates deep vs shallow water
     CWater() {}
-    CWater(bool d) : isDeep(d) {}
+    explicit CWater(bool d) : isDeep(d) {}
 };
 
 struct CSwimming
@@ -424,7 +424,7 @@ struct CCurrency
 {
     int value = 0;
     CCurrency() {}
-    CCurrency(const json& j) : value(j.value("value", 0)) {}
+    explicit CCurrency(const json& j) : value(j.value("value", 0)) {}
 };
 
 struct CHealth
@@ -439,7 +439,7 @@ struct CHealth
         : HP(hp), HP_max(hp_max), i_frames(hrt_frms)
     {
     }
-    CHealth(const json& j)
+    explicit CHealth(const json& j)
     {
         HP = j["HP"];
         HP_max = j["HP_max"];
@@ -456,7 +456,7 @@ struct CDamageFlash
     int totalFrames = 8;
 
     CDamageFlash() {}
-    CDamageFlash(int frames) : framesRemaining(frames), totalFrames(frames) {}
+    explicit CDamageFlash(int frames) : framesRemaining(frames), totalFrames(frames) {}
 
     void reset()
     {
@@ -479,7 +479,7 @@ struct CLifespan
 {
     int lifespan = 0;
     CLifespan() {}
-    CLifespan(int lf) : lifespan(lf) {}
+    explicit CLifespan(int lf) : lifespan(lf) {}
 };
 
 struct CActiveHitboxLifetime
@@ -487,7 +487,7 @@ struct CActiveHitboxLifetime
     int framesRemaining = 15;
 
     CActiveHitboxLifetime() {}
-    CActiveHitboxLifetime(int frames) : framesRemaining(frames) {}
+    explicit CActiveHitboxLifetime(int frames) : framesRemaining(frames) {}
 };
 
 struct CSprite
@@ -522,7 +522,7 @@ struct CAnimation
     bool repeat = true;
 
     CAnimation() {}
-    CAnimation(const SpriteDefinition& sprite, bool r = true)
+    explicit CAnimation(const SpriteDefinition& sprite, bool r = true)
         : frameCount(std::max<size_t>(1, sprite.frameCount())),
           frameDuration(std::max<size_t>(1, sprite.frameDuration())),
           frameSize(sprite.frameSize()),
@@ -555,7 +555,7 @@ struct CAudio
     std::string audioName;
     int loops = 0;
     CAudio(std::string a, int l) : audioName(a), loops(l) {}
-    CAudio(std::string a) : audioName(a) {}
+    explicit CAudio(std::string a) : audioName(a) {}
 };
 
 struct CState
@@ -565,7 +565,7 @@ struct CState
     PlayerState facing = PlayerState::RUN_DOWN;
     bool changeAnimate = true;
     CState() {}
-    CState(const PlayerState s) : state(s), preState(s), facing(s) {}
+    explicit CState(const PlayerState s) : state(s), preState(s), facing(s) {}
 };
 
 enum class ProjectilePhase
@@ -578,7 +578,7 @@ struct CProjectileState
 {
     ProjectilePhase phase = ProjectilePhase::Flying;
     CProjectileState() {}
-    CProjectileState(ProjectilePhase projectilePhase) : phase(projectilePhase)
+    explicit CProjectileState(ProjectilePhase projectilePhase) : phase(projectilePhase)
     {
     }
 };
@@ -586,7 +586,7 @@ struct CName
 {
     std::string name;
     CName() {}
-    CName(const std::string nm) : name(nm) {}
+    explicit CName(const std::string nm) : name(nm) {}
 };
 
 struct CDamage
@@ -594,7 +594,7 @@ struct CDamage
     int damage;
     std::unordered_set<std::string> damageType;
     CDamage() {}
-    CDamage(int dmg) : damage(dmg) {}
+    explicit CDamage(int dmg) : damage(dmg) {}
     CDamage(int dmg, std::unordered_set<std::string> dmgType)
         : damage(dmg), damageType(dmgType)
     {
@@ -622,7 +622,7 @@ struct CAttackHitbox
     std::unordered_set<EntityID> hitEntities;
 
     CAttackHitbox() {}
-    CAttackHitbox(EntityID ownerID) : owner(ownerID) {}
+    explicit CAttackHitbox(EntityID ownerID) : owner(ownerID) {}
 };
 
 struct CAttackState
@@ -639,7 +639,7 @@ struct CAttackState
     CAnimation previousAnimation;
 
     CAttackState() {}
-    CAttackState(Vec2 attackDirection) : direction(attackDirection) {}
+    explicit CAttackState(Vec2 attackDirection) : direction(attackDirection) {}
 
     int hitGameFrame() const
     {
@@ -686,8 +686,8 @@ struct CPossessable
     PossessState state = PossessState::Drain;
 
     CPossessable() {}
-    CPossessable(int l) : level(l) {}
-    CPossessable(const json& j)
+    explicit CPossessable(int l) : level(l) {}
+    explicit CPossessable(const json& j)
     {
         if (j.is_number())
         {
@@ -730,7 +730,7 @@ struct CAIAgent
     AIStateType state = AIStateType::Patrol;
 
     CAIAgent() {}
-    CAIAgent(const json& j)
+    explicit CAIAgent(const json& j)
     {
         sightRange = j.value("sightRange", 200.0f);
         patrolRadius = j.value("patrolRadius", 96.0f);
@@ -745,7 +745,7 @@ struct CItem
     bool hasPickupModeOverride = false;
     PickupMode pickupModeOverride = PickupMode::Manual;
 
-    CItem(int id) : itemID(id) {}
+    explicit CItem(int id) : itemID(id) {}
     CItem(int id, PickupMode mode)
         : itemID(id), hasPickupModeOverride(true), pickupModeOverride(mode)
     {
@@ -764,7 +764,7 @@ struct CInventory
         return static_cast<int>(items.size());
     }
 
-    CInventory(int slotCount = DefaultSlotCount)
+    explicit CInventory(int slotCount = DefaultSlotCount)
         : items(static_cast<size_t>(std::max(1, slotCount)))
     {
         activeItem.index = 0;
@@ -826,7 +826,7 @@ struct CWeapon
     {
     }
 
-    CWeapon(const json& j)
+    explicit CWeapon(const json& j)
     {
         damage = j["damage"];
         speed = j["speed"];
@@ -861,7 +861,7 @@ struct CEvent
     Event event;
 
     CEvent() {}
-    CEvent(Event e) : event(e) {}
+    explicit CEvent(Event e) : event(e) {}
 };
 
 struct ChildLink
@@ -881,7 +881,7 @@ struct CChild
     std::vector<ChildLink> children;
 
     CChild() {}
-    CChild(EntityID cID) : children{{cID, true}} {}
+    explicit CChild(EntityID cID) : children{{cID, true}} {}
     CChild(EntityID cID, bool remove) : children{{cID, remove}} {}
 };
 

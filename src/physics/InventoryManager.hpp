@@ -72,7 +72,7 @@ struct Item
             return ItemType::Currency;
         return ItemType::None;
     }
-    Item(const nlohmann::json& j)
+    explicit Item(const nlohmann::json& j)
     {
         id = j.value("id", -1);
         name = j.value("name", "Unknown");
@@ -110,7 +110,7 @@ class InventoryManager
 {
 public:
     InventoryManager() {}
-    InventoryManager(const std::string& path)
+    explicit InventoryManager(const std::string& path)
     {
         for (const auto& entry : std::filesystem::directory_iterator(path))
         {

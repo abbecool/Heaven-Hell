@@ -26,7 +26,7 @@ struct EditorEntityDefinition
 class EntityCatalog
 {
 public:
-    EntityCatalog(std::string mobsPath = "config_files/mobs",
+    explicit EntityCatalog(std::string mobsPath = "config_files/mobs",
                   std::string entitiesPath = "config_files/entities",
                   std::string itemsPath = "config_files/items");
 

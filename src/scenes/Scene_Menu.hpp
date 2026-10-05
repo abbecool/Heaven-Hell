@@ -30,6 +30,6 @@ protected:
     void setPaused(bool);
 
 public:
-    Scene_Menu(Game* game);
+    explicit Scene_Menu(Game* game);
     void update() override;
 };

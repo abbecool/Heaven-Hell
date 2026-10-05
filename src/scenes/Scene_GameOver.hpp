@@ -30,6 +30,6 @@ protected:
     void setPaused(bool);
 
 public:
-    Scene_GameOver(Game* game);
+    explicit Scene_GameOver(Game* game);
     void update() override;
 };
