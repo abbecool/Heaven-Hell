@@ -9,7 +9,14 @@ class Scene_Menu : public Scene
 {
     struct PlayerConfig
     {
-        float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
+        float X = 0.0f;
+        float Y = 0.0f;
+        float CX = 0.0f;
+        float CY = 0.0f;
+        float SPEED = 0.0f;
+        float MAXSPEED = 0.0f;
+        float JUMP = 0.0f;
+        float GRAVITY = 0.0f;
         std::string WEAPON;
     };
 

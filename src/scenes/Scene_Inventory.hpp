@@ -10,12 +10,9 @@ class Scene_Inventory : public Scene
 {
 protected:
     EntityID m_item;
-    Vec2 m_mousePosition;
     Vec2 m_inventorySize = {4, 2};
     Vec2 m_inventoryPos =
         Vec2{m_game->getWidth() - m_inventorySize.x * 32, 64.0f};
-    bool m_drawTextures = false;
-    bool m_drawCollision = false;
     bool m_open = false;
 
     // void spawnBox(Vec2 pos, std::string sprite);

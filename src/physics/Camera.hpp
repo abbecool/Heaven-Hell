@@ -12,14 +12,14 @@ class Camera
     Vec2 m_levelSize;
     Vec2 m_gridSize;
 
-    float shakeMagnitude;
+    float shakeMagnitude = 0.0f;
     int shakeDuration = 0;
-    int shakeTimeElapsed;
-    float panSpeed;
-    int panTimeElapsed;
-    int panStepCount;
-    bool panInitPause;
-    bool m_cameraPause;
+    int shakeTimeElapsed = 0;
+    float panSpeed = 0.0f;
+    int panTimeElapsed = 0;
+    int panStepCount = 0;
+    bool panInitPause = false;
+    bool m_cameraPause = false;
     Vec2 panPos = Vec2{0, 0};
     Vec2 panStartPos = Vec2{0, 0};
 
