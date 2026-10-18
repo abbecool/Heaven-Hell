@@ -251,6 +251,38 @@ run/Debug/heavenhell
 run/Release/heavenhell
 ```
 
+### Linux Release Package
+
+With Python 3.10+, CMake 3.25+, a C++ compiler, and the SDL3 development
+libraries installed, run from the repository root:
+
+```sh
+python3 scripts/package-release.py
+```
+
+The script builds `linux-release` and creates
+`dist/HeavenHell-<version>-linux-<architecture>.tar.gz`. It bundles the
+executable, configured runtime assets, config files, and shared-library
+dependencies reported by `ldd`. Extract the archive and run `./play.sh`
+inside the extracted directory; the launcher sets the asset working directory
+and bundled library search path.
+
+To package an existing trusted Release build without rebuilding:
+
+```sh
+python3 scripts/package-release.py --skip-build
+```
+
+Use `--output-dir PATH` to change the archive destination. An existing archive
+with the same name is replaced only after packaging succeeds.
+
+This is a native Linux package, not a cross-platform or universal AppImage.
+Players need the same CPU architecture and a compatible Linux system (ideally
+the same distribution/version or newer). glibc and graphics-stack libraries
+are deliberately not bundled; the host needs a graphical session and OpenGL
+drivers. Libraries/plugins loaded dynamically rather than linked may require
+additional host packages. Build on the oldest distribution you intend to support.
+
 ### Core-only build
 
 The platform-independent core and all tests can be built on a Linux machine
