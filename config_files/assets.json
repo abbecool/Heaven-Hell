@@ -358,7 +358,7 @@
     },
     {
       "name": "knight-sheet",
-      "frames": 6,
+      "frames": 4,
       "frametime": 7,
       "cols": 4,
       "rows": 5,
