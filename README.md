@@ -5,7 +5,7 @@ platform layer. The renderer is abstracted behind `RenderBackend`; the project
 has both an SDL renderer and an OpenGL renderer, and the game currently defaults
 to OpenGL in `Game.hpp`.
 
-![Gameplay](docs\gameplay.png)
+![Gameplay](docs/gameplay.png)
 
 ## Current Architecture
 
