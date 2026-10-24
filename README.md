@@ -25,7 +25,7 @@ The SDL platform layer owns SDL initialization, the window, input polling,
 audio loading/playback, and CPU-side image pixel loading. Rendering resources
 belong to the active render backend.
 
-![Gameplay](docs\main_menu.png)
+![Gameplay](docs/main_menu.png)
 
 ## Developer Setup
 
