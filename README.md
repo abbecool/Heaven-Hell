@@ -5,6 +5,8 @@ platform layer. The renderer is abstracted behind `RenderBackend`; the project
 has both an SDL renderer and an OpenGL renderer, and the game currently defaults
 to OpenGL in `Game.hpp`.
 
+![Gameplay](docs\gameplay.png)
+
 ## Current Architecture
 
 - `src/core`: game loop, SDL platform wrapper, input translation, shared pixel
@@ -22,6 +24,8 @@ to OpenGL in `Game.hpp`.
 The SDL platform layer owns SDL initialization, the window, input polling,
 audio loading/playback, and CPU-side image pixel loading. Rendering resources
 belong to the active render backend.
+
+![Gameplay](docs\main_menu.png)
 
 ## Developer Setup
 
